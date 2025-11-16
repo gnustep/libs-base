@@ -361,8 +361,9 @@
 	absolute location of that documentation in the filesystem).
 	By default this is the LOCAL domain, but it can also be set to
 	SYSTEM, NETWORK, or USER.<br />
-	When autogsdoc is run by gnustep-make this argument is automatically
-	added unless you have specifically set it in ...AGSDOC_FLAGS.
+	When autogsdoc is run by gnustep-make with AGSDOC_RELOCATABLE=yes
+	defined, this argument is automatically added unless you have
+	specifically set it in ...AGSDOC_FLAGS.
       </item>
       <item><strong>InstallDir</strong>
 	This is used to enable generation of HTML output with relative links
@@ -370,10 +371,9 @@
 	be the relative path at which this documentation will be installed
 	within the installation domain (see -InstallationDomain) used.
 	Relative links will not work until the documentation is installed.<br />
-	When autogsdoc is run by gnustep-make this argument is automatically
-	added unless you have specifically set it in ...AGSDOC_FLAGS.<br />
-	You may set the environment variable AUTOGSDOC_DISABLE_RELATIVE=1
-	to disable the use of relative links even if this argument is set.
+	When autogsdoc is run by gnustep-make with AGSDOC_RELOCATABLE=yes
+	defined, this argument is automatically added unless you have
+	specifically set it in ...AGSDOC_FLAGS.
       </item>
       <item><strong>Files</strong>
 	Specifies the name of a file containing a list of file names as
@@ -675,7 +675,6 @@ int
 main(int argc, char **argv, char **env)
 {
   NSProcessInfo		*proc;
-  NSDictionary		*environment;
   unsigned		i;
   NSString		*str;
   NSMutableDictionary	*safe;
@@ -807,7 +806,6 @@ main(int argc, char **argv, char **env)
       NSLog(@"unable to get process information!");
       exit(EXIT_FAILURE);
     }
-  environment = [proc environment];
   argsGiven = [proc arguments];
 
   defs = [NSUserDefaults standardUserDefaults];
@@ -1025,14 +1023,6 @@ main(int argc, char **argv, char **env)
     stringByAppendingPathComponent: @"OrderedSymbolDeclarations.plist"];
 
   installDir = [defs stringForKey: @"InstallDir"];
-
-  /* Use this environment variable to disable relative links and use
-   * absolute filesystem locations, disregarding the -InstallDir arg.
-   */
-  if ([[environment objectForKey: @"AUTOGSDOC_DISABLE_RELATIVE"] intValue])
-    {
-      installDir = nil;
-    }
 
   /*
    * 2) Build an array of files to be processed.
