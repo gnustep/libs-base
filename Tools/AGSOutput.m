@@ -1462,7 +1462,7 @@ static NSString	*padding[100];
   c = [a count];
   for (i = 0; i < c; i++)
     {
-      unsigned int	j;
+      unsigned int	j = 0;
 
       str = [a objectAtIndex: i];
 
