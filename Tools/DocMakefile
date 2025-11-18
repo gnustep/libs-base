@@ -60,7 +60,7 @@ xmlparse.m
 # directory.
 #
 BaseTools_AGSDOC_FLAGS = \
-	-MakeFrames YES \
+	-MakeFrames NO \
 	-DocumentationDirectory ../Documentation/BaseTools \
 	-HeaderDirectory ../Tools \
 	-Standards YES \
