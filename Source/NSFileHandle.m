@@ -429,8 +429,8 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Seeking within a file
 
-- (BOOL) getOffset: (out unsigned long long *)offsetInFile
-             error: (out NSError **)error
+- (BOOL) getOffset: (unsigned long long *)offsetInFile
+             error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -456,15 +456,15 @@ static Class NSFileHandle_ssl_class = nil;
   return 0;
 }
 
-- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
-                            error: (out NSError **)error
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile
+                            error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
 - (BOOL) seekToOffset: (unsigned long long)offset
-                error: (out NSError **)error
+                error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -509,7 +509,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset
-                    error: (out NSError **)error
+                    error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;

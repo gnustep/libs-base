@@ -136,7 +136,7 @@ GS_EXPORT_CLASS
                 error: (NSError **)error;
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset 
-                    error: (out NSError **)error;
+                    error: (NSError **)error;
 
 #endif
 
