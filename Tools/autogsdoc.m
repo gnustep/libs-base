@@ -484,7 +484,7 @@
 	or implements MacOS-X compatible methods.
       </item>
       <item><strong>StylesheetURL</strong>
-	The URL of a CSS document to be used as the stadard stylesheet for
+	The URL of a CSS document to be used as the standard stylesheet for
 	generated autogsdoc files.  If this is not specified the default of
 	a local document default-styles.css is used.
       </item>
