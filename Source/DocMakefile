@@ -29,8 +29,10 @@ include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
-Base_DOC_INSTALL_DIR = Developer
-BaseAdditions_DOC_INSTALL_DIR = Developer
+Base_DOC_INSTALL_BUNDLE = Reference
+Base_DOC_INSTALL_DIR = Developer/Base
+BaseAdditions_DOC_INSTALL_BUNDLE = Reference
+BaseAdditions_DOC_INSTALL_DIR = Developer/BaseAdditions
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \

@@ -81,8 +81,9 @@ endif
 
 # Things to do after uninstalling
 after-uninstall::
-	rm -rf $(REF_DOC_INSTALL_DIR)/Base/Reference
-	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/Base
+	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions
+	rm -rf $(REF_DOC_INSTALL_DIR)/CodingStandards
 	rm -rf $(REF_DOC_INSTALL_DIR)/Tools/Reference
 	-rmdir $(REF_DOC_INSTALL_DIR)
 
