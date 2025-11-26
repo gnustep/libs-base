@@ -2453,13 +2453,25 @@ if test $enable_bfd = yes ; then
   AC_MSG_WARN([You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL.])
 fi
 
-AC_CHECK_HEADERS(bfd.h)
+AC_CHECK_HEADERS(bfd.h,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([bfd.h not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+],)
 AC_CHECK_LIB(intl, libintl_fprintf)
 AC_CHECK_LIB(zstd, ZSTD_compress)
-AC_CHECK_LIB(iberty, dyn_string_append)
+AC_CHECK_LIB(iberty, dyn_string_append,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([libiberty not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+])
 AC_CHECK_LIB(z, gzseek)
 AC_SEARCH_LIBS(sframe, sframe_decode)
-AC_CHECK_LIB(bfd, bfd_openr)
+AC_CHECK_LIB(bfd, bfd_openr,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([libbfd not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+])
 
 AC_COMPILE_IFELSE(
 	[AC_LANG_PROGRAM([[#include <bfd.h>]],[[bfd_section_vma(0);]])],
