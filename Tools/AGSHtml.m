@@ -2856,6 +2856,7 @@ static NSMutableSet	*textNodes = nil;
   if (node != nil && [[node name] isEqual: @"ivariable"] == YES)
     {
       NSMutableString	*ibuf = buf;
+      unsigned		count = 0;
 
       /*
        * If want instance variables at end, throw it all into an alternate
@@ -2864,14 +2865,6 @@ static NSMutableSet	*textNodes = nil;
       if (ivarsAtEnd)
 	{
 	  ibuf = ivarBuf;
-	  [buf appendString: indent];
-	  [buf appendString: @"<hr class=\"section-separator\">\n"];
-	  [buf appendString: indent];
-	  [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
-			     classname];
-	  [buf appendString: indent];
-	  [buf appendString: @"<br /><br />\n"];
-	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
 	}
       [ibuf appendString: indent];
       [ibuf appendString: @"<br /><hr class=\"section-separator\">\n"];
@@ -2880,11 +2873,25 @@ static NSMutableSet	*textNodes = nil;
 	classname];
       while (node != nil && [[node name] isEqual: @"ivariable"] == YES)
 	{
+	  count++;
 	  [self outputNode: node to: ibuf];
 	  node = [node nextElement];
 	}
       [ibuf appendString: indent];
       [ibuf appendString: @"<br /><hr class=\"section-separator\"><br />\n"];
+
+      if (ivarsAtEnd && count)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr class=\"section-separator\">\n"];
+	  [buf appendString: indent];
+	  [buf appendFormat:
+	    @"<a href=\"#_%@_ivars\">%@ declares %lu Instance Variables</a>\n",
+	    classname, classname, count];
+	  [buf appendString: indent];
+	  [buf appendString: @"<br /><br />\n"];
+	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
+	}
     }
 
   a = [localRefs methodsInUnit: unit];
