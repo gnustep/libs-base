@@ -29,8 +29,10 @@ include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
+Base_DOC_LOCAL_DIR = ../Documentation/Base
 Base_DOC_INSTALL_BUNDLE = Reference
 Base_DOC_INSTALL_DIR = Developer/Base
+BaseAdditions_DOC_LOCAL_DIR = ../Documentation/BaseAdditions
 BaseAdditions_DOC_INSTALL_BUNDLE = Reference
 BaseAdditions_DOC_INSTALL_DIR = Developer/BaseAdditions
 
@@ -248,7 +250,6 @@ GCObject.h \
 Base_AGSDOC_FLAGS = \
 	-MakeFrames NO \
 	-IndexFile Base \
-	-DocumentationDirectory ../Documentation/Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
@@ -264,7 +265,6 @@ Base_AGSDOC_FLAGS = \
 BaseAdditions_AGSDOC_FLAGS = \
 	-MakeFrames NO \
 	-IndexFile BaseAdditions \
-	-DocumentationDirectory ../Documentation/BaseAdditions \
 	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
