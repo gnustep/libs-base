@@ -13,8 +13,10 @@ int main()
    */
   NSLog(@"NSUserName() %@", o = NSUserName());
   PASS([o length] > 0, "we can get a user name");
+//NSLog(@"User: %@", o);
   NSLog(@"NSFullUserName() %@", o = NSFullUserName());
   PASS([o length] > 0, "we can get a full user name");
+//NSLog(@"Full: %@", o);
   NSLog(@"NSHomeDirectory() %@", o = NSHomeDirectory());
   PASS([o length] > 0, "we can get a home directory");
   NSLog(@"NSTemporaryDirectory() %@", o = NSTemporaryDirectory());

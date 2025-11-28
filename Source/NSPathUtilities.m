@@ -58,6 +58,7 @@
 
 #import "common.h"
 #include "objc-load.h"
+#import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
@@ -1823,6 +1824,7 @@ NSFullUserName(void)
   if (theFullUserName == nil)
     {
       NSString	*userName = NSUserName();
+      int	length;
 #if defined(_WIN32)
       struct _USER_INFO_2	*userInfo;
 
@@ -1830,8 +1832,7 @@ NSFullUserName(void)
         cStringUsingEncoding: NSUnicodeStringEncoding], 2,
         (LPBYTE*)&userInfo) == 0)
 	{
-	  int	length = wcslen(userInfo->usri2_full_name);
-
+	  length = wcslen(userInfo->usri2_full_name);
 	  if (length > 0)
 	    {
 	      userName = [NSString
@@ -1872,6 +1873,21 @@ NSFullUserName(void)
 #endif /* HAVE_GETPWNAM_R */
 #endif /* HAVE_PWD_H */
 #endif /* defined(__Win32__) else */
+      /* Trim trailing field separators etc
+       */
+      userName = [userName stringByTrimmingSpaces];
+      length = [userName length];
+      if (length > 0)
+	{
+	  NSCharacterSet	*s = [NSCharacterSet punctuationCharacterSet];
+	  unichar		c;
+
+	  while ([s characterIsMember: [userName characterAtIndex: length - 1]])
+	    {
+	      userName = [userName substringToIndex: --length];
+	      userName = [userName stringByTrimmingSpaces];
+	    }
+	}
       ASSIGN(theFullUserName, userName);
     }
   return theFullUserName;
