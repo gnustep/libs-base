@@ -220,6 +220,7 @@ static NSMutableSet	*textNodes = nil;
 - (void) dealloc
 {
   RELEASE(project);
+  RELEASE(version);
   RELEASE(globalRefs);
   RELEASE(localRefs);
   RELEASE(projectRefs);
@@ -251,6 +252,7 @@ static NSMutableSet	*textNodes = nil;
 
       indent = [[NSMutableString alloc] initWithCapacity: 64];
       project = RETAIN([defs stringForKey: @"Project"]);
+      version = RETAIN([defs stringForKey: @"Version"]);
       verbose = [defs boolForKey: @"Verbose"];
       warn = [defs boolForKey: @"Warn"];
       cssNavigation = [defs boolForKey: @"MakeFrames"] ? NO : YES;
@@ -1620,32 +1622,42 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  if ([[children name] isEqual: @"version"] == YES)
 	    {
+	      NSMutableString	*ms = [NSMutableString string];
+
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Version:</b> "];
-	      [self outputText: [children firstChild] to: buf];
+	      [self outputText: [children firstChild] to: ms];
+	      [ms trimSpaces];
+	      if ([ms isEqual: @""] || [ms isEqual: @"$Revision$"])
+		{
+		  NSString	*v = version ? version : @"unspecified"; 
+		  [buf appendString: v];
+		}
+	      else
+		{
+		  [buf appendString: ms];
+		}
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
 	  if ([[children name] isEqual: @"date"] == YES)
 	    {
-	      GSXMLNode	*tmp = [children firstChild];
-	      NSString	*str;
+	      GSXMLNode		*tmp = [children firstChild];
+	      NSMutableString	*ms = [NSMutableString string];
 
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Date:</b> "];
-	      if (nil == tmp
-		|| ([tmp type] == XML_TEXT_NODE
-		  && [[[tmp escapedContent] stringByTrimmingSpaces]
-		    length] == 0))
+	      [self outputText: tmp to: ms];
+	      [ms trimSpaces];
+	      if ([ms isEqual: @"$Date$"])
 		{
-            	  str = [NSString stringWithFormat: @"Generated at %@",
-		    [NSDate date]];
-		  [buf appendString: str];
+		  [ms setString: @""];
 		}
-	      else
+	      if ([ms isEqual: @""])
 		{
-	          [self outputText: tmp to: buf];
-		}
+		  [ms appendFormat: @"Generated at %@", [NSDate date]];
+	        }
+	      [buf appendString: ms];
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
