@@ -29,11 +29,11 @@ include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
-Base_DOC_LOCAL_DIR = ../Documentation/Base
-Base_DOC_INSTALL_BUNDLE = Reference
+Base_AGSDOC_LOCAL_DIR = ../Documentation/Base
+Base_AGSDOC_INSTALL_BUNDLE = Reference
 Base_DOC_INSTALL_DIR = Developer/Base
-BaseAdditions_DOC_LOCAL_DIR = ../Documentation/BaseAdditions
-BaseAdditions_DOC_INSTALL_BUNDLE = Reference
+BaseAdditions_AGSDOC_LOCAL_DIR = ../Documentation/BaseAdditions
+BaseAdditions_AGSDOC_INSTALL_BUNDLE = Reference
 BaseAdditions_DOC_INSTALL_DIR = Developer/BaseAdditions
 
 Base_AGSDOC_FILES = \

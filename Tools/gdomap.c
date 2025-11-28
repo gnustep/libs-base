@@ -99,6 +99,9 @@
 #include <sys/stropts.h>
 #endif
 #endif
+
+#define	SOCKET	int
+
 #endif /* !__MINGW__ */
 
 
@@ -460,11 +463,7 @@ static fd_set	write_fds;	/* Descriptors which are writable.	*/
    Bjoern Giesler <Bjoern.Giesler@gmx.de> to work on Win32. */
 
 typedef struct {
-#if	defined(__MINGW__)
   SOCKET s;
-#else
-  int s;
-#endif /* __MINGW__ */
   struct sockaddr_in	addr;	/* Address of process making request.	*/
   socklen_t		pos;	/* Position reading data.		*/
   union {
@@ -474,11 +473,7 @@ typedef struct {
 } RInfo;		/* State of reading each request.	*/
 
 typedef struct {
-#if	defined(__MINGW__)
   SOCKET s;
-#else
-  int s;
-#endif /* __MINGW__ */
   int	len;		/* Length of data to be written.	*/
   int	pos;		/* Amount of data already written.	*/
   char*	buf;		/* Buffer for data.			*/
@@ -492,11 +487,7 @@ static unsigned _wInfoCapacity = 0;
 static unsigned _wInfoCount = 0;
 
 static void
-#if	defined(__MINGW__)
 delRInfo(SOCKET s)
-#else
-delRInfo(int s)
-#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -524,11 +515,7 @@ delRInfo(int s)
 
 
 static RInfo *
-#if	defined(__MINGW__)
 getRInfo(SOCKET s, int make)
-#else
-getRInfo(int s, int make)
-#endif
 {
   unsigned int	i;
 
@@ -566,11 +553,7 @@ getRInfo(int s, int make)
 }
 
 static void
-#if	defined(__MINGW__)
 delWInfo(SOCKET s)
-#else
-delWInfo(int s)
-#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -598,11 +581,7 @@ delWInfo(int s)
 
 
 static WInfo *
-#if	defined(__MINGW__)
 getWInfo(SOCKET s, int make)
-#else
-getWInfo(int s, int make)
-#endif
 {
   unsigned int	i;
 
