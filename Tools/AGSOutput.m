@@ -1633,7 +1633,7 @@ static NSString	*padding[100];
 		  *optr++ = *ptr++;
 		}
 	    }
-	  if (*ptr == '>')
+	  if (ptr < end && *ptr == '>')
 	    {
 	      /*
 	       * remove space immediately before closing bracket.
