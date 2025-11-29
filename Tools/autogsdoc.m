@@ -429,6 +429,8 @@
 	is assumed to be a file in the same directory where the igsdoc
 	file was found, otherwise it is used as a prefix to the name in
 	the index.<br />
+	This argument may be overridden by the AGSDOC_LOCAL_PROJECTS
+	environment variable.<br />
 	NB. Local projects with the same name as the project currently
 	being documented will <em>not</em> be included by this mechanism.
 	If you wish to include such projects, you must do so explicitly
@@ -471,7 +473,11 @@
 	<code>/usr/doc/prj/Foo.html</code> .  Note that a dictionary may be
         given on the command line by using the standard PropertyList format
         (not the XML format of OS X), using semicolons as line-separators, and
-        enclosing it in single quotes.
+        enclosing it in single quotes.<br />
+	Supplying an empty string or empty dictionary argument does nothing
+	(equivalent to not using -Projects at all).<br />
+	This argument may be overridden by the AGSDOC_PROJECTS
+	environment variable.<br />
       </item>
       <item><strong>ShowDependencies</strong>
 	A boolean value which may be used to specify that the program should
@@ -504,6 +510,8 @@
 	is assumed to be a file in the same directory where the igsdoc
 	file was found, otherwise it is used as a prefix to the name in
 	the index.<br />
+	This argument may be overridden by the AGSDOC_SYSTEM_PROJECTS
+	environment variable.<br />
 	NB. System projects with the same name as the project currently
 	being documented will <em>not</em> be included by this mechanism.
 	If you wish to include such projects, you must do so explicitly
@@ -686,6 +694,7 @@ main(int argc, char **argv, char **env)
   NSString		*str;
   NSMutableDictionary	*safe;
   NSDictionary		*argsRecognized;
+  NSDictionary		*environment;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
   NSString		*documentationDirectory;
@@ -814,6 +823,7 @@ main(int argc, char **argv, char **env)
       exit(EXIT_FAILURE);
     }
   argsGiven = [proc arguments];
+  environment = [proc environment];
 
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1865,19 +1875,63 @@ main(int argc, char **argv, char **env)
       NSString			*systemProjects;
       NSString			*localProjects;
       NSString			*installRoot = nil;
+      NSString			*str;
       CREATE_AUTORELEASE_POOL (pool);
 
       localProjects = [defs stringForKey: @"LocalProjects"];
+      str = [environment objectForKey: @"AGSDOC_LOCAL_PROJECTS"];
+      if (str)
+	{
+	  if (localProjects)
+	    {
+	      NSLog(@"Environment variable AGSDOC_LOCAL_PROJECTS"
+		@" overrides -LocalProjects");
+	    }
+	  localProjects = str;
+	}
       if (localProjects == nil)
 	{
 	  localProjects = @"";
 	}
       systemProjects = [defs stringForKey: @"SystemProjects"];
+      str = [environment objectForKey: @"AGSDOC_SYSTEM_PROJECTS"];
+      if (str)
+	{
+	  if (systemProjects)
+	    {
+	      NSLog(@"Environment variable AGSDOC_SYSTEM_PROJECTS"
+		@" overrides -SystemProjects");
+	    }
+	  systemProjects = str;
+	}
       if (systemProjects == nil)
 	{
 	  systemProjects = @"";
 	}
       projects = [[defs dictionaryForKey: @"Projects"] mutableCopy];
+      str = [environment objectForKey: @"AGSDOC_PROJECTS"];
+      if (str)
+	{
+	  if (projects)
+	    {
+	      NSLog(@"Environment variable AGSDOC_PROJECTS"
+		@" overrides -Projects");
+	    }
+	  if ([str length] == 0)
+	    {
+	      DESTROY(projects);
+	    }
+	  else
+	    {
+	      NSDictionary	*d = [str propertyList];
+
+	      if (NO == [d isKindOfClass: [NSDictionary class]])
+		{
+		  d = nil;
+		}
+	      ASSIGN(projects, d);
+ 	    }
+	}
       IF_NO_ARC([projects autorelease];)
 
       /*

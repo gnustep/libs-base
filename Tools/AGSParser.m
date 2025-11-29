@@ -24,6 +24,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -2419,8 +2420,11 @@ fail:
 
       if (nil == generated)
 	{
+	  NSCalendarDate	*now = [NSCalendarDate date];
+
+	  [now setCalendarFormat: @"%Y-%m-%d"];
 	  generated = [[NSString alloc] initWithFormat:
-	    @"<date>Generated at %@</date>", [NSDate date]];
+	    @"<date>Generated at %@</date>", now];
 	}
       [info setObject: generated forKey: @"date"];
     }

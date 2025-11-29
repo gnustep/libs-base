@@ -156,7 +156,7 @@ static BOOL snuggleStart(NSString *t)
 	  NSCalendarDate	*d = [NSCalendarDate date];
 
 	  today
-	    = RETAIN([d descriptionWithCalendarFormat: @"%d-%m-%Y"]);
+	    = RETAIN([d descriptionWithCalendarFormat: @"%Y-%m-%d"]);
 	}
       if (hadComment == NO)
 	{
