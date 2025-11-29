@@ -76,7 +76,7 @@ static BOOL snuggleStart(NSString *t)
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
 
-/**
+/** <here>
  * <unit>
  *  <heading>The AGSOutput class</heading>
  *  <p>This is a really great class ... but it's not really reusable since it's
@@ -1029,10 +1029,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<init />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<init/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<init>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1047,10 +1043,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-subclass />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-subclass/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-subclass>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1070,10 +1062,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-dummy />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-dummy/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-dummy>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1093,10 +1081,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-never />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-never/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-never>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)

@@ -214,7 +214,7 @@ enum
 typedef NSUInteger NSSearchPathDomainMask;
 
 /**
- * Returns an array of search paths to look at for resources.<br/ >
+ * Returns an array of search paths to look at for resources.<br />
  * The paths are returned in domain order:
  * USER, LOCAL, NETWORK then SYSTEM.<br />
  * The presence of a path in this list does <em>not</em> mean that the
@@ -235,14 +235,14 @@ GS_EXPORT NSString *NSFullUserName(void);
 
 /**
  * Returns the standard paths in which applications are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br />
  * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 GS_EXPORT NSArray *NSStandardApplicationPaths(void);
 
 /**
  * Returns the standard paths in which resources are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br />
  * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 GS_EXPORT NSArray *NSStandardLibraryPaths(void);

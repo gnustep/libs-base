@@ -356,7 +356,7 @@ GS_EXPORT_CLASS
                      error: (NSError **)error;
 
 /**
- * Returns an array of search paths to look at for resources.<br/ >
+ * Returns an array of search paths to look at for resources.<br />
  * The paths are returned in domain order:
  * USER, LOCAL, NETWORK then SYSTEM.<br />
  * The presence of a path in this list does <em>not</em> mean that the

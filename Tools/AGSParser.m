@@ -27,17 +27,31 @@
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSXMLParser.h"
 #import "AGSParser.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "../Source/GSFastEnumeration.h"
 
+#define	STARTBRACE	0x7B	// '{' character
 #define	ENDBRACE	0x7D	// '}' character
+
+@interface AGSParser (NSXMLParser)
+- (void) parser: (NSXMLParser*)parser
+  didStartElement: (NSString*)elementName
+  namespaceURI: (NSString*)namespaceURI
+  qualifiedName: (NSString*)qName
+  attributes: (NSDictionary*)attributeDict;
+- (void) parser: (NSXMLParser*)parser parseErrorOccurred: (NSError*)parseError;
+- (NSMutableString*) validate: (NSString*)str;
+@end
 
 /**
  *  The AGSParser class parses Objective-C header and source files
@@ -376,6 +390,57 @@ equalTypes(NSArray *t1, NSArray *t2)
   return string;
 }
 
+- (void) getNumber: (unsigned*)nPtr
+	 andColumn: (unsigned*)cPtr
+            ofLine: (NSString**)lPtr
+		at: (unsigned)offset
+{
+  int		index;
+  int		startOfLine = 0;
+  int		endOfLine;
+
+  for (index = [lines count] - 1; index >= 0; index--)
+    {
+      NSNumber	*num = [lines objectAtIndex: index];
+
+      if ((startOfLine = [num intValue]) <= (int)offset)
+	{
+	  break;
+	}
+    }
+  if (index >= [lines count] || index < 0)
+    {
+      startOfLine = 0;
+      index = -1;
+    }
+
+  if (index + 1 < [lines count])
+    {
+      endOfLine = [[lines objectAtIndex: index + 1] intValue];
+    }
+  else
+    {
+      endOfLine = length;
+    }
+  if (nPtr)
+    {
+      *nPtr = index + 2;
+    }
+  if (cPtr)
+    {
+      *cPtr = offset - startOfLine;
+    }
+  if (lPtr)
+    {
+      NSString	*l;
+
+      l = [[NSString alloc] initWithCharactersNoCopy: buffer + startOfLine
+					      length: endOfLine - startOfLine
+					freeWhenDone: NO];
+      *lPtr = AUTORELEASE(l);
+    }
+}
+
 - (NSMutableDictionary*) info
 {
   return info;
@@ -692,7 +757,7 @@ patata
 
 // NOTE: We could be able to eliminate that if -parseComment processes the 
 // first comment tags before calling -generateParagraphMarkups:
-- (BOOL) containsSpecialMarkup: (NSString *)aComment
+- (NSString*) containsSpecialMarkup: (NSString *)aComment
 {
   NSArray *firstCommentTags = [NSArray arrayWithObjects:
     @"<abstract>",
@@ -716,11 +781,11 @@ patata
        if ([aComment rangeOfString: tag 
 	 options: NSCaseInsensitiveSearch].location != NSNotFound)
          {
-           return YES;
+           return tag;
          }
      }
 
-  return NO;
+  return nil;
 }
 
 - (NSString *) generateParagraphMarkupForString: (NSString *)aComment
@@ -769,7 +834,7 @@ patata
  * stored in the 'comment' instance variable, a line break (&lt;br /&gt;)is
  * automatically forced to separate it from the proceding info.<br />
  * In addition, the first extracted documentation is checked for the
- * prsence of file header markup, which is extracted into the 'info'
+ * presence of file header markup, which is extracted into the 'info'
  * dictionary.
  */
 - (unsigned) parseComment
@@ -837,7 +902,7 @@ comment:
 	  unichar	*ptr = start;
 	  unichar	*newLine = ptr;
 	  BOOL		stripAsterisks = NO;
-	  BOOL		special = NO;
+	  NSString	*special = nil;
 
 	  /*
 	   * Remove any asterisks immediately before end of comment.
@@ -935,11 +1000,11 @@ comment:
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
 
-	      /* The first documentation comment in a file may be special
-	       * containing markup not permitted elsewhere. 
-	       */
 	      if (NO == commentsRead)
 		{
+		  /* The first documentation comment in a file may be special
+		   * containing markup not permitted elsewhere. 
+		   */
 		  special = [self containsSpecialMarkup: tmp];
 		}
 
@@ -974,6 +1039,10 @@ recheck:
 		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
 		      ignore = YES;
 		      goto recheck;
+		    }
+		  if (commentsRead)
+		    {
+		      tmp = [self validate: tmp];
 		    }
 		  [self appendComment: tmp to: nil];
 		}
@@ -1583,7 +1652,7 @@ recheck:
 		   * Which is for C++ and should be ignored
 		   */
 		  pos += 3;
-		  if ([self skipSpaces] < length && buffer[pos] == '{')
+		  if ([self skipSpaces] < length && buffer[pos] == STARTBRACE)
 		    {
 		      pos++;
 		      [self skipSpaces];
@@ -1687,7 +1756,7 @@ recheck:
 	  /* We parse enum and options comment of the form:
 	   * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
 	   */
-	  if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
+	  if (isEnum && [self parseSpace] < length && buffer[pos] == STARTBRACE)
 	    {
 	      NSString *ident;
 	      NSString *introComment;
@@ -1699,7 +1768,7 @@ recheck:
 	      introComment = AUTORELEASE([comment copy]);
 	      DESTROY(comment);
 
-	      pos++; /* Skip '{' */
+	      pos++; /* Skip STARTBRACE */
 
 	      [fieldComments appendString: @"<deflist>"];
 
@@ -2102,7 +2171,7 @@ another:
 	    {
 	      [self skipStatement];
 	    }
-	  else if (buffer[pos] == '{')
+	  else if (buffer[pos] == STARTBRACE)
 	    {
 	      /*
 	       * Inline functions may be implemented in the header.
@@ -2662,7 +2731,7 @@ fail:
   /*
    * Interfaces may have instance variables, but categories may not.
    */
-  if (buffer[pos] == '{' && category == nil)
+  if (buffer[pos] == STARTBRACE && category == nil)
     {
       NSDictionary	*ivars = [self parseInstanceVariables];
       if (ivars == nil)
@@ -2892,7 +2961,6 @@ try:
 	  else if ([token isEqual: @"public"])
 	    {
 	      validity = AUTORELEASE(RETAIN(token));
-	      shouldDocument = documentInstanceVariables;
 	    }
 	  else
 	    {
@@ -3119,7 +3187,7 @@ fail:
     }
   else
     {
-      term = '{';
+      term = STARTBRACE;
     }
 
   while (buffer[pos] != term)
@@ -3252,7 +3320,7 @@ fail:
 	       * from its body by a semicolon ... a common bug since the
 	       * compiler doesn't pick it up!
 	       */
-	      if (term == '{' && buffer[pos] == ';')
+	      if (term == STARTBRACE && buffer[pos] == ';')
 		{
 		  pos++;
 		  if ([self parseSpace] >= length || buffer[pos] != term)
@@ -3281,7 +3349,7 @@ fail:
 	   * from its body by a semicolon ... a common bug since the
 	   * compiler doesn't pick it up!
 	   */
-	  if (term == '{' && buffer[pos] == ';')
+	  if (term == STARTBRACE && buffer[pos] == ';')
 	    {
 	      pos++;
 	      if ([self parseSpace] >= length || buffer[pos] != term)
@@ -3322,7 +3390,7 @@ fail:
 	  [self parseComment];
 	}
     }
-  else if (term == '{')
+  else if (term == STARTBRACE)
     {
       BOOL	isEmpty;
 
@@ -5055,7 +5123,7 @@ fail:
 	    [self skipLiteral];
 	    break;
 
-	  case '{':
+	  case STARTBRACE:
 	    empty = NO;
 	    pos--;
 	    [self skipBlock];
@@ -5193,7 +5261,7 @@ fail:
 	    [self skipLiteral];
 	    break;
 
-	  case '{':
+	  case STARTBRACE:
 	    pos--;
 	    [self skipBlock];
 	    return pos;
@@ -5285,42 +5353,186 @@ fail:
 
 - (NSString*) where
 {
-  int		index;
-  int		start = 0;
-  int		end;
-  NSString	*l;
-  NSString	*s;
+  unsigned	num;
+  unsigned	col;
+  NSString	*line;
 
-  for (index = [lines count] - 1; index >= 0; index--)
+  [self getNumber: &num
+	andColumn: &col
+           ofLine: &line
+	       at: pos];
+  return [NSString stringWithFormat: @"Character %d in line %d:%@",
+    col, num, line];
+}
+
+@end
+
+@implementation AGSParser (NSXMLParser)
+- (void) parser: (NSXMLParser*)parser
+  didStartElement: (NSString*)elementName
+  namespaceURI: (NSString*)namespaceURI
+  qualifiedName: (NSString*)qName
+  attributes: (NSDictionary*)attributeDict
+{
+  static NSSet	*permitted = nil;
+
+  if (nil == permitted)
     {
-      NSNumber	*num = [lines objectAtIndex: index];
+      permitted = [[NSSet alloc] initWithObjects:
 
-      if ((start = [num intValue]) <= (int)pos)
+	// Special tags that don't get stored in the gsdoc output.
+	@"end-of-comment",
+	@"init",
+	@"override-dummy",
+	@"override-never",
+	@"override-subclass",
+	@"unit",
+
+	// The real tags
+	@"answer",
+	@"br",
+	@"code",
+	@"deflist",
+	@"desc",
+	@"em",
+	@"email",
+	@"embed",
+	@"entry",
+	@"enum",
+	@"example",
+	@"file",
+	@"footnote",
+	@"item",
+	@"label",
+	@"list",
+	@"p",
+	@"qalist",
+	@"question",
+	@"ref",
+	@"site",
+	@"strong",
+	@"term",
+	@"uref",
+	@"url",
+	@"var",
+	nil];
+    }
+  if ([permitted member: elementName] == nil)
+    {
+      unsigned	num;
+
+      [self getNumber: &num
+	    andColumn: NULL
+	       ofLine: NULL
+		   at: pos];
+      NSLog(@"Error %@ before line %u - illegal element tag '%@'",
+	fileName, num, elementName);
+    }
+}
+
+- (void) parser: (NSXMLParser*)parser parseErrorOccurred: (NSError*)parseError
+{
+  unsigned	num;
+  NSString	*str;
+  NSRange	r;
+
+  [self getNumber: &num
+	andColumn: NULL
+	   ofLine: NULL
+	       at: pos];
+  str = [parseError localizedDescription];
+  r = [str rangeOfString: @" ... "];
+  if (r.length > 0)
+    {
+      str = [str substringFromIndex: NSMaxRange(r)];
+    }
+  
+  NSLog(@"Error %ld in %@ before line %u - %@",
+    (long)[parseError code], fileName, num, str);
+}
+
+- (NSMutableString*) validate: (NSString*)str
+{
+  static NSArray	*empty = nil;
+  static Class		parserClass = Nil;
+  NSMutableString	*ms = AUTORELEASE([str mutableCopy]);
+
+  if (Nil == parserClass)
+    {
+      parserClass = NSClassFromString(@"GSSloppyXMLParser");
+      if (Nil == parserClass)
 	{
-	  break;
+	  parserClass = [NSXMLParser class];
 	}
     }
-  if (index >= [lines count] || index < 0)
+  if (nil == empty)
     {
-      start = 0;
-      index = -1;
+      empty = [[NSArray alloc] initWithObjects:
+	@"<br>",
+	@"<init>",
+	@"<override-subclass>",
+	@"<override-dummy>",
+	@"<override-never>",
+	nil];
     }
 
-  if (index + 1 < [lines count])
+  ENTER_POOL
+  NSData		*data;
+  NSXMLParser		*parser;
+  NSMutableString	*xml;
+  NSRange		range;
+
+  /* Standardise empty elements to having a single space before '/'
+   */
+  range = NSMakeRange(0, [ms length]);
+  while (range.length > 0)
     {
-      end = [[lines objectAtIndex: index + 1] intValue];
+      range = [ms rangeOfString: @"/>"
+			options: NSBackwardsSearch
+			  range: range];
+      if (range.length > 0)
+	{
+	  range.length = 0;
+	  while (range.location > 0
+	    && isspace([ms characterAtIndex: range.location - 1]))
+	    {
+	      range.location--;
+	      range.length++;
+	    }
+	  [ms replaceCharactersInRange: range withString: @" "];
+	  range = NSMakeRange(0, range.location);
+	}
     }
-  else
+
+  FOR_IN(NSString*, tag, empty)
+  while ((range = [ms rangeOfString: tag]).length > 0)
     {
-      end = length;
+      range.location += range.length - 1;
+      range.length = 0;
+      /* Convert '<tag>' to '<tag />' ... legal xml.
+       */
+      [ms replaceCharactersInRange: range withString: @" /"];
     }
-  l = [[NSString alloc] initWithCharactersNoCopy: buffer + start
-					  length: end - start
-				    freeWhenDone: NO];
-  s = [NSString stringWithFormat: @"Character %d in line %d:%@",
-    pos - start, index + 2, l];
-  RELEASE(l);
-  return s;
+  END_FOR_IN(empty)
+
+  xml = AUTORELEASE([@"<?xml version=\"1.0\"?>\n" mutableCopy]);
+  [xml appendString: @"<end-of-comment>"];
+  [xml appendString: ms];
+  [xml appendString: @"</end-of-comment>"];
+
+  data = [xml dataUsingEncoding: NSUTF8StringEncoding];
+  parser = (NSXMLParser*)AUTORELEASE([[parserClass alloc] initWithData: data]);
+  [parser setDelegate: self];
+  if (NO == [parser parse])
+    {
+      unsigned	num;
+
+      [self getNumber: &num andColumn: NULL ofLine: NULL at: pos];
+      NSLog(@"Discarded invalid comment in %@ before line %u", fileName, num);
+      ms = nil;
+    }
+  LEAVE_POOL
+  return ms;
 }
 
 @end

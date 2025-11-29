@@ -30,6 +30,7 @@ include ../config.mak
 DOCUMENT_NAME = BaseTools
 
 BaseTools_DOC_INSTALL_DIR = Developer
+BaseTools_AGSDOC_LOCAL_DIR = ../Documentation/BaseTools
 
 BaseTools_AGSDOC_FILES = \
 ../Tools/BaseTools.gsdoc \
@@ -61,7 +62,6 @@ xmlparse.m
 #
 BaseTools_AGSDOC_FLAGS = \
 	-MakeFrames NO \
-	-DocumentationDirectory ../Documentation/BaseTools \
 	-HeaderDirectory ../Tools \
 	-Standards YES \
 	-DTDs ../Tools \

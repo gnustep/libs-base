@@ -86,7 +86,7 @@
 - (BOOL) debug;
 - (NSMutableDictionary*) info;
 - (NSDictionary *) orderedSymbolDeclarationsByUnit;
-- (id) init;	/** <init> Simple initialiser */
+- (id) init;	/** <init /> Simple initialiser */
 - (NSMutableArray*) outputs;
 - (unsigned) parseComment;
 - (NSMutableArray*) parseDeclarations;

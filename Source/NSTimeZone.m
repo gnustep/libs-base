@@ -925,15 +925,15 @@ static int		uninitialisedOffset = 100000;
 
 /**
  * <p>
- * The local time zone is obtained from, in order of preference:<br/ >
- *  1) the user defaults database: NSGlobalDomain "Local Time Zone"<br/ >
- *  2) the GNUSTEP_TZ environment variable<br/ >
- *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br/ >
- *  4) the TZ environment variable<br/ >
- *  5) The system zone settings (typically in /etc/localtime)<br/ >
- *  6) tzset and tznam on platforms which have it<br/ >
- *  7) Windows registry, on Win32 systems<br/ >
- *  8) or the fallback time zone (which is UTC)<br/ >
+ * The local time zone is obtained from, in order of preference:<br />
+ *  1) the user defaults database: NSGlobalDomain "Local Time Zone"<br />
+ *  2) the GNUSTEP_TZ environment variable<br />
+ *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br />
+ *  4) the TZ environment variable<br />
+ *  5) The system zone settings (typically in /etc/localtime)<br />
+ *  6) tzset and tznam on platforms which have it<br />
+ *  7) Windows registry, on Win32 systems<br />
+ *  8) or the fallback time zone (which is UTC)<br />
  * </p>
  * <p>If the GNUstep time zone datafiles become too out of date, one
  * can download an updated database from <uref

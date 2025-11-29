@@ -1286,7 +1286,7 @@ static void ShutdownPathUtilities(void)
  * and underscores, and must not begin with a digit.<br />
  * A value may be any quoted string (or an unquoted string containing no
  * white space).<br />
- * Lines beginning with a hash '#' are deemed comment lines and ignored.<br/ >
+ * Lines beginning with a hash '#' are deemed comment lines and ignored.<br />
  * The backslash character may be used as an escape character anywhere
  * in the file  except within a singly quoted string
  * (where it is taken literally).<br />
@@ -1296,7 +1296,7 @@ static void ShutdownPathUtilities(void)
  * NB. Since ms-windows uses backslash characters in paths, it is a good
  * idea to specify path values in the config file as singly quoted
  * strings to avoid having to double all occurrences of the backslash.<br />
- * Returns a dictionary of the (key,value) pairs.<br/ >
+ * Returns a dictionary of the (key,value) pairs.<br />
  * If the file does not exist,
  * the function makes no changes to dict and returns NO.
  */
@@ -1621,9 +1621,9 @@ GSSetUserName(NSString *aName)
 }
 
 /**
- * Return the caller's login name as an NSString object.<br/ >
+ * Return the caller's login name as an NSString object.<br />
  * Under unix-like systems, the name associated with the current
- * effective user ID is used.<br/ >
+ * effective user ID is used.<br />
  * Under ms-windows, the 'LOGNAME' environment is used, or if that fails, the
  * GetUserNameW function is used to find the user name.<br />
  * Raises an exception on failure.
@@ -1880,7 +1880,6 @@ NSFullUserName(void)
       if (length > 0)
 	{
 	  NSCharacterSet	*s = [NSCharacterSet punctuationCharacterSet];
-	  unichar		c;
 
 	  while ([s characterIsMember: [userName characterAtIndex: length - 1]])
 	    {

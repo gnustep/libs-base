@@ -1560,9 +1560,13 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
+			  NSString	*s;
+
 			  RELEASE(attributes);
+			  s = [NSString stringWithFormat:
+			    @"<%@/ is missing the >", tag];
 			  RELEASE(tag);
-                          return [self _parseError: @"<tag/ is missing the >"
+                          return [self _parseError: s
 			    code: NSXMLParserGTRequiredError];
                         }
                       [self _processTag: tag
