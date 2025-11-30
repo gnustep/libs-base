@@ -39,6 +39,8 @@
 @class	NSMutableDictionary;
 @class	NSString;
 
+@class	AGSValidator;
+
 @interface	AGSParser : NSObject
 {
   /*
@@ -81,9 +83,12 @@
   NSCharacterSet	*identStart;	/** Legit initial char of identifier */
   NSCharacterSet	*spaces;	/** All blank characters */
   NSCharacterSet	*spacenl;	/** Blanks excluding newline */
+
+  AGSValidator		*validator;	/** Validates comment content */
 }
 
 - (BOOL) debug;
+- (NSString*) fileName;
 - (NSMutableDictionary*) info;
 - (NSDictionary *) orderedSymbolDeclarationsByUnit;
 - (id) init;	/** <init /> Simple initialiser */

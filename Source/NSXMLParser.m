@@ -1399,7 +1399,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
               if ([self _parseEntity: &entity] == NO)
                 {
-                  return [self _parseError: @"empty entity name"
+                  return [self _parseError:
+		    @"'&' not followed by entity name or number"
 		    code: NSXMLParserEntityRefAtEOFError];
                 }
 	      if (this->foundCharacters != 0)

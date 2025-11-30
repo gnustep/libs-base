@@ -76,12 +76,11 @@ static BOOL snuggleStart(NSString *t)
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
 
-/** <here>
+/** 
  * <unit>
  *  <heading>The AGSOutput class</heading>
  *  <p>This is a really great class ... but it's not really reusable since it's
  *  far too special purpose.</p>
- *  <unit />
  *  <p>Here is the afterword for the class.</p>
  *  <p> And here is some automated cross referencing ...
  *  A method in a protocol: [(NSCopying)-copyWithZone:], a class:
@@ -1258,10 +1257,6 @@ static BOOL snuggleStart(NSString *t)
    * create a zero length range just before the end of the chapter.
    */
   r = [unit rangeOfString: @"<unit />"];
-  if (r.length == 0)
-    {
-      r = [unit rangeOfString: @"<unit/>"];
-    }
   if (r.length == 0)
     {
       r = [unit rangeOfString: @"</chapter>"];

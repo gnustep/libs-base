@@ -43,14 +43,41 @@
 #define	STARTBRACE	0x7B	// '{' character
 #define	ENDBRACE	0x7D	// '}' character
 
-@interface AGSParser (NSXMLParser)
+typedef enum {
+  VCGeneral,
+  VCMethod,
+  VCUnit,
+} ValidationContext;
+
+static NSSet		*emptyElements = nil;
+static NSSet		*generalElements = nil;
+static NSSet		*methodElements = nil;
+static NSSet		*unitElements = nil;
+static NSDictionary	*permittedIn = nil;
+
+@interface AGSValidator : NSObject
+{
+  NSString	*fileName;
+  NSSet		*rootSet;
+  unsigned	lineNumber;
+  BOOL		failed;
+}
+- (void) parser: (NSXMLParser*)aParser
+  didEndElement: (NSString*)tag
+  namespaceURI: (NSString*)aNamespaceURI
+  qualifiedName: (NSString*)aQualifierName;
+
 - (void) parser: (NSXMLParser*)parser
-  didStartElement: (NSString*)elementName
+  didStartElement: (NSString*)tag
   namespaceURI: (NSString*)namespaceURI
   qualifiedName: (NSString*)qName
   attributes: (NSDictionary*)attributeDict;
+
 - (void) parser: (NSXMLParser*)parser parseErrorOccurred: (NSError*)parseError;
-- (NSMutableString*) validate: (NSString*)str;
+
+- (NSMutableString*) validateComment: (NSString*)str
+				 for: (AGSParser*)agsp
+				  in: (ValidationContext)context;
 @end
 
 /**
@@ -287,6 +314,30 @@ equalTypes(NSArray *t1, NSArray *t2)
   [info setObject: m forKey: @"chapter"];
 }
 
+
+- (void) accumulate: (NSString*)s
+{
+  s = [s stringByTrimmingSpaces];
+  if ([s length] > 0)
+    {
+      NSString	*old = comment;
+
+      if (old != nil)
+        {
+	  if ([old hasSuffix: @"</p>"] == NO
+	    && [old hasSuffix: @"<br />"] == NO)
+	    {
+	      s = [old stringByAppendingFormat: @"<br />%@", s];
+	    }
+	  else
+	    {
+	      s = [old stringByAppendingString: s];
+	    }
+	}
+      ASSIGN(comment, s);
+    }
+}
+
 /**
  * Append a comment (with leading and trailing space stripped)
  * to an information dictionary.<br />
@@ -296,26 +347,20 @@ equalTypes(NSArray *t1, NSArray *t2)
  * If a comment already exists then the new comment text is appended to
  * it with a separating line break inserted if necessary.<br />
  */
-- (void) appendComment: (NSString*)s to: (NSMutableDictionary*)d
+- (void) appendComment: (NSString*)s
+		    to: (NSMutableDictionary*)d
+		    in: (ValidationContext)c
 {
-  s = [s stringByTrimmingSpaces];
+  NSAssert(d != nil, NSInvalidArgumentException);
+  s = [validator validateComment: s for: self in: c];
   if ([s length] > 0)
     {
-      NSString	*old;
+      NSString	*old = [d objectForKey: @"Comment"];
 
-      if (d == nil)
-        {
-	  old = comment;
-	}
-      else
-        {
-	  old = [d objectForKey: @"Comment"];
-	}
       if (old != nil)
         {
 	  if ([old hasSuffix: @"</p>"] == NO
-	    && [old hasSuffix: @"<br />"] == NO
-	    && [old hasSuffix: @"<br/>"] == NO)
+	    && [old hasSuffix: @"<br />"] == NO)
 	    {
 	      s = [old stringByAppendingFormat: @"<br />%@", s];
 	    }
@@ -324,14 +369,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 	      s = [old stringByAppendingString: s];
 	    }
 	}
-      if (d == nil)
-        {
-	  ASSIGN(comment, s);
-	}
-      else
-	{
-	  [d setObject: s forKey: @"Comment"];
-	}
+      [d setObject: s forKey: @"Comment"];
     }
 }
 
@@ -350,6 +388,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 - (void) dealloc
 {
   [self reset];
+  DESTROY(validator);
   DESTROY(wordMap);
   DESTROY(ifStack);
   DESTROY(declared);
@@ -388,6 +427,11 @@ equalTypes(NSArray *t1, NSArray *t2)
       RELEASE(remaining);
     }
   return string;
+}
+
+- (NSString*) fileName
+{
+  return fileName;
 }
 
 - (void) getNumber: (unsigned*)nPtr
@@ -485,7 +529,16 @@ equalTypes(NSArray *t1, NSArray *t2)
   documentInstanceVariables = YES;
   ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
   [ifStack addObject: [NSDictionary dictionary]];
+  validator = [AGSValidator new];
   return self;
+}
+
+- (unsigned) lineNumber
+{
+  unsigned	num;
+
+  [self getNumber: &num andColumn: NULL ofLine: NULL at: pos];
+  return num;
 }
 
 - (void) log: (NSString*)fmt arguments: (va_list)args
@@ -1016,7 +1069,7 @@ comment:
               if (special && [defs boolForKey: @"GenerateParagraphMarkup"])
                 {
                   // FIXME: Should follow <ignore> processing and be called 
-                  // just before using -appendComment:to:
+                  // just before using -accumulate:
                   tmp = [self generateParagraphMarkupForString: tmp]; 
                 }
 recheck:
@@ -1034,17 +1087,12 @@ recheck:
 	          r = [tmp rangeOfString: @"<ignore>"];
 		  if (r.length > 0)
 		    {
-		      [self appendComment: [tmp substringToIndex: r.location]
-				       to: nil];
+		      [self accumulate: [tmp substringToIndex: r.location]];
 		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
 		      ignore = YES;
 		      goto recheck;
 		    }
-		  if (commentsRead)
-		    {
-		      tmp = [self validate: tmp];
-		    }
-		  [self appendComment: tmp to: nil];
+		  [self accumulate: tmp];
 		}
 	    }
 
@@ -2111,10 +2159,9 @@ another:
 	      if ([ident isEqual: @"GS_UNIMPLEMENTED"])
 		{
 		  [d setObject: @"YES" forKey: @"Unimplemented"];
-		  [self appendComment: @"<em>Warning</em> this is "
+		  [self accumulate: @"<em>Warning</em> this is "
 		    @"<em>unimplemented</em> but may be implemented "
-		    @"in future versions"
-		    to: nil];
+		    @"in future versions"];
 		}
 	      else if ([ident isEqual: @"__attribute__"])
 		{
@@ -2129,10 +2176,9 @@ another:
 		      if ([attr rangeOfString: @"deprecated"].length > 0)
 			{
 			  [d setObject: @"YES" forKey: @"Deprecated"];
-			  [self appendComment: @"<em>Warning</em> this is "
+			  [self accumulate: @"<em>Warning</em> this is "
 			    @"<em>deprecated</em> and may be removed in "
-			    @"future versions"
-			    to: nil];
+			    @"future versions"];
 			}
 		    }
 		  else
@@ -2211,7 +2257,7 @@ another:
 	}
       if (comment != nil)
 	{
-	  [self appendComment: comment to: d];
+	  [self appendComment: comment to: d in: VCGeneral];
 	}
       DESTROY(comment);
 
@@ -2440,7 +2486,7 @@ fail:
 			 */
 		        if ([oc isEqual: nc] == NO)
 			  {
-			    [self appendComment: nc to: oDecl];
+			    [self appendComment: nc to: oDecl in: VCGeneral];
 			  }
 			[oDecl setObject: @"YES" forKey: @"Implemented"];
 
@@ -2588,7 +2634,7 @@ fail:
        */
       if ([oc isEqual: nc] == NO)
 	{
-	  [self appendComment: nc to: dict];
+	  [self appendComment: nc to: dict in: VCUnit];
 	}
       /*
        * Update base class if necessary.
@@ -2640,7 +2686,7 @@ fail:
    */
   if (comment != nil)
     {
-      [self appendComment: comment to: dict];
+      [self appendComment: comment to: dict in: VCUnit];
       DESTROY(comment);
     }
 
@@ -2685,7 +2731,7 @@ fail:
 	  c = @"<em>Warning</em> this category is <em>private</em>, which "
 	    @"means that the methods are for internal use by the package. "
 	    @"You should not use them in external code.";
-	  [self appendComment: c to: dict];
+	  [self appendComment: c to: dict in: VCUnit];
 	}
     }
   else if (buffer[pos] == ':')
@@ -2995,7 +3041,7 @@ try:
 			@"even though it is not technically <em>private</em>, "
 			@"it is intended for internal use within the package, "
 			@"and you should not use the variable in other code.";
-		      [self appendComment: c to: iv];
+		      [self appendComment: c to: iv in: VCGeneral];
 		    }
 		}
 	      [iv setObject: validity forKey: @"Validity"];
@@ -3125,7 +3171,7 @@ fail:
 	}
       /* A macro is implemented as soon as it is defined. */
       [dict setObject: @"YES" forKey: @"Implemented"];
-      [self appendComment: comment to: dict];
+      [self appendComment: comment to: dict in: VCGeneral];
     }
   else
     {
@@ -3199,10 +3245,9 @@ fail:
 	  if ([token isEqual: @"GS_UNIMPLEMENTED"])
 	    {
 	      [method setObject: @"YES" forKey: @"Unimplemented"];
-	      [self appendComment: @"<em>Warning</em> this is "
+	      [self accumulate: @"<em>Warning</em> this is "
 		@"<em>unimplemented</em> but may be implemented "
-		@"in future versions"
-		to: nil];
+		@"in future versions"];
 	      [self skipSpaces];
 	    }
 	  else if ([token isEqual: @"__attribute__"])
@@ -3218,10 +3263,9 @@ fail:
 		  if ([attr rangeOfString: @"deprecated"].length > 0)
 		    {
 		      [method setObject: @"YES" forKey: @"Deprecated"];
-		      [self appendComment: @"<em>Warning</em> this is "
+		      [self accumulate: @"<em>Warning</em> this is "
 			@"<em>deprecated</em> and may be removed in "
-			@"future versions"
-			to: nil];
+			@"future versions"];
 		    }
 		  [self skipSpaces];
 		}
@@ -3411,7 +3455,7 @@ fail:
    */
   if (comment != nil)
     {
-      [self appendComment: comment to: method];
+      [self appendComment: comment to: method in: VCMethod];
       DESTROY(comment);
     }
   if (flag
@@ -3422,7 +3466,7 @@ fail:
       c = @"<em>Warning</em> the underscore at the start of the name "
 	@"of this method indicates that it is private, for internal use only, "
 	@" and you should not use the method in your code.";
-      [self appendComment: c to: method];
+      [self appendComment: c to: method in: VCMethod];
     }
 
   DESTROY(itemName);
@@ -3829,7 +3873,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		c1 = [method objectForKey: @"Comment"];
 		if ([c0 isEqual: c1] == NO)
 		  {
-		    [self appendComment: c1 to: exist];
+		    [self appendComment: c1 to: exist in: VCMethod];
 		  }
 		[exist setObject: @"YES" forKey: @"Implemented"];
 
@@ -4125,7 +4169,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		   */
 		  if ([oc isEqual: nc] == NO)
 		    {
-		      [self appendComment: nc to: odef];
+		      [self appendComment: nc to: odef in: VCGeneral];
 		    }
 		}
 	    }
@@ -5367,79 +5411,349 @@ fail:
 
 @end
 
-@implementation AGSParser (NSXMLParser)
+@implementation AGSValidator
+
++ (void) initialize
+{
+  if (nil == emptyElements)
+    {
+      emptyElements = [[NSSet alloc] initWithObjects:
+
+	/* Obsolete ... usnused?
+	 */
+	@"GNUstep",
+	@"OpenStep",
+	@"NotOpenStep",
+	@"MacOS-X",
+	@"NotMacOS-X",
+
+	@"br",
+	@"contents",
+	@"deprecated",
+	@"index",
+	@"init",
+	@"override-subclass",
+	@"override-dummy",
+	@"override-never",
+	@"url",
+	@"vararg",
+	@"EOAttributeRef",
+	nil];
+    }
+
+  if (nil == permittedIn)
+    {
+      ENTER_POOL
+      static NSSet	*anchor;
+      static NSSet	*block;
+      static NSSet	*defblock;
+      static NSSet	*phrase;
+      static NSSet	*list;
+      static NSSet	*standards;
+      static NSSet	*text;
+      static NSSet	*xref;
+      NSSet			*s;
+      NSMutableSet		*ms;
+      NSMutableDictionary	*md;
+
+      anchor = [[NSSet alloc] initWithObjects:
+	@"entry",
+	@"label",
+	nil];
+      phrase = [[NSSet alloc] initWithObjects:
+	@"code",
+	@"em",
+	@"file",
+	@"ivar",
+	@"site",
+	@"strong",
+	@"var",
+	nil];
+      list = [[NSSet alloc] initWithObjects:
+	@"dictionary",
+	@"deflist",
+	@"enum",
+	@"list",
+	@"qalist",
+	nil];
+      standards = [[NSSet alloc] initWithObjects:
+	@"GNUstep",
+	@"OpenStep",
+	@"NotOpenStep",
+	@"MacOS-X",
+	@"NotMacOS-X",
+	nil];
+      xref = [[NSSet alloc] initWithObjects:
+	@"email",
+	@"prjref",
+	@"ref",
+	@"uref",
+	@"url",
+	nil];
+
+      text = ms = [[NSMutableSet alloc] initWithObjects:
+	@"br",
+	@"footnote",
+	nil];
+      [ms unionSet: anchor];
+      [ms unionSet: phrase];
+      [ms unionSet: xref];
+
+      block = ms = [[NSMutableSet alloc] initWithObjects:
+	@"embed",
+	@"example",
+	@"index",
+	@"p",
+	nil];
+      [ms unionSet: list];
+      [ms unionSet: text];
+
+      defblock = ms = [[NSMutableSet alloc] initWithObjects:
+	@"category",
+	@"class",
+	@"constant",
+	@"embed",
+	@"EOEntity",
+	@"EOModel",
+	@"example",
+	@"function",
+	@"heading",
+	@"index",
+	@"macro",
+	@"p",
+	@"protocol",
+	@"type",
+	@"variable",
+	nil];
+      [ms unionSet: list];
+      [ms unionSet: text];
+
+      md = [NSMutableDictionary dictionary];
+
+      [md setObject: block forKey: @"answer"];
+
+      s = [NSSet setWithObjects: @"desc", @"email", @"url", nil];
+      [md setObject: s forKey: @"author"];
+
+      s = [NSSet setWithObjects: @"chapter", @"index", nil];
+      [md setObject: s forKey: @"back"];
+
+      s = [NSSet setWithObjects: @"front", @"chapter", @"back", nil];
+      [md setObject: s forKey: @"body"];
+
+      s = [NSSet setWithObjects:
+	@"conform", @"declared", @"desc", @"method", @"standards", nil];
+      [md setObject: s forKey: @"category"];
+
+      /* An empty 'unit' may be placed inside a chapter to provide a marker
+       * for the location at which other unit (class, category or protocol)
+       * documentation should be inserted.
+       */
+      ms = [NSMutableSet setWithObjects: @"section", @"unit", nil];
+      [ms unionSet: defblock];
+      [md setObject: ms forKey: @"chapter"];
+
+      s = [NSSet setWithObjects:
+	@"conform", @"declared", @"desc", @"ivariable", @"method",
+	@"standards", nil];
+      [md setObject: s forKey: @"class"];
+      [md setObject: text forKey: @"code"];
+
+      s = [NSSet setWithObjects: @"declared", @"desc", @"standards", nil];
+      [md setObject: s forKey: @"constant"];
+
+      s = [NSSet setWithObjects: @"desc", @"term", nil];
+      [md setObject: s forKey: @"deflist"];
+
+      s = [NSSet setWithObjects: @"dictionaryItem", nil];
+      [md setObject: s forKey: @"dictionary"];
+      [md setObject: block forKey: @"dictionaryItem"];
+      [md setObject: block forKey: @"desc"];
+      [md setObject: text forKey: @"em"];
+      [md setObject: text forKey: @"email"];
+      [md setObject: block forKey: @"embed"];
+      [md setObject: text forKey: @"entry"];
+
+      s = [NSSet setWithObjects: @"contents", @"chapter", nil];
+      [md setObject: s forKey: @"front"];
+
+      s = [NSSet setWithObjects: @"body", @"head", nil];
+      [md setObject: s forKey: @"gsdoc"];
+
+      s = [NSSet setWithObjects:
+	@"abstract", @"author", @"copy", @"date", @"title", @"version", nil];
+      [md setObject: s forKey: @"head"];
+
+      [md setObject: text forKey: @"heading"];
+
+      s = [NSSet setWithObjects: @"item", nil];
+      [md setObject: s forKey: @"enum"];
+
+      [md setObject: text forKey: @"footnote"];
+
+      s = [NSSet setWithObjects:
+	@"arg", @"declared", @"desc", @"standards", @"vararg", nil];
+      [md setObject: s forKey: @"function"];
+
+      [md setObject: block forKey: @"item"];
+
+      s = [NSSet setWithObjects: @"item", nil];
+      [md setObject: text forKey: @"ivar"];
+
+      s = [NSSet setWithObjects: @"desc", @"standards", nil];
+      [md setObject: s forKey: @"ivariable"];
+
+      [md setObject: text forKey: @"label"];
+
+      s = [NSSet setWithObjects: @"item", nil];
+      [md setObject: s forKey: @"list"];
+
+      s = [NSSet setWithObjects:
+	@"arg", @"declared", @"desc", @"standards", @"vararg", nil];
+      [md setObject: s forKey: @"macro"];
+
+      s = [NSSet setWithObjects:
+	@"arg", @"desc", @"init", @"sel", @"standards", @"vararg", nil];
+      [md setObject: s forKey: @"method"];
+
+      [md setObject: text forKey: @"p"];
+
+      s = [NSSet setWithObjects:
+	@"conform", @"declared", @"desc", @"method", @"standards", nil];
+      [md setObject: s forKey: @"protocol"];
+
+      [md setObject: text forKey: @"prjref"];
+
+      s = [NSSet setWithObjects: @"answer", @"question", nil];
+      [md setObject: s forKey: @"qalist"];
+
+      [md setObject: text forKey: @"question"];
+      [md setObject: text forKey: @"ref"];
+
+      ms = [NSMutableSet setWithObjects: @"subsect", nil];
+      [ms unionSet: defblock];
+      [md setObject: ms forKey: @"section"];
+      
+      ms = [NSMutableSet setWithObjects: @"subsubsect", nil];
+      [ms unionSet: defblock];
+      [md setObject: ms forKey: @"subsect"];
+
+      [md setObject: defblock forKey: @"subsubsect"];
+      [md setObject: standards forKey: @"standard"];
+      [md setObject: text forKey: @"strong"];
+      [md setObject: text forKey: @"term"];
+
+      s = [NSSet setWithObjects: @"declared", @"desc", @"standards", nil];
+      [md setObject: s forKey: @"type"];
+
+      ms = [NSMutableSet setWithObjects:
+	@"abstract",
+	@"author",
+	@"back",
+	@"copy",
+	@"date",
+	@"deprecated",
+	@"example",
+	@"front",
+	@"heading",
+	@"index",
+	@"p",
+	@"section",
+	@"title",
+	@"version",
+        nil];
+      [ms unionSet: block];
+      [md setObject: ms forKey: @"unit"];
+
+      [md setObject: text forKey: @"uref"];
+      [md setObject: text forKey: @"var"];
+
+      s = [NSSet setWithObjects: @"declared", @"desc", @"standards", nil];
+      [md setObject: s forKey: @"variable"];
+
+      permittedIn = [md copy];
+
+      /* Extra markup permitted when documenting macro, function etc
+       */
+      ms = [NSMutableSet setWithObjects:
+	@"deprecated",
+        nil];
+      [ms unionSet: block];
+      generalElements = [ms copy];
+  
+      /* Extra markup permitted when documenting a method.
+       */
+      ms = [NSMutableSet setWithObjects:
+	@"deprecated",
+	@"init",
+	@"override-subclass",
+	@"override-dummy",
+	@"override-never",
+        nil];
+      [ms unionSet: block];
+      methodElements = [ms copy];
+  
+      /* Extra markup permitted when documenting a class/category/protocol.
+       */
+      ms = [NSMutableSet setWithObjects:
+	@"deprecated",
+	@"unit",
+        nil];
+      [ms unionSet: block];
+      unitElements = [ms copy];
+
+      LEAVE_POOL
+    }
+}
+
+- (void) dealloc
+{
+  DESTROY(fileName);
+  DESTROY(rootSet);
+  DEALLOC
+}
+
+- (void) parser: (NSXMLParser*)aParser
+  didEndElement: (NSString*)tag
+  namespaceURI: (NSString*)aNamespaceURI
+  qualifiedName: (NSString*)aQualifierName
+{
+}
+
 - (void) parser: (NSXMLParser*)parser
-  didStartElement: (NSString*)elementName
+  didStartElement: (NSString*)tag
   namespaceURI: (NSString*)namespaceURI
   qualifiedName: (NSString*)qName
   attributes: (NSDictionary*)attributeDict
 {
-  static NSSet	*permitted = nil;
+  NSArray	*path = [(id)parser _tagPath];
+  NSUInteger	count = [path count];
+  NSString	*parent;
+  NSSet		*permitted;
 
-  if (nil == permitted)
+  if (count < 2)
     {
-      permitted = [[NSSet alloc] initWithObjects:
-
-	// Special tags that don't get stored in the gsdoc output.
-	@"end-of-comment",
-	@"init",
-	@"override-dummy",
-	@"override-never",
-	@"override-subclass",
-	@"unit",
-
-	// The real tags
-	@"answer",
-	@"br",
-	@"code",
-	@"deflist",
-	@"desc",
-	@"em",
-	@"email",
-	@"embed",
-	@"entry",
-	@"enum",
-	@"example",
-	@"file",
-	@"footnote",
-	@"item",
-	@"label",
-	@"list",
-	@"p",
-	@"qalist",
-	@"question",
-	@"ref",
-	@"site",
-	@"strong",
-	@"term",
-	@"uref",
-	@"url",
-	@"var",
-	nil];
+      return;
     }
-  if ([permitted member: elementName] == nil)
+  parent = [path objectAtIndex: count - 2];
+  permitted = [permittedIn objectForKey: parent];
+  if (nil == permitted && [parent isEqualToString: @"end-of-comment"])
     {
-      unsigned	num;
-
-      [self getNumber: &num
-	    andColumn: NULL
-	       ofLine: NULL
-		   at: pos];
-      NSLog(@"Error %@ before line %u - illegal element tag '%@'",
-	fileName, num, elementName);
+      permitted = rootSet;
+    }
+  if ([permitted member: tag] == nil)
+    {
+      NSLog(@"Error %@ before line %u - illegal element tag '%@' in '%@'",
+	fileName, lineNumber, tag, parent);
+      failed = YES;
     }
 }
 
 - (void) parser: (NSXMLParser*)parser parseErrorOccurred: (NSError*)parseError
 {
-  unsigned	num;
   NSString	*str;
   NSRange	r;
 
-  [self getNumber: &num
-	andColumn: NULL
-	   ofLine: NULL
-	       at: pos];
   str = [parseError localizedDescription];
   r = [str rangeOfString: @" ... "];
   if (r.length > 0)
@@ -5448,15 +5762,23 @@ fail:
     }
   
   NSLog(@"Error %ld in %@ before line %u - %@",
-    (long)[parseError code], fileName, num, str);
+    (long)[parseError code], fileName, lineNumber, str);
 }
 
-- (NSMutableString*) validate: (NSString*)str
+- (void) reset
 {
-  static NSArray	*empty = nil;
+  failed = NO;
+}
+
+- (NSMutableString*) validateComment: (NSString*)str
+				 for: (AGSParser*)agsp
+				  in: (ValidationContext)context
+{
   static Class		parserClass = Nil;
   NSMutableString	*ms = AUTORELEASE([str mutableCopy]);
 
+  ASSIGN(fileName, [agsp fileName]);
+  lineNumber = [agsp lineNumber];
   if (Nil == parserClass)
     {
       parserClass = NSClassFromString(@"GSSloppyXMLParser");
@@ -5464,16 +5786,6 @@ fail:
 	{
 	  parserClass = [NSXMLParser class];
 	}
-    }
-  if (nil == empty)
-    {
-      empty = [[NSArray alloc] initWithObjects:
-	@"<br>",
-	@"<init>",
-	@"<override-subclass>",
-	@"<override-dummy>",
-	@"<override-never>",
-	nil];
     }
 
   ENTER_POOL
@@ -5504,31 +5816,46 @@ fail:
 	}
     }
 
-  FOR_IN(NSString*, tag, empty)
-  while ((range = [ms rangeOfString: tag]).length > 0)
+  FOR_IN(NSString*, tag, emptyElements)
+  while ((range = [ms rangeOfString: tag]).length > 0
+    && NSMaxRange(range) < [ms length]
+    && [ms characterAtIndex: NSMaxRange(range)] == '>')
     {
-      range.location += range.length - 1;
+      range.location += range.length;
       range.length = 0;
       /* Convert '<tag>' to '<tag />' ... legal xml.
        */
       [ms replaceCharactersInRange: range withString: @" /"];
     }
-  END_FOR_IN(empty)
+  END_FOR_IN(emptyElements)
 
   xml = AUTORELEASE([@"<?xml version=\"1.0\"?>\n" mutableCopy]);
   [xml appendString: @"<end-of-comment>"];
   [xml appendString: ms];
   [xml appendString: @"</end-of-comment>"];
 
+  switch (context)
+    {
+      case VCGeneral:
+	ASSIGN(rootSet, generalElements);
+	break;
+
+      case VCMethod:
+	ASSIGN(rootSet, methodElements);
+	break;
+
+      case VCUnit:
+	ASSIGN(rootSet, unitElements);
+	break;
+    }
   data = [xml dataUsingEncoding: NSUTF8StringEncoding];
   parser = (NSXMLParser*)AUTORELEASE([[parserClass alloc] initWithData: data]);
   [parser setDelegate: self];
-  if (NO == [parser parse])
+  [self reset];
+  if (NO == [parser parse] || YES == failed)
     {
-      unsigned	num;
-
-      [self getNumber: &num andColumn: NULL ofLine: NULL at: pos];
-      NSLog(@"Discarded invalid comment in %@ before line %u", fileName, num);
+      NSLog(@"Discarded invalid comment in %@ before line %u",
+	fileName, lineNumber);
       ms = nil;
     }
   LEAVE_POOL
