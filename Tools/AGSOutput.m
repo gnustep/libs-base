@@ -297,7 +297,6 @@ static BOOL snuggleStart(NSString *t)
  */
 - (NSArray*) output: (NSMutableDictionary*)d
 {
-  NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
   NSDictionary		*categories;
@@ -309,7 +308,6 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*macros;
   NSMutableArray	*files;
   NSArray		*authors;
-  NSString		*style = @"default-styles.css";
   NSString		*base;
   NSString		*tmp;
   NSString		*file;
@@ -328,23 +326,10 @@ static BOOL snuggleStart(NSString *t)
   dest = [info objectForKey: @"directory"];
   if ([dest length] > 0)
     {
-      style = [dest stringByAppendingPathComponent: style];
       if ([file isAbsolutePath] == NO)
 	{
 	  file = [dest stringByAppendingPathComponent: file];
 	}
-    }
-
-  /* When there is no local default stylesheet present, we copy the
-   * stylesheet from the main bundle.
-   */
-  if ([mgr isReadableFileAtPath: style] == NO)
-    {
-      NSBundle	*bundle = [NSBundle mainBundle];
-      NSString	*path;
-
-      path = [bundle pathForResource: @"default-styles" ofType: @"css"];
-      [mgr copyPath: path toPath: style handler: nil];
     }
 
   classes = [info objectForKey: @"Classes"];

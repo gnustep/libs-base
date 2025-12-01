@@ -2310,7 +2310,21 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
     {
-      NSString		*htmlIndexFile;
+      NSString	*htmlIndexFile;
+      NSString	*style = @"default-styles.css";
+
+      /* When there is no local default stylesheet present, we copy the
+       * stylesheet from the main bundle.
+       */
+      style = [documentationDirectory stringByAppendingPathComponent: style];
+      if ([mgr isReadableFileAtPath: style] == NO)
+	{
+	  NSBundle	*bundle = [NSBundle mainBundle];
+	  NSString	*path;
+
+	  path = [bundle pathForResource: @"default-styles" ofType: @"css"];
+	  [mgr copyPath: path toPath: style handler: nil];
+	}
 
       htmlIndexFile = [defs stringForKey: @"IndexFile"];
       pool = [NSAutoreleasePool new];

@@ -85,18 +85,18 @@ ANNOUNCE_TEXI_FILES = version.texi
 ANNOUNCE_TEXT_MAIN = announce.texi
 ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base/
+ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base/ReleaseNotes
+ReleaseNotes_AGSDOC_LOCAL_DIR = ReleaseNotes
+ReleaseNotes_AGSDOC_INSTALL_BUNDLE = ReleaseNotes
+
 
 ReleaseNotes_AGSDOC_FILES = \
-ReleaseNotes.gsdoc
+	ReleaseNotes.gsdoc
 
-#
-# Hack ... using the -DocumentationDirectory flag overrides the value
-# used by the make package, and puts our output in the documentation
-# directory.
-#
-#ReleaseNotes_AGSDOC_FLAGS = -DocumentationDirectory .
-ReleaseNotes_AGSDOC_FLAGS = -DTDs ../Tools
+ReleaseNotes_AGSDOC_FLAGS = \
+        -MakeFrames NO \
+	-DTDs ../Tools \
+
 
 # Use local version of autogsdoc in case it is not installed
 LD_LIBRARY_PATH := $(dir $(CURDIR))/../Source/$(GNUSTEP_OBJ_DIR_NAME):$(LD_LIBRARY_PATH)
