@@ -662,12 +662,8 @@
 static NSString *
 commonRoot(NSString *s1, NSString *s2)
 {
-  static BOOL	hadFailure = NO;
   NSString	*s;
   unsigned	l;
-
-  if (hadFailure) return nil;
-  if (nil == s1) return s2;
 
   s = [s1 commonPrefixWithString: s2 options: NSLiteralSearch];
   l = [s length];
@@ -681,7 +677,7 @@ commonRoot(NSString *s1, NSString *s2)
        */
       NSLog(@"Unable to make relative links because projects '%@' and '%@'"
 	@" share no common prefix.", s1, s2);
-      hadFailure = YES;
+      s = nil;
     }
   return [s substringToIndex: l];
 }
@@ -1021,7 +1017,7 @@ main(int argc, char **argv, char **env)
                            error: NULL];
     }
 
-  str = [[defs stringForKey: @"InstallationlDomain"] uppercaseString];
+  str = [[defs stringForKey: @"InstallationDomain"] uppercaseString];
   if ([str isEqualToString: @"SYSTEM"])
     installationDomain = NSSystemDomainMask;
   else if ([str isEqualToString: @"LOCAL"])
@@ -1874,7 +1870,6 @@ main(int argc, char **argv, char **env)
       NSMutableDictionary	*projects;
       NSString			*systemProjects;
       NSString			*localProjects;
-      NSString			*installRoot = nil;
       NSString			*str;
       CREATE_AUTORELEASE_POOL (pool);
 
@@ -1971,8 +1966,6 @@ main(int argc, char **argv, char **env)
 		      val
 			= [systemProjects stringByAppendingPathComponent: val];
 		      [projects setObject: val forKey: key];
-		      if (installDir)
-		        installRoot = commonRoot(installRoot, key);
 		    }
 		}
 	    }
@@ -2016,8 +2009,6 @@ main(int argc, char **argv, char **env)
 		      val = [file stringByDeletingLastPathComponent];
 		      val = [localProjects stringByAppendingPathComponent: val];
 		      [projects setObject: val forKey: key];
-		      if (installDir)
-		        installRoot = commonRoot(installRoot, key);
 		    }
 		}
 	    }
@@ -2031,49 +2022,19 @@ main(int argc, char **argv, char **env)
 	  NSEnumerator		*e = [projects keyEnumerator];
 	  NSMutableArray	*merged;
 	  NSString		*k;
-	  NSString		*relative = @"";
-	  unsigned		installLength = 0;
+	  NSString		*installPath = nil;
 
 	  if (installDir)
 	    {
 	      NSString	*base;
-	      NSString	*file;
-	      NSString	*path;
 
 	      base = [NSSearchPathForDirectoriesInDomains(
 	        NSDocumentationDirectory, installationDomain, NO) lastObject];
-	      base = [base stringByAppendingPathComponent: installDir];
 	      base = [base stringByStandardizingPath];
-	      file = [project stringByAppendingPathExtension: @"html"];
-	      path = [base stringByAppendingPathComponent: file];
-	      installRoot = commonRoot(installRoot, path);
-	      if (nil == installRoot)
+	      installPath = [base stringByAppendingPathComponent: installDir];
+	      if (NO == [installPath hasSuffix: @"/"])
 		{
-		  /* No common root ... use absolute links instead.
-		   */
-		  relative = nil;
-		}
-	      else if ([base length] < (installLength = [installRoot length]))
-		{
-		  /* All referenced project documentation is relative to the
-		   * directory that this project will be installed in.
-		   */
-		  relative = @"";
-		}
-	      else
-		{
-		  unsigned	c;
-
-		  base = [base substringFromIndex: installLength];
-
-		  /* Build the prefix to get from the package being generated
-		   * up to the documentation installation root.
-		   */
-		  c = [[base componentsSeparatedByString: @"/"] count];
-		  while (c--)
-		    {
-		      relative = [relative stringByAppendingString: @"../"];
-		    }
+		  installPath = [installPath stringByAppendingString: @"/"];
 		}
 	    }
 
@@ -2097,7 +2058,8 @@ main(int argc, char **argv, char **env)
 		  else
 		    {
 		      AGSIndex		*tmp;
-		      NSString		*p;
+		      NSString		*projPath;
+		      NSString		*common;
 
 		      tmp = [AGSIndex new];
 		      [tmp mergeRefs: dict override: NO];
@@ -2105,20 +2067,38 @@ main(int argc, char **argv, char **env)
 		      /*
 		       * Adjust path to external project files ...
 		       */
-		      p = [projects objectForKey: k];
-		      if ([p isEqual: @""] == YES)
+		      projPath = [projects objectForKey: k];
+		      if ([projPath isEqual: @""] == YES)
 			{
-			  p = [k stringByDeletingLastPathComponent];
+			  projPath = [k stringByDeletingLastPathComponent];
 			}
-		      if (installDir && relative)
+		      projPath = [projPath stringByStandardizingPath];
+		      if (NO == [projPath hasSuffix: @"/"])
 			{
+			  projPath = [projPath stringByAppendingString: @"/"];
+			}
+		      if (installPath
+			&& (common = commonRoot(installPath, projPath)) != nil)
+			{
+			  NSUInteger	length = [common length];
+			  NSString	*mine;
+			  NSString	*rel;
+			  NSUInteger	c;
+
+			  mine = [installPath substringFromIndex: length];
+			  rel = [projPath substringFromIndex: length];
+			  c = [[mine componentsSeparatedByString: @"/"] count];
+			  while (c-- > 1)
+			    {
+			      rel = [@"../" stringByAppendingString: rel];
+			    }
 			  /* Replace the root part with the prefix
 			   * to make the path relative.
 			   */
-			  p = [p substringFromIndex: installLength];
-			  p = [relative stringByAppendingString: p];
+//NSLog(@"Adjust path from '%@' to '%@' (common '%@') as '%@'", installPath, projPath, common, rel);
+			  projPath = rel;
 			}
-		      [tmp setDirectory: p];
+		      [tmp setDirectory: projPath];
 		      [globalRefs mergeRefs: [tmp refs] override: YES];
 		      RELEASE(tmp);
 		      [merged addObject: k];
