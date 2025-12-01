@@ -25,6 +25,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSBundle.h"
+#import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -148,33 +149,27 @@ static BOOL snuggleStart(NSString *t)
 
   if (empty != nil && [empty boolValue] == YES)
     {
-#if 0
       static NSString	*today = nil;
+      NSString		*saved = comment;
 
-      if (today == nil)
+      NSLog(@"Warning - No implementation for [%@ %@]",
+	unit, [d objectForKey: @"Name"]);
+
+      if (nil == today)
 	{
 	  NSCalendarDate	*d = [NSCalendarDate date];
 
-	  today
-	    = RETAIN([d descriptionWithCalendarFormat: @"%Y-%m-%d"]);
+	  today = RETAIN([d descriptionWithCalendarFormat: @"%Y-%m-%d"]);
 	}
-      if (hadComment == NO)
-	{
-	  comment = @"";
-	}
+
       comment = [NSString stringWithFormat:
 	@"<em>Not implemented (as of %@).</em><br />"
 	@"Please help us by producing an implementation of this "
-	@"and donating it to the GNUstep project.<br />"
-	@"You can check the task manager at "
-	@"https://savannah.gnu.org/projects/gnustep "
-	@"to see if anyone is already working on it.<br />",
-	today, comment];
-#else
-      NSString	*name = [d objectForKey: @"Name"];
-
-      NSLog(@"Warning - No implementation for [%@ %@]", unit, name);
-#endif
+	@"and donating it to the GNUstep project.", today];
+      if (hadComment)
+	{
+	  comment = [saved stringByAppendingFormat: @"<br />%@", comment];
+	}
     }
 
   return comment;
