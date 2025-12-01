@@ -2584,11 +2584,11 @@ static BOOL	classInitialized = NO;
  * <p>If <var>*str</var> is <code>nil</code>, create a <ref>GSMutableString</ref>.
  * Otherwise <var>*str</var> must be a GSMutableString.</p>
  * 
- * <p>Options:</p><ul>
- * <li><var>step</var> is the indent level.</li>
- * <li><var>forDescription</var> enables OpenStep formatting.</li>
- * <li><var>xml</var> enables XML formatting.</li>
- * </ul>
+ * <p>Options:</p><list>
+ * <item><var>step</var> is the indent level.</item>
+ * <item><var>forDescription</var> enables OpenStep formatting.</item>
+ * <item><var>xml</var> enables XML formatting.</item>
+ * </list>
  */
 GS_DECLARE void
 GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,

@@ -88,6 +88,7 @@ static BOOL snuggleStart(NSString *t)
  *  category: [NSRunLoop(GNUstepExtensions)].
  *  </p>
  * </unit>
+ * Some text before the unit is included.
  * And finally, here is the actual class description ... outside the chapter.
  * This is the class description for <code>AGSOutput</code>, including some
  * sample uses of GSDoc, such as cross-references (see [NSString]).

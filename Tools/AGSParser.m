@@ -77,7 +77,15 @@ static NSDictionary	*permittedIn = nil;
 
 - (NSMutableString*) validateComment: (NSString*)str
 				 for: (AGSParser*)agsp
-				  in: (ValidationContext)context;
+				  in: (ValidationContext)context
+				  at: (unsigned)line;
+@end
+
+@interface	AGSParser (Internal)
+- (void) getNumber: (unsigned*)nPtr
+	 andColumn: (unsigned*)cPtr
+            ofLine: (NSString**)lPtr
+		at: (unsigned)offset;
 @end
 
 /**
@@ -333,8 +341,43 @@ equalTypes(NSArray *t1, NSArray *t2)
 	    {
 	      s = [old stringByAppendingString: s];
 	    }
+	  commentEndPos = pos;
 	}
       ASSIGN(comment, s);
+    }
+}
+
+- (void) appendAccumulatedTo: (NSMutableDictionary*)d
+			  in: (ValidationContext)c
+{
+  NSAssert(d != nil, NSInvalidArgumentException);
+  if ([comment length] > 0)
+    {
+      NSString	*s;
+      unsigned	l;
+
+      [self getNumber: &l andColumn: NULL ofLine: NULL at: commentEndPos];
+      s = [validator validateComment: comment for: self in: c at: l];
+
+      if ([s length] > 0)
+        {
+	  NSString	*old = [d objectForKey: @"Comment"];
+
+	  if (old)
+	    {
+	      if ([old hasSuffix: @"</p>"] == NO
+		&& [old hasSuffix: @"<br />"] == NO)
+		{
+		  s = [old stringByAppendingFormat: @"<br />%@", s];
+		}
+	      else
+		{
+		  s = [old stringByAppendingString: s];
+		}
+	    }
+	  [d setObject: s forKey: @"Comment"];
+	}
+      DESTROY(comment);
     }
 }
 
@@ -349,15 +392,14 @@ equalTypes(NSArray *t1, NSArray *t2)
  */
 - (void) appendComment: (NSString*)s
 		    to: (NSMutableDictionary*)d
-		    in: (ValidationContext)c
 {
   NSAssert(d != nil, NSInvalidArgumentException);
-  s = [validator validateComment: s for: self in: c];
+
   if ([s length] > 0)
     {
       NSString	*old = [d objectForKey: @"Comment"];
 
-      if (old != nil)
+      if (old)
         {
 	  if ([old hasSuffix: @"</p>"] == NO
 	    && [old hasSuffix: @"<br />"] == NO)
@@ -2255,11 +2297,7 @@ another:
 	      [self parseComment];
 	    }
 	}
-      if (comment != nil)
-	{
-	  [self appendComment: comment to: d in: VCGeneral];
-	}
-      DESTROY(comment);
+      [self appendAccumulatedTo: d in: VCGeneral];
 
       if (inArgList == NO)
 	{
@@ -2486,7 +2524,7 @@ fail:
 			 */
 		        if ([oc isEqual: nc] == NO)
 			  {
-			    [self appendComment: nc to: oDecl in: VCGeneral];
+			    [self appendComment: nc to: oDecl];
 			  }
 			[oDecl setObject: @"YES" forKey: @"Implemented"];
 
@@ -2634,7 +2672,7 @@ fail:
        */
       if ([oc isEqual: nc] == NO)
 	{
-	  [self appendComment: nc to: dict in: VCUnit];
+	  [self appendComment: nc to: dict];
 	}
       /*
        * Update base class if necessary.
@@ -2684,11 +2722,7 @@ fail:
   /*
    * Record any class documentation for this class
    */
-  if (comment != nil)
-    {
-      [self appendComment: comment to: dict in: VCUnit];
-      DESTROY(comment);
-    }
+  [self appendAccumulatedTo: dict in: VCUnit];
 
   if ((name = [self parseIdentifier]) == nil
     || [self parseSpaceOrGeneric] >= length)
@@ -2731,7 +2765,7 @@ fail:
 	  c = @"<em>Warning</em> this category is <em>private</em>, which "
 	    @"means that the methods are for internal use by the package. "
 	    @"You should not use them in external code.";
-	  [self appendComment: c to: dict in: VCUnit];
+	  [self appendComment: c to: dict];
 	}
     }
   else if (buffer[pos] == ':')
@@ -3041,7 +3075,7 @@ try:
 			@"even though it is not technically <em>private</em>, "
 			@"it is intended for internal use within the package, "
 			@"and you should not use the variable in other code.";
-		      [self appendComment: c to: iv in: VCGeneral];
+		      [self appendComment: c to: iv];
 		    }
 		}
 	      [iv setObject: validity forKey: @"Validity"];
@@ -3171,7 +3205,7 @@ fail:
 	}
       /* A macro is implemented as soon as it is defined. */
       [dict setObject: @"YES" forKey: @"Implemented"];
-      [self appendComment: comment to: dict in: VCGeneral];
+      [self appendAccumulatedTo: dict in: VCGeneral];
     }
   else
     {
@@ -3453,11 +3487,7 @@ fail:
    * Store any available documentation information in the method.
    * If the method is already documented, append new information.
    */
-  if (comment != nil)
-    {
-      [self appendComment: comment to: method in: VCMethod];
-      DESTROY(comment);
-    }
+  [self appendAccumulatedTo: method in: VCMethod];
   if (flag
     && [itemName length] > 1 && [itemName characterAtIndex: 1] == '_')
     {
@@ -3466,7 +3496,7 @@ fail:
       c = @"<em>Warning</em> the underscore at the start of the name "
 	@"of this method indicates that it is private, for internal use only, "
 	@" and you should not use the method in your code.";
-      [self appendComment: c to: method in: VCMethod];
+      [self appendComment: c to: method];
     }
 
   DESTROY(itemName);
@@ -3527,6 +3557,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSString		*get;
   NSString		*set;
   NSString		*token;
+  NSString		*com;
   unsigned		count;
 
   if (nil == atomicity)
@@ -3657,6 +3688,11 @@ countAttributes(NSSet *keys, NSDictionary *a)
       return nil;
     }
 
+  /* Get any validatred comment for the property.
+   */
+  [self appendAccumulatedTo: prop in: VCGeneral];
+  com = [prop objectForKey: @"Comment"];
+
   /* Get the property name (will use it in the setter)
    */
   name = [prop objectForKey: @"Name"];
@@ -3728,9 +3764,9 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	@" See also <ref type=\"method\" id=\"-%@\""
 	@" class=\"%@\">[%@ -%@]</ref>\n",
 	name, [attr allKeys], get, unitName, unitName, get];
-      if (comment != nil)
+      if (com != nil)
 	{
-	  token = [token stringByAppendingString: comment];
+	  token = [token stringByAppendingString: com];
 	}
       [sd setObject: token forKey: @"Comment"];
       [sd setObject: @"YES" forKey: @"Implemented"];
@@ -3752,16 +3788,16 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	@" See also <ref type=\"method\" id=\"-%@\""
 	@" class=\"%@\">[%@ -%@]</ref>\n",
 	set, unitName, unitName, set];
-      if (comment != nil)
+      if (com != nil)
 	{
-	  token = [token stringByAppendingString: comment];
+	  token = [token stringByAppendingString: com];
 	}
     }
   [gd setObject: token forKey: @"Comment"];
   [gd setObject: @"YES" forKey: @"Implemented"];
 
   [prop setObject: @"Properties" forKey: @"Kind"];
-  DESTROY(comment);
+  [prop removeObjectForKey: @"Comment"];
   return prop;
 }
 
@@ -3873,7 +3909,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		c1 = [method objectForKey: @"Comment"];
 		if ([c0 isEqual: c1] == NO)
 		  {
-		    [self appendComment: c1 to: exist in: VCMethod];
+		    [self appendComment: c1 to: exist];
 		  }
 		[exist setObject: @"YES" forKey: @"Implemented"];
 
@@ -4169,7 +4205,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		   */
 		  if ([oc isEqual: nc] == NO)
 		    {
-		      [self appendComment: nc to: odef in: VCGeneral];
+		      [self appendComment: nc to: odef];
 		    }
 		}
 	    }
@@ -4427,11 +4463,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   /*
    * Record any protocol documentation for this protocol
    */
-  if (comment != nil)
-    {
-      [dict setObject: comment forKey: @"Comment"];
-      DESTROY(comment);
-    }
+  [self appendAccumulatedTo: dict in: VCUnit];
 
   if ((name = [self parseIdentifier]) == nil
     || [self parseSpace] >= length)
@@ -5736,6 +5768,16 @@ fail:
       return;
     }
   parent = [path objectAtIndex: count - 2];
+  if (count > 2 && [parent isEqualToString: @"unit"]
+    && [[path objectAtIndex: count - 3] isEqualToString: @"chapter"])
+    {
+      /* A chapter may only contain <unit /> as a marker.
+       */
+      NSLog(@"Error %@ before line %u -"
+	@" illegal element tag 'unit' in 'chapter'",
+	fileName, lineNumber);
+      failed = YES;
+    }
   permitted = [permittedIn objectForKey: parent];
   if (nil == permitted && [parent isEqualToString: @"end-of-comment"])
     {
@@ -5773,12 +5815,13 @@ fail:
 - (NSMutableString*) validateComment: (NSString*)str
 				 for: (AGSParser*)agsp
 				  in: (ValidationContext)context
+				  at: (unsigned)line
 {
   static Class		parserClass = Nil;
   NSMutableString	*ms = AUTORELEASE([str mutableCopy]);
 
   ASSIGN(fileName, [agsp fileName]);
-  lineNumber = [agsp lineNumber];
+  lineNumber = line;
   if (Nil == parserClass)
     {
       parserClass = NSClassFromString(@"GSSloppyXMLParser");
