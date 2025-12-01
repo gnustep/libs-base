@@ -341,9 +341,9 @@ equalTypes(NSArray *t1, NSArray *t2)
 	    {
 	      s = [old stringByAppendingString: s];
 	    }
-	  commentEndPos = pos;
 	}
       ASSIGN(comment, s);
+      commentEndPos = pos;
     }
 }
 
@@ -378,6 +378,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 	  [d setObject: s forKey: @"Comment"];
 	}
       DESTROY(comment);
+      commentEndPos = 0;
     }
 }
 
