@@ -53,6 +53,7 @@
 - (void) setDirectory: (NSString*)path;
 - (void) setEmail: (NSString*)address forAuthor: (NSString*)name;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
+- (void) setInstallDir: (NSString*)dir inDomain: (int)domain;
 - (void) setOutputs: (NSArray*)a forHeader: (NSString*)h;
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to;
 - (void) setSources: (NSArray*)a forHeader: (NSString*)h;

@@ -25,6 +25,7 @@
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSPathUtilities.h"
 #import	"Foundation/NSUserDefaults.h"
 #import "AGSIndex.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -631,6 +632,35 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
       ENTER_POOL
       setDirectory(refs, path);
       LEAVE_POOL
+    }
+}
+
+- (void) setInstallDir: (NSString*)dir inDomain: (int)domain
+{
+  NSString	*domainName = nil;
+
+  if (NSSystemDomainMask == domain) domainName = @"SYSTEM";
+  else if (NSLocalDomainMask == domain) domainName = @"LOCAL";
+  else if (NSNetworkDomainMask == domain) domainName = @"NETWORK";
+  else if (NSUserDomainMask == domain) domainName = @"USER";
+  else domainName = @"LOCAL";
+
+  if (domainName)
+    {
+      [refs setObject: domainName forKey: @"InstallationDomain"];
+    }
+  else
+    {
+      [refs removeObjectForKey: @"InstallationDomain"];
+    }
+
+  if (dir)
+    {
+      [refs setObject: dir forKey: @"InstallDirectory"];
+    }
+  else
+    {
+      [refs removeObjectForKey: @"InstallationDomain"];
     }
 }
 
