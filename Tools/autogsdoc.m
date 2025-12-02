@@ -2133,7 +2133,7 @@ main(int argc, char **argv, char **env)
 		    {
 		      AGSIndex		*tmp;
 		      NSString		*projPath;
-		      NSString		*common;
+		      NSString		*common = nil;
 
 		      tmp = [AGSIndex new];
 		      [tmp mergeRefs: dict override: NO];
