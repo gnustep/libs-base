@@ -407,6 +407,14 @@
 	Header files specified as absolute paths are not influenced by this
 	default.
       </item>
+      <item><strong>SourceDirectory</strong>
+	May be used to specify the directory to be searched for source files.
+	When supplied, this value is prepended to relative source names,
+	otherwise the relative source names are interpreted relative to
+	the current directory.<br />
+	Source files specified as absolute paths are not influenced by this
+	default.
+      </item>
       <item><strong>IgnoreDependencies</strong>
 	A boolean value which may be used to specify that the program should
 	ignore file modification times and regenerate files anyway.  Provided
@@ -701,6 +709,7 @@ main(int argc, char **argv, char **env)
   NSString		*installDir;
   NSString		*declared;
   NSString		*headerDirectory;
+  NSString		*sourceDirectory;
   NSString		*project;
   NSString		*refsName;
   NSDictionary		*originalIndex;
@@ -852,6 +861,8 @@ main(int argc, char **argv, char **env)
     @"Project",
     @"\t\tSTR\t(.)\n\tdirectory to search for .h files",
     @"HeaderDirectory",
+    @"\t\tSTR\t(.)\n\tdirectory to search for .m and .gsdoc files",
+    @"SourceDirectory",
     @"\tSTR\t(.)\n\tdirectory to place generated files and "
       @"search for gsdoc files",
     @"DocumentationDirectory",
@@ -1015,6 +1026,12 @@ main(int argc, char **argv, char **env)
       headerDirectory = @"";
     }
 
+  sourceDirectory = [defs stringForKey: @"SourceDirectory"];
+  if (sourceDirectory == nil)
+    {
+      sourceDirectory = @"";
+    }
+
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
   if (documentationDirectory == nil)
     {
@@ -1080,6 +1097,7 @@ main(int argc, char **argv, char **env)
       NSLog(@"Name ... %@", [proc processName]);
       NSLog(@"Files ... %@", files);
       NSLog(@"HeaderDirectory ... %@", headerDirectory);
+      NSLog(@"SourceDirectory ... %@", sourceDirectory);
       NSLog(@"DocumentationDirectory ... %@", documentationDirectory);
     }
   for (i = firstFile; i < count; i++)
@@ -1095,7 +1113,7 @@ main(int argc, char **argv, char **env)
 	  [sFiles addObject: arg];
 	}
       else if (([arg hasSuffix: @".m"] == YES)
-               || ([arg hasSuffix: @".c"] == YES))
+        || ([arg hasSuffix: @".c"] == YES))
 	{
 	  [sFiles addObject: arg];
 	}
@@ -1481,8 +1499,14 @@ main(int argc, char **argv, char **env)
 	      if ([headerDirectory length] > 0
 	        && [[hfile pathExtension] isEqual: @"h"] == YES)
 		{
-		  hfile = [headerDirectory stringByAppendingPathComponent:
-		    hfile];
+		  hfile = [headerDirectory
+		    stringByAppendingPathComponent: hfile];
+		}
+	      else if ([sourceDirectory length] > 0
+	        && [[hfile pathExtension] isEqual: @"m"] == YES)
+		{
+		  hfile = [sourceDirectory
+		    stringByAppendingPathComponent: hfile];
 		}
 	    }
 
@@ -1624,16 +1648,24 @@ main(int argc, char **argv, char **env)
                 {
                   NSString *sourcePath = [sFiles objectAtIndex: j];
 
-                  if ([sourcePath hasSuffix: sourceName] 
-                   && [mgr isReadableFileAtPath: sourcePath])
-                    {
-		      NSUInteger	index;
-
-		      index = [a indexOfObject: sourcePath];
-                      [a addObject: sourcePath];
-		      if (index != NSNotFound)
+                  if ([sourcePath hasSuffix: sourceName])
+		    { 
+		      if ([sourcePath isAbsolutePath] == NO
+			&& [sourceDirectory length] > 0)
 			{
-			  [a removeObjectAtIndex: index];
+			  sourcePath = [sourceDirectory
+			    stringByAppendingPathComponent: sourcePath];
+			}
+		      if ([mgr isReadableFileAtPath: sourcePath])
+			{
+			  NSUInteger	index;
+
+			  index = [a indexOfObject: sourcePath];
+			  [a addObject: sourcePath];
+			  if (index != NSNotFound)
+			    {
+			      [a removeObjectAtIndex: index];
+			    }
 			}
                     }
                 }
@@ -1868,6 +1900,31 @@ main(int argc, char **argv, char **env)
       DESTROY(merged);
     }
 
+  /* Now, there may be gsdoc files which were neither specified on the
+   * command line nor generated/modified in this run through. So we must
+   * get the full list from the index in order to build output from them.
+   */
+    {
+      NSEnumerator	*e;
+      NSArray		*a;
+
+      e = [[[projectRefs refs] objectForKey: @"output"] objectEnumerator];
+      while ((a = [e nextObject]) != nil)
+	{
+	  NSUInteger	count = [a count];
+
+	  while (count-- > 0)
+	    {
+	      NSString	*file = [a objectAtIndex: count];
+
+	      if (NO == [gFiles containsObject: file])
+		{
+		  [gFiles addObject: file];
+		}
+	    }
+	}
+    }
+  
   globalRefs = AUTORELEASE([AGSIndex new]);
   [safe setObject: globalRefs forKey: @"globalRefs"];
 
