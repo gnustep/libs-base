@@ -328,7 +328,7 @@
 	in <code>Foundation/NSString.h</code>
       </item>
       <item><strong>DocumentAllInstanceVariables</strong>
-	This flag permits you to generate documentation for all instance
+	This flag permits you to generata documentation for all instance
 	variables.  Normally, only those explicitly declared 'public' or
 	'protected' will be documented.
       </item>
@@ -364,19 +364,16 @@
 	absolute location of that documentation in the filesystem).
 	By default this is the LOCAL domain, but it can also be set to
 	SYSTEM, NETWORK, or USER.<br />
-	When autogsdoc is run by gnustep-make with AGSDOC_RELOCATABLE=yes
-	defined, this argument is automatically added unless you have
-	specifically set it in ...AGSDOC_FLAGS.
+	When autogsdoc is run by gnustep-make, this argument is automatically
+        added to tell autogsdoc where its output will be installed.
       </item>
       <item><strong>InstallDir</strong>
 	This is used to enable generation of HTML output with relative links
 	to documentation created for other projects.  The value of this must
 	be the relative path at which this documentation will be installed
-	within the installation domain (see -InstallationDomain) used.
-	Relative links will not work until the documentation is installed.<br />
-	When autogsdoc is run by gnustep-make with AGSDOC_RELOCATABLE=yes
-	defined, this argument is automatically added unless you have
-	specifically set it in ...AGSDOC_FLAGS.
+	within the installation domain (see -InstallationDomain) used.<br />
+	This argument is automatically added by gnustep-make based on the
+	xxx_DOC_INSTALL_DIR and xxx_AGSDOC_INSTALL_BUNDLE settings.
       </item>
       <item><strong>Files</strong>
 	Specifies the name of a file containing a list of file names as
@@ -408,6 +405,14 @@
 	otherwise the relative header names are interpreted relative to
 	the current directory.<br />
 	Header files specified as absolute paths are not influenced by this
+	default.
+      </item>
+      <item><strong>SourceDirectory</strong>
+	May be used to specify the directory to be searched for source files.
+	When supplied, this value is prepended to relative source names,
+	otherwise the relative source names are interpreted relative to
+	the current directory.<br />
+	Source files specified as absolute paths are not influenced by this
 	default.
       </item>
       <item><strong>IgnoreDependencies</strong>
@@ -478,6 +483,12 @@
 	(equivalent to not using -Projects at all).<br />
 	This argument may be overridden by the AGSDOC_PROJECTS
 	environment variable.<br />
+      </item>
+      <item><strong>RelocatableHtml</strong>
+	A boolean value which may be used to specify that the program should
+	generate HTML with relative links to documents in other projects using
+	the InstallationDomain and InstallDir options to determine where the
+	HTML will be located.
       </item>
       <item><strong>ShowDependencies</strong>
 	A boolean value which may be used to specify that the program should
@@ -662,12 +673,8 @@
 static NSString *
 commonRoot(NSString *s1, NSString *s2)
 {
-  static BOOL	hadFailure = NO;
   NSString	*s;
   unsigned	l;
-
-  if (hadFailure) return nil;
-  if (nil == s1) return s2;
 
   s = [s1 commonPrefixWithString: s2 options: NSLiteralSearch];
   l = [s length];
@@ -681,7 +688,7 @@ commonRoot(NSString *s1, NSString *s2)
        */
       NSLog(@"Unable to make relative links because projects '%@' and '%@'"
 	@" share no common prefix.", s1, s2);
-      hadFailure = YES;
+      s = nil;
     }
   return [s substringToIndex: l];
 }
@@ -702,6 +709,7 @@ main(int argc, char **argv, char **env)
   NSString		*installDir;
   NSString		*declared;
   NSString		*headerDirectory;
+  NSString		*sourceDirectory;
   NSString		*project;
   NSString		*refsName;
   NSDictionary		*originalIndex;
@@ -722,6 +730,8 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
+  NSMutableSet		*dPaths = nil;	// HTML dependencies
+  NSString		*makeDependencies = nil;
   NSString              *symbolDeclsFile = nil;
   NSMutableDictionary 	*symbolDecls = nil;
   NSMutableSet		*deps = nil;
@@ -851,14 +861,21 @@ main(int argc, char **argv, char **env)
     @"Project",
     @"\t\tSTR\t(.)\n\tdirectory to search for .h files",
     @"HeaderDirectory",
+    @"\t\tSTR\t(.)\n\tdirectory to search for .m and .gsdoc files",
+    @"SourceDirectory",
     @"\tSTR\t(.)\n\tdirectory to place generated files and "
       @"search for gsdoc files",
     @"DocumentationDirectory",
-    @"\t\t\tSTR\t(\"\")\n\tname of file containing filenames to document. Should be set by gnustep-make",
+    @"\tSTR\t(LOCAL)\n\tThe expected installation domain.\n"
+      @"\tSet by gnustep-make.",
     @"InstallationDomain",
-    @"\t\t\tSTR\t(LOCAL)\n\tfor relative links, the expected installation domain. Should be set by gnustep-make",
+    @"\tSTR\t(\"\")\n\tLocation of documentation bundle within domain.\n"
+      @"\tSet by gnustep-make.",
     @"InstallDir",
-    @"\t\t\tSTR\t(\"\")\n\tfor relative links, location within domain. Should be set by gnustep-make",
+    @"\t\tBOOL\t(NO)\n\tset to generate HTML with relative links",
+    @"RelocatableHtml",
+    @"\tSTR\t(\"\")\n\tname of file containing filenames to document."
+      @" Should be set by gnustep-make",
     @"Files",
     @"\t\t\tBOOL\t(NO)\n\tremove all generated files",
     @"Clean",
@@ -932,8 +949,10 @@ main(int argc, char **argv, char **env)
 	}
       if (![argSet containsObject: opt] || [@"help" isEqual: opt])
 	{
-	  NSArray	*args = [argsRecognized allKeys];
+	  NSArray	*args;
 
+	  args = [[argsRecognized allKeys]
+	    sortedArrayUsingSelector: @selector(compare:)];
 	  if (![@"help" isEqual: opt])
 	    {
 	      GSPrintf(stderr, @"Unknown option: '%@'\n", opt);
@@ -1007,6 +1026,12 @@ main(int argc, char **argv, char **env)
       headerDirectory = @"";
     }
 
+  sourceDirectory = [defs stringForKey: @"SourceDirectory"];
+  if (sourceDirectory == nil)
+    {
+      sourceDirectory = @"";
+    }
+
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
   if (documentationDirectory == nil)
     {
@@ -1021,7 +1046,7 @@ main(int argc, char **argv, char **env)
                            error: NULL];
     }
 
-  str = [[defs stringForKey: @"InstallationlDomain"] uppercaseString];
+  str = [[defs stringForKey: @"InstallationDomain"] uppercaseString];
   if ([str isEqualToString: @"SYSTEM"])
     installationDomain = NSSystemDomainMask;
   else if ([str isEqualToString: @"LOCAL"])
@@ -1072,6 +1097,7 @@ main(int argc, char **argv, char **env)
       NSLog(@"Name ... %@", [proc processName]);
       NSLog(@"Files ... %@", files);
       NSLog(@"HeaderDirectory ... %@", headerDirectory);
+      NSLog(@"SourceDirectory ... %@", sourceDirectory);
       NSLog(@"DocumentationDirectory ... %@", documentationDirectory);
     }
   for (i = firstFile; i < count; i++)
@@ -1087,7 +1113,7 @@ main(int argc, char **argv, char **env)
 	  [sFiles addObject: arg];
 	}
       else if (([arg hasSuffix: @".m"] == YES)
-               || ([arg hasSuffix: @".c"] == YES))
+        || ([arg hasSuffix: @".c"] == YES))
 	{
 	  [sFiles addObject: arg];
 	}
@@ -1473,8 +1499,14 @@ main(int argc, char **argv, char **env)
 	      if ([headerDirectory length] > 0
 	        && [[hfile pathExtension] isEqual: @"h"] == YES)
 		{
-		  hfile = [headerDirectory stringByAppendingPathComponent:
-		    hfile];
+		  hfile = [headerDirectory
+		    stringByAppendingPathComponent: hfile];
+		}
+	      else if ([sourceDirectory length] > 0
+	        && [[hfile pathExtension] isEqual: @"m"] == YES)
+		{
+		  hfile = [sourceDirectory
+		    stringByAppendingPathComponent: hfile];
 		}
 	    }
 
@@ -1616,16 +1648,24 @@ main(int argc, char **argv, char **env)
                 {
                   NSString *sourcePath = [sFiles objectAtIndex: j];
 
-                  if ([sourcePath hasSuffix: sourceName] 
-                   && [mgr isReadableFileAtPath: sourcePath])
-                    {
-		      NSUInteger	index;
-
-		      index = [a indexOfObject: sourcePath];
-                      [a addObject: sourcePath];
-		      if (index != NSNotFound)
+                  if ([sourcePath hasSuffix: sourceName])
+		    { 
+		      if ([sourcePath isAbsolutePath] == NO
+			&& [sourceDirectory length] > 0)
 			{
-			  [a removeObjectAtIndex: index];
+			  sourcePath = [sourceDirectory
+			    stringByAppendingPathComponent: sourcePath];
+			}
+		      if ([mgr isReadableFileAtPath: sourcePath])
+			{
+			  NSUInteger	index;
+
+			  index = [a indexOfObject: sourcePath];
+			  [a addObject: sourcePath];
+			  if (index != NSNotFound)
+			    {
+			      [a removeObjectAtIndex: index];
+			    }
 			}
                     }
                 }
@@ -1841,6 +1881,9 @@ main(int argc, char **argv, char **env)
 	}
       DESTROY(arp);
 
+      [projectRefs setInstallDir: installDir inDomain: installationDomain];
+
+
       /*
        * 7) Save project references if they have been modified
        *    (into an .igsdoc file named for the project).
@@ -1857,6 +1900,31 @@ main(int argc, char **argv, char **env)
       DESTROY(merged);
     }
 
+  /* Now, there may be gsdoc files which were neither specified on the
+   * command line nor generated/modified in this run through. So we must
+   * get the full list from the index in order to build output from them.
+   */
+    {
+      NSEnumerator	*e;
+      NSArray		*a;
+
+      e = [[[projectRefs refs] objectForKey: @"output"] objectEnumerator];
+      while ((a = [e nextObject]) != nil)
+	{
+	  NSUInteger	count = [a count];
+
+	  while (count-- > 0)
+	    {
+	      NSString	*file = [a objectAtIndex: count];
+
+	      if (NO == [gFiles containsObject: file])
+		{
+		  [gFiles addObject: file];
+		}
+	    }
+	}
+    }
+  
   globalRefs = AUTORELEASE([AGSIndex new]);
   [safe setObject: globalRefs forKey: @"globalRefs"];
 
@@ -1869,15 +1937,16 @@ main(int argc, char **argv, char **env)
    *    contents are read in and merged with the current project (but NOT
    *    merged into its index file).
    */
-  if (generateHtml == YES || [hFiles count] > 0)
+  if (generateHtml || [hFiles count] > 0)
     {
       NSMutableDictionary	*projects;
       NSString			*systemProjects;
       NSString			*localProjects;
-      NSString			*installRoot = nil;
       NSString			*str;
+      BOOL			relocatable;
       CREATE_AUTORELEASE_POOL (pool);
 
+      relocatable = [defs boolForKey: @"RelocatableHtml"];
       localProjects = [defs stringForKey: @"LocalProjects"];
       str = [environment objectForKey: @"AGSDOC_LOCAL_PROJECTS"];
       if (str)
@@ -1971,8 +2040,6 @@ main(int argc, char **argv, char **env)
 		      val
 			= [systemProjects stringByAppendingPathComponent: val];
 		      [projects setObject: val forKey: key];
-		      if (installDir)
-		        installRoot = commonRoot(installRoot, key);
 		    }
 		}
 	    }
@@ -2016,8 +2083,6 @@ main(int argc, char **argv, char **env)
 		      val = [file stringByDeletingLastPathComponent];
 		      val = [localProjects stringByAppendingPathComponent: val];
 		      [projects setObject: val forKey: key];
-		      if (installDir)
-		        installRoot = commonRoot(installRoot, key);
 		    }
 		}
 	    }
@@ -2031,49 +2096,19 @@ main(int argc, char **argv, char **env)
 	  NSEnumerator		*e = [projects keyEnumerator];
 	  NSMutableArray	*merged;
 	  NSString		*k;
-	  NSString		*relative = @"";
-	  unsigned		installLength = 0;
+	  NSString		*installPath = nil;
 
 	  if (installDir)
 	    {
 	      NSString	*base;
-	      NSString	*file;
-	      NSString	*path;
 
 	      base = [NSSearchPathForDirectoriesInDomains(
 	        NSDocumentationDirectory, installationDomain, NO) lastObject];
-	      base = [base stringByAppendingPathComponent: installDir];
 	      base = [base stringByStandardizingPath];
-	      file = [project stringByAppendingPathExtension: @"html"];
-	      path = [base stringByAppendingPathComponent: file];
-	      installRoot = commonRoot(installRoot, path);
-	      if (nil == installRoot)
+	      installPath = [base stringByAppendingPathComponent: installDir];
+	      if (NO == [installPath hasSuffix: @"/"])
 		{
-		  /* No common root ... use absolute links instead.
-		   */
-		  relative = nil;
-		}
-	      else if ([base length] < (installLength = [installRoot length]))
-		{
-		  /* All referenced project documentation is relative to the
-		   * directory that this project will be installed in.
-		   */
-		  relative = @"";
-		}
-	      else
-		{
-		  unsigned	c;
-
-		  base = [base substringFromIndex: installLength];
-
-		  /* Build the prefix to get from the package being generated
-		   * up to the documentation installation root.
-		   */
-		  c = [[base componentsSeparatedByString: @"/"] count];
-		  while (c--)
-		    {
-		      relative = [relative stringByAppendingString: @"../"];
-		    }
+		  installPath = [installPath stringByAppendingString: @"/"];
 		}
 	    }
 
@@ -2097,7 +2132,8 @@ main(int argc, char **argv, char **env)
 		  else
 		    {
 		      AGSIndex		*tmp;
-		      NSString		*p;
+		      NSString		*projPath;
+		      NSString		*common = nil;
 
 		      tmp = [AGSIndex new];
 		      [tmp mergeRefs: dict override: NO];
@@ -2105,20 +2141,41 @@ main(int argc, char **argv, char **env)
 		      /*
 		       * Adjust path to external project files ...
 		       */
-		      p = [projects objectForKey: k];
-		      if ([p isEqual: @""] == YES)
+		      projPath = [projects objectForKey: k];
+		      if ([projPath isEqual: @""] == YES)
 			{
-			  p = [k stringByDeletingLastPathComponent];
+			  projPath = [k stringByDeletingLastPathComponent];
 			}
-		      if (installDir && relative)
+		      projPath = [projPath stringByStandardizingPath];
+		      if (NO == [projPath hasSuffix: @"/"])
 			{
+			  projPath = [projPath stringByAppendingString: @"/"];
+			}
+		      if (relocatable)
+			{
+			  common = commonRoot(installPath, projPath);
+			}
+		      if (common)
+			{
+			  NSUInteger	length = [common length];
+			  NSString	*mine;
+			  NSString	*rel;
+			  NSUInteger	c;
+
+			  mine = [installPath substringFromIndex: length];
+			  rel = [projPath substringFromIndex: length];
+			  c = [[mine componentsSeparatedByString: @"/"] count];
+			  while (c-- > 1)
+			    {
+			      rel = [@"../" stringByAppendingString: rel];
+			    }
 			  /* Replace the root part with the prefix
 			   * to make the path relative.
 			   */
-			  p = [p substringFromIndex: installLength];
-			  p = [relative stringByAppendingString: p];
+//NSLog(@"Adjust path from '%@' to '%@' (common '%@') as '%@'", installPath, projPath, common, rel);
+			  projPath = rel;
 			}
-		      [tmp setDirectory: p];
+		      [tmp setDirectory: projPath];
 		      [globalRefs mergeRefs: [tmp refs] override: YES];
 		      RELEASE(tmp);
 		      [merged addObject: k];
@@ -2303,14 +2360,47 @@ main(int argc, char **argv, char **env)
         }
     }
 
+  /* If we have to make dependencies, the final output depends on the
+   * generated .gsdoc and the .igsdoc project index.
+   */
+  makeDependencies = [defs stringForKey: @"MakeDependencies"];
+  if (makeDependencies)
+    {
+      dPaths = [NSMutableSet set];
+      [dPaths addObject: refsFile];
+    }
 
   /*
    * 10) Next pass ... generate html output from gsdoc files if required.
    */
   count = [gFiles count];
-  if (generateHtml == YES && count > 0)
+  if ((generateHtml == YES || makeDependencies) && count > 0)
     {
       NSString		*htmlIndexFile;
+      NSDictionary	*attrs = nil;
+      NSDate		*rDate = nil;
+
+      if (generateHtml)
+	{
+	  NSString	*style = @"default-styles.css";
+
+	  attrs = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
+	  rDate = [attrs fileModificationDate];
+
+	  /* When there is no local default stylesheet present, we copy the
+	   * stylesheet from the main bundle.
+	   */
+	  style = [documentationDirectory
+	    stringByAppendingPathComponent: style];
+	  if ([mgr isReadableFileAtPath: style] == NO)
+	    {
+	      NSBundle	*bundle = [NSBundle mainBundle];
+	      NSString	*path;
+
+	      path = [bundle pathForResource: @"default-styles" ofType: @"css"];
+	      [mgr copyPath: path toPath: style handler: nil];
+	    }
+	}
 
       htmlIndexFile = [defs stringForKey: @"IndexFile"];
       pool = [NSAutoreleasePool new];
@@ -2322,9 +2412,10 @@ main(int argc, char **argv, char **env)
 	  NSString	*htmlfile;
 	  NSString	*file;
 	  NSString	*generated;
-	  NSDictionary	*attrs;
 	  NSDate	*gDate = nil;
 	  NSDate	*hDate = nil;
+	  NSDate	*iDate = nil;
+	  BOOL		readable;
 
 	  if (pool != nil)
 	    {
@@ -2341,25 +2432,44 @@ main(int argc, char **argv, char **env)
 	  gsdocfile = [documentationDirectory
 	    stringByAppendingPathComponent: file];
 	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
-	  htmlfile = [documentationDirectory
-	    stringByAppendingPathComponent: file];
-	  htmlfile = [htmlfile stringByAppendingPathExtension: @"html"];
 
 	  /*
 	   * If the gsdoc file name was specified as a source file,
 	   * it may be in the source directory rather than the documentation
 	   * directory.
 	   */
-	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
-	    && [arg hasSuffix: @".gsdoc"] == YES)
+	  readable = [mgr isReadableFileAtPath: gsdocfile];
+	  if (NO == readable && [arg hasSuffix: @".gsdoc"])
 	    {
 	      gsdocfile = [file stringByAppendingPathExtension: @"gsdoc"];
+	      readable = [mgr isReadableFileAtPath: gsdocfile];
 	    }
+	  if (readable)
+	    {
+	      [dPaths addObject: gsdocfile];
+	    }
+	  if (NO == generateHtml)
+	    {
+	      continue;
+	    }
+
+	  if (NO == readable)
+	    {
+	      if ([arg hasSuffix: @".gsdoc"])
+		{
+		  NSLog(@"File '%@' not found in $DocumentationDirectory"
+		    @" or '.' ... skipping", gsdocfile);
+		}
+	      continue;
+	    }
+
+	  htmlfile = [documentationDirectory
+	    stringByAppendingPathComponent: file];
+	  htmlfile = [htmlfile stringByAppendingPathExtension: @"html"];
 
 	  if (ignoreDependencies == NO)
 	    {
-	      /*
-	       * When were the files last modified?
+	      /* When were the files last modified?
 	       */
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
@@ -2367,75 +2477,71 @@ main(int argc, char **argv, char **env)
 	      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
 	      hDate = [attrs fileModificationDate];
 	      IF_NO_ARC([[hDate retain] autorelease];)
+	      iDate = rDate;
 	    }
 
-	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
+	  if (ignoreDependencies
+	    || nil == hDate
+	    || [gDate earlierDate: hDate] != gDate
+	    || [iDate earlierDate: hDate] != iDate)
 	    {
-	      if (hDate == nil || [gDate earlierDate: hDate] != gDate)
+	      NSData	*d;
+	      GSXMLNode	*root;
+	      GSXMLParser	*parser;
+	      AGSIndex	*localRefs;
+	      AGSHtml	*html;
+
+	      if (showDependencies == YES)
 		{
-		  NSData	*d;
-		  GSXMLNode	*root;
-		  GSXMLParser	*parser;
-		  AGSIndex	*localRefs;
-		  AGSHtml	*html;
+		  NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
+		    file, gDate, hDate);
+		}
+	      // 10b) parse the .gsdoc file
+	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
+	      [parser doValidityChecking: YES];
+	      [parser keepBlanks: NO];
+	      [parser substituteEntities: NO];
+	      if ([parser parse] == NO)
+		{
+		  NSLog(@"WARNING %@ is not a valid document", gsdocfile);
+		}
+	      root = [[parser document] root];
+	      if (![[root name] isEqualToString: @"gsdoc"])
+		{
+		  NSLog(@"not a gsdoc document - because name node is %@",
+		    [root name]);
+		  return 1;
+		}
 
-		  if (showDependencies == YES)
-		    {
-		      NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
-			file, gDate, hDate);
-		    }
-                  // 10b) parse the .gsdoc file
-		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser doValidityChecking: YES];
-		  [parser keepBlanks: NO];
-		  [parser substituteEntities: NO];
-		  if ([parser parse] == NO)
-		    {
-		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
-		    }
-		  root = [[parser document] root];
-		  if (![[root name] isEqualToString: @"gsdoc"])
-		    {
-		      NSLog(@"not a gsdoc document - because name node is %@",
-			[root name]);
-		      return 1;
-		    }
+	      localRefs = AUTORELEASE([AGSIndex new]);
+	      [localRefs makeRefs: root];
 
-		  localRefs = AUTORELEASE([AGSIndex new]);
-		  [localRefs makeRefs: root];
+	      /*
+	       * 10c) Feed the XML tree to an AGSHtml instance, and dump
+	       *      the result to a file.
+	       */
+	      html = AUTORELEASE([AGSHtml new]);
+	      [html setGlobalRefs: globalRefs];
+	      [html setProjectRefs: projectRefs];
+	      [html setLocalRefs: localRefs];
+	      [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
+	      generated = [html outputDocument: root name: gsdocfile];
+	      d = [generated dataUsingEncoding: NSUTF8StringEncoding];
+	      if ([d writeToFile: htmlfile atomically: YES] == NO)
+		{
+		  NSLog(@"Sorry unable to write %@", htmlfile);
+		}
+	      if ([file isEqual: htmlIndexFile])
+		{
+		  NSString	*s;
 
-		  /*
-		   * 10c) Feed the XML tree to an AGSHtml instance, and dump
-                   *      the result to a file.
-		   */
-		  html = AUTORELEASE([AGSHtml new]);
-		  [html setGlobalRefs: globalRefs];
-		  [html setProjectRefs: projectRefs];
-		  [html setLocalRefs: localRefs];
-                  [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
-		  generated = [html outputDocument: root name: gsdocfile];
-		  d = [generated dataUsingEncoding: NSUTF8StringEncoding];
-		  if ([d writeToFile: htmlfile atomically: YES] == NO)
+		  s = [documentationDirectory
+		    stringByAppendingPathComponent: @"index.html"];
+		  if ([d writeToFile: s atomically: YES] == NO)
 		    {
-		      NSLog(@"Sorry unable to write %@", htmlfile);
-		    }
-		  if ([file isEqual: htmlIndexFile])
-		    {
-		      NSString	*s;
-
-		      s = [documentationDirectory
-			stringByAppendingPathComponent: @"index.html"];
-		      if ([d writeToFile: s atomically: YES] == NO)
-			{
-			  NSLog(@"Sorry unable to write %@ to %@", htmlfile, s);
-			}
+		      NSLog(@"Sorry unable to write %@ to %@", htmlfile, s);
 		    }
 		}
-	    }
-	  else if ([arg hasSuffix: @".gsdoc"] == YES)
-	    {
-	      NSLog(@"File '%@' not found in $DocumentationDirectory or '.' ... skipping",
-		gsdocfile);
 	    }
 	}
       RELEASE(pool);
@@ -2536,7 +2642,8 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '#' in href at %lu", (unsigned long)replace.location);
+		      NSLog(@"Missing '#' in href at %lu",
+			(unsigned long)replace.location);
 		      break;
 		    }
 		  href = [href substringFromIndex: NSMaxRange(r)];
@@ -2548,7 +2655,8 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '$' in href at %lu", (unsigned long)replace.location);
+		      NSLog(@"Missing '$' in href at %lu",
+			(unsigned long)replace.location);
 		      break;
 		    }
 		  type = [href substringToIndex: r.location];
@@ -2644,9 +2752,9 @@ main(int argc, char **argv, char **env)
    * 12) If MakeDependencies was requested, add all header and source files
    *     as colon-dependencies of the project name.
    */
-  if ([defs stringForKey: @"MakeDependencies"] != nil)
+  if (makeDependencies)
     {
-      NSString		*stamp = [defs stringForKey: @"MakeDependencies"];
+      NSString		*stamp = makeDependencies;
       NSDictionary	*files = [[projectRefs  refs] objectForKey: @"source"];
       NSEnumerator	*enumerator = [files keyEnumerator];
       NSString		*file;
@@ -2677,6 +2785,18 @@ main(int argc, char **argv, char **env)
                                error: NULL];
 	}
       [depend writeToFile: stamp atomically: YES];
+
+      if ([dPaths count])
+	{
+	  stamp = [stamp stringByAppendingString: @"_html"];
+	  enumerator = [dPaths objectEnumerator];
+	  depend = [NSMutableString stringWithFormat: @"%@:", stamp];
+	  while ((file = [enumerator nextObject]) != nil)
+	    {
+	      [depend appendFormat: @" \\\n\t%@", file];
+	    }
+	  [depend writeToFile: stamp atomically: YES];
+	}
     }
 
   RELEASE(outer);

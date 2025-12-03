@@ -76,6 +76,7 @@
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
 
   NSString		*comment;	/** Documentation accumulator. */
+  unsigned              commentEndPos;  /** Cursor at last accumulation. */
   NSMutableDictionary	*info;		/** All information parsed. */
   NSMutableDictionary   *orderedSymbolDeclsByUnit;
   NSMutableArray	*source;	/** Names of source files. */
