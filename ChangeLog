@@ -1,3 +1,33 @@
+2025-12-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m:
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.h:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	Add parsing of comment text as xml is generated in order to provide
+	more helpful error reports and prevent bad xml being injected into
+	the generated .gsdoc files.
+	Improved gnustep-make integration...
+	The -InstallationDomain and -InstallDir options let gnustep-make tell
+	autogsdoc where the documentation will be installed.
+	The -GenerateHtml and -RelocatableHtml options let gnustep-make defer
+	HTML generation until the .gsdoc and .igsdoc files are installed,
+	and then to build HTML with relative links.
+	The -MakeDependencies option is now a boolean used by gnustep-make to
+	generate dependency rules to help it determine whether to invoke
+	autogsdoc at all.
+	The tool generates a 'stamp' file when .gsdoc/.igsdoc files have been
+	generated, and 'stamp_html' when .html output has been generated.
+	The new -SourceDirectory option lets us tell autogsdoc to look in a
+	different directory for source files (similar to the existing
+	-HeaderDirectory option).
+	Many obscure bugs fixed.
+
 2025-11-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: add error messages for symbolic stack trace

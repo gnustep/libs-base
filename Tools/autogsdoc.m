@@ -693,6 +693,22 @@ commonRoot(NSString *s1, NSString *s2)
   return [s substringToIndex: l];
 }
 
+/* Ensure that file name is set up using the header/source directory
+ * unless it is absolute.
+ */
+static NSString *
+fullName(NSString *file, NSString *directory)
+{
+  if ([file isAbsolutePath] == NO)
+    {
+      if ([directory length] > 0)
+	{
+	  file = [directory stringByAppendingPathComponent: file];
+	}
+    }
+  return file;
+}
+
 int
 main(int argc, char **argv, char **env)
 {
@@ -723,6 +739,7 @@ main(int argc, char **argv, char **env)
   BOOL			generateHtml = YES;
   BOOL			ignoreDependencies = NO;
   BOOL			showDependencies = NO;
+  BOOL			makeDependencies = NO;
   BOOL			verbose = NO;
   BOOL			warn = NO;
   BOOL			instanceVarsAtEnd = YES;
@@ -731,7 +748,6 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
   NSMutableSet		*dPaths = nil;	// HTML dependencies
-  NSString		*makeDependencies = nil;
   NSString              *symbolDeclsFile = nil;
   NSMutableDictionary 	*symbolDecls = nil;
   NSMutableSet		*deps = nil;
@@ -902,7 +918,7 @@ main(int argc, char **argv, char **env)
     @"Projects",
     @"\t\tSTR\t(\"\")\n\tfile to output dependency info for 'make' into",
     @"MakeDependencies",
-    @"\t\tSTR\t(\"\")\n\tfile into which docs for constants "
+    @"\t\tBOOL\t(NO)\n\tgenerate a dependencies file for gnustep-make"
       @"should be consolidated",
     @"ConstantsTemplate",
     @"\t\tSTR\t(\"\")\n\tfile into which docs for functions "
@@ -1110,20 +1126,20 @@ main(int argc, char **argv, char **env)
 	}
       else if ([arg hasSuffix: @".h"] == YES)
 	{
-	  [sFiles addObject: arg];
+	  [sFiles addObject: fullName(arg, headerDirectory)];
 	}
       else if (([arg hasSuffix: @".m"] == YES)
         || ([arg hasSuffix: @".c"] == YES))
 	{
-	  [sFiles addObject: arg];
+	  [sFiles addObject: fullName(arg, sourceDirectory)];
 	}
       else if ([arg hasSuffix: @".gsdoc"] == YES)
 	{
-	  [gFiles addObject: arg];
+	  [gFiles addObject: fullName(arg, sourceDirectory)];
 	}
       else if ([arg hasSuffix: @".html"] == YES)
 	{
-	  [hFiles addObject: arg];
+	  [hFiles addObject: fullName(arg, sourceDirectory)];
 	}
       else
 	{
@@ -1470,7 +1486,6 @@ main(int argc, char **argv, char **env)
 	  NSString		*hfile = [sFiles objectAtIndex: i];
 	  NSString		*gsdocfile;
 	  NSString		*file;
-	  NSString              *sourceName = nil;
 	  NSMutableArray	*a;
 	  NSDictionary		*attrs;
 	  NSDate		*sDate = nil;
@@ -1490,24 +1505,10 @@ main(int argc, char **argv, char **env)
 	  file = [hfile stringByDeletingPathExtension];
 	  file = [file lastPathComponent];
 
-	  /*
-	   * Ensure that header file name is set up using the
-	   * header directory specified unless it is absolute.
-	   */
-	  if ([hfile isAbsolutePath] == NO)
+	  if ([mgr isReadableFileAtPath: hfile] == NO)
 	    {
-	      if ([headerDirectory length] > 0
-	        && [[hfile pathExtension] isEqual: @"h"] == YES)
-		{
-		  hfile = [headerDirectory
-		    stringByAppendingPathComponent: hfile];
-		}
-	      else if ([sourceDirectory length] > 0
-	        && [[hfile pathExtension] isEqual: @"m"] == YES)
-		{
-		  hfile = [sourceDirectory
-		    stringByAppendingPathComponent: hfile];
-		}
+	      NSLog(@"No readable header at '%@' ... skipping", hfile);
+	      continue;
 	    }
 
 	  gsdocfile = [documentationDirectory
@@ -1552,15 +1553,19 @@ main(int argc, char **argv, char **env)
 
 	      /*
 	       * Ask existing project info (.gsdoc file) for dependency
-	       * information.  Then check the dates on the output files.
-	       * If none are set, assume the default.
+	       * information.  Add the expected gsdoc file name for now
+	       * (we can remove it later if no file is produced).
 	       */
 	      a = [projectRefs outputsForHeader: hfile];
 	      if ([a count] == 0)
 		{
-		  [a insertObject: gsdocfile atIndex: 0];
+		  [a addObject: [gsdocfile lastPathComponent]];
                   [projectRefs setOutputs: a forHeader: hfile];
 		}
+
+	      /* Now check the dates on the output files.
+	       * If none are set, assume the default.
+	       */
 	      for (j = 0; j < [a count]; j++)
 		{
 		  NSString	*ofile = [a objectAtIndex: j];
@@ -1573,15 +1578,17 @@ main(int argc, char **argv, char **env)
 		      IF_NO_ARC([[gDate retain] autorelease];)
 		    }
 		}
-	      if (verbose == YES)
+	      if (verbose)
 		{
-		  NSLog(@"Saved outputs for %@ are %@ ... %@", hfile, a, gDate);
+		  NSLog(@"Expected outputs for %@ are %@ updated %@",
+		    hfile, a, gDate ? [gDate description] : @"never");
 		}
 	    }
 
 	  if (gDate == nil || [sDate earlierDate: gDate] != sDate)
 	    {
-	      NSArray	*modified;
+	      NSArray		*modified;
+	      NSUInteger	i;
 
 	      if (showDependencies == YES)
 		{
@@ -1595,11 +1602,6 @@ main(int argc, char **argv, char **env)
 	       * If the header given was actually a .m/.c file, this will
 	       * parse that file for declarations rather than definitions.
 	       */
-	      if ([mgr isReadableFileAtPath: hfile] == NO)
-		{
-		  NSLog(@"No readable header at '%@' ... skipping", hfile);
-		  continue;
-		}
 	      if (declared != nil)
 		{
 		  [parser setDeclared:
@@ -1608,63 +1610,71 @@ main(int argc, char **argv, char **env)
 		}
 	      [parser parseFile: hfile isSource: NO];
 
-	      /*
-	       * Record dependency information.
+	      /* Record dependency information.
 	       */
 	      a = [parser outputs];
-	      if ([a count] > 0)
+	      if (verbose == YES)
 		{
-		  /*
-		   * Adjust the location of the output files to be in the
-		   * documentation directory.
-		   */
-		  for (j = 0; j < [a count]; j++)
-		    {
-		      NSString	*s = [a objectAtIndex: j];
-
-		      if ([s isAbsolutePath] == NO)
-			{
-			  s = [documentationDirectory
-			    stringByAppendingPathComponent: s];
-			  [a replaceObjectAtIndex: j withObject: s];
-			}
-		    }
-		  if (verbose == YES)
-		    {
-		      NSLog(@"Computed outputs for %@ are %@", hfile, a);
-		    }
-		  [projectRefs setOutputs: a forHeader: hfile];
+		  NSLog(@"Computed outputs for %@ are %@", hfile, a);
 		}
+	      [projectRefs setOutputs: a forHeader: hfile];
 
-	      a = [parser sources];
-              /*
-               * Collect any matching .m files provided as autogsdoc arguments 
+              /* Collect any matching .m files provided as autogsdoc arguments 
                * for the current header (hfile).
                */
-              sourceName = [[hfile lastPathComponent] 
-                stringByDeletingPathExtension];
-              sourceName = [sourceName stringByAppendingPathExtension: @"m"];
-              for (j = 0; j < [sFiles count]; j++)
-                {
-                  NSString *sourcePath = [sFiles objectAtIndex: j];
+	      a = [parser sources];
+	      if ((i = [a count]) == 0)
+		{
+		  [a addObject: [[[hfile lastPathComponent] 
+		    stringByDeletingPathExtension]
+		    stringByAppendingPathExtension: @"m"]];
+		  i++;
+		}
+	      while (i-- > 0)
+		{
+		  NSUInteger	j = [sFiles count];
+		  NSString	*cPath = [a objectAtIndex: i];
+		  NSString	*cFile = [cPath lastPathComponent];
+		  NSString	*tmp = fullName(cPath, sourceDirectory);
 
-                  if ([sourcePath hasSuffix: sourceName])
-		    { 
-		      if ([sourcePath isAbsolutePath] == NO
-			&& [sourceDirectory length] > 0)
+		  /* The computed source file should be in the source
+		   * directory unless it is an absolute path or perhaps
+		   * a subdirectory.
+		   */
+		  if (NO == [mgr isReadableFileAtPath: tmp])
+		    {
+		      tmp = fullName(cFile, sourceDirectory);
+		      if (NO == [mgr isReadableFileAtPath: tmp])
 			{
-			  sourcePath = [sourceDirectory
-			    stringByAppendingPathComponent: sourcePath];
-			}
-		      if ([mgr isReadableFileAtPath: sourcePath])
-			{
-			  NSUInteger	index;
-
-			  index = [a indexOfObject: sourcePath];
-			  [a addObject: sourcePath];
-			  if (index != NSNotFound)
+			  tmp = cPath;
+			  if (NO == [mgr isReadableFileAtPath: tmp])
 			    {
-			      [a removeObjectAtIndex: index];
+			      /* Computed file not avaialable ... discard it.
+			       */
+			      [a removeObjectAtIndex: i];
+			      continue;
+			    }
+			}
+		    }
+		  if (NO == [tmp isEqual: cPath])
+		    {
+		      [a replaceObjectAtIndex: i withObject: tmp];
+		      cPath = tmp;
+		    }
+
+		  /* Check to see if the computed file is already in the
+		   * source files list.
+		   */
+		  while (j-- > 0)
+		    {
+                      NSString	*sPath = [sFiles objectAtIndex: j];
+		      NSString	*sFile = [sPath lastPathComponent];
+			
+		      if ([sFile isEqual: cFile])
+			{ 
+			  if ([mgr isReadableFileAtPath: sPath])
+			    {
+			      [a removeObjectIdenticalTo: cPath];
 			    }
 			}
                     }
@@ -1713,6 +1723,10 @@ main(int argc, char **argv, char **env)
 		}
 
 	      modified = [output output: [parser info]];
+	      if (verbose)
+		{
+		  NSLog(@"Modified from .h/.m files %@", modified);
+		}
 	      if (modified == nil)
 		{
 		  NSLog(@"Sorry unable to write %@", gsdocfile);
@@ -1723,12 +1737,11 @@ main(int argc, char **argv, char **env)
 
 		  while (c-- > 0)
 		    {
-		      NSString	*f;
+		      NSString	*path = [modified objectAtIndex: c];
 
-		      f = [[modified objectAtIndex: c] lastPathComponent];
-		      if ([gFiles containsObject: f] == NO)
+		      if ([gFiles containsObject: path] == NO)
 			{
-			  [gFiles addObject: f];
+			  [gFiles addObject: path];
 			}
 		    }
 		}
@@ -1738,7 +1751,7 @@ main(int argc, char **argv, char **env)
 	      /*
 	       * Add the .h file to the list of those to process.
 	       */
-	      [gFiles addObject: [hfile lastPathComponent]];
+	      [gFiles addObject: hfile];
 	    }
 	}
 
@@ -1899,6 +1912,8 @@ main(int argc, char **argv, char **env)
       originalIndex = nil;
       DESTROY(merged);
     }
+  [@"" writeToFile: [documentationDirectory
+    stringByAppendingPathComponent: @"stamp"] atomically: YES];
 
   /* Now, there may be gsdoc files which were neither specified on the
    * command line nor generated/modified in this run through. So we must
@@ -1917,6 +1932,10 @@ main(int argc, char **argv, char **env)
 	    {
 	      NSString	*file = [a objectAtIndex: count];
 
+	      /* Convert file name to path so we can use it as input.
+	       */
+	      file = [documentationDirectory
+		stringByAppendingPathComponent: file];
 	      if (NO == [gFiles containsObject: file])
 		{
 		  [gFiles addObject: file];
@@ -2363,7 +2382,7 @@ main(int argc, char **argv, char **env)
   /* If we have to make dependencies, the final output depends on the
    * generated .gsdoc and the .igsdoc project index.
    */
-  makeDependencies = [defs stringForKey: @"MakeDependencies"];
+  makeDependencies = [defs boolForKey: @"MakeDependencies"];
   if (makeDependencies)
     {
       dPaths = [NSMutableSet set];
@@ -2374,7 +2393,7 @@ main(int argc, char **argv, char **env)
    * 10) Next pass ... generate html output from gsdoc files if required.
    */
   count = [gFiles count];
-  if ((generateHtml == YES || makeDependencies) && count > 0)
+  if ((generateHtml || makeDependencies) && count > 0)
     {
       NSString		*htmlIndexFile;
       NSDictionary	*attrs = nil;
@@ -2543,6 +2562,14 @@ main(int argc, char **argv, char **env)
 		    }
 		}
 	    }
+	}
+
+      if (generateHtml)
+	{
+	  /* Create stamp to tell gnustep-make that the html was generated.
+	   */
+	  [@"" writeToFile: [documentationDirectory
+	    stringByAppendingPathComponent: @"stamp_html"] atomically: YES];
 	}
       RELEASE(pool);
     }
@@ -2745,6 +2772,7 @@ main(int argc, char **argv, char **env)
 	      NSLog(@"Type of file '%@' unrecognized ... skipping", src);
 	    }
 	}
+      
       RELEASE(pool);
     }
 
@@ -2754,11 +2782,20 @@ main(int argc, char **argv, char **env)
    */
   if (makeDependencies)
     {
-      NSString		*stamp = makeDependencies;
+      NSString		*stamp;
       NSDictionary	*files = [[projectRefs  refs] objectForKey: @"source"];
       NSEnumerator	*enumerator = [files keyEnumerator];
+      NSString		*base = documentationDirectory;
       NSString		*file;
       NSMutableString	*depend;
+
+      if ([base length]> 0 && [mgr fileExistsAtPath: base] == NO)
+	{
+	  [mgr createDirectoryAtPath: base
+         withIntermediateDirectories: YES
+                          attributes: nil
+                               error: NULL];
+	}
 
       /*
        * Build set of all header and source files used in project.
@@ -2769,34 +2806,40 @@ main(int argc, char **argv, char **env)
 	  [deps addObjectsFromArray: [files objectForKey: file]];
 	}
 
+      /* Build a gnu-make rule to generate the 'stamp' file depending on all
+       * the source documents we use to produce .gsdoc and .igsdoc output.
+       * NB. The rule action depends on variables defined by gnustep-make in
+       * Instance/Documentation/autogsdoc.make
+       */
+      stamp = [base stringByAppendingPathComponent: @"stamp"];
       enumerator = [deps objectEnumerator];
-      depend = [NSMutableString stringWithFormat: @"%@:", stamp];
+      depend = [NSMutableString stringWithFormat: @"%@ &:", stamp];
       while ((file = [enumerator nextObject]) != nil)
 	{
 	  [depend appendFormat: @" \\\n\t%@", file];
 	}
+      [depend appendString: @"\n\t(ECHO_AUTOGSDOC)$(AUTOGSDOC)"
+	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
+      file = [base stringByAppendingPathComponent: @"dependencies"];
+      [depend writeToFile: file atomically: YES];
 
-      file = [stamp stringByDeletingLastPathComponent];
-      if ([file length]> 0 && [mgr fileExistsAtPath: file] == NO)
+      /* Build a gnu-make rule to generate the 'stamp_html' file depending
+       * on all the .gsdoc and .igsdoc files used to generate html.
+       * NB. The rule action depends on variables defined by gnustep-make in
+       * Instance/Documentation/autogsdoc.make
+       */
+      stamp = [base stringByAppendingPathComponent: @"stamp_html"];
+      enumerator = [gFiles objectEnumerator];
+      [depend setString: @""];
+      [depend appendFormat: @"%@ &:", stamp];
+      while ((file = [enumerator nextObject]) != nil)
 	{
-	  [mgr createDirectoryAtPath: file
-         withIntermediateDirectories: YES
-                          attributes: nil
-                               error: NULL];
+	  [depend appendFormat: @" \\\n\t%@", file];
 	}
-      [depend writeToFile: stamp atomically: YES];
-
-      if ([dPaths count])
-	{
-	  stamp = [stamp stringByAppendingString: @"_html"];
-	  enumerator = [dPaths objectEnumerator];
-	  depend = [NSMutableString stringWithFormat: @"%@:", stamp];
-	  while ((file = [enumerator nextObject]) != nil)
-	    {
-	      [depend appendFormat: @" \\\n\t%@", file];
-	    }
-	  [depend writeToFile: stamp atomically: YES];
-	}
+      [depend appendString: @"\n\t(ECHO_AUTOGSDOC)$(AUTOGSDOC)"
+	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
+      file = [base stringByAppendingPathComponent: @"dependencies_html"];
+      [depend writeToFile: file atomically: YES];
     }
 
   RELEASE(outer);
