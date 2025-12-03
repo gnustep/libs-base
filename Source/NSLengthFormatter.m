@@ -1,22 +1,21 @@
-
 /* Implementation of class NSLengthFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
-   
+
    By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Oct  8 13:30:33 EDT 2019
 
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
@@ -67,7 +66,7 @@
 {
   _unitStyle = style;
 }
-  
+
 - (BOOL) isForPersonHeightUse
 {
   return _isForPersonHeightUse;
@@ -77,7 +76,7 @@
 {
   _isForPersonHeightUse = flag;
 }
-  
+
 - (NSString *) stringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
 {
   NSUnit *u = nil;
@@ -113,13 +112,13 @@
     }
 
   m = [[NSMeasurement alloc] initWithDoubleValue: value
-                                            unit: u];
+					    unit: u];
   AUTORELEASE(m);
   mf = [[NSMeasurementFormatter alloc] init];
   AUTORELEASE(mf);
   [mf setUnitStyle: _unitStyle];
   [mf setNumberFormatter: _numberFormatter];
-  
+
   return [mf stringFromMeasurement: m];
 }
 
@@ -139,10 +138,21 @@
   return [self stringFromValue: numberInMeters unit: *unit];
 }
 
+- (NSString *) stringForObjectValue: (id)obj
+{
+  double meters = 0.0;
+
+  if ([obj respondsToSelector: @selector(doubleValue)])
+    {
+      meters = [obj doubleValue];
+    }
+
+  return [self stringFromMeters: meters];
+}
+
 - (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }
 
 @end
-
