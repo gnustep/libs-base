@@ -277,6 +277,10 @@ GS_NSProgress_IVARS;
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler;
 
+/**
+ * A progress is indeterminate when the value of the totalUnitCount or
+ * completedUnitCount property is less than zero, or if both values are zero.
+ */
 - (BOOL) isIndeterminate;
 
 - (void) setKind: (NSProgressKind)k;

@@ -569,6 +569,12 @@ static void tls_current_progress_pop(void)
 {
   double fraction;
 
+  // Matches behaviour with Apple's Foundation framework.
+  if ([self isIndeterminate])
+    {
+      return 0.0;
+    }
+
   GS_MUTEX_LOCK(internal->_lock);
   fraction = internal->_fractionCompleted;
   GS_MUTEX_UNLOCK(internal->_lock);
@@ -679,6 +685,12 @@ static void tls_current_progress_pop(void)
 {
   BOOL finished;
 
+  // Matches behaviour with Apple's Foundation framework.
+  if ([self isIndeterminate])
+    {
+      return NO;
+    }
+
   GS_MUTEX_LOCK(internal->_lock);
   finished = internal->_finished;
   GS_MUTEX_UNLOCK(internal->_lock);
@@ -704,7 +716,14 @@ static void tls_current_progress_pop(void)
 
 - (BOOL) isIndeterminate
 {
-  return NO;
+  bool indeterminate;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  indeterminate =  (internal->_totalUnitCount < 0 || internal->_completedUnitCount < 0) ||
+    (internal->_totalUnitCount == 0 && internal->_completedUnitCount == 0);
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return indeterminate;
 }
 
 - (BOOL) isOld
