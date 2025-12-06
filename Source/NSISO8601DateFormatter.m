@@ -149,6 +149,7 @@
 {
   if ((self = [super init]) != nil)
     {
+      _formatter = [[NSDateFormatter alloc] init];
       if ([decoder allowsKeyedCoding])
         {
           ASSIGN(_timeZone, [decoder decodeObjectForKey: @"NS.timeZone"]);
