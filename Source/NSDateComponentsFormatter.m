@@ -60,7 +60,32 @@
   self = [super initWithCoder: coder];
   if (self != nil)
     {
-      // TODO: Implement coding...
+      if ([coder allowsKeyedCoding])
+        {
+          ASSIGN(_calendar, [coder decodeObjectForKey: @"NS.calendar"]);
+          ASSIGN(_referenceDate, [coder decodeObjectForKey: @"referenceDate"]);
+          _allowsFractionalUnits = [coder decodeBoolForKey: @"allowsFractionalUnits"];
+          _collapsesLargestUnit = [coder decodeBoolForKey: @"collapsesLargestUnit"];
+          _includesApproximationPhrase = [coder decodeBoolForKey: @"includesApproximationPhrase"];
+          _formattingContext = [coder decodeIntegerForKey: @"formattingContext"];
+          _maximumUnitCount = [coder decodeIntegerForKey: @"maximumUnitCount"];
+          _zeroFormattingBehavior = [coder decodeIntegerForKey: @"zeroFormattingBehavior"];
+          _allowedUnits = [coder decodeIntegerForKey: @"NS.allowedUnits"];
+          _unitsStyle = [coder decodeIntegerForKey: @"NS.unitsStyle"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(id) at: &_calendar];
+          [coder decodeValueOfObjCType: @encode(id) at: &_referenceDate];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFractionalUnits];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_collapsesLargestUnit];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_includesApproximationPhrase];
+          [coder decodeValueOfObjCType: @encode(NSFormattingContext) at: &_formattingContext];
+          [coder decodeValueOfObjCType: @encode(NSInteger) at: &_maximumUnitCount];
+          [coder decodeValueOfObjCType: @encode(NSDateComponentsFormatterZeroFormattingBehavior) at: &_zeroFormattingBehavior];
+          [coder decodeValueOfObjCType: @encode(NSCalendarUnit) at: &_allowedUnits];
+          [coder decodeValueOfObjCType: @encode(NSDateComponentsFormatterUnitsStyle) at: &_unitsStyle];
+        }
     }
   return self;
 }
@@ -68,7 +93,32 @@
 - (void) encodeWithCoder: (NSCoder *)coder
 {
   [super encodeWithCoder: coder];
-  // TODO: Implement coding...
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _calendar forKey: @"NS.calendar"];
+      [coder encodeObject: _referenceDate forKey: @"referenceDate"];
+      [coder encodeBool: _allowsFractionalUnits forKey: @"allowsFractionalUnits"];
+      [coder encodeBool: _collapsesLargestUnit forKey: @"collapsesLargestUnit"];
+      [coder encodeBool: _includesApproximationPhrase forKey: @"includesApproximationPhrase"];
+      [coder encodeInteger: _formattingContext forKey: @"formattingContext"];
+      [coder encodeInteger: _maximumUnitCount forKey: @"maximumUnitCount"];
+      [coder encodeInteger: _zeroFormattingBehavior forKey: @"zeroFormattingBehavior"];
+      [coder encodeInteger: _allowedUnits forKey: @"NS.allowedUnits"];
+      [coder encodeInteger: _unitsStyle forKey: @"NS.unitsStyle"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(id) at: &_calendar];
+      [coder encodeValueOfObjCType: @encode(id) at: &_referenceDate];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_allowsFractionalUnits];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_collapsesLargestUnit];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_includesApproximationPhrase];
+      [coder encodeValueOfObjCType: @encode(NSFormattingContext) at: &_formattingContext];
+      [coder encodeValueOfObjCType: @encode(NSInteger) at: &_maximumUnitCount];
+      [coder encodeValueOfObjCType: @encode(NSDateComponentsFormatterZeroFormattingBehavior) at: &_zeroFormattingBehavior];
+      [coder encodeValueOfObjCType: @encode(NSCalendarUnit) at: &_allowedUnits];
+      [coder encodeValueOfObjCType: @encode(NSDateComponentsFormatterUnitsStyle) at: &_unitsStyle];
+    }
 }
 
 - (void) dealloc

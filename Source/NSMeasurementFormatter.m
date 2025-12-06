@@ -128,12 +128,43 @@
 - (id) initWithCoder: (NSCoder*)decoder
 {
   self = [super initWithCoder: decoder];
+  if (self != nil)
+    {
+      if ([decoder allowsKeyedCoding])
+        {
+          _unitOptions = [decoder decodeIntegerForKey: @"NS.unitOptions"];
+          _unitStyle = [decoder decodeIntegerForKey: @"NS.unitStyle"];
+          ASSIGN(_locale, [decoder decodeObjectForKey: @"NS.locale"]);
+          ASSIGN(_numberFormatter, [decoder decodeObjectForKey: @"NS.numberFormatter"]);
+        }
+      else
+        {
+          [decoder decodeValueOfObjCType: @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+          [decoder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+          [decoder decodeValueOfObjCType: @encode(id) at: &_locale];
+          [decoder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+        }
+    }
   return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)encoder
 {
   [super encodeWithCoder: encoder];
+  if ([encoder allowsKeyedCoding])
+    {
+      [encoder encodeInteger: _unitOptions forKey: @"NS.unitOptions"];
+      [encoder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+      [encoder encodeObject: _locale forKey: @"NS.locale"];
+      [encoder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+    }
+  else
+    {
+      [encoder encodeValueOfObjCType: @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+      [encoder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+      [encoder encodeValueOfObjCType: @encode(id) at: &_locale];
+      [encoder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+    }
 }
 @end
 

@@ -223,4 +223,42 @@
   return [self stringFromPersonNameComponents: pnc];
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          _phonetic = [coder decodeBoolForKey: @"NS.phonetic"];
+          _style = [coder decodeIntegerForKey: @"NS.style"];
+          _nameOptions = [coder decodeIntegerForKey: @"NS.nameOptions"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
+          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeBool: _phonetic forKey: @"NS.phonetic"];
+      [coder encodeInteger: _style forKey: @"NS.style"];
+      [coder encodeInteger: _nameOptions forKey: @"NS.nameOptions"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
+      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+    }
+}
+
 @end

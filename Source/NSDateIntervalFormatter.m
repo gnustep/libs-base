@@ -110,5 +110,55 @@
   return [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          ASSIGN(_locale, [coder decodeObjectForKey: @"NS.locale"]);
+          ASSIGN(_calendar, [coder decodeObjectForKey: @"NS.calendar"]);
+          ASSIGN(_timeZone, [coder decodeObjectForKey: @"NS.timeZone"]);
+          ASSIGN(_dateTemplate, [coder decodeObjectForKey: @"NS.dateTemplate"]);
+          _dateStyle = [coder decodeIntegerForKey: @"NS.dateStyle"];
+          _timeStyle = [coder decodeIntegerForKey: @"NS.timeStyle"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(id) at: &_locale];
+          [coder decodeValueOfObjCType: @encode(id) at: &_calendar];
+          [coder decodeValueOfObjCType: @encode(id) at: &_timeZone];
+          [coder decodeValueOfObjCType: @encode(id) at: &_dateTemplate];
+          [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_dateStyle];
+          [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_timeStyle];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _locale forKey: @"NS.locale"];
+      [coder encodeObject: _calendar forKey: @"NS.calendar"];
+      [coder encodeObject: _timeZone forKey: @"NS.timeZone"];
+      [coder encodeObject: _dateTemplate forKey: @"NS.dateTemplate"];
+      [coder encodeInteger: _dateStyle forKey: @"NS.dateStyle"];
+      [coder encodeInteger: _timeStyle forKey: @"NS.timeStyle"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(id) at: &_locale];
+      [coder encodeValueOfObjCType: @encode(id) at: &_calendar];
+      [coder encodeValueOfObjCType: @encode(id) at: &_timeZone];
+      [coder encodeValueOfObjCType: @encode(id) at: &_dateTemplate];
+      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_dateStyle];
+      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_timeStyle];
+    }
+}
+
 @end
 

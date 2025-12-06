@@ -155,4 +155,42 @@
   return NO;
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          _isForPersonHeightUse = [coder decodeBoolForKey: @"NS.forPersonHeightUse"];
+          ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitStyle"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_isForPersonHeightUse];
+          [coder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+          [coder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeBool: _isForPersonHeightUse forKey: @"NS.forPersonHeightUse"];
+      [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_isForPersonHeightUse];
+      [coder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+      [coder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+    }
+}
+
 @end
