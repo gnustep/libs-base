@@ -125,5 +125,43 @@
   return NO;
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          _isForFoodEnergyUse = [coder decodeBoolForKey: @"NS.forFoodEnergyUse"];
+          ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitOptions"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_isForFoodEnergyUse];
+          [coder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+          [coder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeBool: _isForFoodEnergyUse forKey: @"NS.forFoodEnergyUse"];
+      [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitOptions"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_isForFoodEnergyUse];
+      [coder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+      [coder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+    }
+}
+
 @end
 
