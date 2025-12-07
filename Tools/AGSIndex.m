@@ -732,7 +732,14 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
       [refs setObject: dict forKey: @"output"];
       RELEASE(dict);
     }
-  [dict setObject: a forKey: h];
+  if ([a count] == 0)
+    {
+      [dict removeObjectForKey: h];
+    }
+  else
+    {
+      [dict setObject: a forKey: h];
+    }
 }
 
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to
