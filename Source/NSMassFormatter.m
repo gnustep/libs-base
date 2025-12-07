@@ -129,4 +129,41 @@
   return NO;
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super init];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
+          _isForPersonMassUse = [coder decodeBoolForKey: @"NS.forPersonMassUse"];
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitStyle"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_isForPersonMassUse];
+          [coder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+      [coder encodeBool: _isForPersonMassUse forKey: @"NS.forPersonMassUse"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_isForPersonMassUse];
+      [coder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+    }
+}
+
 @end
