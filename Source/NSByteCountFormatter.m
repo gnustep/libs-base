@@ -34,13 +34,15 @@
 
 #define	EXPOSE_NSByteCountFormatter_IVARS	1
 
-#import <Foundation/NSByteCountFormatter.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSAttributedString.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSLocale.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSByteCountFormatter.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSLocale.h"
+#import "Foundation/NSValue.h"
 
 #define	GSInternal		NSByteCountFormatterInternal
 #include	"GSInternal.h"

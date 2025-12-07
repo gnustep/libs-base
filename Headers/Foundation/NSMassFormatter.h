@@ -44,7 +44,7 @@ typedef NSInteger NSMassFormatterUnit;
 @class NSNumberFormatter;
 
 GS_EXPORT_CLASS
-@interface NSMassFormatter : NSObject
+@interface NSMassFormatter : NSFormatter
 {
   NSNumberFormatter *_numberFormatter;
   BOOL _isForPersonMassUse;
