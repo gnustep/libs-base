@@ -232,9 +232,26 @@
     {
       if ([coder allowsKeyedCoding])
         {
-          _phonetic = [coder decodeBoolForKey: @"NS.phonetic"];
-          _style = [coder decodeIntegerForKey: @"NS.style"];
-          _nameOptions = [coder decodeIntegerForKey: @"NS.nameOptions"];
+          // Apple uses a private data object: NS.nameComponentsFormatterPrivate
+          id privateData = [coder decodeObjectForKey: @"NS.nameComponentsFormatterPrivate"];
+          if (privateData != nil && [coder respondsToSelector: @selector(decodeObjectForKey:)])
+            {
+              // Decode from the private data structure
+              _phonetic = [[privateData valueForKey: @"NS.nameFormatterIsPhonetic"] boolValue];
+              _style = [[privateData valueForKey: @"NS.nameFormatterStyle"] integerValue];
+              // Additional Apple private fields (for compatibility):
+              // NS.nameFormatterForceFamilyNameFirst
+              // NS.nameFormatterForceGivenNameFirst
+              // NS.nameFormatterIgnoresFallbacks
+              // NS.nameFormatterLocale
+            }
+          else
+            {
+              // Fallback to direct decoding (GNUstep format)
+              _phonetic = [coder decodeBoolForKey: @"NS.nameFormatterIsPhonetic"];
+              _style = [coder decodeIntegerForKey: @"NS.nameFormatterStyle"];
+              _nameOptions = 0; // Default value
+            }
         }
       else
         {
@@ -251,9 +268,20 @@
   [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeBool: _phonetic forKey: @"NS.phonetic"];
-      [coder encodeInteger: _style forKey: @"NS.style"];
-      [coder encodeInteger: _nameOptions forKey: @"NS.nameOptions"];
+      // Create a private data dictionary to match Apple's format
+      NSMutableDictionary *privateData = [NSMutableDictionary dictionary];
+      [privateData setObject: [NSNumber numberWithBool: _phonetic] 
+                      forKey: @"NS.nameFormatterIsPhonetic"];
+      [privateData setObject: [NSNumber numberWithInteger: _style] 
+                      forKey: @"NS.nameFormatterStyle"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterForceFamilyNameFirst"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterForceGivenNameFirst"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterIgnoresFallbacks"];
+      
+      [coder encodeObject: privateData forKey: @"NS.nameComponentsFormatterPrivate"];
     }
   else
     {
