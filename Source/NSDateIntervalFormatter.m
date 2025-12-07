@@ -21,6 +21,8 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import "Foundation/NSDateIntervalFormatter.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSCalendar.h"
