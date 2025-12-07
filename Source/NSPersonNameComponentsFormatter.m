@@ -27,6 +27,7 @@
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSPersonNameComponents.h"
 #import "Foundation/NSPersonNameComponentsFormatter.h"
+#import "Foundation/NSValue.h"
 
 @implementation NSPersonNameComponentsFormatter
 
