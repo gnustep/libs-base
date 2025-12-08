@@ -165,6 +165,10 @@
 
 - (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
+  if (error != NULL)
+    {
+      *error = @"Parsing not implemented";
+    }
   return NO;
 }
 
