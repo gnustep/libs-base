@@ -139,8 +139,24 @@
   return [self stringFromValue: numberInJoules unit: usedUnit];
 }
 
+- (NSString *) stringForObjectValue: (id)obj
+{
+  double joules = 0.0;
+
+  if ([obj respondsToSelector: @selector(doubleValue)])
+    {
+      joules = [obj doubleValue];
+    }
+
+  return [self stringFromJoules: joules];
+}
+
 - (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
+  if (error != NULL)
+    {
+      *error = @"Parsing not implemented";
+    }
   return NO;
 }
 

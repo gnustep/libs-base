@@ -143,8 +143,24 @@
   return [self stringFromValue: numberInKilograms unit: usedUnit];
 }
 
+- (NSString *) stringForObjectValue: (id)obj
+{
+  double kilograms = 0.0;
+
+  if ([obj respondsToSelector: @selector(doubleValue)])
+    {
+      kilograms = [obj doubleValue];
+    }
+
+  return [self stringFromKilograms: kilograms];
+}
+
 - (BOOL) getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
+  if (error != NULL)
+    {
+      *error = @"Parsing not implemented";
+    }
   return NO;
 }
 

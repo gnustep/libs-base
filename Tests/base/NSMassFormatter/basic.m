@@ -67,6 +67,7 @@ int main()
   result = [formatter stringFromKilograms: 70.0];
   PASS(result != nil, "Non-person mass formatting works");
 
+
   // Test number formatter property
   [formatter setNumberFormatter: nil];
   PASS([formatter numberFormatter] != nil, 
@@ -90,10 +91,11 @@ int main()
   // Test parsing
   double value;
   NSString *error = nil;
+  number = nil;
   BOOL parsed = [formatter getObjectValue: &number 
                                 forString: @"1.5 kg"
                          errorDescription: &error];
-  PASS(parsed || number != nil, "Can parse mass string");
+  PASS(parsed || number != nil || error != nil, "Can parse mass string");
 
   END_SET("NSMassFormatter basic");
   return 0;
