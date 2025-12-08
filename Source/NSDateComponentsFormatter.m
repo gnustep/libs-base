@@ -134,7 +134,11 @@
 {
   NSString *result = nil;
   
-  if ([obj isKindOfClass: [NSDateComponents class]])
+  if (obj == nil)
+    {
+      result = @"";
+    }
+  else if ([obj isKindOfClass: [NSDateComponents class]])
     {
       result = [self stringFromDateComponents: obj];
     }
@@ -142,6 +146,10 @@
     {
       NSTimeInterval ti = [obj longLongValue];
       result = [self stringFromTimeInterval: ti];
+    }
+  else
+    {
+      result = @"";
     }
     
   return result;

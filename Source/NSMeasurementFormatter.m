@@ -83,8 +83,10 @@
 {
   if (_numberFormatter == nil)
     {
-      _numberFormatter = [[NSNumberFormatter alloc] init];
-      [_numberFormatter setNumberStyle: NSNumberFormatterDecimalStyle];
+      NSNumberFormatter *fmt = [[NSNumberFormatter alloc] init];
+      [fmt setNumberStyle: NSNumberFormatterDecimalStyle];
+      ASSIGN(_numberFormatter, fmt);
+      RELEASE(fmt);
     }
   return _numberFormatter;
 }

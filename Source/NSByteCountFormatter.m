@@ -83,9 +83,9 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (NSByteCountFormatterUnits) _adaptiveSettings: (double)byteCount
 {
-  NSByteCountFormatterUnits units = NSByteCountFormatterUseDefault;
+  NSByteCountFormatterUnits units = NSByteCountFormatterUseBytes;
   
-  if (byteCount >= KB || byteCount == 0.0) 
+  if (byteCount >= KB) 
     {
       units = NSByteCountFormatterUseKB;
     }

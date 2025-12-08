@@ -51,6 +51,13 @@
 
 - (NSNumberFormatter *) numberFormatter
 {
+  if (_numberFormatter == nil)
+    {
+      NSNumberFormatter *fmt = [[NSNumberFormatter alloc] init];
+      [fmt setNumberStyle: NSNumberFormatterDecimalStyle];
+      ASSIGN(_numberFormatter, fmt);
+      RELEASE(fmt);
+    }
   return _numberFormatter;
 }
 
@@ -119,7 +126,7 @@
   mf = [[NSMeasurementFormatter alloc] init];
   AUTORELEASE(mf);
   [mf setUnitStyle: _unitStyle];
-  [mf setNumberFormatter: _numberFormatter];
+  [mf setNumberFormatter: [self numberFormatter]];
 
   return [mf stringFromMeasurement: m];
 }
