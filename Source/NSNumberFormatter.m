@@ -1223,16 +1223,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
         characterSetWithCharactersInString: @"0123456789#.,_"];
       placeHolders = [NSCharacterSet 
         characterSetWithCharactersInString: @"0123456789#_"];
-
-      if (nil == anObject)
-        return [[self attributedStringForNil] string];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [[self attributedStringForNotANumber] string];
-      if ([anObject isEqual: [NSDecimalNumber notANumber]])
-        return [[self attributedStringForNotANumber] string];
-      if (_attributedStringForZero
-          && [anObject isEqual: [NSDecimalNumber zero]])
-        return [[self attributedStringForZero] string];
       
       useFormat = _positiveFormat;
       if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
