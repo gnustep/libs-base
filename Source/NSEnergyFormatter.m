@@ -43,6 +43,12 @@
   return self;
 }
 
+- (void) dealloc
+{
+  RELEASE(_numberFormatter);
+  [super dealloc];
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
   if (_numberFormatter == nil)
@@ -125,8 +131,12 @@
 
 - (NSString *) unitStringFromJoules: (double)numberInJoules usedUnit: (NSEnergyFormatterUnit *)unit
 {
-  *unit = NSEnergyFormatterUnitJoule;
-  return [self stringFromValue: numberInJoules unit: *unit];
+  NSEnergyFormatterUnit usedUnit = NSEnergyFormatterUnitJoule;
+  if (unit != NULL)
+    {
+      *unit = usedUnit;
+    }
+  return [self stringFromValue: numberInJoules unit: usedUnit];
 }
 
 - (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error

@@ -143,8 +143,12 @@
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit
 {
-  *unit = NSLengthFormatterUnitMeter;
-  return [self stringFromValue: numberInMeters unit: *unit];
+  NSLengthFormatterUnit usedUnit = NSLengthFormatterUnitMeter;
+  if (unit != NULL)
+    {
+      *unit = usedUnit;
+    }
+  return [self stringFromValue: numberInMeters unit: usedUnit];
 }
 
 - (NSString *) stringForObjectValue: (id)obj
