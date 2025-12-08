@@ -5,6 +5,7 @@
 #import <Foundation/NSDate.h>
 #import <Foundation/NSLocale.h>
 #import <Foundation/NSTimeZone.h>
+#import <Foundation/NSValue.h>
 
 int main()
 {

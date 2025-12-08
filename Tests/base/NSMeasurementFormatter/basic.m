@@ -3,6 +3,7 @@
 #import <Foundation/NSMeasurementFormatter.h>
 #import <Foundation/NSMeasurement.h>
 #import <Foundation/NSUnit.h>
+#import <Foundation/NSValue.h>
 
 int main()
 {

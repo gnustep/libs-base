@@ -1,7 +1,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSLengthFormatter.h>
-#import <Foundation/NSNumber.h>
+#import <Foundation/NSValue.h>
 
 int main()
 {

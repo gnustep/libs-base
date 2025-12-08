@@ -81,6 +81,11 @@
 
 - (NSNumberFormatter *) numberFormatter
 {
+  if (_numberFormatter == nil)
+    {
+      _numberFormatter = [[NSNumberFormatter alloc] init];
+      [_numberFormatter setNumberStyle: NSNumberFormatterDecimalStyle];
+    }
   return _numberFormatter;
 }
 
@@ -94,8 +99,9 @@
   NSString *result = nil;
   NSNumber *num = [NSNumber numberWithDouble: [measurement doubleValue]];
   NSUnit *u = [measurement unit];
+  NSNumberFormatter *formatter = [self numberFormatter];
   
-  result = [_numberFormatter stringForObjectValue: num];
+  result = [formatter stringForObjectValue: num];
   switch (_unitStyle)
     {
     case NSFormattingUnitStyleShort:
@@ -116,13 +122,21 @@
 - (NSString *) stringForObjectValue: (id)obj
 {
   NSString *result = nil;
-  if ([obj isKindOfClass: [NSMeasurement class]])
+  if (obj == nil)
+    {
+      result = @"";
+    }
+  else if ([obj isKindOfClass: [NSMeasurement class]])
     {
       result = [self stringFromMeasurement: obj];
     }
   else if ([obj isKindOfClass: [NSUnit class]])
     {
       result = [self stringFromUnit: obj];
+    }
+  else
+    {
+      result = @"";
     }
   return result;
 }
