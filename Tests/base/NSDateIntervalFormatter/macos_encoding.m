@@ -57,13 +57,13 @@ int main()
   keys = [archiver capturedKeys];
   PASS(keys != nil && [keys count] > 0, "Captured encoding keys");
 
-  // Check that all keys use NS. prefix (macOS convention)
+  // Check that all keys use NS prefix (macOS convention)
   allHaveNSPrefix = YES;
   for (i = 0; i < [keys count]; i++)
     {
       key = [keys objectAtIndex: i];
       if (![key isEqualToString: @"root"] && 
-          ![key hasPrefix: @"NS."] && 
+          ![key hasPrefix: @"NS"] && 
           ![key hasPrefix: @"$"])
         {
           allHaveNSPrefix = NO;
@@ -71,7 +71,21 @@ int main()
           break;
         }
     }
-  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS. prefix)");
+  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS prefix)");
+  
+  // Verify specific keys expected by macOS
+  PASS([keys containsObject: @"NS.calendar"], 
+       "Has NS.calendar key (macOS convention)");
+  PASS([keys containsObject: @"NS.locale"], 
+       "Has NS.locale key (macOS convention)");
+  PASS([keys containsObject: @"NS.timeZone"], 
+       "Has NS.timeZone key (macOS convention)");
+  PASS([keys containsObject: @"NS.dateTemplate"], 
+       "Has NS.dateTemplate key (macOS convention)");
+  PASS([keys containsObject: @"NS.dateStyle"], 
+       "Has NS.dateStyle key (macOS convention)");
+  PASS([keys containsObject: @"NS.timeStyle"], 
+       "Has NS.timeStyle key (macOS convention)");
   
   [archiver release];
 

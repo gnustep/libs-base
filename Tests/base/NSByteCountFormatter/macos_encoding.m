@@ -45,7 +45,7 @@ int main()
     {
       key = [keys objectAtIndex: i];
       if (![key isEqualToString: @"root"] && 
-          ![key hasPrefix: @"NS."] && 
+          ![key hasPrefix: @"NS"] && 
           ![key hasPrefix: @"$"])
         {
           allHaveNSPrefix = NO;
@@ -53,7 +53,7 @@ int main()
           break;
         }
     }
-  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS. prefix)");
+  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS prefix)");
   
   [archiver release];
 

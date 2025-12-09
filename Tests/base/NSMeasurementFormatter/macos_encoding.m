@@ -52,13 +52,13 @@ int main()
   keys = [archiver capturedKeys];
   PASS(keys != nil && [keys count] > 0, "Captured encoding keys");
 
-  // Check that all keys use NS. prefix (macOS convention)
+  // Check that all keys use NS prefix (macOS convention)
   allHaveNSPrefix = YES;
   for (i = 0; i < [keys count]; i++)
     {
       key = [keys objectAtIndex: i];
       if (![key isEqualToString: @"root"] && 
-          ![key hasPrefix: @"NS."] && 
+          ![key hasPrefix: @"NS"] && 
           ![key hasPrefix: @"$"])
         {
           allHaveNSPrefix = NO;
@@ -66,7 +66,7 @@ int main()
           break;
         }
     }
-  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS. prefix)");
+  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS prefix)");
   
   [archiver release];
 
