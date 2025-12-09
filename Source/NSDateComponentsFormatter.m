@@ -65,13 +65,13 @@
       if ([coder allowsKeyedCoding])
         {
           ASSIGN(_calendar, [coder decodeObjectForKey: @"NS.calendar"]);
-          ASSIGN(_referenceDate, [coder decodeObjectForKey: @"referenceDate"]);
-          _allowsFractionalUnits = [coder decodeBoolForKey: @"allowsFractionalUnits"];
-          _collapsesLargestUnit = [coder decodeBoolForKey: @"collapsesLargestUnit"];
-          _includesApproximationPhrase = [coder decodeBoolForKey: @"includesApproximationPhrase"];
-          _formattingContext = [coder decodeIntegerForKey: @"formattingContext"];
-          _maximumUnitCount = [coder decodeIntegerForKey: @"maximumUnitCount"];
-          _zeroFormattingBehavior = [coder decodeIntegerForKey: @"zeroFormattingBehavior"];
+          ASSIGN(_referenceDate, [coder decodeObjectForKey: @"NS.referenceDate"]);
+          _allowsFractionalUnits = [coder decodeBoolForKey: @"NS.allowsFractionalUnits"];
+          _collapsesLargestUnit = [coder decodeBoolForKey: @"NS.collapsesLargestUnit"];
+          _includesApproximationPhrase = [coder decodeBoolForKey: @"NS.includesApproximationPhrase"];
+          _formattingContext = [coder decodeIntegerForKey: @"NS.formattingContext"];
+          _maximumUnitCount = [coder decodeIntegerForKey: @"NS.maximumUnitCount"];
+          _zeroFormattingBehavior = [coder decodeIntegerForKey: @"NS.zeroFormattingBehavior"];
           _allowedUnits = [coder decodeIntegerForKey: @"NS.allowedUnits"];
           _unitsStyle = [coder decodeIntegerForKey: @"NS.unitsStyle"];
         }
@@ -98,13 +98,13 @@
   if ([coder allowsKeyedCoding])
     {
       [coder encodeObject: _calendar forKey: @"NS.calendar"];
-      [coder encodeObject: _referenceDate forKey: @"referenceDate"];
-      [coder encodeBool: _allowsFractionalUnits forKey: @"allowsFractionalUnits"];
-      [coder encodeBool: _collapsesLargestUnit forKey: @"collapsesLargestUnit"];
-      [coder encodeBool: _includesApproximationPhrase forKey: @"includesApproximationPhrase"];
-      [coder encodeInteger: _formattingContext forKey: @"formattingContext"];
-      [coder encodeInteger: _maximumUnitCount forKey: @"maximumUnitCount"];
-      [coder encodeInteger: _zeroFormattingBehavior forKey: @"zeroFormattingBehavior"];
+      [coder encodeObject: _referenceDate forKey: @"NS.referenceDate"];
+      [coder encodeBool: _allowsFractionalUnits forKey: @"NS.allowsFractionalUnits"];
+      [coder encodeBool: _collapsesLargestUnit forKey: @"NS.collapsesLargestUnit"];
+      [coder encodeBool: _includesApproximationPhrase forKey: @"NS.includesApproximationPhrase"];
+      [coder encodeInteger: _formattingContext forKey: @"NS.formattingContext"];
+      [coder encodeInteger: _maximumUnitCount forKey: @"NS.maximumUnitCount"];
+      [coder encodeInteger: _zeroFormattingBehavior forKey: @"NS.zeroFormattingBehavior"];
       [coder encodeInteger: _allowedUnits forKey: @"NS.allowedUnits"];
       [coder encodeInteger: _unitsStyle forKey: @"NS.unitsStyle"];
     }
@@ -525,7 +525,7 @@
   return _calendar;
 }
 
-- (void) setCalender: (NSCalendar *)calendar
+- (void) setCalendar: (NSCalendar *)calendar
 {
   ASSIGNCOPY(_calendar, calendar);
 }
