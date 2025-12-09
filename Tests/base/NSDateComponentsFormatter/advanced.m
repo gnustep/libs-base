@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSDateComponentsFormatter.h>
 #import <Foundation/NSCalendar.h>
+#import <Foundation/NSDate.h>
 #import <Foundation/NSValue.h>
 #import <Foundation/NSLocale.h>
 

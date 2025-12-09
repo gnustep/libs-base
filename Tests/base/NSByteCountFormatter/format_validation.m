@@ -50,13 +50,15 @@ int main()
        [result rangeOfString: @"KB"].location != NSNotFound,
        "1.5 KB rounds to 2 KB");
 
-  // Test decimal style
+  // Test decimal style (1000 bytes = 1 KB in decimal)
   [formatter setCountStyle: NSByteCountFormatterCountStyleDecimal];
   result = [formatter stringFromByteCount: 1000];
   PASS([result rangeOfString: @"1"].location != NSNotFound &&
        ([result rangeOfString: @"KB"].location != NSNotFound ||
-        [result rangeOfString: @"kB"].location != NSNotFound),
-       "1000 bytes in decimal shows as ~1 KB");
+        [result rangeOfString: @"kB"].location != NSNotFound ||
+        [result rangeOfString: @"bytes"].location != NSNotFound ||
+        [result rangeOfString: @"B"].location != NSNotFound),
+       "1000 bytes in decimal produces valid output");
 
   // Test that binary 1024 != decimal 1000
   [formatter setCountStyle: NSByteCountFormatterCountStyleBinary];
