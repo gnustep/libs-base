@@ -359,6 +359,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
       [coder encodeInteger: internal->_formattingContext forKey: @"NSFormattingContext"];

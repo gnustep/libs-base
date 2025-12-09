@@ -166,14 +166,14 @@
 
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  self = [super init];
+  self = [super initWithCoder: coder];
   if (self != nil)
     {
       if ([coder allowsKeyedCoding])
         {
           ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
           _isForPersonMassUse = [coder decodeBoolForKey: @"NS.forPersonMassUse"];
-          _unitStyle = [coder decodeIntegerForKey: @"NS.unitStyle"];
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitOptions"];
         }
       else
         {
@@ -191,7 +191,7 @@
     {
       [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
       [coder encodeBool: _isForPersonMassUse forKey: @"NS.forPersonMassUse"];
-      [coder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitOptions"];
     }
   else
     {

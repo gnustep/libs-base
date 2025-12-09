@@ -20,6 +20,16 @@
   return self;
 }
 
+- (id) initForWritingWithMutableData: (NSMutableData *)data
+{
+  self = [super initForWritingWithMutableData: data];
+  if (self != nil)
+    {
+      _keys = [[NSMutableArray alloc] init];
+    }
+  return self;
+}
+
 - (void) dealloc
 {
   [_keys release];

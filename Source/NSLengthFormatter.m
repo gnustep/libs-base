@@ -181,7 +181,7 @@
         {
           _isForPersonHeightUse = [coder decodeBoolForKey: @"NS.forPersonHeightUse"];
           ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
-          _unitStyle = [coder decodeIntegerForKey: @"NS.unitStyle"];
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitOptions"];
         }
       else
         {
@@ -200,7 +200,7 @@
     {
       [coder encodeBool: _isForPersonHeightUse forKey: @"NS.forPersonHeightUse"];
       [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
-      [coder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitOptions"];
     }
   else
     {
