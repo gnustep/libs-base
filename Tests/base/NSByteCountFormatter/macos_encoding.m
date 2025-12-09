@@ -3,18 +3,22 @@
 #import <Foundation/NSByteCountFormatter.h>
 #import <Foundation/NSKeyedArchiver.h>
 #import <Foundation/NSData.h>
-#import <Foundation/NSDictionary.h>
+#import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
+#import "../Shared/TestKeyedArchiver.h"
 
 int main()
 {
   START_SET("NSByteCountFormatter macOS encoding compatibility");
 
   NSByteCountFormatter *formatter;
+  NSByteCountFormatter *decoded;
   NSData *data;
-  NSDictionary *dict;
+  TestKeyedArchiver *archiver;
+  NSMutableData *mdata;
   NSArray *keys;
-  BOOL hasNSPrefix;
+  NSString *key;
+  BOOL allHaveNSPrefix;
   int i;
 
   formatter = AUTORELEASE([[NSByteCountFormatter alloc] init]);
@@ -26,15 +30,38 @@ int main()
   [formatter setIncludesCount: YES];
   [formatter setAdaptive: YES];
 
-  // Encode the formatter
+  // Encode using custom archiver to capture keys
+  mdata = [NSMutableData data];
+  archiver = [[TestKeyedArchiver alloc] initForWritingWithMutableData: mdata];
+  [archiver encodeObject: formatter forKey: @"root"];
+  [archiver finishEncoding];
+  
+  keys = [archiver capturedKeys];
+  PASS(keys != nil && [keys count] > 0, "Captured encoding keys");
+
+  // Check that all keys use NS. prefix (macOS convention)
+  allHaveNSPrefix = YES;
+  for (i = 0; i < [keys count]; i++)
+    {
+      key = [keys objectAtIndex: i];
+      if (![key isEqualToString: @"root"] && 
+          ![key hasPrefix: @"NS."] && 
+          ![key hasPrefix: @"$"])
+        {
+          allHaveNSPrefix = NO;
+          NSLog(@"Found non-NS key: %@", key);
+          break;
+        }
+    }
+  PASS(allHaveNSPrefix, "All keys use macOS naming convention (NS. prefix)");
+  
+  [archiver release];
+
+  // Verify round-trip encoding/decoding
   data = [NSKeyedArchiver archivedDataWithRootObject: formatter];
   PASS(data != nil && [data length] > 0, "Can encode NSByteCountFormatter");
 
-  // Extract the archived dictionary to check keys
-  dict = [NSKeyedUnarchiver unarchiveObjectWithData: data];
-  
-  // For NSKeyedArchiver compatibility, check that we can decode
-  NSByteCountFormatter *decoded = [NSKeyedUnarchiver unarchiveObjectWithData: data];
+  decoded = [NSKeyedUnarchiver unarchiveObjectWithData: data];
   PASS(decoded != nil, "Can decode with NSKeyedUnarchiver");
   PASS([decoded isKindOfClass: [NSByteCountFormatter class]], 
        "Decoded object is correct class");
