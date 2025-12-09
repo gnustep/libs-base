@@ -132,10 +132,10 @@ int main()
   PASS(result != nil, "Handle non-number object");
 
   // Test with various NSNumber types
-  result = [formatter stringForObjectValue: @(1024)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithLongLong: 1024]];
   PASS(result != nil, "Handle NSNumber integer");
 
-  result = [formatter stringForObjectValue: @(1024.5)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 1024.5]];
   PASS(result != nil, "Handle NSNumber float");
 
   result = [formatter stringForObjectValue: [NSNumber numberWithLongLong: 1099511627776LL]];

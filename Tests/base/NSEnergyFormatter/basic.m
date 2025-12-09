@@ -70,7 +70,7 @@ int main()
        "Number formatter is never nil (creates default)");
 
   // Test stringForObjectValue:
-  number = @(1000.0);
+  number = [NSNumber numberWithDouble: 1000.0];
   result = [formatter stringForObjectValue: number];
   PASS(result != nil && [result length] > 0, 
        "stringForObjectValue: works with NSNumber");

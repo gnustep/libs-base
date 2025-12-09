@@ -153,10 +153,10 @@ int main()
        "Number formatter auto-creates when set to nil");
 
   // Test with various NSNumber types
-  result = [formatter stringForObjectValue: @(75)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 75]];
   PASS(result != nil && [result length] > 0, "Format integer NSNumber");
 
-  result = [formatter stringForObjectValue: @(75.5)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 75.5]];
   PASS(result != nil && [result length] > 0, "Format floating-point NSNumber");
 
   result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 80.25]];

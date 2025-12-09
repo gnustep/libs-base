@@ -36,7 +36,7 @@ int main()
   PASS(result != nil && [result length] > 0, "Format 1 GB");
 
   // Test stringForObjectValue: with NSNumber
-  result = [formatter stringForObjectValue: @(2048)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithLongLong: 2048]];
   PASS(result != nil && [result length] > 0, 
        "stringForObjectValue: works with NSNumber");
 

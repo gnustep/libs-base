@@ -128,7 +128,7 @@ int main()
   PASS(result != nil, "Approximation phrase disabled works");
 
   // Test stringForObjectValue:
-  result = [formatter stringForObjectValue: @(7200)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 7200]];
   PASS(result != nil && [result length] > 0, 
        "stringForObjectValue: works with NSNumber");
 

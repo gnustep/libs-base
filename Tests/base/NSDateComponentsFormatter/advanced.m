@@ -240,7 +240,7 @@ int main()
   PASS(result != nil, "Handle reversed date order");
 
   // Test stringForObjectValue with different types
-  result = [formatter stringForObjectValue: @(3600)];
+  result = [formatter stringForObjectValue: [NSNumber numberWithDouble: 3600]];
   PASS(result != nil && [result length] > 0, "Format NSNumber as seconds");
 
   result = [formatter stringForObjectValue: nil];
