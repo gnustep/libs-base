@@ -96,8 +96,22 @@
 // Create strings
 - (NSString *) stringFromDate: (NSDate *)fromDate toDate: (NSDate *)toDate
 {
-  NSDateInterval *interval = [[NSDateInterval alloc] initWithStartDate: fromDate
-                                                               endDate: toDate];
+  NSDate *start;
+  NSDate *end;
+  NSDateInterval *interval;
+  
+  start = fromDate;
+  end = toDate;
+  
+  // Swap dates if they're in reverse order (end before start)
+  if ([toDate compare: fromDate] == NSOrderedAscending)
+    {
+      start = toDate;
+      end = fromDate;
+    }
+  
+  interval = [[NSDateInterval alloc] initWithStartDate: start
+                                               endDate: end];
   AUTORELEASE(interval);
   return [self stringFromDateInterval: interval];
 }
