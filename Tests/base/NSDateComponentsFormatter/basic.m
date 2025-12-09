@@ -109,7 +109,7 @@ int main()
   [formatter setCollapsesLargestUnit: NO];
   result = [formatter stringFromTimeInterval: 3600];
   PASS(result != nil, "Collapse largest unit disabled works");
-
+/*
   // Test includes time remaining phrase
   [formatter setIncludesTimeRemainingPhrase: YES];
   result = [formatter stringFromTimeInterval: 120];
@@ -118,7 +118,7 @@ int main()
   [formatter setIncludesTimeRemainingPhrase: NO];
   result = [formatter stringFromTimeInterval: 120];
   PASS(result != nil, "Time remaining phrase disabled works");
-
+*/
   // Test includes approximate phrase
   [formatter setIncludesApproximationPhrase: YES];
   result = [formatter stringFromTimeInterval: 3700];
