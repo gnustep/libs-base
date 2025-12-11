@@ -116,6 +116,7 @@
  
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
       [coder encodeObject: _timeZone forKey: @"NS.timeZone"];
@@ -147,7 +148,7 @@
 
 - (id) initWithCoder: (NSCoder *)decoder
 {
-  if ((self = [super init]) != nil)
+  if ((self = [super initWithCoder: decoder]) != nil)
     {
       _formatter = [[NSDateFormatter alloc] init];
       if ([decoder allowsKeyedCoding])
@@ -181,6 +182,16 @@
   [_formatter setTimeZone: _timeZone];
   [_formatter setDateFormat: formatString];
   return [_formatter stringFromDate: date];
+}
+
+- (NSString *) stringForObjectValue: (id)obj
+{
+  if ([obj isKindOfClass: [NSDate class]])
+    {
+      return [self stringFromDate: obj];
+    }
+  
+  return nil;
 }
 
 + (NSString *) stringFromDate: (NSDate *)date
