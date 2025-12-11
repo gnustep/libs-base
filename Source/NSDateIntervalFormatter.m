@@ -126,6 +126,16 @@
   return [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
 }
 
+- (NSString *) stringForObjectValue: (id)obj
+{
+  if ([obj isKindOfClass: [NSDateInterval class]])
+    {
+      return [self stringFromDateInterval: obj];
+    }
+  
+  return nil;
+}
+
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
   self = [super initWithCoder: coder];
