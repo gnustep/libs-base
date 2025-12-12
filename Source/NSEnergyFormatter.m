@@ -102,13 +102,13 @@
       switch (unit)
 	{
 	case NSEnergyFormatterUnitJoule:
-	  unitString = (_isForFoodEnergyUse) ? @"J" : @"J";
+	  unitString = @"J"; // food use does not change the unit
 	  break;
 	case NSEnergyFormatterUnitKilojoule:
-	  unitString = (_isForFoodEnergyUse) ? @"kJ" : @"kJ";
+	  unitString = @"kJ";
 	  break;
 	case NSEnergyFormatterUnitCalorie:
-	  unitString = (_isForFoodEnergyUse) ? @"cal" : @"cal";
+	  unitString = @"cal";
 	  break;
 	case NSEnergyFormatterUnitKilocalorie:
 	  unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
@@ -127,7 +127,7 @@
 	  unitString = @"kJ";
 	  break;
 	case NSEnergyFormatterUnitCalorie:
-	  unitString = (_isForFoodEnergyUse) ? @"cal" : @"cal";
+	  unitString = @"cal";
 	  break;
 	case NSEnergyFormatterUnitKilocalorie:
 	  unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
