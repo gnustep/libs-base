@@ -32,6 +32,11 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 
+/* Suppress warnings for NSAppleEventDescriptor methods that may not be
+ * fully declared in the header but are available at runtime */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+
 // NSScriptObjectSpecifier
 
 @implementation NSScriptObjectSpecifier
@@ -1541,3 +1546,5 @@
 }
 
 @end
+
+#pragma clang diagnostic pop

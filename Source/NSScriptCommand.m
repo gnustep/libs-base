@@ -41,6 +41,8 @@
   id _evaluatedReceivers;
   NSAppleEventDescriptor *_appleEvent;
   BOOL _isSuspended;
+  NSInteger _errorNumber;
+  NSString *_errorString;
 }
 
 - (id) initWithCommandDescription: (NSScriptCommandDescription *)commandDef
@@ -76,6 +78,7 @@
   RELEASE(_receiversSpecifier);
   RELEASE(_evaluatedReceivers);
   RELEASE(_appleEvent);
+  RELEASE(_errorString);
   [super dealloc];
 }
 
@@ -202,6 +205,26 @@
 - (NSAppleEventDescriptor *) appleEvent
 {
   return _appleEvent;
+}
+
+- (void) setScriptErrorNumber: (NSInteger)errorNumber
+{
+  _errorNumber = errorNumber;
+}
+
+- (void) setScriptErrorString: (NSString *)errorString
+{
+  ASSIGN(_errorString, errorString);
+}
+
+- (NSInteger) scriptErrorNumber
+{
+  return _errorNumber;
+}
+
+- (NSString *) scriptErrorString
+{
+  return _errorString;
 }
 
 @end
