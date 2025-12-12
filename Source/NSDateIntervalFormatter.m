@@ -30,6 +30,7 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDateInterval.h"
+#import "Foundation/NSDateFormatter.h"
 
 @implementation NSDateIntervalFormatter
 // Properties
@@ -120,10 +121,94 @@
 {
   NSDate *fromDate = [dateInterval startDate];
   NSDate *toDate = [dateInterval endDate];
-
-  // Add formatting of NSDate here.
+  NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+  NSString *fromString;
+  NSString *toString;
+  NSString *result;
   
-  return [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
+  // Configure the formatter with the interval formatter's settings
+  if (_locale != nil)
+    {
+      [formatter setLocale: _locale];
+    }
+  
+  if (_calendar != nil)
+    {
+      [formatter setCalendar: _calendar];
+    }
+  
+  if (_timeZone != nil)
+    {
+      [formatter setTimeZone: _timeZone];
+    }
+  
+  // Apply date template if provided
+  if (_dateTemplate != nil && [_dateTemplate length] > 0)
+    {
+      NSString *format = [NSDateFormatter dateFormatFromTemplate: _dateTemplate
+                                                         options: 0
+                                                          locale: _locale];
+      [formatter setDateFormat: format];
+    }
+  else
+    {
+      // Use date and time styles
+      NSDateFormatterStyle dateFormatterStyle;
+      NSDateFormatterStyle timeFormatterStyle;
+      
+      // Convert NSDateIntervalFormatterStyle to NSDateFormatterStyle
+      switch (_dateStyle)
+        {
+          case NSDateIntervalFormatterShortStyle:
+            dateFormatterStyle = NSDateFormatterShortStyle;
+            break;
+          case NSDateIntervalFormatterMediumStyle:
+            dateFormatterStyle = NSDateFormatterMediumStyle;
+            break;
+          case NSDateIntervalFormatterLongStyle:
+            dateFormatterStyle = NSDateFormatterLongStyle;
+            break;
+          case NSDateIntervalFormatterFullStyle:
+            dateFormatterStyle = NSDateFormatterFullStyle;
+            break;
+          default:
+            dateFormatterStyle = NSDateFormatterNoStyle;
+            break;
+        }
+      
+      switch (_timeStyle)
+        {
+          case NSDateIntervalFormatterShortStyle:
+            timeFormatterStyle = NSDateFormatterShortStyle;
+            break;
+          case NSDateIntervalFormatterMediumStyle:
+            timeFormatterStyle = NSDateFormatterMediumStyle;
+            break;
+          case NSDateIntervalFormatterLongStyle:
+            timeFormatterStyle = NSDateFormatterLongStyle;
+            break;
+          case NSDateIntervalFormatterFullStyle:
+            timeFormatterStyle = NSDateFormatterFullStyle;
+            break;
+          default:
+            timeFormatterStyle = NSDateFormatterNoStyle;
+            break;
+        }
+      
+      [formatter setDateStyle: dateFormatterStyle];
+      [formatter setTimeStyle: timeFormatterStyle];
+    }
+  
+  // Format both dates
+  fromString = [formatter stringFromDate: fromDate];
+  toString = [formatter stringFromDate: toDate];
+  
+  // Create the interval string
+  result = [NSString stringWithFormat: @"%@ - %@", fromString, toString];
+  
+  RELEASE(formatter);
+  
+  return result;
 }
 
 - (NSString *) stringForObjectValue: (id)obj
