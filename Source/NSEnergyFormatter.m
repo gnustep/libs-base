@@ -88,35 +88,116 @@
 
 - (NSString *) stringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
 {
-  NSUnit *u = nil;
-  NSMeasurement *m = nil;
-  NSMeasurementFormatter *mf = nil;
-
-  switch (unit)
+  NSString *formattedNumber = nil;
+  NSString *unitString = nil;
+  NSString *result = nil;
+  
+  // Format the numeric value
+  formattedNumber = [[self numberFormatter] stringFromNumber: [NSNumber numberWithDouble: value]];
+  
+  // Determine unit string based on style and unit
+  switch (_unitStyle)
     {
-    case NSEnergyFormatterUnitJoule:
-      u = [NSUnitEnergy joules];
+    case NSFormattingUnitStyleShort:
+      switch (unit)
+        {
+        case NSEnergyFormatterUnitJoule:
+          unitString = (_isForFoodEnergyUse) ? @"J" : @"J";
+          break;
+        case NSEnergyFormatterUnitKilojoule:
+          unitString = (_isForFoodEnergyUse) ? @"kJ" : @"kJ";
+          break;
+        case NSEnergyFormatterUnitCalorie:
+          unitString = (_isForFoodEnergyUse) ? @"cal" : @"cal";
+          break;
+        case NSEnergyFormatterUnitKilocalorie:
+          unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
+          break;
+        }
+      result = [NSString stringWithFormat: @"%@%@", formattedNumber, unitString];
       break;
-    case NSEnergyFormatterUnitKilojoule:
-      u = [NSUnitEnergy kilojoules];
+      
+    case NSFormattingUnitStyleMedium:
+      switch (unit)
+        {
+        case NSEnergyFormatterUnitJoule:
+          unitString = @"J";
+          break;
+        case NSEnergyFormatterUnitKilojoule:
+          unitString = @"kJ";
+          break;
+        case NSEnergyFormatterUnitCalorie:
+          unitString = (_isForFoodEnergyUse) ? @"cal" : @"cal";
+          break;
+        case NSEnergyFormatterUnitKilocalorie:
+          unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
+          break;
+        }
+      result = [NSString stringWithFormat: @"%@ %@", formattedNumber, unitString];
       break;
-    case NSEnergyFormatterUnitCalorie:
-      u = [NSUnitEnergy calories];
+      
+    case NSFormattingUnitStyleLong:
+      switch (unit)
+        {
+        case NSEnergyFormatterUnitJoule:
+          unitString = (value == 1.0) ? @"joule" : @"joules";
+          break;
+        case NSEnergyFormatterUnitKilojoule:
+          unitString = (value == 1.0) ? @"kilojoule" : @"kilojoules";
+          break;
+        case NSEnergyFormatterUnitCalorie:
+          if (_isForFoodEnergyUse)
+            unitString = (value == 1.0) ? @"Calorie" : @"Calories";
+          else
+            unitString = (value == 1.0) ? @"calorie" : @"calories";
+          break;
+        case NSEnergyFormatterUnitKilocalorie:
+          if (_isForFoodEnergyUse)
+            unitString = (value == 1.0) ? @"Calorie" : @"Calories";
+          else
+            unitString = (value == 1.0) ? @"kilocalorie" : @"kilocalories";
+          break;
+        }
+      result = [NSString stringWithFormat: @"%@ %@", formattedNumber, unitString];
       break;
-    case NSEnergyFormatterUnitKilocalorie:
-      u = [NSUnitEnergy kilocalories];
+      
+    default:
+      // Fallback to NSMeasurementFormatter for unknown styles
+      {
+        NSUnit *u = nil;
+        NSMeasurement *m = nil;
+        NSMeasurementFormatter *mf = nil;
+
+        switch (unit)
+          {
+          case NSEnergyFormatterUnitJoule:
+            u = [NSUnitEnergy joules];
+            break;
+          case NSEnergyFormatterUnitKilojoule:
+            u = [NSUnitEnergy kilojoules];
+            break;
+          case NSEnergyFormatterUnitCalorie:
+            u = [NSUnitEnergy calories];
+            break;
+          case NSEnergyFormatterUnitKilocalorie:
+            u = [NSUnitEnergy kilocalories];
+            break;
+          }
+
+        m = [[NSMeasurement alloc] initWithDoubleValue: value
+                                                  unit: u];
+        AUTORELEASE(m);
+        mf = [[NSMeasurementFormatter alloc] init];
+        AUTORELEASE(mf);
+        [mf setUnitStyle: _unitStyle];
+        [mf setNumberFormatter: [self numberFormatter]];
+        
+        result = [mf stringFromMeasurement: m];
+      }
       break;
     }
-
-  m = [[NSMeasurement alloc] initWithDoubleValue: value
-                                            unit: u];
-  AUTORELEASE(m);
-  mf = [[NSMeasurementFormatter alloc] init];
-  AUTORELEASE(mf);
-  [mf setUnitStyle: _unitStyle];
-  [mf setNumberFormatter: [self numberFormatter]];
   
-  return [mf stringFromMeasurement: m];
+  return result;
 }
 
 - (NSString *) stringFromJoules: (double)numberInJoules
