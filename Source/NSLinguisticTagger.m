@@ -1,7 +1,7 @@
 /* Implementation of class NSLinguisticTagger
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@#gmail.com>
    Date: Sat Nov  2 21:37:50 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -441,7 +441,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
           
           if (!shouldSkip && tag != nil)
             {
-              block(tag, tokenRange, stop);
+              block(tag, tokenRange, &stop);
             }
         }
       
@@ -599,7 +599,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
         
       if (tag != nil)
         {
-          block(tag, tokenRange, sentenceRange, stop);
+          block(tag, tokenRange, sentenceRange, &stop);
         }
       
       currentPos = NSMaxRange(tokenRange);
