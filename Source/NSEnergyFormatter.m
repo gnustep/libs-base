@@ -29,6 +29,27 @@
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUnit.h"
 
+// Short and medium style unit strings
+#define UNIT_JOULE_SHORT @"J"
+#define UNIT_KILOJOULE_SHORT @"kJ"
+#define UNIT_CALORIE_SHORT @"cal"
+#define UNIT_KILOCALORIE_SHORT @"kcal"
+#define UNIT_CALORIE_FOOD_SHORT @"Cal"
+
+// Long style unit strings - singular
+#define UNIT_JOULE_LONG_SINGULAR @"joule"
+#define UNIT_KILOJOULE_LONG_SINGULAR @"kilojoule"
+#define UNIT_CALORIE_LONG_SINGULAR @"calorie"
+#define UNIT_KILOCALORIE_LONG_SINGULAR @"kilocalorie"
+#define UNIT_CALORIE_FOOD_LONG_SINGULAR @"Calorie"
+
+// Long style unit strings - plural
+#define UNIT_JOULE_LONG_PLURAL @"joules"
+#define UNIT_KILOJOULE_LONG_PLURAL @"kilojoules"
+#define UNIT_CALORIE_LONG_PLURAL @"calories"
+#define UNIT_KILOCALORIE_LONG_PLURAL @"kilocalories"
+#define UNIT_CALORIE_FOOD_LONG_PLURAL @"Calories"
+
 @implementation NSEnergyFormatter
 
 - (instancetype) init
@@ -102,16 +123,16 @@
       switch (unit)
 	{
 	case NSEnergyFormatterUnitJoule:
-	  unitString = @"J"; // food use does not change the unit
+	  unitString = UNIT_JOULE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitKilojoule:
-	  unitString = @"kJ";
+	  unitString = UNIT_KILOJOULE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitCalorie:
-	  unitString = @"cal";
+	  unitString = UNIT_CALORIE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitKilocalorie:
-	  unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
+	  unitString = (_isForFoodEnergyUse) ? UNIT_CALORIE_FOOD_SHORT : UNIT_KILOCALORIE_SHORT;
 	  break;
 	}
       result = [NSString stringWithFormat: @"%@%@", formattedNumber, unitString];
@@ -121,16 +142,16 @@
       switch (unit)
 	{
 	case NSEnergyFormatterUnitJoule:
-	  unitString = @"J";
+	  unitString = UNIT_JOULE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitKilojoule:
-	  unitString = @"kJ";
+	  unitString = UNIT_KILOJOULE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitCalorie:
-	  unitString = @"cal";
+	  unitString = UNIT_CALORIE_SHORT;
 	  break;
 	case NSEnergyFormatterUnitKilocalorie:
-	  unitString = (_isForFoodEnergyUse) ? @"Cal" : @"kcal";
+	  unitString = (_isForFoodEnergyUse) ? UNIT_CALORIE_FOOD_SHORT : UNIT_KILOCALORIE_SHORT;
 	  break;
 	}
       result = [NSString stringWithFormat: @"%@ %@", formattedNumber, unitString];
@@ -140,22 +161,22 @@
       switch (unit)
 	{
 	case NSEnergyFormatterUnitJoule:
-	  unitString = (value == 1.0) ? @"joule" : @"joules";
+	  unitString = (value == 1.0) ? UNIT_JOULE_LONG_SINGULAR : UNIT_JOULE_LONG_PLURAL;
 	  break;
 	case NSEnergyFormatterUnitKilojoule:
-	  unitString = (value == 1.0) ? @"kilojoule" : @"kilojoules";
+	  unitString = (value == 1.0) ? UNIT_KILOJOULE_LONG_SINGULAR : UNIT_KILOJOULE_LONG_PLURAL;
 	  break;
 	case NSEnergyFormatterUnitCalorie:
 	  if (_isForFoodEnergyUse)
-	    unitString = (value == 1.0) ? @"Calorie" : @"Calories";
+	    unitString = (value == 1.0) ? UNIT_CALORIE_FOOD_LONG_SINGULAR : UNIT_CALORIE_FOOD_LONG_PLURAL;
 	  else
-	    unitString = (value == 1.0) ? @"calorie" : @"calories";
+	    unitString = (value == 1.0) ? UNIT_CALORIE_LONG_SINGULAR : UNIT_CALORIE_LONG_PLURAL;
 	  break;
 	case NSEnergyFormatterUnitKilocalorie:
 	  if (_isForFoodEnergyUse)
-	    unitString = (value == 1.0) ? @"Calorie" : @"Calories";
+	    unitString = (value == 1.0) ? UNIT_CALORIE_FOOD_LONG_SINGULAR : UNIT_CALORIE_FOOD_LONG_PLURAL;
 	  else
-	    unitString = (value == 1.0) ? @"kilocalorie" : @"kilocalories";
+	    unitString = (value == 1.0) ? UNIT_KILOCALORIE_LONG_SINGULAR : UNIT_KILOCALORIE_LONG_PLURAL;
 	  break;
 	}
       result = [NSString stringWithFormat: @"%@ %@", formattedNumber, unitString];
