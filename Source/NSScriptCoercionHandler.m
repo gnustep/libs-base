@@ -78,32 +78,32 @@ static NSScriptCoercionHandler *sharedHandler = nil;
   id result;
   
   if (value == nil)
-    return nil;
+    {
+      return nil;
+    }
     
   if ([value isKindOfClass: toClass])
-    return value;
+    {
+      return value;
+    }
   
   [_lock lock];
   
   key = [self _keyForFromClass: [value class] toClass: toClass];
   coercerInfo = [_coercers objectForKey: key];
   
+  [_lock unlock];
+  
   if (coercerInfo != nil)
     {
       coercer = [coercerInfo objectForKey: @"coercer"];
       selector = NSSelectorFromString([coercerInfo objectForKey: @"selector"]);
       
-      [_lock unlock];
-      
-      if (coercer != nil && [coercer respondsToSelector: selector])
+      if (coercer != nil && selector != NULL && [coercer respondsToSelector: selector])
         {
           result = [coercer performSelector: selector withObject: value];
           return result;
         }
-    }
-  else
-    {
-      [_lock unlock];
     }
   
   return value;
