@@ -28,13 +28,6 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSLock.h"
 
-@interface NSScriptCoercionHandler ()
-{
-  NSMutableDictionary *_coercers;
-  NSLock *_lock;
-}
-@end
-
 @implementation NSScriptCoercionHandler
 
 static NSScriptCoercionHandler *sharedHandler = nil;

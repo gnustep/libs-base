@@ -33,9 +33,16 @@ extern "C" {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
 @class NSString;
+@class NSMutableDictionary;
+@class NSLock;
 
 GS_EXPORT_CLASS
 @interface NSScriptCoercionHandler : NSObject
+{
+  @private
+  NSMutableDictionary *_coercers;
+  NSLock *_lock;
+}
 
 + (NSScriptCoercionHandler *) sharedCoercionHandler;
 

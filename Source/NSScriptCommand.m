@@ -32,18 +32,6 @@
 #import "Foundation/NSCoder.h"
 
 @implementation NSScriptCommand
-{
-  NSScriptCommandDescription *_commandDescription;
-  NSDictionary *_arguments;
-  NSDictionary *_evaluatedArguments;
-  NSScriptObjectSpecifier *_directParameter;
-  NSScriptObjectSpecifier *_receiversSpecifier;
-  id _evaluatedReceivers;
-  NSAppleEventDescriptor *_appleEvent;
-  BOOL _isSuspended;
-  NSInteger _errorNumber;
-  NSString *_errorString;
-}
 
 - (id) initWithCommandDescription: (NSScriptCommandDescription *)commandDef
 {
