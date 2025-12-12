@@ -32,8 +32,20 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSString;
+
 GS_EXPORT_CLASS
 @interface NSScriptCoercionHandler : NSObject
+
++ (NSScriptCoercionHandler *) sharedCoercionHandler;
+
+- (id) coerceValue: (id)value
+          toClass: (Class)toClass;
+
+- (void) registerCoercer: (id)coercer
+                selector: (SEL)selector
+         toConvertFromClass: (Class)fromClass
+                   toClass: (Class)toClass;
 
 @end
 

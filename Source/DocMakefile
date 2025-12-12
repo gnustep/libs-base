@@ -159,7 +159,7 @@ NSScriptCommandDescription.h \
 NSScriptCommand.h \
 NSScriptExecutionContext.h \
 NSScriptKeyValueCoding.h \
-NSScriptObjectSpecifiers.h \
+NSScriptObjectSpecifier.h \
 NSScriptStandardSuiteCommands.h \
 NSScriptSuiteRegistry.h \
 NSScriptWhoseTests.h \

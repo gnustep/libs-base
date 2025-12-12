@@ -309,7 +309,7 @@ NSScriptCommand.m \
 NSScriptCommandDescription.m \
 NSScriptExecutionContext.m \
 NSScriptKeyValueCoding.m \
-NSScriptObjectSpecifiers.m \
+NSScriptObjectSpecifier.m \
 NSScriptStandardSuiteCommands.m \
 NSScriptSuiteRegistry.m \
 NSUnit.m \
@@ -554,7 +554,7 @@ NSScriptCommand.h \
 NSScriptCommandDescription.h \
 NSScriptExecutionContext.h \
 NSScriptKeyValueCoding.h \
-NSScriptObjectSpecifiers.h \
+NSScriptObjectSpecifier.h \
 NSScriptStandardSuiteCommands.h \
 NSScriptSuiteRegistry.h \
 NSUnit.h \

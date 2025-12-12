@@ -32,8 +32,52 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSScriptCommandDescription;
+@class NSScriptObjectSpecifier;
+@class NSDictionary;
+@class NSString;
+@class NSAppleEventDescriptor;
+@class NSCoder;
+
 GS_EXPORT_CLASS
 @interface NSScriptCommand : NSObject
+
+- (id) initWithCommandDescription: (NSScriptCommandDescription *)commandDef;
+
+- (id) initWithCoder: (NSCoder *)coder;
+
+- (NSScriptCommandDescription *) commandDescription;
+
+- (NSDictionary *) arguments;
+- (void) setArguments: (NSDictionary *)args;
+
+- (NSDictionary *) evaluatedArguments;
+
+- (NSScriptObjectSpecifier *) directParameter;
+- (void) setDirectParameter: (NSScriptObjectSpecifier *)directParameter;
+
+- (id) evaluatedReceivers;
+
+- (BOOL) isWellFormed;
+
+- (id) performDefaultImplementation;
+
+- (id) executeCommand;
+
+- (void) suspendExecution;
+- (void) resumeExecutionWithResult: (id)result;
+
+- (NSScriptObjectSpecifier *) receiversSpecifier;
+- (void) setReceiversSpecifier: (NSScriptObjectSpecifier *)receiversRef;
+
+- (id) currentCommand;
+
+- (NSAppleEventDescriptor *) appleEvent;
+
+- (void) setScriptErrorNumber: (NSInteger)errorNumber;
+- (void) setScriptErrorString: (NSString *)errorString;
+- (NSInteger) scriptErrorNumber;
+- (NSString *) scriptErrorString;
 
 @end
 
@@ -44,4 +88,3 @@ GS_EXPORT_CLASS
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSScriptCommand_h_GNUSTEP_BASE_INCLUDE */
-

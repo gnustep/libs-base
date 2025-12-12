@@ -32,8 +32,33 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSString;
+@class NSScriptClassDescription;
+
+typedef uint32_t FourCharCode;
+
 GS_EXPORT_CLASS
 @interface NSScriptCommandDescription : NSObject
+
+- (id) initWithSuiteName: (NSString *)suiteName
+             commandName: (NSString *)commandName
+          appleEventCode: (FourCharCode)appleEventCode
+      appleEventClassCode: (FourCharCode)appleEventClassCode;
+
+- (FourCharCode) appleEventCode;
+- (FourCharCode) appleEventClassCode;
+
+- (NSString *) commandName;
+- (NSString *) suiteName;
+
+- (NSString *) returnType;
+- (FourCharCode) returnAppleEventCode;
+
+- (NSArray *) argumentNames;
+- (NSString *) typeForArgumentWithName: (NSString *)argumentName;
+- (FourCharCode) appleEventCodeForArgumentWithName: (NSString *)argumentName;
+
+- (BOOL) isOptionalArgumentWithName: (NSString *)argumentName;
 
 @end
 

@@ -22,9 +22,186 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "common.h"
 #import "Foundation/NSScriptKeyValueCoding.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
 
-@implementation NSScriptKeyValueCoding
+@implementation NSObject (NSScriptKeyValueCoding)
+
+- (id) valueAtIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key
+{
+  id collection;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectAtIndex:)])
+    {
+      if (index < [collection count])
+        {
+          return [collection objectAtIndex: index];
+        }
+    }
+  
+  return nil;
+}
+
+- (id) valueWithName: (NSString *)name inPropertyWithKey: (NSString *)key
+{
+  NSArray *collection;
+  NSEnumerator *enumerator;
+  id object;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectEnumerator)])
+    {
+      enumerator = [collection objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+        {
+          id objectName;
+          
+          if ([object respondsToSelector: @selector(name)])
+            {
+              objectName = [object performSelector: @selector(name)];
+              if ([objectName isEqual: name])
+                {
+                  return object;
+                }
+            }
+        }
+    }
+  
+  return nil;
+}
+
+- (id) valueWithUniqueID: (id)uniqueID inPropertyWithKey: (NSString *)key
+{
+  NSArray *collection;
+  NSEnumerator *enumerator;
+  id object;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectEnumerator)])
+    {
+      enumerator = [collection objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+        {
+          id objectID;
+          
+          if ([object respondsToSelector: @selector(uniqueID)])
+            {
+              objectID = [object performSelector: @selector(uniqueID)];
+              if ([objectID isEqual: uniqueID])
+                {
+                  return object;
+                }
+            }
+        }
+    }
+  
+  return nil;
+}
+
+- (void) insertValue: (id)value atIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key
+{
+  NSString *insertSel;
+  SEL selector;
+  
+  insertSel = [NSString stringWithFormat: @"insertIn%@:atIndex:", 
+               [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
+                                            withString: [[key substringToIndex: 1] uppercaseString]]];
+  selector = NSSelectorFromString(insertSel);
+  
+  if ([self respondsToSelector: selector])
+    {
+      [self performSelector: selector withObject: value withObject: [NSNumber numberWithUnsignedInteger: index]];
+    }
+  else
+    {
+      NSMutableArray *array;
+      
+      array = [[self mutableArrayValueForKey: key] retain];
+      [array insertObject: value atIndex: index];
+      [self setValue: array forKey: key];
+      RELEASE(array);
+    }
+}
+
+- (void) insertValue: (id)value inPropertyWithKey: (NSString *)key
+{
+  NSMutableArray *array;
+  
+  array = [self mutableArrayValueForKey: key];
+  [array addObject: value];
+}
+
+- (id) coerceValue: (id)value forKey: (NSString *)key
+{
+  return value;
+}
+
+- (void) removeValueAtIndex: (NSUInteger)index fromPropertyWithKey: (NSString *)key
+{
+  NSString *removeSel;
+  SEL selector;
+  
+  removeSel = [NSString stringWithFormat: @"removeFrom%@AtIndex:", 
+               [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
+                                            withString: [[key substringToIndex: 1] uppercaseString]]];
+  selector = NSSelectorFromString(removeSel);
+  
+  if ([self respondsToSelector: selector])
+    {
+      [self performSelector: selector withObject: [NSNumber numberWithUnsignedInteger: index]];
+    }
+  else
+    {
+      NSMutableArray *array;
+      
+      array = [[self mutableArrayValueForKey: key] retain];
+      if (index < [array count])
+        {
+          [array removeObjectAtIndex: index];
+          [self setValue: array forKey: key];
+        }
+      RELEASE(array);
+    }
+}
+
+- (void) replaceValueAtIndex: (NSUInteger)index 
+          inPropertyWithKey: (NSString *)key
+                  withValue: (id)value
+{
+  NSString *replaceSel;
+  SEL selector;
+  
+  replaceSel = [NSString stringWithFormat: @"replaceIn%@:atIndex:withObject:", 
+                [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
+                                             withString: [[key substringToIndex: 1] uppercaseString]]];
+  selector = NSSelectorFromString(replaceSel);
+  
+  if ([self respondsToSelector: selector])
+    {
+      [self performSelector: selector withObject: [NSNumber numberWithUnsignedInteger: index] withObject: value];
+    }
+  else
+    {
+      NSMutableArray *array;
+      
+      array = [[self mutableArrayValueForKey: key] retain];
+      if (index < [array count])
+        {
+          [array replaceObjectAtIndex: index withObject: value];
+          [self setValue: array forKey: key];
+        }
+      RELEASE(array);
+    }
+}
 
 @end
 
