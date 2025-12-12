@@ -2,7 +2,6 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSScriptCoercionHandler.h>
 #import <Foundation/NSString.h>
-#import <Foundation/NSNumber.h>
 #import <Foundation/NSValue.h>
 
 @interface TestCoercer : NSObject
