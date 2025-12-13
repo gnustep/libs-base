@@ -381,13 +381,13 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
                          unit: (NSLinguisticTaggerUnit)unit
                        scheme: (NSLinguisticTagScheme)scheme
                       options: (NSLinguisticTaggerOptions)options
-                   usingBlock: (GSLinguisticTagRangeBoolBlock)block
+                   usingBlock: (GSLinguisticTagRangeBoolBlock)blockHandler
 {
   NSUInteger currentPos;
   NSUInteger maxPos;
   BOOL stop;
   
-  if (_string == nil || block == nil)
+  if (_string == nil || blockHandler == nil)
     return;
     
   currentPos = range.location;
@@ -441,7 +441,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
           
           if (!shouldSkip && tag != nil)
             {
-              block(tag, tokenRange, &stop);
+              blockHandler(tag, tokenRange, &stop);
             }
         }
       
@@ -569,13 +569,13 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
 - (void) enumerateTagsInRange: (NSRange)range
                        scheme: (NSLinguisticTagScheme)tagScheme
                       options: (NSLinguisticTaggerOptions)opts
-                   usingBlock: (GSLinguisticTagRangeRangeBoolBlock)block
+                   usingBlock: (GSLinguisticTagRangeRangeBoolBlock)blockHandler
 {
   NSUInteger currentPos;
   NSUInteger maxPos;
   BOOL stop;
   
-  if (_string == nil || block == nil)
+  if (_string == nil || blockHandler == nil)
     return;
     
   currentPos = range.location;
@@ -599,7 +599,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
         
       if (tag != nil)
         {
-          block(tag, tokenRange, sentenceRange, &stop);
+          blockHandler(tag, tokenRange, sentenceRange, &stop);
         }
       
       currentPos = NSMaxRange(tokenRange);
