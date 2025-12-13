@@ -35,13 +35,14 @@ int main()
 
   str = [NSString stringWithCharacters: bad length: sizeof(bad)/sizeof(*bad)];
   url = [NSURL URLWithString: str];
-  PASS(nil == url, "Bad characters result in nil URL");
+  PASS_EQUAL([url absoluteString], @"http://www.w3.org/%E2%80%8B", 
+    "Bad character (codepoint 8x200B in path) gets percent encoded")
 
   str = [NSString stringWithCharacters: &u length: 1];
   url = [NSURL fileURLWithPath: str];
   str = [[[NSFileManager defaultManager] currentDirectoryPath]
     stringByAppendingPathComponent: str];
-  PASS([[url path] isEqual: str], "Can put a pound sign in a file URL");
+  PASS_EQUAL([url path], str, "Can put a pound sign in a file URL");
   
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
@@ -75,7 +76,8 @@ int main()
   testHopeful = NO;
 
   url = [NSURL URLWithString:@"this isn't a URL"];
-  PASS(url == nil, "URL with 'this isn't a URL' returns nil");
+  PASS_EQUAL([url absoluteString], @"this%20isn't%20a%20URL",
+    "URL with 'this isn't a URL' returns string");
 
   // Test depends on network connection
   testHopeful = YES;

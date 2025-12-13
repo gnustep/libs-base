@@ -704,61 +704,65 @@ GS_NSURLComponents_IVARS;
 #endif
 }
   // Creating URL components...
-+ (instancetype) componentsWithString: (NSString *)URLString;
-+ (instancetype) componentsWithURL: (NSURL *)url 
++ (instancetype) componentsWithString: (NSString*)URLString;
++ (instancetype) componentsWithString: (NSString*)URLString 
+	    encodingInvalidCharacters: (BOOL)encodingInvalidCharacters;
++ (instancetype) componentsWithURL: (NSURL*)url 
            resolvingAgainstBaseURL: (BOOL)resolve;
 - (instancetype) init;
-- (instancetype) initWithString: (NSString *)URLString;
+- (instancetype) initWithString: (NSString*)URLString;
+- (instancetype) initWithString: (NSString*)URLString 
+      encodingInvalidCharacters: (BOOL)encodingInvalidCharacters;
 
-- (instancetype) initWithURL: (NSURL *)url 
+- (instancetype) initWithURL: (NSURL*)url 
      resolvingAgainstBaseURL: (BOOL)resolve;
 
 // Getting the URL
-- (NSString *) string;
-- (void) setString: (NSString *)urlString;
-- (NSURL *) URL;
-- (void) setURL: (NSURL *)url;
-- (NSURL *)URLRelativeToURL: (NSURL *)baseURL;
+- (NSString*) string;
+- (void) setString: (NSString*)urlString;
+- (NSURL*) URL;
+- (void) setURL: (NSURL*)url;
+- (NSURL*) URLRelativeToURL: (NSURL*)baseURL;
 
 // Accessing Components in Native Format
-- (NSString *) fragment;
-- (void) setFragment: (NSString *)fragment;
-- (NSString *) host;
-- (void) setHost: (NSString *)host;
-- (NSString *) password;
-- (void) setPassword: (NSString *)password;
-- (NSString *) path;
-- (void) setPath: (NSString *)path;
-- (NSNumber *) port;
-- (void) setPort: (NSNumber *)port;
-- (NSString *) query;
-- (void) setQuery: (NSString *)query;
+- (NSString*) fragment;
+- (void) setFragment: (NSString*)fragment;
+- (NSString*) host;
+- (void) setHost: (NSString*)host;
+- (NSString*) password;
+- (void) setPassword: (NSString*)password;
+- (NSString*) path;
+- (void) setPath: (NSString*)path;
+- (NSNumber*) port;
+- (void) setPort: (NSNumber*)port;
+- (NSString*) query;
+- (void) setQuery: (NSString*)query;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-- (NSArray *) queryItems;
-- (void) setQueryItems: (NSArray *)queryItems;
+- (NSArray*) queryItems;
+- (void) setQueryItems: (NSArray*)queryItems;
 #endif
-- (NSString *) scheme;
-- (void) setScheme: (NSString *)scheme;
-- (NSString *) user;
-- (void) setUser: (NSString *)user;
+- (NSString*) scheme;
+- (void) setScheme: (NSString*)scheme;
+- (NSString*) user;
+- (void) setUser: (NSString*)user;
 
 // Accessing Components in PercentEncoded Format
-- (NSString *) percentEncodedFragment; 
-- (void) setPercentEncodedFragment: (NSString *)fragment;
-- (NSString *) percentEncodedHost;
-- (void) setPercentEncodedHost: (NSString *)host;
-- (NSString *) percentEncodedPassword;
-- (void) setPercentEncodedPassword: (NSString *)password;
-- (NSString *) percentEncodedPath;
-- (void) setPercentEncodedPath: (NSString *)path;
-- (NSString *) percentEncodedQuery;
-- (void) setPercentEncodedQuery: (NSString *)query;
+- (NSString*) percentEncodedFragment; 
+- (void) setPercentEncodedFragment: (NSString*)fragment;
+- (NSString*) percentEncodedHost;
+- (void) setPercentEncodedHost: (NSString*)host;
+- (NSString*) percentEncodedPassword;
+- (void) setPercentEncodedPassword: (NSString*)password;
+- (NSString*) percentEncodedPath;
+- (void) setPercentEncodedPath: (NSString*)path;
+- (NSString*) percentEncodedQuery;
+- (void) setPercentEncodedQuery: (NSString*)query;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-- (NSArray *) percentEncodedQueryItems;
-- (void) setPercentEncodedQueryItems: (NSArray *)queryItems;
+- (NSArray*) percentEncodedQueryItems;
+- (void) setPercentEncodedQueryItems: (NSArray*)queryItems;
 #endif
-- (NSString *) percentEncodedUser;
-- (void) setPercentEncodedUser: (NSString *)user;
+- (NSString*) percentEncodedUser;
+- (void) setPercentEncodedUser: (NSString*)user;
 
 // Locating components of the URL string representation
 - (NSRange) rangeOfFragment;
