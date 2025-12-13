@@ -23,11 +23,14 @@
 
 int main()
 {
+  NSAutoreleasePool *pool;
   NSScriptCoercionHandler *handler;
   TestCoercer *coercer;
   NSNumber *num;
   NSString *str;
   id result;
+
+  pool = [[NSAutoreleasePool alloc] init];
 
   START_SET("NSScriptCoercionHandler singleton");
 
@@ -43,7 +46,7 @@ int main()
 
   START_SET("NSScriptCoercionHandler coercion");
 
-  coercer = AUTORELEASE([[TestCoercer alloc] init]);
+  coercer = [[TestCoercer alloc] init];
 
   // Test without registered coercer
   num = [NSNumber numberWithInt: 42];
@@ -137,5 +140,7 @@ int main()
 
   END_SET("NSScriptCoercionHandler multiple coercers");
 
+  [coercer release];
+  [pool release];
   return 0;
 }
