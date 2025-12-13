@@ -76,6 +76,7 @@ static NSScriptCoercionHandler *sharedHandler = nil;
   id coercer;
   SEL selector;
   id result;
+  Class currentClass;
   
   if (value == nil)
     {
@@ -89,24 +90,40 @@ static NSScriptCoercionHandler *sharedHandler = nil;
   
   [_lock lock];
   
-  key = [self _keyForFromClass: [value class] toClass: toClass];
-  coercerInfo = [_coercers objectForKey: key];
+  /* Try to find coercer for exact class first, then walk up the class hierarchy */
+  coercerInfo = nil;
+  currentClass = [value class];
+  while (currentClass != Nil && coercerInfo == nil)
+    {
+      key = [self _keyForFromClass: currentClass toClass: toClass];
+      coercerInfo = [_coercers objectForKey: key];
+      if (coercerInfo != nil)
+        {
+          break;
+        }
+      currentClass = [currentClass superclass];
+    }
+  
+  /* Extract coercer and selector while still holding lock */
+  coercer = nil;
+  selector = NULL;
+  if (coercerInfo != nil)
+    {
+      coercer = [[coercerInfo objectForKey: @"coercer"] retain];
+      selector = NSSelectorFromString([coercerInfo objectForKey: @"selector"]);
+    }
   
   [_lock unlock];
   
-  if (coercerInfo != nil)
+  result = value;
+  if (coercer != nil && selector != NULL && [coercer respondsToSelector: selector])
     {
-      coercer = [coercerInfo objectForKey: @"coercer"];
-      selector = NSSelectorFromString([coercerInfo objectForKey: @"selector"]);
-      
-      if (coercer != nil && selector != NULL && [coercer respondsToSelector: selector])
-        {
-          result = [coercer performSelector: selector withObject: value];
-          return result;
-        }
+      result = [coercer performSelector: selector withObject: value];
     }
   
-  return value;
+  [coercer release];
+  
+  return result;
 }
 
 - (void) registerCoercer: (id)coercer
