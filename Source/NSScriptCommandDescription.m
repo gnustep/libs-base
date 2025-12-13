@@ -33,6 +33,7 @@
 {
   NSString *_suiteName;
   NSString *_commandName;
+  NSString *_commandClassName;
   FourCharCode _appleEventCode;
   FourCharCode _appleEventClassCode;
   NSString *_returnType;
@@ -60,6 +61,7 @@
 {
   RELEASE(_suiteName);
   RELEASE(_commandName);
+  RELEASE(_commandClassName);
   RELEASE(_returnType);
   RELEASE(_arguments);
   [super dealloc];
@@ -78,6 +80,11 @@
 - (NSString *) commandName
 {
   return _commandName;
+}
+
+- (NSString *) commandClassName
+{
+  return _commandClassName;
 }
 
 - (NSString *) suiteName

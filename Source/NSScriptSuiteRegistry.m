@@ -294,6 +294,26 @@ static NSLock *registryLock = nil;
   return [_commandDescriptions objectForKey: key];
 }
 
+- (NSScriptCommandDescription *) commandDescriptionWithName: (NSString *)commandName
+                                                  inSuite: (NSString *)suiteName
+{
+  NSEnumerator *enumerator;
+  NSScriptCommandDescription *commandDesc;
+  
+  /* Search through all registered command descriptions */
+  enumerator = [_commandDescriptions objectEnumerator];
+  while ((commandDesc = [enumerator nextObject]) != nil)
+    {
+      if ([[commandDesc commandName] isEqualToString: commandName] &&
+          [[commandDesc suiteName] isEqualToString: suiteName])
+        {
+          return commandDesc;
+        }
+    }
+  
+  return nil;
+}
+
 - (NSArray *) suiteNames
 {
   return [_suiteDescriptions allKeys];

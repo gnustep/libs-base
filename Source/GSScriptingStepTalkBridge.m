@@ -77,7 +77,7 @@ static GSScriptingStepTalkBridge *sharedInstance = nil;
 {
   NSScriptSuiteRegistry *registry;
   NSScriptCommandDescription *commandDesc;
-  Class commandClass;
+  Class commandClass = Nil;
   NSScriptCommand *command;
   
   if (commandName == nil || suiteName == nil)
@@ -102,7 +102,11 @@ static GSScriptingStepTalkBridge *sharedInstance = nil;
     }
   else
     {
-      commandClass = [commandDesc commandClassName];
+      NSString *className = [commandDesc commandClassName];
+      if (className != nil)
+        {
+          commandClass = NSClassFromString(className);
+        }
       if (commandClass == Nil)
         {
           commandClass = [NSScriptCommand class];

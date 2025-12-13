@@ -27,14 +27,6 @@
 #import "Foundation/NSString.h"
 
 @implementation NSScriptClassDescription
-{
-  Class _implementationClass;
-  NSString *_className;
-  NSString *_suiteName;
-  NSString *_superclassName;
-  NSScriptClassDescription *_superclassDescription;
-  FourCharCode _appleEventCode;
-}
 
 + (NSScriptClassDescription *) classDescriptionForClass: (Class)aClass
 {

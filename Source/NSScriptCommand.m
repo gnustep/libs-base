@@ -86,6 +86,16 @@
   DESTROY(_evaluatedArguments);
 }
 
+- (void) setArgument: (id)value forKey: (NSString *)key
+{
+  if (_arguments == nil)
+    {
+      _arguments = [[NSMutableDictionary alloc] init];
+    }
+  [(NSMutableDictionary *)_arguments setObject: value forKey: key];
+  DESTROY(_evaluatedArguments);
+}
+
 - (NSDictionary *) evaluatedArguments
 {
   NSEnumerator *keyEnum;

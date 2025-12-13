@@ -41,6 +41,15 @@ typedef uint32_t FourCharCode;
 
 GS_EXPORT_CLASS
 @interface NSScriptClassDescription : NSClassDescription
+{
+@private
+  NSString *_suiteName;
+  NSString *_className;
+  FourCharCode _appleEventCode;
+  NSScriptClassDescription *_superclassDescription;
+  NSString *_superclassName;
+  Class _implementationClass;
+}
 
 + (NSScriptClassDescription *) classDescriptionForClass: (Class)aClass;
 

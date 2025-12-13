@@ -63,6 +63,7 @@ GS_EXPORT_CLASS
 
 - (NSDictionary *) arguments;
 - (void) setArguments: (NSDictionary *)args;
+- (void) setArgument: (id)value forKey: (NSString *)key;
 
 - (NSDictionary *) evaluatedArguments;
 

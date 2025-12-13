@@ -49,6 +49,7 @@ GS_EXPORT_CLASS
 - (FourCharCode) appleEventClassCode;
 
 - (NSString *) commandName;
+- (NSString *) commandClassName;
 - (NSString *) suiteName;
 
 - (NSString *) returnType;

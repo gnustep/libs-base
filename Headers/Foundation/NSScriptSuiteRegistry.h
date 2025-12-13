@@ -64,6 +64,8 @@ GS_EXPORT_CLASS
 - (NSScriptClassDescription *) classDescriptionWithAppleEventCode: (FourCharCode)appleEventCode;
 - (NSScriptCommandDescription *) commandDescriptionWithAppleEventClass: (FourCharCode)appleEventClassCode
                                                  andAppleEventCode: (FourCharCode)appleEventCode;
+- (NSScriptCommandDescription *) commandDescriptionWithName: (NSString *)commandName
+                                                  inSuite: (NSString *)suiteName;
 
 - (NSArray *) suiteNames;
 - (FourCharCode) appleEventCodeForSuite: (NSString *)suiteName;
