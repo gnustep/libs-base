@@ -18,7 +18,9 @@ int main()
   NSRange effectiveRange;
   NSLinguisticTag tag;
   NSOrthography *orthography;
+#if __has_feature(blocks)
   __block int enumerationCount;
+#endif
 
   START_SET("NSLinguisticTagger basic");
 
@@ -152,6 +154,7 @@ int main()
 
   END_SET("NSLinguisticTagger tagging");
 
+#if __has_feature(blocks)
   START_SET("NSLinguisticTagger enumeration");
 
   schemes = [NSArray arrayWithObjects:
@@ -197,6 +200,7 @@ int main()
   PASS(enumerationCount == 1, "Enumeration stops when stop is set");
 
   END_SET("NSLinguisticTagger enumeration");
+#endif
 
   START_SET("NSLinguisticTagger class methods");
 
@@ -223,6 +227,7 @@ int main()
   PASS(tags != nil && [tags count] > 0,
        "Class method tagsForString:range:... works");
 
+#if __has_feature(blocks)
   // Test class enumeration method
   enumerationCount = 0;
   [NSLinguisticTagger enumerateTagsForString: text
@@ -235,6 +240,7 @@ int main()
     enumerationCount++;
   }];
   PASS(enumerationCount > 0, "Class enumeration method works");
+#endif
 
   END_SET("NSLinguisticTagger class methods");
 
@@ -281,6 +287,7 @@ int main()
   PASS(tags != nil && [tags count] > 0,
        "NSString linguisticTagsInRange:... works");
 
+#if __has_feature(blocks)
   // Test NSString enumeration
   enumerationCount = 0;
   [text enumerateLinguisticTagsInRange: range
@@ -292,6 +299,7 @@ int main()
   }];
   PASS(enumerationCount > 0,
        "NSString enumerateLinguisticTagsInRange:... works");
+#endif
 
   END_SET("NSLinguisticTagger NSString category");
 
