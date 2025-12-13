@@ -76,7 +76,6 @@ static NSScriptCoercionHandler *sharedHandler = nil;
   id coercer;
   SEL selector;
   id result;
-  Class currentClass;
   
   if (value == nil)
     {
@@ -90,15 +89,8 @@ static NSScriptCoercionHandler *sharedHandler = nil;
   
   [_lock lock];
   
-  /* Try to find coercer for exact class first, then walk up the class hierarchy */
-  coercerInfo = nil;
-  currentClass = [value class];
-  while (currentClass != Nil && coercerInfo == nil)
-    {
-      key = [self _keyForFromClass: currentClass toClass: toClass];
-      coercerInfo = [_coercers objectForKey: key];
-      currentClass = [currentClass superclass];
-    }
+  key = [self _keyForFromClass: [value class] toClass: toClass];
+  coercerInfo = [_coercers objectForKey: key];
   
   [_lock unlock];
   
