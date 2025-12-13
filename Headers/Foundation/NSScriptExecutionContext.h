@@ -36,6 +36,10 @@ extern "C" {
 
 GS_EXPORT_CLASS
 @interface NSScriptExecutionContext : NSObject
+{
+@private
+  NSScriptCommand *_topLevelObject;
+}
 
 + (NSScriptExecutionContext *) sharedScriptExecutionContext;
 

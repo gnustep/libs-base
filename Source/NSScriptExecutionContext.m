@@ -27,9 +27,6 @@
 #import "Foundation/NSScriptCommand.h"
 
 @implementation NSScriptExecutionContext
-{
-  NSScriptCommand *_topLevelObject;
-}
 
 static NSScriptExecutionContext *sharedContext = nil;
 
