@@ -806,7 +806,7 @@
       return nil;
     }
   
-  randomIndex = random() % count;
+  randomIndex = rand() % count;
   return [array objectAtIndex: randomIndex];
 }
 
