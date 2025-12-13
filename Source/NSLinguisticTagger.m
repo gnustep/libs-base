@@ -441,7 +441,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
           
           if (!shouldSkip && tag != nil)
             {
-              blockHandler(tag, tokenRange, &stop);
+              CALL_NON_NULL_BLOCK(blockHandler, tag, tokenRange, &stop);
             }
         }
       
@@ -599,7 +599,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
         
       if (tag != nil)
         {
-          blockHandler(tag, tokenRange, sentenceRange, &stop);
+          CALL_NON_NULL_BLOCK(blockHandler, tag, tokenRange, sentenceRange, &stop);
         }
       
       currentPos = NSMaxRange(tokenRange);
