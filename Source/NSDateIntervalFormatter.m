@@ -33,43 +33,53 @@
 #import "Foundation/NSDateFormatter.h"
 
 @implementation NSDateIntervalFormatter
+
+- (void) dealloc
+{
+  RELEASE(_locale);
+  RELEASE(_calendar);
+  RELEASE(_timeZone);
+  RELEASE(_dateTemplate);
+  DEALLOC
+}
+
 // Properties
-- (NSLocale *) locale
+- (NSLocale*) locale
 {
   return _locale;
 }
 
-- (void) setLocale: (NSLocale *)locale
+- (void) setLocale: (NSLocale*)locale
 {
   ASSIGNCOPY(_locale, locale);
 }
 
-- (NSCalendar *) calendar
+- (NSCalendar*) calendar
 {
   return _calendar;
 }
 
-- (void) setCalendar: (NSCalendar *)calendar
+- (void) setCalendar: (NSCalendar*)calendar
 {
   ASSIGNCOPY(_calendar, calendar);
 }
 
-- (NSTimeZone *) timeZone
+- (NSTimeZone*) timeZone
 {
   return _timeZone;
 }
 
-- (void) setTimeZone: (NSTimeZone *)timeZone
+- (void) setTimeZone: (NSTimeZone*)timeZone
 {
   ASSIGNCOPY(_timeZone, timeZone);
 }
 
-- (NSString *) dateTemplate
+- (NSString*) dateTemplate
 {
   return _dateTemplate;
 }
 
-- (void) setDateTemplate: (NSString *)dateTemplate
+- (void) setDateTemplate: (NSString*)dateTemplate
 {
   ASSIGNCOPY(_dateTemplate, dateTemplate);
 }
@@ -95,7 +105,7 @@
 }
 
 // Create strings
-- (NSString *) stringFromDate: (NSDate *)fromDate toDate: (NSDate *)toDate
+- (NSString*) stringFromDate: (NSDate*)fromDate toDate: (NSDate*)toDate
 {
   NSDate *start;
   NSDate *end;
@@ -117,7 +127,7 @@
   return [self stringFromDateInterval: interval];
 }
 
-- (NSString *) stringFromDateInterval: (NSDateInterval *)dateInterval
+- (NSString*) stringFromDateInterval: (NSDateInterval*)dateInterval
 {
   NSDate *fromDate = [dateInterval startDate];
   NSDate *toDate = [dateInterval endDate];
@@ -211,7 +221,7 @@
   return result;
 }
 
-- (NSString *) stringForObjectValue: (id)obj
+- (NSString*) stringForObjectValue: (id)obj
 {
   if ([obj isKindOfClass: [NSDateInterval class]])
     {
@@ -221,7 +231,7 @@
   return nil;
 }
 
-- (instancetype) initWithCoder: (NSCoder *)coder
+- (instancetype) initWithCoder: (NSCoder*)coder
 {
   self = [super initWithCoder: coder];
   if (self != nil)
@@ -241,14 +251,16 @@
 	  [coder decodeValueOfObjCType: @encode(id) at: &_calendar];
 	  [coder decodeValueOfObjCType: @encode(id) at: &_timeZone];
 	  [coder decodeValueOfObjCType: @encode(id) at: &_dateTemplate];
-	  [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_dateStyle];
-	  [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_timeStyle];
+	  [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle)
+				    at: &_dateStyle];
+	  [coder decodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle)
+				    at: &_timeStyle];
 	}
     }
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
   [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
@@ -266,8 +278,10 @@
       [coder encodeValueOfObjCType: @encode(id) at: &_calendar];
       [coder encodeValueOfObjCType: @encode(id) at: &_timeZone];
       [coder encodeValueOfObjCType: @encode(id) at: &_dateTemplate];
-      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_dateStyle];
-      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle) at: &_timeStyle];
+      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle)
+				at: &_dateStyle];
+      [coder encodeValueOfObjCType: @encode(NSDateIntervalFormatterStyle)
+				at: &_timeStyle];
     }
 }
 

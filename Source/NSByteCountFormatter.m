@@ -49,14 +49,14 @@
 GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 // Unit definitions...
-#define KB (double)1024.0
-#define MB (double)(1024.0 * 1024.0)
-#define GB (double)(1024.0 * 1024.0 * 1024.0)
-#define TB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define PB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define EB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define ZB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define YB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define KB ((double)1024.0)
+#define MB (KB * 1024.0)
+#define GB (MB * 1024.0)
+#define TB (GB * 1024.0)
+#define PB (TB * 1024.0)
+#define EB (PB * 1024.0)
+#define ZB (EB * 1024.0)
+#define YB (ZB * 1024.0)
 
 @implementation NSByteCountFormatter
   
@@ -209,6 +209,15 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   result = [NSString stringWithFormat: outputFormat, count];
   
   return result;
+}
+
+- (void) dealloc
+{
+   if (GS_EXISTS_INTERNAL)
+    {
+      GS_DESTROY_INTERNAL(NSByteCountFormatter)
+    }
+  DEALLOC
 }
 
 - (id) init

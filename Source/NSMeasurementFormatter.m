@@ -46,6 +46,7 @@
 - (void) dealloc
 {
   RELEASE(_locale);
+  RELEASE(_numberFormatter);
   [super dealloc];
 }
 
@@ -98,19 +99,19 @@
   
 - (NSString *) stringFromMeasurement: (NSMeasurement *)measurement
 {
-  NSString *result = nil;
-  NSNumber *num = [NSNumber numberWithDouble: [measurement doubleValue]];
-  NSUnit *u = [measurement unit];
-  NSNumberFormatter *formatter = [self numberFormatter];
+  NSString	*result = nil;
+  NSNumber	*num = [NSNumber numberWithDouble: [measurement doubleValue]];
+  NSUnit	*u = [measurement unit];
+  NSNumberFormatter	*formatter = [self numberFormatter];
   
   result = [formatter stringForObjectValue: num];
   switch (_unitStyle)
     {
-    case NSFormattingUnitStyleShort:
-    case NSFormattingUnitStyleMedium:
-    case NSFormattingUnitStyleLong:
-      result = [result stringByAppendingString: [self stringFromUnit: u]];
-      break;
+      case NSFormattingUnitStyleShort:
+      case NSFormattingUnitStyleMedium:
+      case NSFormattingUnitStyleLong:
+	result = [result stringByAppendingString: [self stringFromUnit: u]];
+	break;
     }
 
   return result;
@@ -124,6 +125,7 @@
 - (NSString *) stringForObjectValue: (id)obj
 {
   NSString *result = nil;
+
   if (obj == nil)
     {
       result = @"";
@@ -153,12 +155,15 @@
           _unitOptions = [decoder decodeIntegerForKey: @"NS.unitOptions"];
           _unitStyle = [decoder decodeIntegerForKey: @"NS.unitStyle"];
           ASSIGN(_locale, [decoder decodeObjectForKey: @"NS.locale"]);
-          ASSIGN(_numberFormatter, [decoder decodeObjectForKey: @"NS.numberFormatter"]);
+          ASSIGN(_numberFormatter,
+	    [decoder decodeObjectForKey: @"NS.numberFormatter"]);
         }
       else
         {
-          [decoder decodeValueOfObjCType: @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
-          [decoder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+          [decoder decodeValueOfObjCType:
+	    @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+          [decoder decodeValueOfObjCType: @encode(NSFormattingUnitStyle)
+				      at: &_unitStyle];
           [decoder decodeValueOfObjCType: @encode(id) at: &_locale];
           [decoder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
         }
@@ -178,8 +183,10 @@
     }
   else
     {
-      [encoder encodeValueOfObjCType: @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
-      [encoder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+      [encoder encodeValueOfObjCType:
+	@encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+      [encoder encodeValueOfObjCType: @encode(NSFormattingUnitStyle)
+	at: &_unitStyle];
       [encoder encodeValueOfObjCType: @encode(id) at: &_locale];
       [encoder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
     }
