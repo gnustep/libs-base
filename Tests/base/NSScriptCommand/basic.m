@@ -20,15 +20,18 @@
 
 int main()
 {
+  NSAutoreleasePool *pool;
   NSScriptCommand *command;
   NSScriptCommandDescription *commandDesc;
   NSDictionary *args;
   NSString *result;
 
+  pool = [NSAutoreleasePool new];
+
   START_SET("NSScriptCommand initialization");
 
   // Test initialization with nil
-  command = AUTORELEASE([[NSScriptCommand alloc] initWithCommandDescription: nil]);
+  command = [[NSScriptCommand alloc] initWithCommandDescription: nil];
   PASS(command != nil, "Can create NSScriptCommand with nil description");
   PASS([command commandDescription] == nil, "Command description is nil");
   PASS(![command isWellFormed], "Command with nil description is not well-formed");
@@ -37,8 +40,9 @@ int main()
 
   START_SET("NSScriptCommand arguments");
 
+  [command release];
   commandDesc = nil;
-  command = AUTORELEASE([[NSScriptCommand alloc] initWithCommandDescription: commandDesc]);
+  command = [[NSScriptCommand alloc] initWithCommandDescription: commandDesc];
 
   // Test arguments
   PASS([command arguments] != nil, "Initial arguments is non-nil");
@@ -99,7 +103,8 @@ int main()
   START_SET("NSScriptCommand execution");
 
   // Test execution with custom subclass
-  command = AUTORELEASE([[TestCommand alloc] initWithCommandDescription: nil]);
+  [command release];
+  command = [[TestCommand alloc] initWithCommandDescription: nil];
   result = [command executeCommand];
   PASS(result == nil, "executeCommand returns nil for non-well-formed command");
 
@@ -107,7 +112,8 @@ int main()
 
   START_SET("NSScriptCommand suspension");
 
-  command = AUTORELEASE([[NSScriptCommand alloc] initWithCommandDescription: nil]);
+  [command release];
+  command = [[NSScriptCommand alloc] initWithCommandDescription: nil];
 
   [command suspendExecution];
   PASS(YES, "suspendExecution doesn't crash");
@@ -119,7 +125,8 @@ int main()
 
   START_SET("NSScriptCommand current command");
 
-  command = AUTORELEASE([[NSScriptCommand alloc] initWithCommandDescription: nil]);
+  [command release];
+  command = [[NSScriptCommand alloc] initWithCommandDescription: nil];
   PASS([command currentCommand] == command,
        "currentCommand returns self");
 
@@ -127,11 +134,14 @@ int main()
 
   START_SET("NSScriptCommand apple event");
 
-  command = AUTORELEASE([[NSScriptCommand alloc] initWithCommandDescription: nil]);
+  [command release];
+  command = [[NSScriptCommand alloc] initWithCommandDescription: nil];
   PASS([command appleEvent] == nil,
        "appleEvent returns nil by default");
 
   END_SET("NSScriptCommand apple event");
 
+  [command release];
+  [pool release];
   return 0;
 }
