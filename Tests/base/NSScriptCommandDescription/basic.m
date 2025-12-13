@@ -6,11 +6,15 @@
 
 int main()
 {
+  NSAutoreleasePool *pool;
   NSScriptCommandDescription *desc;
+  NSScriptCommandDescription *desc2;
   NSString *suiteName;
   NSString *commandName;
   FourCharCode eventCode;
   FourCharCode classCode;
+
+  pool = [NSAutoreleasePool new];
 
   START_SET("NSScriptCommandDescription initialization");
 
@@ -19,10 +23,10 @@ int main()
   eventCode = 'TEST';
   classCode = 'TCMD';
 
-  desc = AUTORELEASE([[NSScriptCommandDescription alloc] initWithSuiteName: suiteName
-                                                               commandName: commandName
-                                                            appleEventCode: eventCode
-                                                        appleEventClassCode: classCode]);
+  desc = [[NSScriptCommandDescription alloc] initWithSuiteName: suiteName
+                                                   commandName: commandName
+                                                appleEventCode: eventCode
+                                            appleEventClassCode: classCode];
   PASS(desc != nil, "Can create NSScriptCommandDescription instance");
 
   END_SET("NSScriptCommandDescription initialization");
@@ -76,11 +80,10 @@ int main()
 
   START_SET("NSScriptCommandDescription multiple instances");
 
-  NSScriptCommandDescription *desc2;
-  desc2 = AUTORELEASE([[NSScriptCommandDescription alloc] initWithSuiteName: @"Suite2"
-                                                                 commandName: @"Command2"
-                                                              appleEventCode: 'TST2'
-                                                          appleEventClassCode: 'CMD2']);
+  desc2 = [[NSScriptCommandDescription alloc] initWithSuiteName: @"Suite2"
+                                                     commandName: @"Command2"
+                                                  appleEventCode: 'TST2'
+                                              appleEventClassCode: 'CMD2'];
   
   PASS(desc2 != nil, "Can create second instance");
   PASS(![[desc2 suiteName] isEqual: [desc suiteName]],
@@ -92,5 +95,8 @@ int main()
 
   END_SET("NSScriptCommandDescription multiple instances");
 
+  [desc release];
+  [desc2 release];
+  [pool release];
   return 0;
 }
