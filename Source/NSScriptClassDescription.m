@@ -32,6 +32,7 @@
   NSString *_className;
   NSString *_suiteName;
   NSString *_superclassName;
+  NSScriptClassDescription *_superclassDescription;
   FourCharCode _appleEventCode;
 }
 
@@ -52,6 +53,7 @@
       _appleEventCode = appleEventCode;
       if (superclassDesc != nil)
         {
+          ASSIGN(_superclassDescription, superclassDesc);
           ASSIGN(_superclassName, [superclassDesc className]);
         }
     }
@@ -72,6 +74,7 @@
 {
   RELEASE(_className);
   RELEASE(_suiteName);
+  RELEASE(_superclassDescription);
   RELEASE(_superclassName);
   [super dealloc];
 }
@@ -114,6 +117,13 @@
 - (NSScriptClassDescription *) superclassDescription
 {
   Class superclass;
+  /* If we have a direct reference, return it */
+  if (_superclassDescription != nil)
+    {
+      return _superclassDescription;
+    }
+  
+  /* Otherwise try to look it up by name */
   
   if (_superclassName != nil)
     {

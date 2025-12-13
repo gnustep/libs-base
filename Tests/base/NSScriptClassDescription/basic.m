@@ -12,12 +12,15 @@
 
 int main()
 {
+  NSAutoreleasePool *pool;
   NSScriptClassDescription *desc;
   NSScriptClassDescription *superDesc;
   NSString *suiteName;
   NSString *className;
   FourCharCode appleEventCode;
   Class implClass;
+
+  pool = [NSAutoreleasePool new];
 
   START_SET("NSScriptClassDescription initialization");
 
@@ -26,10 +29,10 @@ int main()
   className = @"TestScriptableObject";
   appleEventCode = 'TST1';
   
-  desc = AUTORELEASE([[NSScriptClassDescription alloc] initWithSuiteName: suiteName
-                                                               className: className
-                                                          appleEventCode: appleEventCode
-                                                              superclass: nil]);
+  desc = [[NSScriptClassDescription alloc] initWithSuiteName: suiteName
+                                                   className: className
+                                              appleEventCode: appleEventCode
+                                                  superclass: nil];
   PASS(desc != nil, "Can create NSScriptClassDescription instance");
 
   END_SET("NSScriptClassDescription initialization");
@@ -55,15 +58,16 @@ int main()
   START_SET("NSScriptClassDescription hierarchy");
 
   // Test superclass description
-  superDesc = AUTORELEASE([[NSScriptClassDescription alloc] initWithSuiteName: @"BaseSuite"
-                                                                     className: @"NSObject"
-                                                                appleEventCode: 'BASE'
-                                                                    superclass: nil]);
+  superDesc = [[NSScriptClassDescription alloc] initWithSuiteName: @"BaseSuite"
+                                                        className: @"NSObject"
+                                                   appleEventCode: 'BASE'
+                                                       superclass: nil];
   
-  desc = AUTORELEASE([[NSScriptClassDescription alloc] initWithSuiteName: @"DerivedSuite"
-                                                               className: @"TestScriptableObject"
-                                                          appleEventCode: 'DRV1'
-                                                              superclass: superDesc]);
+  [desc release];
+  desc = [[NSScriptClassDescription alloc] initWithSuiteName: @"DerivedSuite"
+                                                   className: @"TestScriptableObject"
+                                              appleEventCode: 'DRV1'
+                                                  superclass: superDesc];
   
   PASS(desc != nil, "Can create derived class description");
   PASS([desc superclassDescription] != nil, "Superclass description is set");
@@ -72,10 +76,11 @@ int main()
 
   START_SET("NSScriptClassDescription commands");
 
-  desc = AUTORELEASE([[NSScriptClassDescription alloc] initWithSuiteName: suiteName
-                                                               className: className
-                                                          appleEventCode: appleEventCode
-                                                              superclass: nil]);
+  [desc release];
+  desc = [[NSScriptClassDescription alloc] initWithSuiteName: suiteName
+                                                   className: className
+                                              appleEventCode: appleEventCode
+                                                  superclass: nil];
 
   // Test command description lookup
   NSScriptCommandDescription *cmdDesc;
@@ -114,5 +119,10 @@ int main()
 
   END_SET("NSScriptClassDescription class methods");
 
+  // Clean up manually allocated objects
+  [desc release];
+  [superDesc release];
+
+  [pool release];
   return 0;
 }
