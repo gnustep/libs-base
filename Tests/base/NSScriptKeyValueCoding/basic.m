@@ -85,18 +85,21 @@
 
 int main()
 {
+  NSAutoreleasePool *pool;
   TestContainer *container;
   TestItem *item1;
   TestItem *item2;
   TestItem *item3;
   id result;
 
+  pool = [NSAutoreleasePool new];
+
   START_SET("NSScriptKeyValueCoding value access");
 
-  container = AUTORELEASE([[TestContainer alloc] init]);
-  item1 = AUTORELEASE([[TestItem alloc] initWithName: @"First" uniqueID: @"1"]);
-  item2 = AUTORELEASE([[TestItem alloc] initWithName: @"Second" uniqueID: @"2"]);
-  item3 = AUTORELEASE([[TestItem alloc] initWithName: @"Third" uniqueID: @"3"]);
+  container = [[TestContainer alloc] init];
+  item1 = [[TestItem alloc] initWithName: @"First" uniqueID: @"1"];
+  item2 = [[TestItem alloc] initWithName: @"Second" uniqueID: @"2"];
+  item3 = [[TestItem alloc] initWithName: @"Third" uniqueID: @"3"];
 
   [container setItems: [NSArray arrayWithObjects: item1, item2, item3, nil]];
 
@@ -195,5 +198,12 @@ int main()
 
   END_SET("NSScriptKeyValueCoding coercion");
 
+  // Clean up manually allocated objects
+  [container release];
+  [item1 release];
+  [item2 release];
+  [item3 release];
+
+  [pool release];
   return 0;
 }

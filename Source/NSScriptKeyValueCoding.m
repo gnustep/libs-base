@@ -109,27 +109,10 @@
 
 - (void) insertValue: (id)value atIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key
 {
-  NSString *insertSel;
-  SEL selector;
+  NSMutableArray *array;
   
-  insertSel = [NSString stringWithFormat: @"insertIn%@:atIndex:", 
-               [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
-                                            withString: [[key substringToIndex: 1] uppercaseString]]];
-  selector = NSSelectorFromString(insertSel);
-  
-  if ([self respondsToSelector: selector])
-    {
-      [self performSelector: selector withObject: value withObject: [NSNumber numberWithUnsignedInteger: index]];
-    }
-  else
-    {
-      NSMutableArray *array;
-      
-      array = [[self mutableArrayValueForKey: key] retain];
-      [array insertObject: value atIndex: index];
-      [self setValue: array forKey: key];
-      RELEASE(array);
-    }
+  array = [self mutableArrayValueForKey: key];
+  [array insertObject: value atIndex: index];
 }
 
 - (void) insertValue: (id)value inPropertyWithKey: (NSString *)key
@@ -147,29 +130,12 @@
 
 - (void) removeValueAtIndex: (NSUInteger)index fromPropertyWithKey: (NSString *)key
 {
-  NSString *removeSel;
-  SEL selector;
+  NSMutableArray *array;
   
-  removeSel = [NSString stringWithFormat: @"removeFrom%@AtIndex:", 
-               [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
-                                            withString: [[key substringToIndex: 1] uppercaseString]]];
-  selector = NSSelectorFromString(removeSel);
-  
-  if ([self respondsToSelector: selector])
+  array = [self mutableArrayValueForKey: key];
+  if (index < [array count])
     {
-      [self performSelector: selector withObject: [NSNumber numberWithUnsignedInteger: index]];
-    }
-  else
-    {
-      NSMutableArray *array;
-      
-      array = [[self mutableArrayValueForKey: key] retain];
-      if (index < [array count])
-        {
-          [array removeObjectAtIndex: index];
-          [self setValue: array forKey: key];
-        }
-      RELEASE(array);
+      [array removeObjectAtIndex: index];
     }
 }
 
@@ -177,31 +143,13 @@
           inPropertyWithKey: (NSString *)key
                   withValue: (id)value
 {
-  NSString *replaceSel;
-  SEL selector;
+  NSMutableArray *array;
   
-  replaceSel = [NSString stringWithFormat: @"replaceIn%@:atIndex:withObject:", 
-                [key stringByReplacingCharactersInRange: NSMakeRange(0, 1) 
-                                             withString: [[key substringToIndex: 1] uppercaseString]]];
-  selector = NSSelectorFromString(replaceSel);
-  
-  if ([self respondsToSelector: selector])
+  array = [self mutableArrayValueForKey: key];
+  if (index < [array count])
     {
-      [self performSelector: selector withObject: [NSNumber numberWithUnsignedInteger: index] withObject: value];
-    }
-  else
-    {
-      NSMutableArray *array;
-      
-      array = [[self mutableArrayValueForKey: key] retain];
-      if (index < [array count])
-        {
-          [array replaceObjectAtIndex: index withObject: value];
-          [self setValue: array forKey: key];
-        }
-      RELEASE(array);
+      [array replaceObjectAtIndex: index withObject: value];
     }
 }
 
 @end
-
