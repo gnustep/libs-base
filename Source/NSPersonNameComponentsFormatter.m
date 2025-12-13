@@ -21,10 +21,13 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSPersonNameComponents.h"
 #import "Foundation/NSPersonNameComponentsFormatter.h"
+#import "Foundation/NSValue.h"
 
 @implementation NSPersonNameComponentsFormatter
 
@@ -221,6 +224,72 @@
 {
   NSPersonNameComponents *pnc = (NSPersonNameComponents *)obj;
   return [self stringFromPersonNameComponents: pnc];
+}
+
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          // Apple uses a private data object: NS.nameComponentsFormatterPrivate
+          id privateData = [coder decodeObjectForKey: @"NS.nameComponentsFormatterPrivate"];
+          if (privateData != nil && [coder respondsToSelector: @selector(decodeObjectForKey:)])
+            {
+              // Decode from the private data structure
+              _phonetic = [[privateData valueForKey: @"NS.nameFormatterIsPhonetic"] boolValue];
+              _style = [[privateData valueForKey: @"NS.nameFormatterStyle"] integerValue];
+              // Additional Apple private fields (for compatibility):
+              // NS.nameFormatterForceFamilyNameFirst
+              // NS.nameFormatterForceGivenNameFirst
+              // NS.nameFormatterIgnoresFallbacks
+              // NS.nameFormatterLocale
+            }
+          else
+            {
+              // Fallback to direct decoding (GNUstep format)
+              _phonetic = [coder decodeBoolForKey: @"NS.nameFormatterIsPhonetic"];
+              _style = [coder decodeIntegerForKey: @"NS.nameFormatterStyle"];
+              _nameOptions = 0; // Default value
+            }
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
+          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      // Create a private data dictionary to match Apple's format
+      NSMutableDictionary *privateData = [NSMutableDictionary dictionary];
+      [privateData setObject: [NSNumber numberWithBool: _phonetic] 
+                      forKey: @"NS.nameFormatterIsPhonetic"];
+      [privateData setObject: [NSNumber numberWithInteger: _style] 
+                      forKey: @"NS.nameFormatterStyle"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterForceFamilyNameFirst"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterForceGivenNameFirst"];
+      [privateData setObject: [NSNumber numberWithBool: NO] 
+                      forKey: @"NS.nameFormatterIgnoresFallbacks"];
+      
+      [coder encodeObject: privateData forKey: @"NS.nameComponentsFormatterPrivate"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
+      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+    }
 }
 
 @end

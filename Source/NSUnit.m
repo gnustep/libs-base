@@ -27,7 +27,7 @@
 
 // Private methods...
 @interface NSDimension (Private)
-- (instancetype) initWithSymbol: (NSString *)symbol
+- (instancetype) initWithSymbol: (NSString*)symbol
                     coefficient: (double)coefficient
                        constant: (double)constant;
 @end
@@ -64,7 +64,7 @@
   return self;
 }
 
-- (id) initWithCoder: (NSCoder *)coder
+- (id) initWithCoder: (NSCoder*)coder
 {
   if ([coder allowsKeyedCoding])
     {
@@ -79,7 +79,7 @@
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
   if([coder allowsKeyedCoding])
     {
@@ -105,7 +105,7 @@
 
 - (double) baseUnitValueFromValue: (double)value
 {
-  return (_coefficient * value) + _constant;
+  return (_coefficient* value) + _constant;
 }
 
 - (double) valueFromBaseUnitValue: (double)baseUnitValue
@@ -116,12 +116,19 @@
 
 // Abstract unit...
 @implementation NSUnit
+
+- (void) dealloc
+{
+  RELEASE(_symbol);
+  DEALLOC
+}
+
 - (instancetype) init
 {
   return [self initWithSymbol: @""];
 }
 
-- (instancetype) initWithSymbol: (NSString *)symbol
+- (instancetype) initWithSymbol: (NSString*)symbol
 {
   self = [super init];
   if (self != nil)
@@ -131,7 +138,7 @@
   return self;
 }
 
-- (id) initWithCoder: (NSCoder *)coder
+- (id) initWithCoder: (NSCoder*)coder
 {
   if ([coder allowsKeyedCoding])
     {
@@ -144,7 +151,7 @@
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
   if ([coder allowsKeyedCoding])
     {
@@ -156,12 +163,12 @@
     }
 }
 
-- (instancetype) copyWithZone: (NSZone *)zone
+- (instancetype) copyWithZone: (NSZone*)zone
 {
   return [[NSUnit allocWithZone: zone] initWithSymbol: [self symbol]];
 }
 
-- (NSString *) symbol
+- (NSString*) symbol
 {
   return _symbol;
 }
@@ -170,12 +177,19 @@
 
 // Dimension using units....
 @implementation NSDimension
-- (NSUnitConverter *) converter
+- (NSUnitConverter*) converter
 {
   return _converter;
 }
 
-- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *) converter
+- (void) dealloc
+{
+  RELEASE(_converter);
+  DEALLOC
+}
+
+- (instancetype) initWithSymbol: (NSString*)symbol
+		      converter: (NSUnitConverter*) converter
 {
   self = [super initWithSymbol: symbol];
   if (self != nil)
@@ -185,12 +199,14 @@
   return self;
 }
 
-- (instancetype) initWithSymbol: (NSString *)symbol
+- (instancetype) initWithSymbol: (NSString*)symbol
                     coefficient: (double)coefficient
                        constant: (double)constant
 {
-  NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: coefficient
-                                                                               constant: constant];
+  NSUnitConverterLinear	*converter;
+
+  converter = [[NSUnitConverterLinear alloc] initWithCoefficient: coefficient
+						        constant: constant];
   self = [self initWithSymbol: symbol
                     converter: converter];
 
@@ -203,7 +219,7 @@
   return nil;
 }
 
-- (id) initWithCoder: (NSCoder *)coder
+- (id) initWithCoder: (NSCoder*)coder
 {
   self = [super initWithCoder: coder];
   if ([coder allowsKeyedCoding])
@@ -217,7 +233,7 @@
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
   [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
@@ -242,14 +258,14 @@
 }
 
 // Base unit - metersPerSecondSquared
-+ (NSUnitAcceleration *) metersPerSecondSquared
++ (NSUnitAcceleration*) metersPerSecondSquared
 {
   return AUTORELEASE([[NSUnitAcceleration alloc] initWithSymbol: @"m/s^2"
                                                     coefficient: 1.0
                                                        constant: 0.0]);
 }
 
-+ (NSUnitAcceleration *) gravity
++ (NSUnitAcceleration*) gravity
 {
   return AUTORELEASE([[NSUnitAcceleration alloc] initWithSymbol: @"g"
                                                     coefficient: 9.81
@@ -266,42 +282,42 @@
 }
 
 // Base unit - degrees
-+ (NSUnitAngle *) degrees
++ (NSUnitAngle*) degrees
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"deg"
                                              coefficient: 1.0
                                                 constant: 0.0]);
 }
 
-+ (NSUnitAngle *) arcMinutes
++ (NSUnitAngle*) arcMinutes
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"'"
                                              coefficient: 0.016667
                                                 constant: 0.0]);
 }
 
-+ (NSUnitAngle *) arcSeconds
++ (NSUnitAngle*) arcSeconds
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"\""
                                              coefficient: 0.00027778
                                                 constant: 0.0]);
 }
 
-+ (NSUnitAngle *) radians
++ (NSUnitAngle*) radians
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"rad"
                                              coefficient: 57.2958
                                                 constant: 0.0]);
 }
 
-+ (NSUnitAngle *) gradians
++ (NSUnitAngle*) gradians
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"grad"
                                              coefficient: 0.9
                                                 constant: 0.0]);
 }
 
-+ (NSUnitAngle *) revolutions
++ (NSUnitAngle*) revolutions
 {
   return AUTORELEASE([[NSUnitAngle alloc] initWithSymbol: @"rev"
                                              coefficient: 360.0
@@ -318,98 +334,98 @@
 }
 
 // Base unit - squareMeters
-+ (NSUnitArea *) squareMegameters
++ (NSUnitArea*) squareMegameters
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"Mm^2"
                                             coefficient: 1e12
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareKilometers
++ (NSUnitArea*) squareKilometers
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"km^2"
                                             coefficient: 1000000.0
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareMeters
++ (NSUnitArea*) squareMeters
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"m^2"
                                             coefficient: 1.0
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareCentimeters
++ (NSUnitArea*) squareCentimeters
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"cm^2"
                                             coefficient: 0.0001
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareMillimeters
++ (NSUnitArea*) squareMillimeters
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"mm^2"
                                             coefficient: 0.000001
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareMicrometers
++ (NSUnitArea*) squareMicrometers
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"um^2"
                                             coefficient: 1e-12
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareNanometers
++ (NSUnitArea*) squareNanometers
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"nm^2"
                                             coefficient: 1e-18
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareInches
++ (NSUnitArea*) squareInches
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"in^2"
                                             coefficient: 0.00064516
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareFeet
++ (NSUnitArea*) squareFeet
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"ft^2"
                                             coefficient: 0.092903
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareYards
++ (NSUnitArea*) squareYards
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"yd^2"
                                             coefficient: 0.836127
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) squareMiles
++ (NSUnitArea*) squareMiles
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"mi^2"
                                             coefficient: 2.59e+6
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) acres
++ (NSUnitArea*) acres
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"acres"
                                             coefficient: 4046.86
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) ares
++ (NSUnitArea*) ares
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"ares"
                                             coefficient: 100.0
                                                constant: 0.0]);
 }
 
-+ (NSUnitArea *) hectares
++ (NSUnitArea*) hectares
 {
   return AUTORELEASE([[NSUnitArea alloc] initWithSymbol: @"hectares"
                                             coefficient: 10000.0
@@ -426,25 +442,27 @@
 }
 
 // Base unit - gramsPerLiter
-+ (NSUnitConcentrationMass *) gramsPerLiter
++ (NSUnitConcentrationMass*) gramsPerLiter
 {
   return AUTORELEASE([[NSUnitConcentrationMass alloc] initWithSymbol: @"g/L"
                                                          coefficient: 1.0
                                                             constant: 0.0]);
 }
 
-+ (NSUnitConcentrationMass *) milligramsPerDeciliter
++ (NSUnitConcentrationMass*) milligramsPerDeciliter
 {
   return AUTORELEASE([[NSUnitConcentrationMass alloc] initWithSymbol: @"mg/dL"
                                                          coefficient: 0.01
                                                             constant: 0.0]);
 }
 
-+ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole:(double)gramsPerMole
++ (NSUnitConcentrationMass*) millimolesPerLiterWithGramsPerMole:
+  (double)gramsPerMole
 {
-  return AUTORELEASE([[NSUnitConcentrationMass alloc] initWithSymbol: @"mmol/L"
-                                                         coefficient: 18.0 * gramsPerMole
-                                                            constant: 0.0]);
+  return AUTORELEASE([[NSUnitConcentrationMass alloc]
+    initWithSymbol: @"mmol/L"
+    coefficient: 18.0 * gramsPerMole
+    constant: 0.0]);
 }
 
 @end
@@ -457,7 +475,7 @@
 }
 
 // Base unit - partsPerMillion
-+ (NSUnitDispersion *) partsPerMillion
++ (NSUnitDispersion*) partsPerMillion
 {
   return AUTORELEASE([[NSUnitDispersion alloc] initWithSymbol: @"ppm"
                                                   coefficient: 1.0
@@ -474,21 +492,21 @@
 }
 
 // Base unit - seconds
-+ (NSUnitDuration *) seconds
++ (NSUnitDuration*) seconds
 {
   return AUTORELEASE([[NSUnitDuration alloc] initWithSymbol: @"sec"
                                                 coefficient: 1.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitDuration *) minutes
++ (NSUnitDuration*) minutes
 {
   return AUTORELEASE([[NSUnitDuration alloc] initWithSymbol: @"min"
                                                 coefficient: 60.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitDuration *) hours
++ (NSUnitDuration*) hours
 {
   return AUTORELEASE([[NSUnitDuration alloc] initWithSymbol: @"hr"
                                                 coefficient: 3600.0
@@ -505,42 +523,42 @@
 }
 
 // Base unit - coulombs
-+ (NSUnitElectricCharge *) coulombs
++ (NSUnitElectricCharge*) coulombs
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"C"
                                                       coefficient: 1.0
                                                          constant: 0.0]);
 }
 
-+ (NSUnitElectricCharge *) megaampereHours
++ (NSUnitElectricCharge*) megaampereHours
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"MAh"
                                                       coefficient: 3.6e9
                                                          constant: 0.0]);
 }
 
-+ (NSUnitElectricCharge *) kiloampereHours
++ (NSUnitElectricCharge*) kiloampereHours
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"kAh"
                                                       coefficient: 3600000.0
                                                          constant: 0.0]);
 }
 
-+ (NSUnitElectricCharge *) ampereHours
++ (NSUnitElectricCharge*) ampereHours
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"mAh"
                                                       coefficient: 3600.0
                                                          constant: 0.0]);
 }
 
-+ (NSUnitElectricCharge *) milliampereHours
++ (NSUnitElectricCharge*) milliampereHours
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"hr"
                                                       coefficient: 3.6
                                                          constant: 0.0]);
 }
 
-+ (NSUnitElectricCharge *) microampereHours
++ (NSUnitElectricCharge*) microampereHours
 {
   return AUTORELEASE([[NSUnitElectricCharge alloc] initWithSymbol: @"uAh"
                                                       coefficient: 0.0036
@@ -557,35 +575,35 @@
 }
 
 // Base unit - amperes
-+ (NSUnitElectricCurrent *) megaamperes
++ (NSUnitElectricCurrent*) megaamperes
 {
   return AUTORELEASE([[NSUnitElectricCurrent alloc] initWithSymbol: @"MA"
                                                        coefficient: 1000000.0
                                                           constant: 0.0]);
 }
 
-+ (NSUnitElectricCurrent *) kiloamperes
++ (NSUnitElectricCurrent*) kiloamperes
 {
   return AUTORELEASE([[NSUnitElectricCurrent alloc] initWithSymbol: @"kA"
                                                        coefficient: 1000.0
                                                           constant: 0.0]);
 }
 
-+ (NSUnitElectricCurrent *) amperes
++ (NSUnitElectricCurrent*) amperes
 {
   return AUTORELEASE([[NSUnitElectricCurrent alloc] initWithSymbol: @"A"
                                                        coefficient: 1.0
                                                           constant: 0.0]);
 }
 
-+ (NSUnitElectricCurrent *) milliamperes
++ (NSUnitElectricCurrent*) milliamperes
 {
   return AUTORELEASE([[NSUnitElectricCurrent alloc] initWithSymbol: @"mA"
                                                        coefficient: 0.001
                                                           constant: 0.0]);
 }
 
-+ (NSUnitElectricCurrent *) microamperes
++ (NSUnitElectricCurrent*) microamperes
 {
   return AUTORELEASE([[NSUnitElectricCurrent alloc] initWithSymbol: @"uA"
                                                        coefficient: 0.000001
@@ -602,35 +620,35 @@
 }
 
 // Base unit - volts
-+ (NSUnitElectricPotentialDifference *) megavolts
++ (NSUnitElectricPotentialDifference*) megavolts
 {
   return AUTORELEASE([[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"MV"
                                                                    coefficient: 1000000.0
                                                                       constant: 0.0]);
 }
 
-+ (NSUnitElectricPotentialDifference *) kilovolts
++ (NSUnitElectricPotentialDifference*) kilovolts
 {
   return AUTORELEASE([[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"kV"
                                                                    coefficient: 1000.0
                                                                       constant: 0.0]);
 }
 
-+ (NSUnitElectricPotentialDifference *) volts
++ (NSUnitElectricPotentialDifference*) volts
 {
   return AUTORELEASE([[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"V"
                                                                    coefficient: 1.0
                                                                       constant: 0.0]);
 }
 
-+ (NSUnitElectricPotentialDifference *) millivolts
++ (NSUnitElectricPotentialDifference*) millivolts
 {
   return AUTORELEASE([[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"mV"
                                                                    coefficient: 0.001
                                                                       constant: 0.0]);
 }
 
-+ (NSUnitElectricPotentialDifference *) microvolts
++ (NSUnitElectricPotentialDifference*) microvolts
 {
   return AUTORELEASE([[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"uV"
                                                                    coefficient: 0.000001
@@ -647,35 +665,35 @@
 }
 
 // Base unit - ohms
-+ (NSUnitElectricResistance *) megaohms
++ (NSUnitElectricResistance*) megaohms
 {
   return AUTORELEASE([[NSUnitElectricResistance alloc] initWithSymbol: @"MOhm"
                                                           coefficient: 100000.0
                                                              constant: 0.0]);
 }
 
-+ (NSUnitElectricResistance *) kiloohms
++ (NSUnitElectricResistance*) kiloohms
 {
   return AUTORELEASE([[NSUnitElectricResistance alloc] initWithSymbol: @"kOhm"
                                                           coefficient: 1000.0
                                                              constant: 0.0]);
 }
 
-+ (NSUnitElectricResistance *) ohms
++ (NSUnitElectricResistance*) ohms
 {
   return AUTORELEASE([[NSUnitElectricResistance alloc] initWithSymbol: @"Ohm"
                                                           coefficient: 1.0
                                                              constant: 0.0]);
 }
 
-+ (NSUnitElectricResistance *) milliohms
++ (NSUnitElectricResistance*) milliohms
 {
   return AUTORELEASE([[NSUnitElectricResistance alloc] initWithSymbol: @"mOhm"
                                                           coefficient: 0.001
                                                              constant: 0.0]);
 }
 
-+ (NSUnitElectricResistance *) microohms
++ (NSUnitElectricResistance*) microohms
 {
   return AUTORELEASE([[NSUnitElectricResistance alloc] initWithSymbol: @"uOhm"
                                                           coefficient: 0.000001
@@ -693,35 +711,35 @@
 }
 
 // Base unit - joules
-+ (NSUnitEnergy *) kilojoules
++ (NSUnitEnergy*) kilojoules
 {
   return AUTORELEASE([[NSUnitEnergy alloc] initWithSymbol: @"kJ"
                                               coefficient: 1000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitEnergy *) joules
++ (NSUnitEnergy*) joules
 {
   return AUTORELEASE([[NSUnitEnergy alloc] initWithSymbol: @"J"
                                               coefficient: 1.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitEnergy *) kilocalories
++ (NSUnitEnergy*) kilocalories
 {
   return AUTORELEASE([[NSUnitEnergy alloc] initWithSymbol: @"kCal"
                                               coefficient: 4184.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitEnergy *) calories
++ (NSUnitEnergy*) calories
 {
   return AUTORELEASE([[NSUnitEnergy alloc] initWithSymbol: @"cal"
                                               coefficient: 4.184
                                                  constant: 0.0]);
 }
 
-+ (NSUnitEnergy *) kilowattHours
++ (NSUnitEnergy*) kilowattHours
 {
   return AUTORELEASE([[NSUnitEnergy alloc] initWithSymbol: @"kWh"
                                               coefficient: 3600000.0
@@ -739,56 +757,56 @@
 
 // Base unit - hertz
 
-+ (NSUnitFrequency *) terahertz
++ (NSUnitFrequency*) terahertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"thz"
                                                  coefficient: 1e12
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) gigahertz
++ (NSUnitFrequency*) gigahertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"ghz"
                                                  coefficient: 1e9
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) megahertz
++ (NSUnitFrequency*) megahertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"GHz"
                                                  coefficient: 1000000.0
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) kilohertz
++ (NSUnitFrequency*) kilohertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"KHz"
                                                  coefficient: 1000.0
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) hertz
++ (NSUnitFrequency*) hertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"Hz"
                                                  coefficient: 1.0
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) millihertz
++ (NSUnitFrequency*) millihertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"mHz"
 						 coefficient: 0.001
 						    constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) microhertz
++ (NSUnitFrequency*) microhertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"uHz"
                                                  coefficient: 0.000001
                                                     constant: 0.0]);
 }
 
-+ (NSUnitFrequency *) nanohertz
++ (NSUnitFrequency*) nanohertz
 {
   return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"nHz"
                                                  coefficient: 1e-9
@@ -806,14 +824,14 @@
 
 // Base unit - litersPer100Kilometers
 
-+ (NSUnitFuelEfficiency *) litersPer100Kilometers
++ (NSUnitFuelEfficiency*) litersPer100Kilometers
 {
   return AUTORELEASE([[NSUnitFuelEfficiency alloc] initWithSymbol: @"L/100km"
                                                       coefficient: 1.0
                                                          constant: 0.0]);
 }
 
-+ (NSUnitFuelEfficiency *) milesPerImperialGallon
++ (NSUnitFuelEfficiency*) milesPerImperialGallon
 {
   // FIXME
   return AUTORELEASE([[NSUnitFuelEfficiency alloc] initWithSymbol: @"mpg"
@@ -821,7 +839,7 @@
                                                          constant: 0.0]);
 }
 
-+ (NSUnitFuelEfficiency *) milesPerGallon
++ (NSUnitFuelEfficiency*) milesPerGallon
 {
   // FIXME
   return AUTORELEASE([[NSUnitFuelEfficiency alloc] initWithSymbol: @"mpg"
@@ -840,154 +858,154 @@
 
 // Base unit - meters
 
-+ (NSUnitLength *) megameters
++ (NSUnitLength*) megameters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"Mm"
                                               coefficient: 1000000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) kilometers
++ (NSUnitLength*) kilometers
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"kM"
                                               coefficient: 1000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) hectometers
++ (NSUnitLength*) hectometers
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"hm"
                                               coefficient: 100.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) decameters
++ (NSUnitLength*) decameters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"dam"
                                               coefficient: 10
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) meters
++ (NSUnitLength*) meters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"meters"
                                               coefficient: 1.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) decimeters
++ (NSUnitLength*) decimeters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"dm"
                                               coefficient: 0.1
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) centimeters
++ (NSUnitLength*) centimeters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"cm"
                                               coefficient: 0.01
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) millimeters
++ (NSUnitLength*) millimeters
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"mm"
                                               coefficient: 0.001
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) micrometers
++ (NSUnitLength*) micrometers
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"um"
                                               coefficient: 0.000001
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) nanometers
++ (NSUnitLength*) nanometers
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"nm"
                                               coefficient: 1e-9
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) picometers
++ (NSUnitLength*) picometers
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"pm"
                                               coefficient: 1e-12
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) inches
++ (NSUnitLength*) inches
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"in"
                                               coefficient: 0.254
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) feet
++ (NSUnitLength*) feet
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"ft"
                                               coefficient: 0.3048
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) yards
++ (NSUnitLength*) yards
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"yd"
                                               coefficient: 0.9144
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) miles
++ (NSUnitLength*) miles
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"mi"
                                               coefficient: 1609.34
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) scandinavianMiles
++ (NSUnitLength*) scandinavianMiles
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"smi"
                                               coefficient: 10000
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) lightyears
++ (NSUnitLength*) lightyears
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"ly"
                                               coefficient: 9.461e+15
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) nauticalMiles
++ (NSUnitLength*) nauticalMiles
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"NM"
                                               coefficient: 1852.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) fathoms
++ (NSUnitLength*) fathoms
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"ftm"
                                               coefficient: 1.8288
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) furlongs
++ (NSUnitLength*) furlongs
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"fur"
                                               coefficient: 201.168
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) astronomicalUnits
++ (NSUnitLength*) astronomicalUnits
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"ua"
                                               coefficient: 1.496e+11
                                                  constant: 0.0]);
 }
 
-+ (NSUnitLength *) parsecs
++ (NSUnitLength*) parsecs
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"pc"
                                               coefficient: 3.086e+16
@@ -1004,7 +1022,7 @@
 }
 
 // Base unit - lux
-+ (NSUnitIlluminance *) lux
++ (NSUnitIlluminance*) lux
 {
   return AUTORELEASE([[NSUnitIlluminance alloc] initWithSymbol: @"lux"
                                                    coefficient: 1.0
@@ -1022,112 +1040,112 @@
 
 // Base unit - kilograms
 
-+ (NSUnitMass *) kilograms
++ (NSUnitMass*) kilograms
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"kg"
                                             coefficient: 1.0
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) grams
++ (NSUnitMass*) grams
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"g"
                                             coefficient: 0.001
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) decigrams
++ (NSUnitMass*) decigrams
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"dg"
                                             coefficient: 0.0001
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) centigrams
++ (NSUnitMass*) centigrams
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"cg"
                                             coefficient: 0.00001
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) milligrams
++ (NSUnitMass*) milligrams
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"mg"
                                             coefficient: 0.000001
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) micrograms
++ (NSUnitMass*) micrograms
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"ug"
                                             coefficient: 1e-9
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) nanograms
++ (NSUnitMass*) nanograms
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"ng"
                                             coefficient: 1e-12
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) picograms
++ (NSUnitMass*) picograms
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"pg"
                                             coefficient: 1e-15
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) ounces
++ (NSUnitMass*) ounces
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"oz"
                                             coefficient: 0.0283495
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) pounds
++ (NSUnitMass*) pounds
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"lb"
                                             coefficient: 0.453592
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) stones
++ (NSUnitMass*) stones
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"st"
                                             coefficient: 6.35029
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) metricTons
++ (NSUnitMass*) metricTons
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"t"
                                             coefficient: 1000
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) shortTons
++ (NSUnitMass*) shortTons
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"ton"
                                             coefficient: 907.185
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) carats
++ (NSUnitMass*) carats
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"ct"
                                             coefficient: 0.0002
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) ouncesTroy
++ (NSUnitMass*) ouncesTroy
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"oz t"
                                             coefficient: 0.03110348
                                                constant: 0.0]);
 }
 
-+ (NSUnitMass *) slugs
++ (NSUnitMass*) slugs
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"slug"
                                             coefficient: 14.5939
@@ -1145,77 +1163,77 @@
 
 // Base unit - watts
 
-+ (NSUnitPower *) terawatts
++ (NSUnitPower*) terawatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"TW"
                                              coefficient: 1e12
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) gigawatts
++ (NSUnitPower*) gigawatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"GW"
                                              coefficient: 1e9
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) megawatts
++ (NSUnitPower*) megawatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"MW"
                                              coefficient: 1000000.0
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) kilowatts
++ (NSUnitPower*) kilowatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"kW"
                                              coefficient: 1000.0
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) watts
++ (NSUnitPower*) watts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"W"
                                              coefficient: 1.0
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) milliwatts
++ (NSUnitPower*) milliwatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"mW"
                                              coefficient: 0.001
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) microwatts
++ (NSUnitPower*) microwatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"uW"
                                              coefficient: 0.000001
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) nanowatts
++ (NSUnitPower*) nanowatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"nW"
                                              coefficient: 1e-9
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) picowatts
++ (NSUnitPower*) picowatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"pW"
                                              coefficient: 1e-12
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) femtowatts
++ (NSUnitPower*) femtowatts
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"fW"
                                              coefficient: 1e-15
                                                 constant: 0.0]);
 }
 
-+ (NSUnitPower *) horsepower
++ (NSUnitPower*) horsepower
 {
   return AUTORELEASE([[NSUnitPower alloc] initWithSymbol: @"hp"
                                              coefficient: 745.7
@@ -1233,70 +1251,70 @@
 
 // Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
 
-+ (NSUnitPressure *) newtonsPerMetersSquared
++ (NSUnitPressure*) newtonsPerMetersSquared
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"N/m^2"
                                                 coefficient: 1.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) gigapascals
++ (NSUnitPressure*) gigapascals
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"GPa"
                                                 coefficient: 1e9
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) megapascals
++ (NSUnitPressure*) megapascals
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"MPa"
                                                 coefficient: 1000000.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) kilopascals
++ (NSUnitPressure*) kilopascals
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"kPa"
                                                 coefficient: 1000.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) hectopascals
++ (NSUnitPressure*) hectopascals
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"hPa"
                                                 coefficient: 100.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) inchesOfMercury
++ (NSUnitPressure*) inchesOfMercury
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"inHg"
                                                 coefficient: 3386.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) bars
++ (NSUnitPressure*) bars
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"bars"
                                                 coefficient: 100000.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) millibars
++ (NSUnitPressure*) millibars
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"mbars"
                                                 coefficient: 100.0
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) millimetersOfMercury
++ (NSUnitPressure*) millimetersOfMercury
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"mmHg"
                                                 coefficient: 133.322
                                                    constant: 0.0]);
 }
 
-+ (NSUnitPressure *) poundsForcePerSquareInch
++ (NSUnitPressure*) poundsForcePerSquareInch
 {
   return AUTORELEASE([[NSUnitPressure alloc] initWithSymbol: @"psi"
                                                 coefficient: 6894.76
@@ -1313,28 +1331,28 @@
 }
 
 // Base unit - metersPerSecond
-+ (NSUnitSpeed *) metersPerSecond
++ (NSUnitSpeed*) metersPerSecond
 {
   return AUTORELEASE([[NSUnitSpeed alloc] initWithSymbol: @"m/s"
                                              coefficient: 1.0
                                                 constant: 0.0]);
 }
 
-+ (NSUnitSpeed *) kilometersPerHour
++ (NSUnitSpeed*) kilometersPerHour
 {
   return AUTORELEASE([[NSUnitSpeed alloc] initWithSymbol: @"km/h"
                                              coefficient: 0.277778
                                                 constant: 0.0]);
 }
 
-+ (NSUnitSpeed *) milesPerHour
++ (NSUnitSpeed*) milesPerHour
 {
   return AUTORELEASE([[NSUnitSpeed alloc] initWithSymbol: @"mph"
                                              coefficient: 0.44704
                                                 constant: 0.0]);
 }
 
-+ (NSUnitSpeed *) knots
++ (NSUnitSpeed*) knots
 {
   return AUTORELEASE([[NSUnitSpeed alloc] initWithSymbol: @"kn"
                                              coefficient: 0.51444
@@ -1350,21 +1368,21 @@
 }
 
 // Base unit - kelvin
-+ (NSUnitTemperature *) kelvin
++ (NSUnitTemperature*) kelvin
 {
   return AUTORELEASE([[NSUnitTemperature alloc] initWithSymbol: @"K"
                                                    coefficient: 1.0
                                                       constant: 0.0]);
 }
 
-+ (NSUnitTemperature *) celsius
++ (NSUnitTemperature*) celsius
 {
   return AUTORELEASE([[NSUnitTemperature alloc] initWithSymbol: @"C"
                                                    coefficient: 1.0
                                                       constant: 273.15]);
 }
 
-+ (NSUnitTemperature *) fahrenheit
++ (NSUnitTemperature*) fahrenheit
 {
   return AUTORELEASE([[NSUnitTemperature alloc] initWithSymbol: @"F"
                                                    coefficient: 0.55555555555556
@@ -1379,217 +1397,217 @@
 }
 
 // Base unit - liters
-+ (NSUnitVolume *) megaliters
++ (NSUnitVolume*) megaliters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"ML"
                                               coefficient: 1000000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) kiloliters
++ (NSUnitVolume*) kiloliters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"kL"
                                               coefficient: 1000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) liters
++ (NSUnitVolume*) liters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"L"
                                               coefficient: 1.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) deciliters
++ (NSUnitVolume*) deciliters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"dL"
                                               coefficient: 0.1
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) centiliters
++ (NSUnitVolume*) centiliters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"cL"
                                               coefficient: 0.01
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) milliliters
++ (NSUnitVolume*) milliliters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"mL"
                                               coefficient: 0.001
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicKilometers
++ (NSUnitVolume*) cubicKilometers
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"km^3"
                                               coefficient: 1e12
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicMeters
++ (NSUnitVolume*) cubicMeters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"m^3"
                                               coefficient: 1000.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicDecimeters
++ (NSUnitVolume*) cubicDecimeters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"dm^3"
                                               coefficient: 1.0
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicCentimeters
++ (NSUnitVolume*) cubicCentimeters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"cm^3"
                                               coefficient: 0.0001
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicMillimeters
++ (NSUnitVolume*) cubicMillimeters
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"mm^3"
                                               coefficient: 0.000001
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicInches
++ (NSUnitVolume*) cubicInches
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"in^3"
 					      coefficient: 0.0163871
 						 constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicFeet
++ (NSUnitVolume*) cubicFeet
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"ft^3"
                                               coefficient: 28.3168
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicYards
++ (NSUnitVolume*) cubicYards
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"yd^3"
                                               coefficient: 764.555
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cubicMiles
++ (NSUnitVolume*) cubicMiles
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"mi^3"
                                               coefficient: 4.168e+12
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) acreFeet
++ (NSUnitVolume*) acreFeet
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"af"
                                               coefficient: 1.233e+6
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) bushels
++ (NSUnitVolume*) bushels
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"bsh"
                                               coefficient: 32.2391
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) teaspoons
++ (NSUnitVolume*) teaspoons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"tsp"
                                               coefficient: 0.00492892
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) tablespoons
++ (NSUnitVolume*) tablespoons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"tbsp"
                                               coefficient: 0.0147868
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) fluidOunces
++ (NSUnitVolume*) fluidOunces
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"fl oz"
                                               coefficient: 0.295735
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) cups
++ (NSUnitVolume*) cups
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"cups"
                                               coefficient: 0.24
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) pints
++ (NSUnitVolume*) pints
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"pt"
                                               coefficient: 0.473176
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) quarts
++ (NSUnitVolume*) quarts
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"qt"
                                               coefficient: 0.946353
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) gallons
++ (NSUnitVolume*) gallons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"gal"
                                               coefficient: 3.78541
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialTeaspoons
++ (NSUnitVolume*) imperialTeaspoons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"tsp"
                                               coefficient: 0.00591939
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialTablespoons
++ (NSUnitVolume*) imperialTablespoons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"tbsp"
                                               coefficient: 0.0177582
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialFluidOunces
++ (NSUnitVolume*) imperialFluidOunces
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"fl oz"
                                               coefficient: 0.0284131
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialPints
++ (NSUnitVolume*) imperialPints
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"pt"
                                               coefficient: 0.568261
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialQuarts
++ (NSUnitVolume*) imperialQuarts
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"qt"
                                               coefficient: 1.13652
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) imperialGallons
++ (NSUnitVolume*) imperialGallons
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"gal"
                                               coefficient: 4.54609
                                                  constant: 0.0]);
 }
 
-+ (NSUnitVolume *) metricCups
++ (NSUnitVolume*) metricCups
 {
   return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"metric cup"
                                               coefficient: 0.25
