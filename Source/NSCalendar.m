@@ -82,11 +82,11 @@ typedef struct {
 #define my ((Calendar*)_NSCalendarInternal)
 
 @interface NSCalendar (PrivateMethods)
-- (void *) _openCalendarFor: (NSTimeZone *)timeZone;
+- (void*) _openCalendarFor: (NSTimeZone*)timeZone;
 - (void) _resetCalendar;
-- (void *) _UCalendar;
-- (NSString *) _localeIDWithLocale: (NSLocale*)locale;
-- (NSString *) _localeIdentifier;
+- (void*) _UCalendar;
+- (NSString*) _localeIDWithLocale: (NSLocale*)locale;
+- (NSString*) _localeIdentifier;
 - (void) _setLocaleIdentifier: (NSString*)identifier;
 @end
 
@@ -100,7 +100,7 @@ static NSRecursiveLock *classLock = nil;
 @implementation NSCalendar (PrivateMethods)
 
 #if GS_USE_ICU == 1
-- (void *) _openCalendarFor: (NSTimeZone *)timeZone
+- (void*) _openCalendarFor: (NSTimeZone*)timeZone
 {
   NSString *tzName;
   NSUInteger tzLen;
@@ -137,7 +137,7 @@ static NSRecursiveLock *classLock = nil;
       // as the calendar is already encoded in the locale id by _localeIDWithLocale:.
     }
 
-  return ucal_open((const UChar *)cTzId, tzLen, cLocaleId, type, &err);
+  return ucal_open((const UChar*)cTzId, tzLen, cLocaleId, type, &err);
 }
 #endif
 
@@ -175,12 +175,12 @@ static NSRecursiveLock *classLock = nil;
 #endif
 }
 
-- (void *) _UCalendar
+- (void*) _UCalendar
 {
   return my->cal;
 }
 
-- (NSString*) _localeIDWithLocale: (NSLocale *)locale
+- (NSString*) _localeIDWithLocale: (NSLocale*)locale
 {
   NSString *result;
   NSString *localeId;
@@ -209,7 +209,7 @@ static NSRecursiveLock *classLock = nil;
   return my->localeID;
 }
 
-- (void) _setLocaleIdentifier: (NSString *) identifier
+- (void) _setLocaleIdentifier: (NSString*) identifier
 {
   if ([identifier isEqualToString: my->localeID])
     {
@@ -292,7 +292,7 @@ static NSRecursiveLock *classLock = nil;
 }
 
 
-+ (id) calendarWithIdentifier: (NSString *) identifier
++ (id) calendarWithIdentifier: (NSString*)identifier
 {
   return AUTORELEASE([[self alloc] initWithCalendarIdentifier: identifier]);
 }
@@ -302,7 +302,7 @@ static NSRecursiveLock *classLock = nil;
   return [self initWithCalendarIdentifier: nil];
 }
 
-- (id) initWithCalendarIdentifier: (NSString *) identifier
+- (id) initWithCalendarIdentifier: (NSString*)identifier
 {
   NSAssert(0 == _NSCalendarInternal, NSInvalidArgumentException);
   _NSCalendarInternal = NSZoneCalloc([self zone], sizeof(Calendar), 1);
@@ -331,13 +331,13 @@ static NSRecursiveLock *classLock = nil;
   [super dealloc];
 }
 
-- (NSString *) calendarIdentifier
+- (NSString*) calendarIdentifier
 {
   return my->identifier;
 }
 
 - (NSInteger) component: (NSCalendarUnit)unit 
-               fromDate: (NSDate *)date
+               fromDate: (NSDate*)date
 {
   NSDateComponents *comps = [self components: unit
                                     fromDate: date];
@@ -396,8 +396,8 @@ static NSRecursiveLock *classLock = nil;
   return val;
 }
 
-- (NSDateComponents *) components: (NSUInteger) unitFlags
-                         fromDate: (NSDate *) date
+- (NSDateComponents*) components: (NSUInteger) unitFlags
+                         fromDate: (NSDate*) date
 {
 #if GS_USE_ICU == 1
   NSDateComponents *comps;
@@ -499,9 +499,9 @@ do \
   } while (0)
 
 
-- (NSDateComponents *) components: (NSUInteger) unitFlags
-                         fromDate: (NSDate *) startingDate
-                           toDate: (NSDate *) resultDate
+- (NSDateComponents*) components: (NSUInteger) unitFlags
+                         fromDate: (NSDate*) startingDate
+                           toDate: (NSDate*) resultDate
                           options: (NSUInteger) opts
 {
 #if GS_USE_ICU == 1 && (U_ICU_VERSION_MAJOR_NUM > 4 \
@@ -587,8 +587,8 @@ do \
       return nil; \
     }
 
-- (NSDate *) dateByAddingComponents: (NSDateComponents *) comps
-                             toDate: (NSDate *) date
+- (NSDate*) dateByAddingComponents: (NSDateComponents*) comps
+                             toDate: (NSDate*) date
                             options: (NSUInteger) opts
 {
 #if GS_USE_ICU == 1
@@ -663,7 +663,7 @@ do \
 
 #undef _ADD_COMPONENT
 
-- (NSDate *) dateFromComponents: (NSDateComponents *) comps
+- (NSDate*) dateFromComponents: (NSDateComponents*) comps
 {
 #if GS_USE_ICU == 1
   NSInteger amount;
@@ -750,12 +750,12 @@ do \
 #endif
 }
 
-- (NSLocale *) locale
+- (NSLocale*) locale
 {
   return AUTORELEASE([[NSLocale alloc] initWithLocaleIdentifier: my->localeID]);
 }
 
-- (void) setLocale: (NSLocale *) locale
+- (void) setLocale: (NSLocale*) locale
 {
   // It's much easier to keep a copy of the NSLocale's string representation
   // than to have to build it everytime we have to open a UCalendar.
@@ -789,12 +789,12 @@ do \
 #endif
 }
 
-- (NSTimeZone *) timeZone
+- (NSTimeZone*) timeZone
 {
   return my->tz;
 }
 
-- (void) setTimeZone: (NSTimeZone *) tz
+- (void) setTimeZone: (NSTimeZone*) tz
 {
   if ([tz isEqual: my->tz])
     {
@@ -862,22 +862,22 @@ do \
 
 - (NSUInteger) ordinalityOfUnit: (NSCalendarUnit) smaller
                          inUnit: (NSCalendarUnit) larger
-                        forDate: (NSDate *) date
+                        forDate: (NSDate*) date
 {
   return 0;
 }
 
 - (NSRange) rangeOfUnit: (NSCalendarUnit) smaller
                  inUnit: (NSCalendarUnit) larger
-                forDate: (NSDate *) date
+                forDate: (NSDate*) date
 {
   return NSMakeRange (0, 0);
 }
 
 - (BOOL) rangeOfUnit: (NSCalendarUnit) unit
            startDate: (NSDate **) datep
-            interval: (NSTimeInterval *)tip
-             forDate: (NSDate *)date
+            interval: (NSTimeInterval*)tip
+             forDate: (NSDate*)date
 {
   return NO;
 }
@@ -907,11 +907,11 @@ do \
 }
 
 
-- (void) getEra: (NSInteger *)eraValuePointer
-           year: (NSInteger *)yearValuePointer
-          month: (NSInteger *)monthValuePointer
-            day: (NSInteger *)dayValuePointer
-       fromDate: (NSDate *)date
+- (void) getEra: (NSInteger*)eraValuePointer
+           year: (NSInteger*)yearValuePointer
+          month: (NSInteger*)monthValuePointer
+            day: (NSInteger*)dayValuePointer
+       fromDate: (NSDate*)date
 {
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
@@ -935,11 +935,11 @@ do \
 #endif
 }
 
-- (void) getHour: (NSInteger *)hourValuePointer
-          minute: (NSInteger *)minuteValuePointer
-          second: (NSInteger *)secondValuePointer
-      nanosecond: (NSInteger *)nanosecondValuePointer
-        fromDate: (NSDate *)date
+- (void) getHour: (NSInteger*)hourValuePointer
+          minute: (NSInteger*)minuteValuePointer
+          second: (NSInteger*)secondValuePointer
+      nanosecond: (NSInteger*)nanosecondValuePointer
+        fromDate: (NSDate*)date
 { 
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
@@ -963,11 +963,11 @@ do \
 #endif
 }
 
-- (void) getEra: (NSInteger *)eraValuePointer 
-yearForWeekOfYear: (NSInteger *)yearValuePointer 
-     weekOfYear: (NSInteger *)weekValuePointer 
-        weekday: (NSInteger *)weekdayValuePointer 
-       fromDate: (NSDate *)date
+- (void) getEra: (NSInteger*)eraValuePointer 
+yearForWeekOfYear: (NSInteger*)yearValuePointer 
+     weekOfYear: (NSInteger*)weekValuePointer 
+        weekday: (NSInteger*)weekdayValuePointer 
+       fromDate: (NSDate*)date
 {
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
@@ -1176,17 +1176,17 @@ typedef struct {
   return my->leapMonth;
 }
 
-- (NSCalendar *) calendar
+- (NSCalendar*) calendar
 {
   return my->cal;
 }
 
-- (NSTimeZone *) timeZone
+- (NSTimeZone*) timeZone
 {
   return my->tz;
 }
 
-- (NSDate *) date
+- (NSDate*) date
 {
   NSCalendar* cal = [self calendar];
 
@@ -1274,12 +1274,12 @@ typedef struct {
   my->leapMonth = v;
 }
 
-- (void) setCalendar: (NSCalendar *) cal
+- (void) setCalendar: (NSCalendar*) cal
 {
   ASSIGN(my->cal, cal);
 }
 
-- (void) setTimeZone: (NSTimeZone *) tz
+- (void) setTimeZone: (NSTimeZone*) tz
 {
   ASSIGN(my->tz, tz);
 }
@@ -1293,7 +1293,7 @@ typedef struct {
   return [self isValidDateInCalendar: my->cal];
 }
 
-- (BOOL) isValidDateInCalendar: (NSCalendar *) calendar
+- (BOOL) isValidDateInCalendar: (NSCalendar*) calendar
 {
   return [calendar dateFromComponents: self] != nil;
 }

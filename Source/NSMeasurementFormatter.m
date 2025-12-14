@@ -21,6 +21,8 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSMeasurement.h"
 #import "Foundation/NSMeasurementFormatter.h"
@@ -44,6 +46,7 @@
 - (void) dealloc
 {
   RELEASE(_locale);
+  RELEASE(_numberFormatter);
   [super dealloc];
 }
 
@@ -79,6 +82,13 @@
 
 - (NSNumberFormatter *) numberFormatter
 {
+  if (_numberFormatter == nil)
+    {
+      NSNumberFormatter *fmt = [[NSNumberFormatter alloc] init];
+      [fmt setNumberStyle: NSNumberFormatterDecimalStyle];
+      ASSIGN(_numberFormatter, fmt);
+      RELEASE(fmt);
+    }
   return _numberFormatter;
 }
 
@@ -89,18 +99,19 @@
   
 - (NSString *) stringFromMeasurement: (NSMeasurement *)measurement
 {
-  NSString *result = nil;
-  NSNumber *num = [NSNumber numberWithDouble: [measurement doubleValue]];
-  NSUnit *u = [measurement unit];
+  NSString	*result = nil;
+  NSNumber	*num = [NSNumber numberWithDouble: [measurement doubleValue]];
+  NSUnit	*u = [measurement unit];
+  NSNumberFormatter	*formatter = [self numberFormatter];
   
-  result = [_numberFormatter stringForObjectValue: num];
+  result = [formatter stringForObjectValue: num];
   switch (_unitStyle)
     {
-    case NSFormattingUnitStyleShort:
-    case NSFormattingUnitStyleMedium:
-    case NSFormattingUnitStyleLong:
-      result = [result stringByAppendingString: [self stringFromUnit: u]];
-      break;
+      case NSFormattingUnitStyleShort:
+      case NSFormattingUnitStyleMedium:
+      case NSFormattingUnitStyleLong:
+	result = [result stringByAppendingString: [self stringFromUnit: u]];
+	break;
     }
 
   return result;
@@ -114,7 +125,12 @@
 - (NSString *) stringForObjectValue: (id)obj
 {
   NSString *result = nil;
-  if ([obj isKindOfClass: [NSMeasurement class]])
+
+  if (obj == nil)
+    {
+      result = @"";
+    }
+  else if ([obj isKindOfClass: [NSMeasurement class]])
     {
       result = [self stringFromMeasurement: obj];
     }
@@ -122,18 +138,58 @@
     {
       result = [self stringFromUnit: obj];
     }
+  else
+    {
+      result = @"";
+    }
   return result;
 }
 
 - (id) initWithCoder: (NSCoder*)decoder
 {
   self = [super initWithCoder: decoder];
+  if (self != nil)
+    {
+      if ([decoder allowsKeyedCoding])
+        {
+          _unitOptions = [decoder decodeIntegerForKey: @"NS.unitOptions"];
+          _unitStyle = [decoder decodeIntegerForKey: @"NS.unitStyle"];
+          ASSIGN(_locale, [decoder decodeObjectForKey: @"NS.locale"]);
+          ASSIGN(_numberFormatter,
+	    [decoder decodeObjectForKey: @"NS.numberFormatter"]);
+        }
+      else
+        {
+          [decoder decodeValueOfObjCType:
+	    @encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+          [decoder decodeValueOfObjCType: @encode(NSFormattingUnitStyle)
+				      at: &_unitStyle];
+          [decoder decodeValueOfObjCType: @encode(id) at: &_locale];
+          [decoder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+        }
+    }
   return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)encoder
 {
   [super encodeWithCoder: encoder];
+  if ([encoder allowsKeyedCoding])
+    {
+      [encoder encodeInteger: _unitOptions forKey: @"NS.unitOptions"];
+      [encoder encodeInteger: _unitStyle forKey: @"NS.unitStyle"];
+      [encoder encodeObject: _locale forKey: @"NS.locale"];
+      [encoder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+    }
+  else
+    {
+      [encoder encodeValueOfObjCType:
+	@encode(NSMeasurementFormatterUnitOptions) at: &_unitOptions];
+      [encoder encodeValueOfObjCType: @encode(NSFormattingUnitStyle)
+	at: &_unitStyle];
+      [encoder encodeValueOfObjCType: @encode(id) at: &_locale];
+      [encoder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+    }
 }
 @end
 

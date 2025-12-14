@@ -37,13 +37,13 @@ extern "C" {
  */
 GS_EXPORT_CLASS
 @interface NSUnitConverter : NSObject
-/**
- * For a given unit, returns the specified value of that unit based on the units dimension.
+/** For a given unit, returns the specified value of that unit based
+ * on the units dimension.
  */
 - (double) baseUnitValueFromValue: (double)value;
 
-/**
- * For a unit, returns the specified value of the base unit in terms of that unit.
+/** For a unit, returns the specified value of the base unit in terms
+ * of that unit.
  */
 - (double) valueFromBaseUnitValue: (double)baseUnitValue;
 @end
@@ -96,12 +96,12 @@ GS_EXPORT_CLASS
 /**
  * Initialize NSUnit with a given symbol.
  */
-- (instancetype) initWithSymbol: (NSString *)symbol;
+- (instancetype) initWithSymbol: (NSString*)symbol;
 
 /**
  * The symbol used by a given unit.
  */
-- (NSString *) symbol;
+- (NSString*) symbol;
 
 @end
 
@@ -111,19 +111,20 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSDimension : NSUnit <NSCoding>
 {
-    double _value;
-    NSUnitConverter *_converter;
+  double 		_value;
+  NSUnitConverter	*_converter;
 }
 
 /**
  * The NSUnitConverter instance used for this NSDimension object.
  */
-- (NSUnitConverter *) converter;
+- (NSUnitConverter*) converter;
 
 /**
  * Initialize with symbol and an NSUnitConverter.
  */
-- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *)converter;
+- (instancetype) initWithSymbol: (NSString*)symbol
+		      converter: (NSUnitConverter*)converter;
 
 /**
  * Return a base unit.
@@ -142,12 +143,12 @@ GS_EXPORT_CLASS
 /**
  * Units of accelleration in meters per second squared.
  */
-+ (NSUnitAcceleration *) metersPerSecondSquared;
++ (NSUnitAcceleration*) metersPerSecondSquared;
 
 /**
  * Units of accelleration equal to the gravitational constant.
  */
-+ (NSUnitAcceleration *) gravity;
++ (NSUnitAcceleration*) gravity;
 
 @end
 
@@ -160,32 +161,32 @@ GS_EXPORT_CLASS
 /**
  * Units of angle in degrees.
  */
-+ (NSUnitAngle *) degrees;
++ (NSUnitAngle*) degrees;
 
 /**
  * Units of angle in arc minutes.
  */
-+ (NSUnitAngle *) arcMinutes;
++ (NSUnitAngle*) arcMinutes;
 
 /**
  * Units of angle arc seconds.
  */
-+ (NSUnitAngle *) arcSeconds;
++ (NSUnitAngle*) arcSeconds;
 
 /**
  * Units of angle in radians.
  */
-+ (NSUnitAngle *) radians;
++ (NSUnitAngle*) radians;
 
 /**
  * Units of area in square megameters.
  */
-+ (NSUnitAngle *) gradians;
++ (NSUnitAngle*) gradians;
 
 /**
  * Units of area in square megameters.
  */
-+ (NSUnitAngle *) revolutions;
++ (NSUnitAngle*) revolutions;
 
 @end
 
@@ -198,72 +199,72 @@ GS_EXPORT_CLASS
 /**
  * Units of area in square megameters.
  */
-+ (NSUnitArea *) squareMegameters;
++ (NSUnitArea*) squareMegameters;
 
 /**
  * Units of area in square kilometers.
  */
-+ (NSUnitArea *) squareKilometers;
++ (NSUnitArea*) squareKilometers;
 
 /**
  * Units of area in square meters.
  */
-+ (NSUnitArea *) squareMeters;
++ (NSUnitArea*) squareMeters;
 
 /**
  * Units of area in square centimeters.
  */
-+ (NSUnitArea *) squareCentimeters;
++ (NSUnitArea*) squareCentimeters;
 
 /**
  * Units of area in square millimeters.
  */
-+ (NSUnitArea *) squareMillimeters;
++ (NSUnitArea*) squareMillimeters;
 
 /**
  * Units of area in square micrometers.
  */
-+ (NSUnitArea *) squareMicrometers;
++ (NSUnitArea*) squareMicrometers;
 
 /**
  * Units of area in square nanometers.
  */
-+ (NSUnitArea *) squareNanometers;
++ (NSUnitArea*) squareNanometers;
 
 /**
  * Units of area in square inches.
  */
-+ (NSUnitArea *) squareInches;
++ (NSUnitArea*) squareInches;
 
 /**
  * Units of area in square feet.
  */
-+ (NSUnitArea *) squareFeet;
++ (NSUnitArea*) squareFeet;
 
 /**
  * Units of area in square yards.
  */
-+ (NSUnitArea *) squareYards;
++ (NSUnitArea*) squareYards;
 
 /**
  * Units of area in square miles.
  */
-+ (NSUnitArea *) squareMiles;
++ (NSUnitArea*) squareMiles;
 
 /**
  * Units of area in acres/
  */
-+ (NSUnitArea *) acres;
++ (NSUnitArea*) acres;
 
 /**
  * Units of area in ares.
  */
-+ (NSUnitArea *) ares;
++ (NSUnitArea*) ares;
 
 /**
  * Units of area in hectares.
  */
-+ (NSUnitArea *) hectares;
++ (NSUnitArea*) hectares;
 
 @end
 
@@ -276,17 +277,18 @@ GS_EXPORT_CLASS
 /**
  * Concentration units in grams per liter.
  */
-+ (NSUnitConcentrationMass *) gramsPerLiter;
++ (NSUnitConcentrationMass*) gramsPerLiter;
 
 /**
  * Concentration units in milligrams per deciliter.
  */
-+ (NSUnitConcentrationMass *) milligramsPerDeciliter;
++ (NSUnitConcentrationMass*) milligramsPerDeciliter;
 
 /**
  * Concentration units in grams per mole.
  */
-+ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole: (double)gramsPerMole;
++ (NSUnitConcentrationMass*) millimolesPerLiterWithGramsPerMole:
+  (double)gramsPerMole;
 
 @end
 
@@ -299,7 +301,7 @@ GS_EXPORT_CLASS
 /**
  * Units of dispersion in parts per million.
  */
-+ (NSUnitDispersion *) partsPerMillion;
++ (NSUnitDispersion*) partsPerMillion;
 
 @end
 
@@ -312,17 +314,17 @@ GS_EXPORT_CLASS
 /**
  * Units of duration in seconds.
  */
-+ (NSUnitDuration *) seconds;
++ (NSUnitDuration*) seconds;
 
 /**
  * Units of duration in minutes.
  */
-+ (NSUnitDuration *) minutes;
++ (NSUnitDuration*) minutes;
 
 /**
  * Units of duration in hours.
  */
-+ (NSUnitDuration *) hours;
++ (NSUnitDuration*) hours;
 
 @end
 
@@ -335,32 +337,32 @@ GS_EXPORT_CLASS
 /**
  * The units of eletric charge in coulombs.
  */
-+ (NSUnitElectricCharge *) coulombs;
++ (NSUnitElectricCharge*) coulombs;
 
 /**
  * The units of eletric charge in megaampere hours.
  */
-+ (NSUnitElectricCharge *) megaampereHours;
++ (NSUnitElectricCharge*) megaampereHours;
 
 /**
  * The units of eletric charge in kiloampere hours.
  */
-+ (NSUnitElectricCharge *) kiloampereHours;
++ (NSUnitElectricCharge*) kiloampereHours;
 
 /**
  * The units of eletric charge in ampere hours.
  */
-+ (NSUnitElectricCharge *) ampereHours;
++ (NSUnitElectricCharge*) ampereHours;
 
 /**
  * The units of eletric charge in milliampere hours.
  */
-+ (NSUnitElectricCharge *) milliampereHours;
++ (NSUnitElectricCharge*) milliampereHours;
 
 /**
  * The units of eletric charge in microampere hours.
  */
-+ (NSUnitElectricCharge *) microampereHours;
++ (NSUnitElectricCharge*) microampereHours;
 
 @end
 
@@ -373,27 +375,27 @@ GS_EXPORT_CLASS
 /**
  * The units of eletric current in megaamperes.
  */
-+ (NSUnitElectricCurrent *) megaamperes;
++ (NSUnitElectricCurrent*) megaamperes;
 
 /**
  * The units of eletric current in kiloamperes.
  */
-+ (NSUnitElectricCurrent *) kiloamperes;
++ (NSUnitElectricCurrent*) kiloamperes;
 
 /**
  * The units of eletric current in amperes.
  */
-+ (NSUnitElectricCurrent *) amperes;
++ (NSUnitElectricCurrent*) amperes;
 
 /**
  * The units of eletric current in milliamperes.
  */
-+ (NSUnitElectricCurrent *) milliamperes;
++ (NSUnitElectricCurrent*) milliamperes;
 
 /**
  * The units of eletric current in microamperes.
  */
-+ (NSUnitElectricCurrent *) microamperes;
++ (NSUnitElectricCurrent*) microamperes;
 
 @end
 
@@ -406,27 +408,27 @@ GS_EXPORT_CLASS
 /**
  * The units of eletric potential in megavolts.
  */
-+ (NSUnitElectricPotentialDifference *) megavolts;
++ (NSUnitElectricPotentialDifference*) megavolts;
 
 /**
  * The units of eletric potential in kilovolts.
  */
-+ (NSUnitElectricPotentialDifference *) kilovolts;
++ (NSUnitElectricPotentialDifference*) kilovolts;
 
 /**
  * The units of eletric potential in volts.
  */
-+ (NSUnitElectricPotentialDifference *) volts;
++ (NSUnitElectricPotentialDifference*) volts;
 
 /**
  * The units of eletric potential in millivolts.
  */
-+ (NSUnitElectricPotentialDifference *) millivolts;
++ (NSUnitElectricPotentialDifference*) millivolts;
 
 /**
  * The units of eletric potential in microvolts.
  */
-+ (NSUnitElectricPotentialDifference *) microvolts;
++ (NSUnitElectricPotentialDifference*) microvolts;
 
 @end
 
@@ -439,27 +441,27 @@ GS_EXPORT_CLASS
 /**
  * The units of eletric resistance in megaohms.
  */
-+ (NSUnitElectricResistance *) megaohms;
++ (NSUnitElectricResistance*) megaohms;
 
 /**
  * The units of eletric resistance in kiloohms.
  */
-+ (NSUnitElectricResistance *) kiloohms;
++ (NSUnitElectricResistance*) kiloohms;
 
 /**
  * The units of eletric resistance in ohms.
  */
-+ (NSUnitElectricResistance *) ohms;
++ (NSUnitElectricResistance*) ohms;
 
 /**
  * The units of eletric resistance in milliohms.
  */
-+ (NSUnitElectricResistance *) milliohms;
++ (NSUnitElectricResistance*) milliohms;
 
 /**
  * The units of eletric resistance in microohms.
  */
-+ (NSUnitElectricResistance *) microohms;
++ (NSUnitElectricResistance*) microohms;
 
 @end
 
@@ -472,27 +474,27 @@ GS_EXPORT_CLASS
 /**
  * The units of energy in kilojoules.
  */
-+ (NSUnitEnergy *) kilojoules;
++ (NSUnitEnergy*) kilojoules;
 
 /**
  * The units of energy in joules.
  */
-+ (NSUnitEnergy *) joules;
++ (NSUnitEnergy*) joules;
 
 /**
  * The units of energy in kilocalories.
  */
-+ (NSUnitEnergy *) kilocalories;
++ (NSUnitEnergy*) kilocalories;
 
 /**
  * The units of energy in calories.
  */
-+ (NSUnitEnergy *) calories;
++ (NSUnitEnergy*) calories;
 
 /**
  * The units of energy in kilawatt hours.
  */
-+ (NSUnitEnergy *) kilowattHours;
++ (NSUnitEnergy*) kilowattHours;
 
 @end
 
@@ -505,42 +507,42 @@ GS_EXPORT_CLASS
 /**
  * The units of frequency in terahertz.
  */
-+ (NSUnitFrequency *) terahertz;
++ (NSUnitFrequency*) terahertz;
 
 /**
  * The units of frequency in gigahertz.
  */
-+ (NSUnitFrequency *) gigahertz;
++ (NSUnitFrequency*) gigahertz;
 
 /**
  * The units of frequency in megahertz.
  */
-+ (NSUnitFrequency *) megahertz;
++ (NSUnitFrequency*) megahertz;
 
 /**
  * The units of frequency in kilohertz.
  */
-+ (NSUnitFrequency *) kilohertz;
++ (NSUnitFrequency*) kilohertz;
 
 /**
  * The units of frequency in hertz.
  */
-+ (NSUnitFrequency *) hertz;
++ (NSUnitFrequency*) hertz;
 
 /**
  * The units of frequency in millihertz.
  */
-+ (NSUnitFrequency *) millihertz;
++ (NSUnitFrequency*) millihertz;
 
 /**
  * The units of frequency in microhertz.
  */
-+ (NSUnitFrequency *) microhertz;
++ (NSUnitFrequency*) microhertz;
 
 /**
  * The units of frequency in nanohertz.
  */
-+ (NSUnitFrequency *) nanohertz;
++ (NSUnitFrequency*) nanohertz;
 
 @end
 
@@ -553,17 +555,17 @@ GS_EXPORT_CLASS
 /**
  * The units of fuel efficiency in liters per 100 kilometers.
  */
-+ (NSUnitFuelEfficiency *) litersPer100Kilometers;
++ (NSUnitFuelEfficiency*) litersPer100Kilometers;
 
 /**
  * The units of fuel efficiency in miles per imperial gallon.
  */
-+ (NSUnitFuelEfficiency *) milesPerImperialGallon;
++ (NSUnitFuelEfficiency*) milesPerImperialGallon;
 
 /**
  * The units of fuel efficiency in miles per gallon.
  */
-+ (NSUnitFuelEfficiency *) milesPerGallon;
++ (NSUnitFuelEfficiency*) milesPerGallon;
 
 @end
 
@@ -576,112 +578,112 @@ GS_EXPORT_CLASS
 /**
  * The units of length in megameters.
  */
-+ (NSUnitLength *) megameters;
++ (NSUnitLength*) megameters;
 
 /**
  * The units of length in kilometers.
  */
-+ (NSUnitLength *) kilometers;
++ (NSUnitLength*) kilometers;
 
 /**
  * The units of length in hectometers.
  */
-+ (NSUnitLength *) hectometers;
++ (NSUnitLength*) hectometers;
 
 /**
  * The units of length in decameters.
  */
-+ (NSUnitLength *) decameters;
++ (NSUnitLength*) decameters;
 
 /**
  * The units of length in meters.
  */
-+ (NSUnitLength *) meters;
++ (NSUnitLength*) meters;
 
 /**
  * The units of length in decimeters.
  */
-+ (NSUnitLength *) decimeters;
++ (NSUnitLength*) decimeters;
 
 /**
  * The units of length in centimeters.
  */
-+ (NSUnitLength *) centimeters;
++ (NSUnitLength*) centimeters;
 
 /**
  * The units of length in millimeters.
  */
-+ (NSUnitLength *) millimeters;
++ (NSUnitLength*) millimeters;
 
 /**
  * The units of length in micrometers.
  */
-+ (NSUnitLength *) micrometers;
++ (NSUnitLength*) micrometers;
 
 /**
  * The units of length in nanometers.
  */
-+ (NSUnitLength *) nanometers;
++ (NSUnitLength*) nanometers;
 
 /**
  * The units of length in picometers.
  */
-+ (NSUnitLength *) picometers;
++ (NSUnitLength*) picometers;
 
 /**
  * The units of length in inches.
  */
-+ (NSUnitLength *) inches;
++ (NSUnitLength*) inches;
 
 /**
  * The units of length in feet.
  */
-+ (NSUnitLength *) feet;
++ (NSUnitLength*) feet;
 
 /**
  * The units of length in yards.
  */
-+ (NSUnitLength *) yards;
++ (NSUnitLength*) yards;
 
 /**
  * The units of length in miles.
  */
-+ (NSUnitLength *) miles;
++ (NSUnitLength*) miles;
 
 /**
  * The units of length in scandanavian miles.
  */
-+ (NSUnitLength *) scandinavianMiles;
++ (NSUnitLength*) scandinavianMiles;
 
 /**
  * The units of length in light years.
  */
-+ (NSUnitLength *) lightyears;
++ (NSUnitLength*) lightyears;
 
 /**
  * The units of length in nautical miles.
  */
-+ (NSUnitLength *) nauticalMiles;
++ (NSUnitLength*) nauticalMiles;
 
 /**
  * The units of length in fathoms.
  */
-+ (NSUnitLength *) fathoms;
++ (NSUnitLength*) fathoms;
 
 /**
  * The units of length in furlongs.
  */
-+ (NSUnitLength *) furlongs;
++ (NSUnitLength*) furlongs;
 
 /**
  * The units of length in astronomical units.
  */
-+ (NSUnitLength *) astronomicalUnits;
++ (NSUnitLength*) astronomicalUnits;
 
 /**
  * The units of length in parsecs.
  */
-+ (NSUnitLength *) parsecs;
++ (NSUnitLength*) parsecs;
 
 @end
 
@@ -694,7 +696,7 @@ GS_EXPORT_CLASS
 /**
  * The units of illuminance in lux.
  */
-+ (NSUnitIlluminance *) lux;
++ (NSUnitIlluminance*) lux;
 
 @end
 
@@ -707,82 +709,82 @@ GS_EXPORT_CLASS
 /**
  * The mass units in kilograms.
  */
-+ (NSUnitMass *) kilograms;
++ (NSUnitMass*) kilograms;
 
 /**
  * The mass units in grams.
  */
-+ (NSUnitMass *) grams;
++ (NSUnitMass*) grams;
 
 /**
  * The mass units in decigrams.
  */
-+ (NSUnitMass *) decigrams;
++ (NSUnitMass*) decigrams;
 
 /**
  * The mass units in centigrams.
  */
-+ (NSUnitMass *) centigrams;
++ (NSUnitMass*) centigrams;
 
 /**
  * The mass units in milligrams.
  */
-+ (NSUnitMass *) milligrams;
++ (NSUnitMass*) milligrams;
 
 /**
  * The mass units in micrograms.
  */
-+ (NSUnitMass *) micrograms;
++ (NSUnitMass*) micrograms;
 
 /**
  * The mass units in nanograms.
  */
-+ (NSUnitMass *) nanograms;
++ (NSUnitMass*) nanograms;
 
 /**
  * The mass units in picograms.
  */
-+ (NSUnitMass *) picograms;
++ (NSUnitMass*) picograms;
 
 /**
  * The mass units in ounces.
  */
-+ (NSUnitMass *) ounces;
++ (NSUnitMass*) ounces;
 
 /**
  * The mass units in pounds.
  */
-+ (NSUnitMass *) pounds;
++ (NSUnitMass*) pounds;
 
 /**
  * The mass units in stones.
  */
-+ (NSUnitMass *) stones;
++ (NSUnitMass*) stones;
 
 /**
  * The mass units in metric tons.
  */
-+ (NSUnitMass *) metricTons;
++ (NSUnitMass*) metricTons;
 
 /**
  * The mass units in short tons.
  */
-+ (NSUnitMass *) shortTons;
++ (NSUnitMass*) shortTons;
 
 /**
  * The mass units in carats.
  */
-+ (NSUnitMass *) carats;
++ (NSUnitMass*) carats;
 
 /**
  * The mass units in ounces troy.
  */
-+ (NSUnitMass *) ouncesTroy;
++ (NSUnitMass*) ouncesTroy;
 
 /**
  * The mass units in slugs.
  */
-+ (NSUnitMass *) slugs;
++ (NSUnitMass*) slugs;
 
 @end
 
@@ -795,62 +797,62 @@ GS_EXPORT_CLASS
 /**
  * The power units in terawatts.
  */
-+ (NSUnitPower *) terawatts;
++ (NSUnitPower*) terawatts;
 
 /**
  * The power units in gigawatts.
  */
-+ (NSUnitPower *) gigawatts;
++ (NSUnitPower*) gigawatts;
 
 /**
  * The power units in megawatts.
  */
-+ (NSUnitPower *) megawatts;
++ (NSUnitPower*) megawatts;
 
 /**
  * The power units in kilowatts.
  */
-+ (NSUnitPower *) kilowatts;
++ (NSUnitPower*) kilowatts;
 
 /**
  * The power units in watts.
  */
-+ (NSUnitPower *) watts;
++ (NSUnitPower*) watts;
 
 /**
  * The power units in milliwatts.
  */
-+ (NSUnitPower *) milliwatts;
++ (NSUnitPower*) milliwatts;
 
 /**
  * The power units in microwatts.
  */
-+ (NSUnitPower *) microwatts;
++ (NSUnitPower*) microwatts;
 
 /**
  * The power units in nanowatts.
  */
-+ (NSUnitPower *) nanowatts;
++ (NSUnitPower*) nanowatts;
 
 /**
  * The power units in picowatts.
  */
-+ (NSUnitPower *) picowatts;
++ (NSUnitPower*) picowatts;
 
 /**
  * The power units in femtowatts.
  */
-+ (NSUnitPower *) femtowatts;
++ (NSUnitPower*) femtowatts;
 
 /**
  * The power units in horsepower.
  */
-+ (NSUnitPower *) horsepower;
++ (NSUnitPower*) horsepower;
 
 @end
 
-/**
- * Used to represent pressure. Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
+/** Used to represent pressure. Base unit - newtonsPerMetersSquared
+ * (equivalent to 1 pascal)
  */
 GS_EXPORT_CLASS
 @interface NSUnitPressure : NSDimension
@@ -858,52 +860,52 @@ GS_EXPORT_CLASS
 /**
  * The newtons per meters squared unit of pressure.
  */
-+ (NSUnitPressure *) newtonsPerMetersSquared;
++ (NSUnitPressure*) newtonsPerMetersSquared;
 
 /**
  * The gigapascals unit of pressure.
  */
-+ (NSUnitPressure *) gigapascals;
++ (NSUnitPressure*) gigapascals;
 
 /**
  * The megapascals unit of pressure.
  */
-+ (NSUnitPressure *) megapascals;
++ (NSUnitPressure*) megapascals;
 
 /**
  * The kilopascals unit of pressure.
  */
-+ (NSUnitPressure *) kilopascals;
++ (NSUnitPressure*) kilopascals;
 
 /**
  * The hetcopascals unit of pressure.
  */
-+ (NSUnitPressure *) hectopascals;
++ (NSUnitPressure*) hectopascals;
 
 /**
  * The inches of mercury unit of pressure.
  */
-+ (NSUnitPressure *) inchesOfMercury;
++ (NSUnitPressure*) inchesOfMercury;
 
 /**
  * The bars unit of pressure.
  */
-+ (NSUnitPressure *) bars;
++ (NSUnitPressure*) bars;
 
 /**
  * The millibars unit of pressure.
  */
-+ (NSUnitPressure *) millibars;
++ (NSUnitPressure*) millibars;
 
 /**
  * The millimeters of mercury of pressure.
  */
-+ (NSUnitPressure *) millimetersOfMercury;
++ (NSUnitPressure*) millimetersOfMercury;
 
 /**
  * The pounds of per square inch of pressure.
  */
-+ (NSUnitPressure *) poundsForcePerSquareInch;
++ (NSUnitPressure*) poundsForcePerSquareInch;
 
 @end
 
@@ -916,22 +918,22 @@ GS_EXPORT_CLASS
 /**
  * The meters per second measurement of speed.
  */
-+ (NSUnitSpeed *) metersPerSecond;
++ (NSUnitSpeed*) metersPerSecond;
 
 /**
  * The kilometers per hour measurement of speed.
  */
-+ (NSUnitSpeed *) kilometersPerHour;
++ (NSUnitSpeed*) kilometersPerHour;
 
 /**
  * The miles per hour measurement of speed.
  */
-+ (NSUnitSpeed *) milesPerHour;
++ (NSUnitSpeed*) milesPerHour;
 
 /**
  * The knots measurement of speed.
  */
-+ (NSUnitSpeed *) knots;
++ (NSUnitSpeed*) knots;
 
 @end
 
@@ -945,17 +947,17 @@ GS_EXPORT_CLASS
 /**
  * The kelvin unit of temperature.
  */
-+ (NSUnitTemperature *) kelvin;
++ (NSUnitTemperature*) kelvin;
 
 /**
  * The kelvin unit of celsius.
  */
-+ (NSUnitTemperature *) celsius;
++ (NSUnitTemperature*) celsius;
 
 /**
  * The kelvin unit of fahenheit.
  */
-+ (NSUnitTemperature *) fahrenheit;
++ (NSUnitTemperature*) fahrenheit;
 
 @end
 
@@ -969,157 +971,157 @@ GS_EXPORT_CLASS
 /**
  * The megaliters unit of volume.
  */
-+ (NSUnitVolume *) megaliters;
++ (NSUnitVolume*) megaliters;
 
 /**
  * The kiloliters unit of volume.
  */
-+ (NSUnitVolume *) kiloliters;
++ (NSUnitVolume*) kiloliters;
 
 /**
  * The liters unit of volume.
  */
-+ (NSUnitVolume *) liters;
++ (NSUnitVolume*) liters;
 
 /**
  * The deciliters unit of volume.
  */
-+ (NSUnitVolume *) deciliters;
++ (NSUnitVolume*) deciliters;
 
 /**
  * The centiliters unit of volume.
  */
-+ (NSUnitVolume *) centiliters;
++ (NSUnitVolume*) centiliters;
 
 /**
  * The milliliters unit of volume.
  */
-+ (NSUnitVolume *) milliliters;
++ (NSUnitVolume*) milliliters;
 
 /**
  * The cubic kilometers unit of volume.
  */
-+ (NSUnitVolume *) cubicKilometers;
++ (NSUnitVolume*) cubicKilometers;
 
 /**
  * The cubic meters unit of volume.
  */
-+ (NSUnitVolume *) cubicMeters;
++ (NSUnitVolume*) cubicMeters;
 
 /**
  * The cubic decimeters unit of volume.
  */
-+ (NSUnitVolume *) cubicDecimeters;
++ (NSUnitVolume*) cubicDecimeters;
 
 /**
  * The cubic centimeteres unit of volume.
  */
-+ (NSUnitVolume *) cubicCentimeters;
++ (NSUnitVolume*) cubicCentimeters;
 
 /**
  * The cubic millimeters unit of volume.
  */
-+ (NSUnitVolume *) cubicMillimeters;
++ (NSUnitVolume*) cubicMillimeters;
 
 /**
  * The cubic inches unit of volume.
  */
-+ (NSUnitVolume *) cubicInches;
++ (NSUnitVolume*) cubicInches;
 
 /**
  * The cubic feet unit of volume.
  */
-+ (NSUnitVolume *) cubicFeet;
++ (NSUnitVolume*) cubicFeet;
 
 /**
  * The cubic yards unit of volume.
  */
-+ (NSUnitVolume *) cubicYards;
++ (NSUnitVolume*) cubicYards;
 
 /**
  * The cubic miles unit of volume.
  */
-+ (NSUnitVolume *) cubicMiles;
++ (NSUnitVolume*) cubicMiles;
 
 /**
  * The acre feet unit of volume.
  */
-+ (NSUnitVolume *) acreFeet;
++ (NSUnitVolume*) acreFeet;
 
 /**
  * The bushels unit of volume.
  */
-+ (NSUnitVolume *) bushels;
++ (NSUnitVolume*) bushels;
 
 /**
  * The teaspoons unit of volume.
  */
-+ (NSUnitVolume *) teaspoons;
++ (NSUnitVolume*) teaspoons;
 
 /**
  * The tablespoons unit of volume.
  */
-+ (NSUnitVolume *) tablespoons;
++ (NSUnitVolume*) tablespoons;
 
 /**
  * The fluid ounces unit of volume.
  */
-+ (NSUnitVolume *) fluidOunces;
++ (NSUnitVolume*) fluidOunces;
 
 /**
  * The cups unit of volume.
  */
-+ (NSUnitVolume *) cups;
++ (NSUnitVolume*) cups;
 
 /**
  * The pints unit of volume.
  */
-+ (NSUnitVolume *) pints;
++ (NSUnitVolume*) pints;
 
 /**
  * The quarts unit of volume.
  */
-+ (NSUnitVolume *) quarts;
++ (NSUnitVolume*) quarts;
 
 /**
  * The gallons unit of volume.
  */
-+ (NSUnitVolume *) gallons;
++ (NSUnitVolume*) gallons;
 
 /**
  * The imperial teaspoons unit of volume.
  */
-+ (NSUnitVolume *) imperialTeaspoons;
++ (NSUnitVolume*) imperialTeaspoons;
 
 /**
  * The imperial tablespoons unit of volume.
  */
-+ (NSUnitVolume *) imperialTablespoons;
++ (NSUnitVolume*) imperialTablespoons;
 
 /**
  * The imperial fluid ounces unit of volume.
  */
-+ (NSUnitVolume *) imperialFluidOunces;
++ (NSUnitVolume*) imperialFluidOunces;
 
 /**
  * The imperial pints unit of volume.
  */
-+ (NSUnitVolume *) imperialPints;
++ (NSUnitVolume*) imperialPints;
 
 /**
  * The imperial quarts unit of volume.
  */
-+ (NSUnitVolume *) imperialQuarts;
++ (NSUnitVolume*) imperialQuarts;
 
 /**
  * The imperial gallons unit of volume.
  */
-+ (NSUnitVolume *) imperialGallons;
++ (NSUnitVolume*) imperialGallons;
 
 /**
  * The metric cups unit of volume.
  */
-+ (NSUnitVolume *) metricCups;
++ (NSUnitVolume*) metricCups;
 
 @end
 

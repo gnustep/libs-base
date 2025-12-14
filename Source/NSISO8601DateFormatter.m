@@ -31,67 +31,112 @@
 
 - (NSString *) _buildFormatWithOptions
 {
-  NSString *result = @"";
+  NSMutableString *result = [NSMutableString string];
+  BOOL hasDateComponent = NO;
+  BOOL hasTimeComponent = NO;
 
-  // Build date...
-  if (_formatOptions & NSISO8601DateFormatWithYear)
+  // Check if using week-based year format (ISO 8601 Week Date)
+  if (_formatOptions & NSISO8601DateFormatWithWeekOfYear)
     {
-      result = [result stringByAppendingString: @"yyyy"];
-    }
-  if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
-    && (_formatOptions & NSISO8601DateFormatWithMonth))
-    {
-      result = [result stringByAppendingString: @"-"];
-    }
-  if (_formatOptions & NSISO8601DateFormatWithMonth)
-    {
-      result = [result stringByAppendingString: @"MM"];
-    }
-  if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
-    && (_formatOptions & NSISO8601DateFormatWithDay))
-    {
-      result = [result stringByAppendingString: @"-"];
-    }
-  if (_formatOptions & NSISO8601DateFormatWithDay)
-    {
-      result = [result stringByAppendingString: @"dd"];
-    }
-  
-  // Build time...
-  if ((_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime)
-    && (_formatOptions & NSISO8601DateFormatWithTime))
-    {
-      result = [result stringByAppendingString: @" "];
+      // Week-based year format: YYYY-Www-D or YYYYWwwD
+      if (_formatOptions & NSISO8601DateFormatWithYear)
+        {
+          [result appendString: @"YYYY"]; // ISO week-numbering year
+          hasDateComponent = YES;
+        }
+      if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+        {
+          [result appendString: @"-"];
+        }
+      [result appendString: @"'W'"]; // Week designator
+      [result appendString: @"ww"]; // Week of year
+      hasDateComponent = YES;
+      
+      if (_formatOptions & NSISO8601DateFormatWithDay)
+        {
+          if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+            {
+              [result appendString: @"-"];
+            }
+          [result appendString: @"e"]; // Day of week (1-7)
+          hasDateComponent = YES;
+        }
     }
   else
     {
-      // Add T in format if we have a time component...
-      result = [result stringByAppendingString: @"'T'"];
+      // Calendar date format: YYYY-MM-DD or YYYYMMDD
+      if (_formatOptions & NSISO8601DateFormatWithYear)
+        {
+          [result appendString: @"yyyy"];
+          hasDateComponent = YES;
+        }
+      if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+          && (_formatOptions & NSISO8601DateFormatWithMonth))
+        {
+          [result appendString: @"-"];
+        }
+      if (_formatOptions & NSISO8601DateFormatWithMonth)
+        {
+          [result appendString: @"MM"];
+          hasDateComponent = YES;
+        }
+      if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+          && (_formatOptions & NSISO8601DateFormatWithDay))
+        {
+          [result appendString: @"-"];
+        }
+      if (_formatOptions & NSISO8601DateFormatWithDay)
+        {
+          [result appendString: @"dd"];
+          hasDateComponent = YES;
+        }
     }
+  
+  // Check if we have time component
+  hasTimeComponent = (_formatOptions & NSISO8601DateFormatWithTime) != 0;
+  
+  // Add separator between date and time if both are present
+  if (hasDateComponent && hasTimeComponent)
+    {
+      if (_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime)
+        {
+          [result appendString: @" "];
+        }
+      else
+        {
+          [result appendString: @"'T'"];
+        }
+    }
+  
+  // Build time component
   if (_formatOptions & NSISO8601DateFormatWithTime)
     {
       if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTime)
         {
-          result = [result stringByAppendingString: @"HH:mm:ss"];
+          [result appendString: @"HH:mm:ss"];
         }
       else
         {
-          result = [result stringByAppendingString: @"HHmmss"];
+          [result appendString: @"HHmmss"];
+        }
+      
+      // Add fractional seconds if requested
+      if (_formatOptions & NSISO8601DateFormatWithFractionalSeconds)
+        {
+          [result appendString: @".SSS"];
         }
     }
-  if (_formatOptions & NSISO8601DateFormatWithFractionalSeconds)
-    {
-      result = [result stringByAppendingString: @".SSSSSS"];
-    }
+  
+  // Add time zone
   if (_formatOptions & NSISO8601DateFormatWithTimeZone)
     {
       if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTimeZone)
         {
-          result = [result stringByAppendingString: @"ZZZZZ"];
+          [result appendString: @"ZZZZZ"]; // e.g., +00:00 or Z
         }
       else
         {
-          result = [result stringByAppendingString: @"ZZZZ"];
+          [result appendString: @"ZZZ"]; // e.g., +0000
         }
     }
   
@@ -116,6 +161,7 @@
  
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
       [coder encodeObject: _timeZone forKey: @"NS.timeZone"];
@@ -147,8 +193,9 @@
 
 - (id) initWithCoder: (NSCoder *)decoder
 {
-  if ((self = [super init]) != nil)
+  if ((self = [super initWithCoder: decoder]) != nil)
     {
+      _formatter = [[NSDateFormatter alloc] init];
       if ([decoder allowsKeyedCoding])
         {
           ASSIGN(_timeZone, [decoder decodeObjectForKey: @"NS.timeZone"]);
@@ -180,6 +227,16 @@
   [_formatter setTimeZone: _timeZone];
   [_formatter setDateFormat: formatString];
   return [_formatter stringFromDate: date];
+}
+
+- (NSString *) stringForObjectValue: (id)obj
+{
+  if ([obj isKindOfClass: [NSDate class]])
+    {
+      return [self stringFromDate: obj];
+    }
+  
+  return nil;
 }
 
 + (NSString *) stringFromDate: (NSDate *)date

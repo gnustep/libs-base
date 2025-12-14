@@ -1051,6 +1051,56 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
+  NSDecimalNumber *zeroNumber;
+  NSDecimalNumber *nanNumber;
+  NSAttributedString *attrStr;
+  
+  // Handle nil objects
+  if (nil == anObject)
+    {
+      attrStr = [self attributedStringForNil];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle non-NSNumber objects
+  if (![anObject isKindOfClass: [NSNumber class]])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle NaN
+  nanNumber = [NSDecimalNumber notANumber];
+  if ([anObject isEqual: nanNumber])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle zero
+  zeroNumber = [NSDecimalNumber zero];
+  if ([anObject isEqual: zeroNumber])
+    {
+      attrStr = [self attributedStringForZero];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      // Fall through to normal formatting if no special zero string is set
+    }
+  
   if (MYBEHAVIOR == NSNumberFormatterBehaviorDefault
     || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
     {
@@ -1086,10 +1136,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
        * falling through to the double case for this, which will lose us some
        * precision, but hopefully not matter too much...
        */
-      if (nil == anObject)
-        return [self nilSymbol];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [self notANumberSymbol];
       switch ([anObject objCType][0])
         {
           case _C_LNG_LNG:
@@ -1177,16 +1223,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
         characterSetWithCharactersInString: @"0123456789#.,_"];
       placeHolders = [NSCharacterSet 
         characterSetWithCharactersInString: @"0123456789#_"];
-
-      if (nil == anObject)
-        return [[self attributedStringForNil] string];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [[self attributedStringForNotANumber] string];
-      if ([anObject isEqual: [NSDecimalNumber notANumber]])
-        return [[self attributedStringForNotANumber] string];
-      if (_attributedStringForZero
-          && [anObject isEqual: [NSDecimalNumber zero]])
-        return [[self attributedStringForZero] string];
       
       useFormat = _positiveFormat;
       if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
