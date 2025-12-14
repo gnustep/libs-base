@@ -1,3 +1,12 @@
+2025-12-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSTask+GNUstepBase.h:
+	* Source/Additions/NSTask+GNUstepBase.m:
+	New convenience method +argumentsFromString: to take a string
+	containing command (program name) and arguments (possibly quoted),
+	and return an array of unquoted arguments (with the command name as
+	the first argument) suitable for use when launching a task.
+
 2025-12-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m:
