@@ -2760,15 +2760,25 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		{
 		  pos--;
 		}
-	      /* Since we know the child can't modify it, and we know
-	       * that we aren't going to change the buffer while the
-	       * child is using it, we can safely pass a data object
-	       * which simply references the memory in our own buffer.
-	       */
-	      childBody = [[NSData alloc]
-		initWithBytesNoCopy: (void*)(buf + sectionStart)
-			     length: pos - sectionStart
-		       freeWhenDone: NO];
+	      if (pos > sectionStart)
+		{
+		  /* Since we know the child can't modify it, and we know
+		   * that we aren't going to change the buffer while the
+		   * child is using it, we can safely pass a data object
+		   * which simply references the memory in our own buffer.
+		   */
+		  childBody = [[NSData alloc]
+		    initWithBytesNoCopy: (void*)(buf + sectionStart)
+				 length: pos - sectionStart
+			   freeWhenDone: NO];
+		}
+	      else
+		{
+		  /* If we have a corrupt multipart document a part of it
+		   * might be completely empty ... allow for that.
+		   */
+		  childBody = [NSData new];
+		}
 	      if ([child parse: childBody] == YES)
 		{
 		  /*
@@ -2807,7 +2817,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      if (endedFinalPart == YES)
+	      if (endedFinalPart)
 		{
 		  if (eol < len)
 		    {

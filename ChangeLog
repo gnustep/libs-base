@@ -1,3 +1,9 @@
+2025-12-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fix crash when parsing faulty multipart document with entirely empty
+	(no headers) part.
+	
  2025-12-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSTask+GNUstepBase.h:
@@ -9,21 +15,21 @@
 
 2025-12-06  Gregory John Casamento <greg.casamento@gmail.com>
 
- * Source/NSByteCountFormatter.m:
- * Source/NSDateComponentsFormatter.m:
- * Source/NSDateIntervalFormatter.m:
- * Source/NSEnergyFormatter.m:
- * Source/NSISO8601DateFormatter.m:
- * Source/NSLengthFormatter.m:
- * Source/NSMassFormatter.m:
- * Source/NSMeasurementFormatter.m:
- * Source/NSPersonNameComponentsFormatter.m:
- Implement initWithCoder: and encodeWithCoder: methods for formatter
- classes to support NSCoding protocol. All implementations handle both
- keyed and non-keyed coding and properly encode/decode all instance
- variables to ensure complete state preservation during archiving.
+ 	* Source/NSByteCountFormatter.m:
+ 	* Source/NSDateComponentsFormatter.m:
+ 	* Source/NSDateIntervalFormatter.m:
+ 	* Source/NSEnergyFormatter.m:
+ 	* Source/NSISO8601DateFormatter.m:
+ 	* Source/NSLengthFormatter.m:
+ 	* Source/NSMassFormatter.m:
+ 	* Source/NSMeasurementFormatter.m:
+ 	* Source/NSPersonNameComponentsFormatter.m:
+ 	Implement initWithCoder: and encodeWithCoder: methods for formatter
+ 	classes to support NSCoding protocol. All implementations handle both
+ 	keyed and non-keyed coding and properly encode/decode all instance
+ 	variables to ensure complete state preservation during archiving.
 
-2025-12-03 Richard Frith-Macdonald <rfm@gnu.org>
+2025-11-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m:
 	* Tools/AGSHtml.h:
