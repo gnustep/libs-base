@@ -276,6 +276,13 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
 - (NSString *) androidCacheDir;
 #endif
 
+/** Changes the environment variables returned by this process info instance
+ * and if possible also changes the underlying process environment variables
+ * available to other libraries.  Returns YES if the lower level environment
+ * was changed as well as the environment dictionary of the receiver.
+ */
+- (BOOL) setValue: (NSString*)string inEnvironment: (NSString*)key;
+
 @end
 
 /**
