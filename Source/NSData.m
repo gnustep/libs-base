@@ -1936,12 +1936,21 @@ failure:
 {
 #if defined(_WIN32)
   NSUInteger	length = [path length];
-  GSNativeChar	wthePath[length + 100];
-  GSNativeChar	wtheRealPath[length + 100];
+  NSUInteger	cap = length + 100;
+
+  if (cap < (NSUInteger)MAX_PATH + 1)
+    {
+      cap = (NSUInteger)MAX_PATH + 1;
+    }
+
+  GSNativeChar	wthePath[cap];
+  GSNativeChar	wtheRealPath[cap];
   int		c;
   FILE		*theFile;
   BOOL		useAuxiliaryFile = NO;
   BOOL		error_BadPath = YES;
+
+  wthePath[0] = L'\0';
 
   if (writeOptionsMask & NSDataWritingAtomic)
     {
@@ -1958,16 +1967,57 @@ failure:
 
   if (useAuxiliaryFile)
     {
-      /* Use the path name of the destination file as a prefix for the
-       * _wmktemp() call so that we can be sure that both files are on
-       * the same filesystem and the subsequent rename() will work. */
-      wcscpy(wthePath, wtheRealPath);
-      wcscat(wthePath, L"XXXXXX");
-      if (_wmktemp(wthePath) == 0)
+      GSNativeChar	wtheDir[cap];
+      GSNativeChar	wtheResolvedDir[cap];
+      GSNativeChar	*slash;
+      GSNativeChar	*backslash;
+      GSNativeChar	*sep;
+      const GSNativeChar *tempDir;
+      HANDLE		hDir;
+      DWORD		got;
+
+      /*
+       * Use the resolved destination directory for the temporary file so
+       * that both are on the same underlying volume (reparse points/mounts
+       * can otherwise make MoveFileExW fail with ERROR_NOT_SAME_DEVICE).
+       */
+      wcscpy(wtheDir, wtheRealPath);
+      slash = wcsrchr(wtheDir, L'/');
+      backslash = wcsrchr(wtheDir, L'\\');
+      sep = (slash > backslash) ? slash : backslash;
+      if (sep != 0)
 	{
-	  NSWarnMLog(@"mktemp (%@) failed - %@",
-	  [NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
-	    [NSError _last]);
+	  *sep = L'\0';
+	}
+      else
+	{
+	  wtheDir[0] = L'.';
+	  wtheDir[1] = L'\0';
+	}
+
+      tempDir = wtheDir;
+      hDir = CreateFileW(wtheDir, 0,
+	FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+	0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
+      if (hDir != INVALID_HANDLE_VALUE)
+	{
+	  got = GetFinalPathNameByHandleW(hDir, wtheResolvedDir,
+	    (DWORD)(sizeof(wtheResolvedDir) / sizeof(GSNativeChar)),
+	    FILE_NAME_NORMALIZED);
+	  CloseHandle(hDir);
+	  if (got > 0 && got < (DWORD)(sizeof(wtheResolvedDir) / sizeof(GSNativeChar)))
+	    {
+	      tempDir = wtheResolvedDir;
+	    }
+	}
+
+      if (GetTempFileNameW(tempDir, L"gsb", 0, wthePath) == 0)
+	{
+	  DWORD err = GetLastError();
+
+	  NSWarnMLog(@"GetTempFileName (%@) failed - %@",
+	    [NSString stringWithCharacters: tempDir length: wcslen(tempDir)],
+	    [NSError _systemError: err]);
 	  goto failure;
 	}
     }
@@ -2056,7 +2106,7 @@ failure:
 	  if (ERROR_CALL_NOT_IMPLEMENTED == err
 	    || ERROR_ACCESS_DENIED == err)
 	    {
-	      GSNativeChar	secondaryFile[length + 100];
+	      GSNativeChar	secondaryFile[cap];
 
 	      wcscpy(secondaryFile, wthePath);
 	      wcscat(secondaryFile, L"-delete");
@@ -2144,7 +2194,7 @@ failure:
   /*
    * Attempt to tidy up by removing temporary file on failure.
    */
-  if (useAuxiliaryFile)
+  if (useAuxiliaryFile && wthePath[0] != L'\0')
     {
       _wunlink(wthePath);
     }
