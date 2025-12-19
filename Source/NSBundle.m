@@ -54,6 +54,7 @@
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #import "GSPrivate.h"
+#import "GSPThread.h"
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
@@ -76,6 +77,7 @@ manager()
 
 static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
+static gs_mutex_t       _localizationsLock = GS_MUTEX_INIT_STATIC;
 
 /* Map a language name to any alternative versions.   This function should
  * return an array of alternative language/localisation directory names in
@@ -2858,17 +2860,22 @@ IF_NO_ARC(
 {
   NSDictionary	*table;
   NSString	*newString = nil;
+  NSString	*tablePath = nil;
+  NSDictionary	*parsedTable = nil;
+  BOOL		shouldLoad = NO;
 
+  // Lazily create and populate the per-bundle localization cache.
+  GS_MUTEX_LOCK(_localizationsLock);
   if (_localizations == nil)
     _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
 
   if (tableName == nil || [tableName isEqualToString: @""] == YES)
     {
       tableName = @"Localizable";
-      table = [_localizations objectForKey: tableName];
     }
-  else if ((table = [_localizations objectForKey: tableName]) == nil
-    && [@"strings" isEqual: [tableName pathExtension]] == YES)
+
+  table = [_localizations objectForKey: tableName];
+  if (table == nil && [@"strings" isEqual: [tableName pathExtension]] == YES)
     {
       tableName = [tableName stringByDeletingPathExtension];
       table = [_localizations objectForKey: tableName];
@@ -2876,24 +2883,27 @@ IF_NO_ARC(
 
   if (table == nil)
     {
-      NSString	*tablePath;
-
       /*
        * Make sure we have an empty table in place in case anything
        * we do somehow causes recursion.  The recursive call will look
        * up the string in the empty table.
        */
       [_localizations setObject: _emptyTable forKey: tableName];
+      shouldLoad = YES;
+    }
+  GS_MUTEX_UNLOCK(_localizationsLock);
 
+  if (shouldLoad == YES)
+    {
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
-        {
-          NSData	*tableData;
+	{
+	  NSData	*tableData;
 
-          tableData = [NSData dataWithContentsOfFile: tablePath];
+	  tableData = [NSData dataWithContentsOfFile: tablePath];
 	  NS_DURING
 	    {
-	      table = GSPropertyListFromStringsFormat(tableData);
+	      parsedTable = GSPropertyListFromStringsFormat(tableData);
 	    }
 	  NS_HANDLER
 	    {
@@ -2903,22 +2913,37 @@ IF_NO_ARC(
 		@" unicode characters.\n", tablePath, localException);
 	    }
 	  NS_ENDHANDLER
-        }
+	}
       else
-        {
-          NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
+	{
+	  NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
 	    tableName);
-        }
-      /*
-       * If we couldn't found and parsed the strings table, we put it in
-       * the cache of strings tables in this bundle, otherwise we will just
-       * be keeping the empty table in the cache so we don't keep retrying.
-       */
-      if (table != nil)
-        [_localizations setObject: table forKey: tableName];
+	}
     }
 
-  if (key == nil || (newString = [table objectForKey: key]) == nil)
+  GS_MUTEX_LOCK(_localizationsLock);
+  if (shouldLoad == YES && parsedTable != nil)
+    {
+      /*
+       * If we found and parsed the strings table, we put it in the cache
+       * of strings tables in this bundle, otherwise we will just be
+       * keeping the empty table in the cache so we don't keep retrying.
+       */
+      [_localizations setObject: parsedTable forKey: tableName];
+      table = parsedTable;
+    }
+  else
+    {
+      table = [_localizations objectForKey: tableName];
+      if (table == nil)
+	table = _emptyTable;
+    }
+
+  if (key != nil)
+    newString = [table objectForKey: key];
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  if (key == nil || newString == nil)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]
                             objectForKey: NSShowNonLocalizedStrings];

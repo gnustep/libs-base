@@ -4,6 +4,11 @@
 	temporary file in the resolved destination directory to avoid
 	ERROR_NOT_SAME_DEVICE with reparse points/mounts.
 
+2025-12-18 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSBundle.m:
+	Make -localizedStringForKey:value:table: thread-safe.
+
 2025-12-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSProcessInfo.h:
