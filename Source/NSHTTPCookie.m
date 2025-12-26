@@ -135,11 +135,11 @@ static NSMutableArray *GSCookieStrings(NSString *string);
   NSMutableArray 	*cookies;
   NSUInteger		count;
 
-  if ([header isEqual: @"Set-Cookie"])
+  if ([header caseInsensitiveCompare: @"Set-Cookie"] == NSOrderedSame)
     {
       version = 0;
     }
-  else if ([header isEqual: @"Set-Cookie2"])
+  else if ([header caseInsensitiveCompare: @"Set-Cookie2"] == NSOrderedSame)
     {
       version = 1;
     }
