@@ -1737,85 +1737,103 @@ GS_DECLARE NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
+  BOOL		isCurrentUser = [loginName isEqual: NSUserName()];
+  NSDictionary	*e = [[NSProcessInfo processInfo] environment];
 
+
+  if (isCurrentUser)
+    {
+      /* The GNUSTEP_HOME environment variable may override the home directory
+       * of the current user who owns this process.
+       */
+      s = [e objectForKey: @"GNUSTEP_HOME"];
+    }
 #ifdef __ANDROID__
-  s = [[NSProcessInfo processInfo] androidFilesDir];
+  if (nil == s)
+    {
+      s = [[NSProcessInfo processInfo] androidFilesDir];
+    }
 #elif !defined(_WIN32)
 #if     defined(HAVE_GETPWNAM_R)
-  struct passwd pw;
-  struct passwd *p;
-  char buf[BUFSIZ*10];
-
-  if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), &p) == 0
-    && p != 0 && pw.pw_dir != 0 && pw.pw_dir[0] != '\0')
+  if (nil == s)
     {
-      s = [NSString stringWithUTF8String: pw.pw_dir];
+      struct passwd pw;
+      struct passwd *p;
+      char buf[BUFSIZ*10];
+
+      if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), &p) == 0
+	&& p != 0 && pw.pw_dir != 0 && pw.pw_dir[0] != '\0')
+	{
+	  s = [NSString stringWithUTF8String: pw.pw_dir];
+	}
     }
 #else
 #if     defined(HAVE_GETPWNAM)
-  struct passwd *pw;
-
-  [GSPrivateGlobalLock() lock];
-  pw = getpwnam ([loginName cString]);
-  if (pw != 0 && pw->pw_dir != 0 && pw->pw_dir[0] != '\0')
+  if (nil == s)
     {
-      s = [NSString stringWithUTF8String: pw->pw_dir];
+      struct passwd *pw;
+
+      [GSPrivateGlobalLock() lock];
+      pw = getpwnam ([loginName cString]);
+      if (pw != 0 && pw->pw_dir != 0 && pw->pw_dir[0] != '\0')
+	{
+	  s = [NSString stringWithUTF8String: pw->pw_dir];
+	}
+      [GSPrivateGlobalLock() unlock];
     }
-  [GSPrivateGlobalLock() unlock];
 #endif
 #endif
 #else
-  if ([loginName isEqual: NSUserName()] == YES)
+  if (nil == s)
     {
-      NSDictionary	*e = [[NSProcessInfo processInfo] environment];
+      if (isCurrentUser)
+	{
+	  /*
+	   * The environment variable HOMEPATH holds the home directory
+	   * for the user on Windows NT;
+	   * For OPENSTEP compatibility (and because USERPROFILE is usually
+	   * unusable because it contains spaces), we use HOMEPATH in
+	   * preference to USERPROFILE, except when MINGW sets HOMEPATH to '\'
+	   * which isn't very useful, so we prefer USERPROFILE in that case.
+	   */
+	  s = [e objectForKey: @"HOMEPATH"];
+	  if ([s isEqualToString:@"\\"]
+	    && [e objectForKey: @"USERPROFILE"] != nil)
+	    {
+	      s = [e objectForKey: @"USERPROFILE"];
+	    }
+	  else if (s != nil
+	    && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
+	    {
+	      s = [[e objectForKey: @"HOMEDRIVE"] stringByAppendingString: s];
+	    }
+	  if (s == nil)
+	    {
+	      s = [e objectForKey: @"USERPROFILE"];
+	    }
+	  if (s == nil)
+	    {
+	      ; // FIXME: Talk to the NET API and get the profile path
+	    }
+	}
+      else
+	{
+	  s = nil;
+	  fprintf(stderr, "Trying to get home for '%s' when user is '%s'\n",
+	    [loginName UTF8String], [NSUserName() UTF8String]);
+	  fprintf(stderr,
+	    "Can't determine other user home directories in Win32.\n");
+	}
 
-      /*
-       * The environment variable HOMEPATH holds the home directory
-       * for the user on Windows NT;
-       * For OPENSTEP compatibility (and because USERPROFILE is usually
-       * unusable because it contains spaces), we use HOMEPATH in
-       * preference to USERPROFILE, except when MINGW has set HOMEPATH to '\'
-       * which isn't very useful, so we prefer USERPROFILE in that case.
-       */
-      s = [e objectForKey: @"HOMEPATH"];
-      if ([s isEqualToString:@"\\"] && [e objectForKey: @"USERPROFILE"] != nil)
-        {
-          s = [e objectForKey: @"USERPROFILE"];
-        }
-      else if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
-        {
-          s = [[e objectForKey: @"HOMEDRIVE"] stringByAppendingString: s];
-        }
-      if (s == nil)
-        {
-          s = [e objectForKey: @"USERPROFILE"];
-        }
-      if (s == nil)
-        {
-          ; // FIXME: Talk to the NET API and get the profile path
-        }
-    }
-  else
-    {
-      s = nil;
-      fprintf(stderr, "Trying to get home for '%s' when user is '%s'\n",
-	[loginName UTF8String], [NSUserName() UTF8String]);
-      fprintf(stderr,
-        "Can't determine other user home directories in Win32.\n");
-    }
-
-  if ([s length] == 0 && [loginName length] != 1)
-    {
-      s = nil;
-      fprintf(stderr, "NSHomeDirectoryForUser(%s) failed.\n",
-        [loginName UTF8String]);
-    }
-  if (nil != s)
-    {
-      s = [s stringByStandardizingPath];
+      if ([s length] == 0 && [loginName length] != 1)
+	{
+	  s = nil;
+	  fprintf(stderr, "NSHomeDirectoryForUser(%s) failed.\n",
+	    [loginName UTF8String]);
+	}
     }
 #endif
-  return s;
+  return [s stringByStandardizingPath];
 }
 
 GS_DECLARE NSString *

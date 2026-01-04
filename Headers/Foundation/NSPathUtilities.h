@@ -100,8 +100,23 @@ GS_EXPORT void
 GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
 
 #endif
+
+/** Returns the name of the user who owns the current process.
+ */
 GS_EXPORT NSString *NSUserName(void);
+
+/** Returns the home directory of the user who owns the current process.<br />
+ * Calls NSHomeDirectoryForUser() passing it the result of NSUserName().
+ */
 GS_EXPORT NSString *NSHomeDirectory(void);
+
+/** Returns the home directory of the user specified.<br />
+ * This is obtained from the operating system (though the GNUSTEP_HOME
+ * environment variable overrides that for the current user) and is
+ * usually the same as the HOME environment variable.<br />
+ * On ms-windows, the HOMEPATH environment variable is usually used unless
+ * it is the root directory, in which case USERPROFILE is used.
+ */
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
