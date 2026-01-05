@@ -1787,7 +1787,10 @@ main(int argc, char **argv, char **env)
 	{
 	  NSString	*arg = [gFiles objectAtIndex: i];
 	  NSString	*gsdocfile;
-	  NSString	*file;
+	  NSString	*src;
+	  NSString	*cur;
+	  NSString	*nam;
+	  NSString	*ext;
 	  NSDictionary	*attrs;
 	  NSDate	*gDate = nil;
 
@@ -1804,20 +1807,29 @@ main(int argc, char **argv, char **env)
            *     true if path information was given for them on the command
            *     line).
            */
-	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
-
+          src = arg;                            // Specified file location
+          ext = [src pathExtension];
+          cur = [src lastPathComponent];        // Current directory location
+	  nam = [cur stringByDeletingPathExtension];
+          if (NO == [ext isEqual: @"gsdoc"])
+            {
+              cur = [nam stringByAppendingPathExtension: @"gsdoc"];
+            }
 	  gsdocfile = [documentationDirectory
-	    stringByAppendingPathComponent: file];
-	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
+	    stringByAppendingPathComponent: cur];
 
-	  /*
-	   * If our source file is a gsdoc file ... it may be located
-	   * in the current (input) directory rather than the documentation
-	   * (output) directory.
+	  /* If our source file is a gsdoc file, it may be located somewhere
+	   * other than the documentation (output) directory, in which case
+           * we must copy it into place.
 	   */
-	  if ([mgr isReadableFileAtPath: gsdocfile] == NO)
+	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
+            && [ext isEqual: @"gsdoc"])
 	    {
-	      gsdocfile = [file stringByAppendingPathExtension: @"gsdoc"];
+              [mgr copyPath: cur toPath: gsdocfile handler: nil];
+	      if ([mgr isReadableFileAtPath: gsdocfile] == NO)
+                {
+                  [mgr copyPath: src toPath: gsdocfile handler: nil];
+                }
 	    }
 	  if (ignoreDependencies == NO)
 	    {
@@ -1836,7 +1848,7 @@ main(int argc, char **argv, char **env)
 	      if (showDependencies == YES)
 		{
 		  NSLog(@"%@: gsdoc %@, index %@ ==> regenerate",
-		    file, gDate, rDate);
+		    nam, gDate, rDate);
 		}
 	      if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 		{
@@ -2314,9 +2326,9 @@ main(int argc, char **argv, char **env)
 
           if ([[projectRefs refs] objectForKey: typeL] != nil)
             {
-              [contents writeToFile:
-                  [documentationDirectory stringByAppendingPathComponent:
-                                            gsdocFile]
+              gsdocFile = [documentationDirectory
+                stringByAppendingPathComponent: gsdocFile];
+              [contents writeToFile: gsdocFile
                          atomically: YES];
               [gFiles addObject: gsdocFile];
               [idxIndex appendFormat:
