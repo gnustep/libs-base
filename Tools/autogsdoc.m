@@ -2830,7 +2830,7 @@ main(int argc, char **argv, char **env)
 	{
 	  [depend appendFormat: @" \\\n\t%@", file];
 	}
-      [depend appendString: @"\n\t(ECHO_AUTOGSDOC)$(AUTOGSDOC)"
+      [depend appendString: @"\n\t$(ECHO_AUTOGSDOC)$(AUTOGSDOC)"
 	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
       file = [base stringByAppendingPathComponent: @"dependencies"];
       [depend writeToFile: file atomically: YES];
