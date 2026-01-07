@@ -1073,12 +1073,12 @@ main(int argc, char **argv, char **env)
     }
 
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
-  if (documentationDirectory == nil)
+  if ([documentationDirectory isAbsolutePath] == NO)
     {
-      documentationDirectory = @"";
+      documentationDirectory = [[mgr currentDirectoryPath]
+	stringByAppendingPathComponent: documentationDirectory];
     }
-  if ([documentationDirectory length] > 0
-    && [mgr fileExistsAtPath: documentationDirectory] == NO)
+  if ([mgr fileExistsAtPath: documentationDirectory] == NO)
     {
       [mgr createDirectoryAtPath: documentationDirectory
      withIntermediateDirectories: YES
@@ -1500,7 +1500,7 @@ main(int argc, char **argv, char **env)
 	  [parser setDocumentAllInstanceVariables: YES];
 	}
       if ([defs objectForKey: @"DocumentInstanceVariables"] != nil
-          && [defs boolForKey: @"DocumentInstanceVariables"] == NO)
+	&& [defs boolForKey: @"DocumentInstanceVariables"] == NO)
 	{
 	  [parser setDocumentInstanceVariables: NO];
 	}
@@ -1544,8 +1544,7 @@ main(int argc, char **argv, char **env)
 	      NSUInteger	pos;
 	      NSDate		*d;
 
-	      /*
-	       * Ask existing project info (.gsdoc file) for dependency
+	      /* Ask existing project info (.gsdoc file) for dependency
 	       * information.  Then check the dates on the source files
 	       * and the header file.
 	       */
@@ -1593,6 +1592,17 @@ main(int argc, char **argv, char **env)
 	      for (j = 0; j < [a count]; j++)
 		{
 		  NSString	*ofile = [a objectAtIndex: j];
+
+		  /* We should just have file names in the array, but in case
+		   * we somehow got more path info, we trim any unused data.
+		   */
+		  ofile = [ofile lastPathComponent];
+
+		  /* The gsdoc oputput file must be in the documentation
+		   * directory.
+		   */
+		  ofile = [documentationDirectory
+		    stringByAppendingPathComponent: ofile];
 
 		  attrs = [mgr fileAttributesAtPath: ofile traverseLink: YES];
 		  d = [attrs fileModificationDate];
@@ -2205,11 +2215,20 @@ main(int argc, char **argv, char **env)
 			{
 			  projPath = [projPath stringByAppendingString: @"/"];
 			}
+		      if (verbose)
+			{
+			  NSLog(@"Merging project '%@'.", projPath);
+			}
 		      if (relocatable)
 			{
 			  NSString	*relative;
 
 			  relative = [projPath pathRelativeTo: installPath];
+			  if (verbose)
+			    {
+			      NSLog(@"Path to '%@' from '%@' is '%@'",
+				projPath, installPath, relative);
+			    }
 			  if (relative)
 			    {
 			      projPath = relative;
@@ -2591,6 +2610,10 @@ main(int argc, char **argv, char **env)
 	   */
 	  [@"" writeToFile: [documentationDirectory
 	    stringByAppendingPathComponent: @"stamp_html"] atomically: YES];
+	  if (verbose)
+	    {
+	      NSLog(@"Generated HTML");
+	    }
 	}
       RELEASE(pool);
     }
@@ -2844,7 +2867,6 @@ main(int argc, char **argv, char **env)
 	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
       file = [base stringByAppendingPathComponent: @"dependencies"];
       [depend writeToFile: file atomically: YES];
-      [@"" writeToFile: stamp atomically: YES];
 
       /* Build a gnu-make rule to generate the 'stamp_html' file depending
        * on all the .gsdoc and .igsdoc files used to generate html.
@@ -2865,7 +2887,6 @@ main(int argc, char **argv, char **env)
 	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
       file = [base stringByAppendingPathComponent: @"dependencies_html"];
       [depend writeToFile: file atomically: YES];
-      [@"" writeToFile: stamp atomically: YES];
     }
 
   RELEASE(outer);
