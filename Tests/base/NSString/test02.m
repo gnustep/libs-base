@@ -379,6 +379,19 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   PASS([[NSString pathWithComponents:result] isEqual: @"/nicola/core"],
        "+pathWithComponents works works for absolute path");
   
+#if	defined(GNUSTEP_BASE_LIBRARY)
+  PASS_EQUAL([@"/home" pathRelativeTo: @"/"], @"home",
+    "file in root directory")
+  PASS_EQUAL([@"/path/home" pathRelativeTo: @"/path"], @"home",
+    "file in same directory")
+  PASS_EQUAL([@"/path/d1/file" pathRelativeTo: @"/path/d2"], @"../d1/file",
+    "file in sibling directory")
+  PASS_EQUAL([@"/path/file" pathRelativeTo: @"/path/d2"], @"../file",
+    "file in parent directory")
+  PASS_EQUAL([@"/path/d2/d3/file" pathRelativeTo: @"/path/d2"], @"d3/file",
+    "file in child directory")
+#endif
+
   [arp release]; arp = nil;
   return 0;
 }

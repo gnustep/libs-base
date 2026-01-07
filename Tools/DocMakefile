@@ -63,6 +63,7 @@ xmlparse.m
 BaseTools_AGSDOC_FLAGS = \
 	-MakeFrames NO \
 	-HeaderDirectory ../Tools \
+	-SourceDirectory ../Tools \
 	-Standards YES \
 	-DTDs ../Tools \
 	-WordMap '{\

@@ -670,43 +670,67 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
-static NSString *
-commonRoot(NSString *s1, NSString *s2)
-{
-  NSString	*s;
-  unsigned	l;
-
-  s = [s1 commonPrefixWithString: s2 options: NSLiteralSearch];
-  l = [s length];
-  while (l > 0 && [s characterAtIndex: l - 1] != '/')
-    {
-      l--;
-    }
-  if (0 == l)
-    {
-      /* I guess this can happen on windows where paths are on different disks.
-       */
-      NSLog(@"Unable to make relative links because projects '%@' and '%@'"
-	@" share no common prefix.", s1, s2);
-      s = nil;
-    }
-  return [s substringToIndex: l];
-}
-
 /* Ensure that file name is set up using the header/source directory
- * unless it is absolute.
+ * unless it is absolute.  Return a path relative to current directory.
  */
 static NSString *
-fullName(NSString *file, NSString *directory)
+findName(NSString *file, NSString *directory)
 {
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSString	*cwd = [[mgr currentDirectoryPath] stringByStandardizingPath];
+  NSString	*found = nil;
+  NSString	*tmp;
+
+  if (NO == [cwd hasSuffix: @"/"])
+    {
+      cwd = [cwd stringByAppendingString: @"/"];
+    }
   if ([file isAbsolutePath] == NO)
     {
       if ([directory length] > 0)
 	{
-	  file = [directory stringByAppendingPathComponent: file];
+	  tmp = [directory stringByAppendingPathComponent: file];
+	  if ([mgr fileExistsAtPath: tmp])
+	    {
+	      found = tmp;	// File exists at relative path in directory
+	    }
+	}
+      if (nil == found)
+	{
+	  tmp = [cwd stringByAppendingPathComponent: file];
+	  if ([mgr fileExistsAtPath: tmp])
+	    {
+	      found = tmp;	// File exists at relative path in current dir
+	    }
+	}
+      if (nil == found
+	&& NO == [(tmp = [file lastPathComponent]) isEqual: file])
+	{
+	  file = tmp;
+	  if ([directory length] > 0)
+	    {
+	      tmp = [directory stringByAppendingPathComponent: file];
+	      if ([mgr fileExistsAtPath: tmp])
+		{
+		  found = tmp;	// File exists in directory
+		}
+	    }
+	  if (nil == found)
+	    {
+	      tmp = [cwd stringByAppendingPathComponent: file];
+	      if ([mgr fileExistsAtPath: tmp])
+		{
+		  found = tmp;	// File exists in current dir
+		}
+	    }
 	}
     }
-  return file;
+  else if ([mgr fileExistsAtPath: file])
+    {
+      found = file;	// File exists at absolute path specified
+    }
+
+  return [found pathRelativeTo: cwd];
 }
 
 int
@@ -1126,20 +1150,20 @@ main(int argc, char **argv, char **env)
 	}
       else if ([arg hasSuffix: @".h"] == YES)
 	{
-	  [sFiles addObject: fullName(arg, headerDirectory)];
+	  [sFiles addObject: findName(arg, headerDirectory)];
 	}
       else if (([arg hasSuffix: @".m"] == YES)
         || ([arg hasSuffix: @".c"] == YES))
 	{
-	  [sFiles addObject: fullName(arg, sourceDirectory)];
+	  [sFiles addObject: findName(arg, sourceDirectory)];
 	}
       else if ([arg hasSuffix: @".gsdoc"] == YES)
 	{
-	  [gFiles addObject: fullName(arg, sourceDirectory)];
+	  [gFiles addObject: findName(arg, sourceDirectory)];
 	}
       else if ([arg hasSuffix: @".html"] == YES)
 	{
-	  [hFiles addObject: fullName(arg, sourceDirectory)];
+	  [hFiles addObject: findName(arg, sourceDirectory)];
 	}
       else
 	{
@@ -1635,7 +1659,7 @@ main(int argc, char **argv, char **env)
 		  NSUInteger	j = [sFiles count];
 		  NSString	*cPath = [a objectAtIndex: i];
 		  NSString	*cFile = [cPath lastPathComponent];
-		  NSString	*tmp = fullName(cPath, sourceDirectory);
+		  NSString	*tmp = findName(cPath, sourceDirectory);
 
 		  /* The computed source file should be in the source
 		   * directory unless it is an absolute path or perhaps
@@ -1643,7 +1667,7 @@ main(int argc, char **argv, char **env)
 		   */
 		  if (NO == [mgr isReadableFileAtPath: tmp])
 		    {
-		      tmp = fullName(cFile, sourceDirectory);
+		      tmp = findName(cFile, sourceDirectory);
 		      if (NO == [mgr isReadableFileAtPath: tmp])
 			{
 			  tmp = cPath;
@@ -2164,7 +2188,6 @@ main(int argc, char **argv, char **env)
 		    {
 		      AGSIndex		*tmp;
 		      NSString		*projPath;
-		      NSString		*common = nil;
 
 		      tmp = [AGSIndex new];
 		      [tmp mergeRefs: dict override: NO];
@@ -2184,27 +2207,13 @@ main(int argc, char **argv, char **env)
 			}
 		      if (relocatable)
 			{
-			  common = commonRoot(installPath, projPath);
-			}
-		      if (common)
-			{
-			  NSUInteger	length = [common length];
-			  NSString	*mine;
-			  NSString	*rel;
-			  NSUInteger	c;
+			  NSString	*relative;
 
-			  mine = [installPath substringFromIndex: length];
-			  rel = [projPath substringFromIndex: length];
-			  c = [[mine componentsSeparatedByString: @"/"] count];
-			  while (c-- > 1)
+			  relative = [projPath pathRelativeTo: installPath];
+			  if (relative)
 			    {
-			      rel = [@"../" stringByAppendingString: rel];
+			      projPath = relative;
 			    }
-			  /* Replace the root part with the prefix
-			   * to make the path relative.
-			   */
-//NSLog(@"Adjust path from '%@' to '%@' (common '%@') as '%@'", installPath, projPath, common, rel);
-			  projPath = rel;
 			}
 		      [tmp setDirectory: projPath];
 		      [globalRefs mergeRefs: [tmp refs] override: YES];
@@ -2824,7 +2833,8 @@ main(int argc, char **argv, char **env)
        * Instance/Documentation/autogsdoc.make
        */
       stamp = [base stringByAppendingPathComponent: @"stamp"];
-      enumerator = [deps objectEnumerator];
+      enumerator = [[[deps allObjects]
+	sortedArrayUsingSelector: @selector(compare:)] objectEnumerator];
       depend = [NSMutableString stringWithFormat: @"%@ &:", stamp];
       while ((file = [enumerator nextObject]) != nil)
 	{
@@ -2834,6 +2844,7 @@ main(int argc, char **argv, char **env)
 	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
       file = [base stringByAppendingPathComponent: @"dependencies"];
       [depend writeToFile: file atomically: YES];
+      [@"" writeToFile: stamp atomically: YES];
 
       /* Build a gnu-make rule to generate the 'stamp_html' file depending
        * on all the .gsdoc and .igsdoc files used to generate html.
@@ -2841,17 +2852,20 @@ main(int argc, char **argv, char **env)
        * Instance/Documentation/autogsdoc.make
        */
       stamp = [base stringByAppendingPathComponent: @"stamp_html"];
-      enumerator = [gFiles objectEnumerator];
+      enumerator = [[[dPaths allObjects]
+	sortedArrayUsingSelector: @selector(compare:)] objectEnumerator];
       [depend setString: @""];
       [depend appendFormat: @"%@ &:", stamp];
       while ((file = [enumerator nextObject]) != nil)
 	{
+	  file = findName(file, documentationDirectory);
 	  [depend appendFormat: @" \\\n\t%@", file];
 	}
       [depend appendString: @"\n\t$(ECHO_AUTOGSDOC)$(AUTOGSDOC)"
 	@" $(INTERNAL_AGSDOCFLAGS) $(AGSDOC_FILES)$(END_ECHO)\n"];
       file = [base stringByAppendingPathComponent: @"dependencies_html"];
       [depend writeToFile: file atomically: YES];
+      [@"" writeToFile: stamp atomically: YES];
     }
 
   RELEASE(outer);
