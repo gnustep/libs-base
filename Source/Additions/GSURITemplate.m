@@ -1198,9 +1198,12 @@ modError(NSError *e, int pos)
   specs = [expression substringFromIndex: [scanner scanLocation]];
   if ([operator length] > 1)
     {
-      *error = mkError(GSURITemplateFormatOperatorError,
-	NSLocalizedString(@"An invalid operator was encountered.", nil),
-        [NSString stringWithFormat: NSLocalizedString(@"An operator was encountered with a length greater than 1 character ('%@').", nil), operator]);
+      if (error)
+	{
+	  *error = mkError(GSURITemplateFormatOperatorError,
+	    NSLocalizedString(@"An invalid operator was encountered.", nil),
+	    [NSString stringWithFormat: NSLocalizedString(@"An operator was encountered with a length greater than 1 character ('%@').", nil), operator]);
+	}
       return nil;
     }
   
@@ -1226,9 +1229,12 @@ modError(NSError *e, int pos)
       case '/': return [GSUTSlashExprTerm termWithValue: variables];
       default:
       // The operator is unknown or reserved.
-      *error = mkError(GSURITemplateFormatOperatorError,
-	NSLocalizedString(@"An invalid operator was encountered.", nil),
-	[NSString stringWithFormat: NSLocalizedString(@"The URI template specification does not include an operator for the character '%@'.", nil), operator]);
+      if (error)
+	{
+	  *error = mkError(GSURITemplateFormatOperatorError,
+	    NSLocalizedString(@"An invalid operator was encountered.", nil),
+	    [NSString stringWithFormat: NSLocalizedString(@"The URI template specification does not include an operator for the character '%@'.", nil), operator]);
+	}
       return nil;
     }
 }
