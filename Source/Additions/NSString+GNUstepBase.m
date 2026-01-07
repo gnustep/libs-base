@@ -120,7 +120,6 @@
 	@" share no common prefix.", filePath, aFolder);
       return nil;
     }
-  common = [common substringToIndex: length];
 
   /* Get relative path from common root to our file.
    */
