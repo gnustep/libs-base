@@ -3371,7 +3371,7 @@ setNonBlocking(SOCKET fd)
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  if ([super init] != nil)
+  if ((self = [super init]) != nil)
     {
       if ([addr length] == 0)
         {
