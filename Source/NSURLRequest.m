@@ -484,7 +484,7 @@ typedef struct {
 
 - (NSDictionary *) _insensitiveHeaders
 {
-  return [this->headers copy];
+  return this->headers;
 }
 
 - (id) _propertyForKey: (NSString*)key
