@@ -22,9 +22,134 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "common.h"
 #import "Foundation/NSScriptKeyValueCoding.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
 
-@implementation NSScriptKeyValueCoding
+@implementation NSObject (NSScriptKeyValueCoding)
+
+- (id) valueAtIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key
+{
+  id collection;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectAtIndex:)])
+    {
+      if (index < [collection count])
+        {
+          return [collection objectAtIndex: index];
+        }
+    }
+  
+  return nil;
+}
+
+- (id) valueWithName: (NSString *)name inPropertyWithKey: (NSString *)key
+{
+  NSArray *collection;
+  NSEnumerator *enumerator;
+  id object;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectEnumerator)])
+    {
+      enumerator = [collection objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+        {
+          id objectName;
+          
+          if ([object respondsToSelector: @selector(name)])
+            {
+              objectName = [object performSelector: @selector(name)];
+              if ([objectName isEqual: name])
+                {
+                  return object;
+                }
+            }
+        }
+    }
+  
+  return nil;
+}
+
+- (id) valueWithUniqueID: (id)uniqueID inPropertyWithKey: (NSString *)key
+{
+  NSArray *collection;
+  NSEnumerator *enumerator;
+  id object;
+  
+  collection = [self valueForKey: key];
+  
+  if ([collection respondsToSelector: @selector(objectEnumerator)])
+    {
+      enumerator = [collection objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+        {
+          id objectID;
+          
+          if ([object respondsToSelector: @selector(uniqueID)])
+            {
+              objectID = [object performSelector: @selector(uniqueID)];
+              if ([objectID isEqual: uniqueID])
+                {
+                  return object;
+                }
+            }
+        }
+    }
+  
+  return nil;
+}
+
+- (void) insertValue: (id)value atIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key
+{
+  NSMutableArray *array;
+  
+  array = [self mutableArrayValueForKey: key];
+  [array insertObject: value atIndex: index];
+}
+
+- (void) insertValue: (id)value inPropertyWithKey: (NSString *)key
+{
+  NSMutableArray *array;
+  
+  array = [self mutableArrayValueForKey: key];
+  [array addObject: value];
+}
+
+- (id) coerceValue: (id)value forKey: (NSString *)key
+{
+  return value;
+}
+
+- (void) removeValueAtIndex: (NSUInteger)index fromPropertyWithKey: (NSString *)key
+{
+  NSMutableArray *array;
+  
+  array = [self mutableArrayValueForKey: key];
+  if (index < [array count])
+    {
+      [array removeObjectAtIndex: index];
+    }
+}
+
+- (void) replaceValueAtIndex: (NSUInteger)index 
+          inPropertyWithKey: (NSString *)key
+                  withValue: (id)value
+{
+  NSMutableArray *array;
+  
+  array = [self mutableArrayValueForKey: key];
+  if (index < [array count])
+    {
+      [array replaceObjectAtIndex: index withObject: value];
+    }
+}
 
 @end
-
