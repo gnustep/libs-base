@@ -2969,7 +2969,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<hr class=\"section-separator\">\n"];
 	  [buf appendString: indent];
 	  [buf appendFormat:
-	    @"<a href=\"#_%@_ivars\">%@ declares %lu Instance Variables</a>\n",
+	    @"<a href=\"#_%@_ivars\">%@ declares %u Instance Variables</a>\n",
 	    classname, classname, count];
 	  [buf appendString: indent];
 	  [buf appendString: @"<br /><br />\n"];
