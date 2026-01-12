@@ -860,9 +860,10 @@ static NSNotificationCenter *default_center = nil;
 	   * As this is the first observation for the given name, we take a
 	   * copy of the name so it cannot be mutated while in the map.
 	   */
-	  name = [name copyWithZone: NSDefaultMallocZone()];
-	  GSIMapAddPair(NAMED, (GSIMapKey)(id)name, (GSIMapVal)(void*)m);
-	  GS_CONSUMED(name)
+#ifdef	__clang_analyzer__
+	  [[clang::suppress]]
+#endif
+	  GSIMapAddPair(NAMED, (GSIMapKey)(id)[name copy], (GSIMapVal)(void*)m);
 	}
       else
 	{
