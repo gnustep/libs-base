@@ -648,8 +648,8 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 + (NSSet *) keyPathsForValuesAffectingValueForKey: (NSString *)key
 {
-  static NSSet		*emptySet = nil;
   static gs_mutex_t	lock = GS_MUTEX_INIT_STATIC;
+  static NSSet		*emptySet = nil;
   NSUInteger 		keyLength;
   NSDictionary *affectingKeys;
 
@@ -658,8 +658,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
       GS_MUTEX_LOCK(lock);
       if (nil == emptySet)
         {
-          emptySet = [[NSSet alloc] init];
-          [NSObject leakAt: &emptySet];
+          emptySet = [NSSet new];	// Exists forever.
         }
       GS_MUTEX_UNLOCK(lock);
     }
@@ -723,10 +722,12 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           return [self performSelector:sel];
         }
 
-      // We compute an NSSet from information provided by previous invocations
-      // of the now-deprecated setKeys:triggerChangeNotificationsForDependentKey:
-      // if the original imp returns an empty set.
-      // This aligns with Apple's backwards compatibility.
+      /* We compute an NSSet from information provided by previous
+       * invocations of the now-deprecated
+       * setKeys:triggerChangeNotificationsForDependentKey:
+       * if the original imp returns an empty set.
+       * This aligns with Apple's backwards compatibility.
+       */
       affectingKeys = (NSDictionary *)objc_getAssociatedObject(self, KVO_MAP);
       if (unlikely(nil != affectingKeys))
         {
