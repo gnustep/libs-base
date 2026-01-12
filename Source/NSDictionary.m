@@ -620,6 +620,10 @@ static SEL	appSel;
 	}
       GS_ENDIDBUF();
     }
+  else
+    {
+      self = [self init];
+    }
   return self;
 }
 
@@ -879,7 +883,9 @@ static SEL	appSel;
  */
 - (NSArray*) allKeysForObject: (id)anObject
 {
-  if (anObject == nil || [self count] == 0)
+  NSUInteger	count;
+
+  if (anObject == nil || (count = [self count]) == 0)
     {
       return nil;
     }
@@ -892,7 +898,7 @@ static SEL	appSel;
       unsigned		c = 0;
       id		k;
       id		result;
-      GS_BEGINIDBUF(a, [self count]);
+      GS_BEGINIDBUF(a, count);
 
       eqObj = (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
       while ((k = (*nxtObj)(e, nxtSel)) != nil)
