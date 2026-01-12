@@ -966,22 +966,28 @@ pty_slave(const char* name)
     }
   if (nil == _launchPath)
     {
-      info = [NSDictionary dictionaryWithObjectsAndKeys:
-	@"task has no launch path set", NSLocalizedDescriptionKey, nil];
-      *error = [NSError errorWithDomain: NSCocoaErrorDomain
-				   code: 0
-			       userInfo: info];
+      if (error)
+	{
+	  info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"task has no launch path set", NSLocalizedDescriptionKey, nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: 0
+				   userInfo: info];
+	}
       return NO;
     }
   if (nil == (path = [self validatedLaunchPath]))
     {
-      info = [NSDictionary dictionaryWithObjectsAndKeys:
-	@"task has invalid launch path", NSLocalizedDescriptionKey,
-	_launchPath, NSFilePathErrorKey,
-	nil];
-      *error = [NSError errorWithDomain: NSCocoaErrorDomain
-				   code: 0
-			       userInfo: info];
+      if (error)
+	{
+	  info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"task has invalid launch path", NSLocalizedDescriptionKey,
+	    _launchPath, NSFilePathErrorKey,
+	    nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: 0
+				   userInfo: info];
+	}
       return NO;
     }
 
