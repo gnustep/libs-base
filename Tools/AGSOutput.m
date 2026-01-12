@@ -1459,7 +1459,6 @@ static NSString	*padding[100];
 	      if (size > sizeof(padding)/sizeof(*padding))
 		size = sizeof(padding)/sizeof(*padding);
 	      [buf appendString: padding[size - 1]];
-	      j += size;
 	    }
 	  end = [self fitWords: a
 			  from: i

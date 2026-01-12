@@ -976,7 +976,7 @@ pty_slave(const char* name)
 	}
       return NO;
     }
-  if (nil == (path = [self validatedLaunchPath]))
+  if (nil == [self validatedLaunchPath])
     {
       if (error)
 	{

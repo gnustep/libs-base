@@ -42,7 +42,6 @@
       if (_formatOptions & NSISO8601DateFormatWithYear)
         {
           [result appendString: @"YYYY"]; // ISO week-numbering year
-          hasDateComponent = YES;
         }
       if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
         {

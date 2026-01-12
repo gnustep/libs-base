@@ -2643,7 +2643,7 @@ static BOOL isLocked = NO;
   if (NO == beenHere)
     {
       NSString	*npath = _defaultsDatabase;
-      NSString	*opath = _defaultsDatabase;
+      NSString	*opath;
 
       beenHere = YES;
       /* The default domain name for a program changed from being the name

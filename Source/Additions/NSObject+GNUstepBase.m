@@ -780,7 +780,7 @@ makeLinkForClass(Class c)
     }
 
   GS_MUTEX_LOCK(trackLock);
-  if ((l = find(self)) != 0)
+  if (find(self) != 0)
     {
       /* Instance already tracked.
        */

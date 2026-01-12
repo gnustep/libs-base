@@ -5630,7 +5630,6 @@ fail:
 
       [md setObject: block forKey: @"item"];
 
-      s = [NSSet setWithObjects: @"item", nil];
       [md setObject: text forKey: @"ivar"];
 
       s = [NSSet setWithObjects: @"desc", @"standards", nil];
