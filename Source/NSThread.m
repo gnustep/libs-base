@@ -878,6 +878,13 @@ unregisterActiveThread(NSThread *thread)
 
   if (t == nil)
     {
+      /* We suppress the static analyser warning which occurs because it
+       * doesn't understand the mechanism to release the NSThread when
+       * the POSIX thread exists.
+       */
+#ifdef  __clang_analyzer__
+          [[clang::suppress]]
+#endif
       t = [self new];
       t->_active = YES;
       [t _makeThreadCurrent];

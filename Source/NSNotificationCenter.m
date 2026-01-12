@@ -856,9 +856,13 @@ static NSNotificationCenter *default_center = nil;
       if (n == 0)
 	{
 	  m = mapNew(TABLE);
-	  /*
-	   * As this is the first observation for the given name, we take a
+
+	  /* As this is the first observation for the given name, we take a
 	   * copy of the name so it cannot be mutated while in the map.
+	   *
+	   * We suppress static analyzer warnings about the copy (the
+	   * analyzer doesn't understand that we will release the name when
+	   * the map node is removed).
 	   */
 #ifdef	__clang_analyzer__
 	  [[clang::suppress]]
