@@ -270,7 +270,7 @@ static Class concreteBrowserClass;
   return retVal;
 }
 
-- (void) setProtocolSpecificInformation: (NSString *) specificInformation
+- (void) setProtocolSpecificInformation: (NSString *)specificInformation
 {
   NSArray *array = [specificInformation componentsSeparatedByString: @"\001"];
     
@@ -279,7 +279,7 @@ static Class concreteBrowserClass;
       NSMutableDictionary *dictionary;
 
       dictionary
-	= [[NSMutableDictionary alloc] initWithCapacity: [array count]];
+	= [NSMutableDictionary dictionaryWithCapacity: [array count]];
       FOR_IN(NSString*, item, array)
         {
           NSArray	*parts;
@@ -297,8 +297,8 @@ static Class concreteBrowserClass;
     }
 }
 
-- (BOOL) getInputStream: (NSInputStream **) inputStream
-           outputStream: (NSOutputStream **) outputStream
+- (BOOL) getInputStream: (NSInputStream **)inputStream
+           outputStream: (NSOutputStream **)outputStream
 {
   [NSStream getStreamsToHost: [NSHost hostWithName: [self hostName]]
                         port: [self port]
