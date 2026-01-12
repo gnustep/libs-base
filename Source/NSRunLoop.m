@@ -761,6 +761,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
     }
 }
 
+/* Declare the drainer at file scope so that the clang analyzer will not
+ * report it as leaked.
+ */
+#ifdef RL_INTEGRATE_DISPATCH
+static GSMainQueueDrainer 	*drainer = nil;
+#endif
+
 + (NSRunLoop*) _runLoopForThread: (NSThread*) aThread
 {
   GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(aThread);
@@ -779,9 +786,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
           NSInvocation		        *inv;
           NSTimer                       *timer;
           SEL			        sel;
-          #ifdef RL_INTEGRATE_DISPATCH
-          static GSMainQueueDrainer 	*drainer = nil;
-          #endif
 
           ctr = [NSNotificationCenter defaultCenter];
           not = [NSNotification notificationWithName: @"GSHousekeeping"
@@ -802,6 +806,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
                                            userInfo: nil
                                             repeats: YES];
           [current addTimer: timer forMode: NSDefaultRunLoopMode];
+	  RELEASE(timer);	// Retained in run loop until invalidated
 
           #ifdef RL_INTEGRATE_DISPATCH
 	  if (nil == drainer)
