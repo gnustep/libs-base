@@ -114,6 +114,10 @@ static Class	NSDate_class;
 	       userInfo: (id)info
 		repeats: (BOOL)f
 {
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   if (ti <= 0.0)
     {
       ti = 0.0001;
@@ -148,13 +152,17 @@ static Class	NSDate_class;
                           repeats: (BOOL)repeats
                             block: (GSTimerBlock)block
 {
-  ASSIGN(_block, (id)block);
-  return [self initWithFireDate: date
+  self = [self initWithFireDate: date
                        interval: interval
                          target: nil
                        selector: NULL
                        userInfo: nil
                         repeats: repeats];
+  if (self)
+    {
+      ASSIGN(_block, (id)block);
+    }
+  return self;
 }
 
 /**

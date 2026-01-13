@@ -240,6 +240,12 @@ handleExit()
     }
   else
     {
+      /* The clang analyzer will report the dealloc because it doesn't realise
+       * that this exiting thread is the only thing that can access the pool.
+       */
+#ifdef  __clang_analyzer__
+      [[clang::suppress]]
+#endif
       [[NSAutoreleasePool currentPool] dealloc];
       [NSAutoreleasePool _endThread: GSCurrentThread()];
     }
