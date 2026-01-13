@@ -69,25 +69,23 @@ static Class	concreteClass = 0;
 /**
  * Create a new autoreleased notification.
  */
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info
 {
-  return [concreteClass notificationWithName: name
-				      object: object
-				    userInfo: info];
+  return AUTORELEASE([[concreteClass allocWithZone: NSDefaultMallocZone()]
+    initWithName: name object: object userInfo: info]);
 }
 
 /**
  * Create a new autoreleased notification by calling
  * +notificationWithName:object:userInfo: with a nil user info argument.
  */
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 {
-  return [concreteClass notificationWithName: name
-				      object: object
-				    userInfo: nil];
+  return AUTORELEASE([[concreteClass allocWithZone: NSDefaultMallocZone()]
+    initWithName: name object: object userInfo: nil]);
 }
 
 /**
@@ -126,6 +124,22 @@ static Class	concreteClass = 0;
   return self;
 }
 
+- (instancetype) initWithName: (NSNotificationName)name
+		       object: (id)object
+		     userInfo: (NSDictionary*)info
+{
+  if ([self class] == abstractClass)
+    {
+      NSZone	*z = [self zone];
+
+      DESTROY(self);
+      return [[concreteClass allocWithZone: z]
+	initWithName: name object: object userInfo: info];
+    }
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 - (BOOL) isEqual: (id)other
 {
   NSNotification	*o;
@@ -145,7 +159,7 @@ static Class	concreteClass = 0;
 /**
  *  Returns the notification name.
  */
-- (NSString*) name
+- (NSNotificationName) name
 {
   [self subclassResponsibility: _cmd];
   return nil;

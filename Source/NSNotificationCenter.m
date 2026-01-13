@@ -67,17 +67,25 @@ static Class concrete = 0;
     }
 }
 
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info
 {
-  GSNotification	*n;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithName: name object: object userInfo: info]);
+}
 
-  n = (GSNotification*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  n->_name = [name copyWithZone: [self zone]];
-  n->_object = TEST_RETAIN(object);
-  n->_info = TEST_RETAIN(info);
-  return AUTORELEASE(n);
+- (instancetype) initWithName: (NSNotificationName)name
+		       object: (id)object
+		     userInfo: (NSDictionary*)info
+{
+  if ((self = [super init]))
+    {
+      _name = [name copyWithZone: [self zone]];
+      _object = TEST_RETAIN(object);
+      _info = TEST_RETAIN(info);
+    }
+  return self;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -103,7 +111,7 @@ static Class concrete = 0;
   [super dealloc];
 }
 
-- (NSString*) name
+- (NSNotificationName) name
 {
   return _name;
 }
