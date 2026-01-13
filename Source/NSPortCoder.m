@@ -659,17 +659,16 @@ scalarSize(char type)
 		  rep = [obj initWithCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)rep, xref);
 		    }
+	          obj = rep;
 
 		  rep = [obj awakeAfterUsingCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)rep, xref);
 		    }
-		  GS_CONSUMED(rep)
+	          obj = rep;
 		}
 	    }
 	  *(id*)address = obj;
@@ -1923,6 +1922,10 @@ scalarSize(char type)
 						   sendPort: send]);
   if (_comp == nil)
     {
+      if (nil == (self = [super init]))
+	{
+	  return nil;
+	}
       firstTime = YES;
       _version = [super systemVersion];
       _zone = NSDefaultMallocZone();
