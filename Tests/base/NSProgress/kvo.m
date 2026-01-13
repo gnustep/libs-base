@@ -99,6 +99,43 @@
 }
 @end
 
+@interface IndeterminateObserver : NSObject
+{
+@public
+    uint32_t _counter;
+}
+@end
+
+@implementation IndeterminateObserver
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+  NSNumber *oldValue = [change objectForKey: NSKeyValueChangeOldKey];
+  NSNumber *newValue = [change objectForKey: NSKeyValueChangeNewKey];
+
+  switch (_counter)
+  {
+    case 0:
+        PASS([oldValue boolValue] == YES && [newValue boolValue] == NO,
+             "indeterminate changes YES->NO when totalUnitCount becomes non-zero");
+        break;
+    case 1:
+        PASS([oldValue boolValue] == NO && [newValue boolValue] == YES,
+             "indeterminate changes NO->YES when completedUnitCount becomes negative");
+        break;
+    case 2:
+        PASS([oldValue boolValue] == YES && [newValue boolValue] == NO,
+             "indeterminate changes YES->NO when completedUnitCount becomes non-negative");
+        break;
+    default:
+        PASS(0, "Unexpected KVO change event");
+  }
+  _counter += 1;
+}
+@end
+
 int main(void)
 {
     ENTER_POOL
@@ -152,6 +189,38 @@ int main(void)
     [parent removeObserver: parentObserver forKeyPath: @"finished"];
     [parentObserver release];
     [parent release];
+
+    NSProgress *indeterminateProgress = [NSProgress progressWithTotalUnitCount: 0];
+    IndeterminateObserver *indeterminateObserver = [IndeterminateObserver new];
+    NSKeyValueObservingOptions indeterminateOptions = NSKeyValueObservingOptionNew |
+            NSKeyValueObservingOptionOld;
+
+    [indeterminateProgress addObserver: indeterminateObserver
+                           forKeyPath: @"indeterminate"
+                              options: indeterminateOptions
+                              context: (void *)5];
+
+    PASS([indeterminateProgress isIndeterminate] == YES,
+         "initial 0/0 progress is indeterminate");
+
+    [indeterminateProgress setTotalUnitCount: 1];
+    PASS([indeterminateProgress isIndeterminate] == NO,
+         "progress is determinate after totalUnitCount is set");
+
+    [indeterminateProgress setCompletedUnitCount: -1];
+    PASS([indeterminateProgress isIndeterminate] == YES,
+         "progress is indeterminate with negative completedUnitCount");
+
+    [indeterminateProgress setCompletedUnitCount: 0];
+    PASS([indeterminateProgress isIndeterminate] == NO,
+         "progress is determinate with non-negative completedUnitCount");
+
+    PASS(indeterminateObserver->_counter == 3,
+         "received 3 indeterminate KVO notifications");
+
+    [indeterminateProgress removeObserver: indeterminateObserver
+                               forKeyPath: @"indeterminate"];
+    [indeterminateObserver release];
   LEAVE_POOL
   return 0;
 }

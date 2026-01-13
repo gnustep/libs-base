@@ -41,7 +41,6 @@
   NSMutableDictionary *_userInfo; \
   BOOL _cancelled; \
   BOOL _cancellable; \
-  BOOL _indeterminate; \
   BOOL _finished; \
   BOOL _allowImplicitChild; \
   GSProgressCancellationHandler _cancellationHandler; \
@@ -126,6 +125,14 @@ static void tls_current_progress_pop(void)
   {
     [stack removeLastObject];
   }
+}
+
+static inline BOOL
+GSProgressIsIndeterminate(int64_t total, int64_t completed)
+{
+  return (total < 0
+          || completed < 0
+          || (total == 0 && completed == 0));
 }
 
 @interface NSProgress (Private)
@@ -246,7 +253,6 @@ static void tls_current_progress_pop(void)
       internal->_userInfo = [userInfo mutableCopy];
       internal->_cancelled = NO;
       internal->_cancellable = YES;
-      internal->_indeterminate = NO;
       internal->_finished = NO;
       internal->_localizedDescription = nil;
       internal->_localizedAdditionalDescription = nil;
@@ -371,12 +377,16 @@ static void tls_current_progress_pop(void)
   double prevFraction;
   double newFraction;
   double adjustedDeltaFraction;
+  BOOL wasIndeterminate;
+  BOOL nowIndeterminate;
 
   // This is one big atomic operation. An exclusive lock is required, as reading
   // from _completedUnitCount and _fractionCompleted might be inconsistent over
   // the update period.
   GS_MUTEX_LOCK(internal->_lock);
   prevFraction = internal->_fractionCompleted;
+  wasIndeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                               internal->_completedUnitCount);
 
   // If this function is called from a child, deltaFraction needs to be adjusted
   // according to the pending unit count of the child
@@ -385,6 +395,8 @@ static void tls_current_progress_pop(void)
   adjustedDeltaFraction = deltaFraction * unitCountForFraction / internal->_totalUnitCount;
   newFraction = prevFraction + adjustedDeltaFraction;
   newCompletedUnitCount = internal->_completedUnitCount + deltaCompletedUnit;
+  nowIndeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                               newCompletedUnitCount);
 
   if (prevFraction != newFraction)
     {
@@ -393,6 +405,10 @@ static void tls_current_progress_pop(void)
   if (deltaCompletedUnit != 0)
     {
       [self willChangeValueForKey: @"completedUnitCount"];
+    }
+  if (wasIndeterminate != nowIndeterminate)
+    {
+      [self willChangeValueForKey: @"indeterminate"];
     }
 
   // In macOS the finished check is placed before the didChangeValueForKey: @"completedUnitCount" message
@@ -413,6 +429,10 @@ static void tls_current_progress_pop(void)
     {
       internal->_fractionCompleted = newFraction;
       [self didChangeValueForKey: @"fractionCompleted"];
+    }
+  if (wasIndeterminate != nowIndeterminate)
+    {
+      [self didChangeValueForKey: @"indeterminate"];
     }
 
 
@@ -525,14 +545,30 @@ static void tls_current_progress_pop(void)
 - (void) setTotalUnitCount: (int64_t)count
 {
   double ratio;
+  BOOL wasIndeterminate;
+  BOOL nowIndeterminate;
 
   GS_MUTEX_LOCK(internal->_lock);
+
+  wasIndeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                               internal->_completedUnitCount);
+  nowIndeterminate = GSProgressIsIndeterminate(count,
+                                               internal->_completedUnitCount);
+  if (wasIndeterminate != nowIndeterminate)
+    {
+      [self willChangeValueForKey: @"indeterminate"];
+    }
 
   ratio = (double)count / internal->_totalUnitCount;
   internal->_totalUnitCount = count;
   [self _updateCompletedUnitsBy: 0
             fractionCompletedBy: (internal->_fractionCompleted / ratio) - internal->_fractionCompleted
            unitCountForFraction: internal->_totalUnitCount];
+
+  if (wasIndeterminate != nowIndeterminate)
+    {
+      [self didChangeValueForKey: @"indeterminate"];
+    }
 
   GS_MUTEX_UNLOCK(internal->_lock);
 }
@@ -570,7 +606,15 @@ static void tls_current_progress_pop(void)
   double fraction;
 
   GS_MUTEX_LOCK(internal->_lock);
-  fraction = internal->_fractionCompleted;
+  if (GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                internal->_completedUnitCount))
+    {
+      fraction = 0.0;
+    }
+  else
+    {
+      fraction = internal->_fractionCompleted;
+    }
   GS_MUTEX_UNLOCK(internal->_lock);
 
   return fraction;
@@ -680,7 +724,15 @@ static void tls_current_progress_pop(void)
   BOOL finished;
 
   GS_MUTEX_LOCK(internal->_lock);
-  finished = internal->_finished;
+  if (GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                internal->_completedUnitCount))
+    {
+      finished = NO;
+    }
+  else
+    {
+      finished = internal->_finished;
+    }
   GS_MUTEX_UNLOCK(internal->_lock);
 
   return finished;
@@ -704,7 +756,14 @@ static void tls_current_progress_pop(void)
 
 - (BOOL) isIndeterminate
 {
-  return NO;
+  BOOL indeterminate;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  indeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
+                                            internal->_completedUnitCount);
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return indeterminate;
 }
 
 - (BOOL) isOld
@@ -917,4 +976,3 @@ static void tls_current_progress_pop(void)
 }
 
 @end
-
