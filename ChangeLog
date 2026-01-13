@@ -1,5 +1,14 @@
 2026-01-13 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Headers/Foundation/NSNotification.h:
+	* Source/NSNotification.m:
+	* Source/NSNotificationCenter.m:
+	* Tests/base/NSNotification/basic.m:
+	Add NSNotification initWithName:object:userInfo: and update
+	notificationWithName: factories to use it.
+
+2026-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Source/NSProgress.m: Implement NSProgress isIndeterminate property.
 
 2025-12-26 Richard Frith-Macdonald <rfm@gnu.org>
