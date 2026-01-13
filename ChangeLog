@@ -1,3 +1,7 @@
+2026-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProgress.m: Implement NSProgress isIndeterminate property.
+
 2025-12-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHTTPCookie.m: Fix case sensitivity issue #567
