@@ -34,7 +34,7 @@
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _phonetic = NO;
       _style = NSPersonNameComponentsFormatterStyleDefault;
@@ -48,15 +48,20 @@
   _nameOptions = opts;
 }
 
-// Designated init...
-+ (NSString *) localizedStringFromPersonNameComponents: (NSPersonNameComponents *)components
-                                                 style: (NSPersonNameComponentsFormatterStyle)nameFormatStyle
-                                               options: (NSPersonNameComponentsFormatterOptions)nameOptions
++ (NSString*) localizedStringFromPersonNameComponents:
+  (NSPersonNameComponents*)components
+  style: (NSPersonNameComponentsFormatterStyle)nameFormatStyle
+  options: (NSPersonNameComponentsFormatterOptions)nameOptions
 {
-  NSPersonNameComponentsFormatter *fmt = [[NSPersonNameComponentsFormatter alloc] init];
+  NSPersonNameComponentsFormatter	*fmt;
+  NSString				*str;
+
+  fmt = [NSPersonNameComponentsFormatter new];
   [fmt setStyle: nameFormatStyle];
   [fmt _setNameOptions: nameOptions];
-  return [fmt stringForObjectValue: components] ;
+  str = [fmt stringForObjectValue: components];
+  RELEASE(fmt);
+  return str;
 }
 
 // Setters
@@ -81,123 +86,143 @@
 }
 
 // Convenience methods...
-- (NSString *) stringFromPersonNameComponents: (NSPersonNameComponents *)components
+- (NSString*) stringFromPersonNameComponents:
+  (NSPersonNameComponents*)components
 {
-  NSString *result = @"";
+  NSString	*result = @"";
   
   switch (_style)
     {
-    case NSPersonNameComponentsFormatterStyleDefault:
-    case NSPersonNameComponentsFormatterStyleMedium:
-      result = [result stringByAppendingString: [components givenName]];
-      result = [result stringByAppendingString: @" "];
-      result = [result stringByAppendingString: [components familyName]];
-      break;
-    case NSPersonNameComponentsFormatterStyleShort:
-      result = [result stringByAppendingString: [components givenName]];
-      break;
-    case NSPersonNameComponentsFormatterStyleLong:      
-      result = [result stringByAppendingString: [components namePrefix]];
-      result = [result stringByAppendingString: @" "];
-      result = [result stringByAppendingString: [components givenName]];
-      result = [result stringByAppendingString: @" "];
-      result = [result stringByAppendingString: [components familyName]];
-      result = [result stringByAppendingString: @" "];
-      result = [result stringByAppendingString: [components nameSuffix]];
-      break;
-    case NSPersonNameComponentsFormatterStyleAbbreviated:
-      result = [result stringByAppendingString: [[components givenName] substringToIndex: 1]];
-      result = [result stringByAppendingString: [[components familyName] substringToIndex: 1]];
-      break;
+      case NSPersonNameComponentsFormatterStyleDefault:
+      case NSPersonNameComponentsFormatterStyleMedium:
+	result = [result stringByAppendingString: [components givenName]];
+	result = [result stringByAppendingString: @" "];
+	result = [result stringByAppendingString: [components familyName]];
+	break;
+
+      case NSPersonNameComponentsFormatterStyleShort:
+	result = [result stringByAppendingString: [components givenName]];
+	break;
+
+      case NSPersonNameComponentsFormatterStyleLong:      
+	result = [result stringByAppendingString: [components namePrefix]];
+	result = [result stringByAppendingString: @" "];
+	result = [result stringByAppendingString: [components givenName]];
+	result = [result stringByAppendingString: @" "];
+	result = [result stringByAppendingString: [components familyName]];
+	result = [result stringByAppendingString: @" "];
+	result = [result stringByAppendingString: [components nameSuffix]];
+	break;
+      case NSPersonNameComponentsFormatterStyleAbbreviated:
+
+	result = [result stringByAppendingString:
+	  [[components givenName] substringToIndex: 1]];
+	result = [result stringByAppendingString:
+	  [[components familyName] substringToIndex: 1]];
+	break;
     }
   
   return result;
 }
 
-- (NSAttributedString *) annotatedStringFromPersonNameComponents: (NSPersonNameComponents *)components
+- (NSAttributedString*) annotatedStringFromPersonNameComponents:
+  (NSPersonNameComponents*)components
 {
-  NSAttributedString *result =  AUTORELEASE([[NSAttributedString alloc] initWithString:
-                                                  [self stringFromPersonNameComponents: components]]);
+  NSAttributedString *result;
+
+  result = AUTORELEASE([[NSAttributedString alloc] initWithString:
+    [self stringFromPersonNameComponents: components]]);
   return result;
 }
 
-- (NSPersonNameComponents *) personNameComponentsFromString: (NSString *)string
+- (NSPersonNameComponents*) personNameComponentsFromString: (NSString*)string
 {
-  NSPersonNameComponents *pnc = AUTORELEASE([[NSPersonNameComponents alloc] init]);
-  NSArray *nameArray = [string componentsSeparatedByString: @" "];
-  NSUInteger count = [nameArray count];
+  NSPersonNameComponents	*pnc;
+  NSArray 			*nameArray;
+  NSUInteger 			count;
 
-  switch(count)
+  pnc = AUTORELEASE([[NSPersonNameComponents alloc] init]);
+  nameArray = [string componentsSeparatedByString: @" "];
+  count = [nameArray count];
+  switch (count)
     {
-    case 1:
-      [pnc setNickname: [nameArray objectAtIndex: 0]];
-      break;
-    case 2:
-      [pnc setGivenName: [nameArray objectAtIndex: 0]];
-      [pnc setFamilyName: [nameArray objectAtIndex: 1]];
-      break;
-    case 3:
-      {
-        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
-        if([first isEqualToString: @"mr"] ||
-           [first isEqualToString: @"ms"] ||
-           [first isEqualToString: @"mrs"] ||
-           [first isEqualToString: @"dr"])
-          {
-            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
-            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
-          }
-        else
-          {
-            [pnc setGivenName:  [nameArray objectAtIndex: 0]];
-            [pnc setMiddleName: [nameArray objectAtIndex: 1]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
-          }
-      }
-      break;
-    case 4:
-      {
-        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
-        if([first isEqualToString: @"mr."] ||
-           [first isEqualToString: @"ms."] ||
-           [first isEqualToString: @"mrs."] ||
-           [first isEqualToString: @"dr."])
-          {
-            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
-            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
-            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 3]];
-          }
-        else
-          {
-            [pnc setGivenName:  [nameArray objectAtIndex: 0]];
-            [pnc setMiddleName: [nameArray objectAtIndex: 1]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
-            [pnc setNameSuffix: [nameArray objectAtIndex: 3]];
-          }
-      }
-      break;
-    case 5:
-      {
-        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
-        if([first isEqualToString: @"mr."] ||
-           [first isEqualToString: @"ms."] ||
-           [first isEqualToString: @"mrs."] ||
-           [first isEqualToString: @"dr."])
-          {
-            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
-            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
-            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 3]];
-            [pnc setNameSuffix: [nameArray objectAtIndex: 4]];
-          }
-      }
-      break;
-    default:
-      NSLog(@"Not sure how to parse %@", string);
-      pnc = nil;
-      break;
+      case 1:
+	[pnc setNickname: [nameArray objectAtIndex: 0]];
+	break;
+
+      case 2:
+	[pnc setGivenName: [nameArray objectAtIndex: 0]];
+	[pnc setFamilyName: [nameArray objectAtIndex: 1]];
+	break;
+
+      case 3:
+	{
+	  NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+
+	  if ([first isEqualToString: @"mr"]
+	    || [first isEqualToString: @"ms"]
+	    || [first isEqualToString: @"mrs"]
+	    || [first isEqualToString: @"dr"])
+	    {
+	      [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+	      [pnc setGivenName:  [nameArray objectAtIndex: 1]];
+	      [pnc setFamilyName: [nameArray objectAtIndex: 2]];
+	    }
+	  else
+	    {
+	      [pnc setGivenName:  [nameArray objectAtIndex: 0]];
+	      [pnc setMiddleName: [nameArray objectAtIndex: 1]];
+	      [pnc setFamilyName: [nameArray objectAtIndex: 2]];
+	    }
+	}
+	break;
+
+      case 4:
+	{
+	  NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+
+	  if ([first isEqualToString: @"mr."]
+	    || [first isEqualToString: @"ms."]
+	    || [first isEqualToString: @"mrs."]
+	    || [first isEqualToString: @"dr."])
+	    {
+	      [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+	      [pnc setGivenName:  [nameArray objectAtIndex: 1]];
+	      [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+	      [pnc setFamilyName: [nameArray objectAtIndex: 3]];
+	    }
+	  else
+	    {
+	      [pnc setGivenName:  [nameArray objectAtIndex: 0]];
+	      [pnc setMiddleName: [nameArray objectAtIndex: 1]];
+	      [pnc setFamilyName: [nameArray objectAtIndex: 2]];
+	      [pnc setNameSuffix: [nameArray objectAtIndex: 3]];
+	    }
+	}
+	break;
+
+      case 5:
+	{
+	  NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+
+	  if ([first isEqualToString: @"mr."]
+	    || [first isEqualToString: @"ms."]
+	    || [first isEqualToString: @"mrs."]
+	    || [first isEqualToString: @"dr."])
+	    {
+	      [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+	      [pnc setGivenName:  [nameArray objectAtIndex: 1]];
+	      [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+	      [pnc setFamilyName: [nameArray objectAtIndex: 3]];
+	      [pnc setNameSuffix: [nameArray objectAtIndex: 4]];
+	    }
+	}
+	break;
+
+      default:
+	NSLog(@"Not sure how to parse %@", string);
+	pnc = nil;
+	break;
     }
   return pnc;
 }
@@ -207,7 +232,8 @@
        errorDescription: (NSString **)error
 {
   NSPersonNameComponents *pnc = [self personNameComponentsFromString: string];
-  if(pnc != nil)
+
+  if (pnc != nil)
     {
       *obj = pnc;
       *error = nil;
@@ -220,9 +246,10 @@
   return NO;
 }
 
-- (NSString *)stringForObjectValue: (id)obj
+- (NSString*)stringForObjectValue: (id)obj
 {
   NSPersonNameComponents *pnc = (NSPersonNameComponents *)obj;
+
   return [self stringFromPersonNameComponents: pnc];
 }
 
@@ -234,31 +261,42 @@
       if ([coder allowsKeyedCoding])
         {
           // Apple uses a private data object: NS.nameComponentsFormatterPrivate
-          id privateData = [coder decodeObjectForKey: @"NS.nameComponentsFormatterPrivate"];
-          if (privateData != nil && [coder respondsToSelector: @selector(decodeObjectForKey:)])
+          id privateData;
+
+          privateData = [coder
+	    decodeObjectForKey: @"NS.nameComponentsFormatterPrivate"];
+          if (privateData != nil
+	    && [coder respondsToSelector: @selector(decodeObjectForKey:)])
             {
               // Decode from the private data structure
-              _phonetic = [[privateData valueForKey: @"NS.nameFormatterIsPhonetic"] boolValue];
-              _style = [[privateData valueForKey: @"NS.nameFormatterStyle"] integerValue];
-              // Additional Apple private fields (for compatibility):
-              // NS.nameFormatterForceFamilyNameFirst
-              // NS.nameFormatterForceGivenNameFirst
-              // NS.nameFormatterIgnoresFallbacks
-              // NS.nameFormatterLocale
+              _phonetic = [[privateData
+		valueForKey: @"NS.nameFormatterIsPhonetic"] boolValue];
+              _style = [[privateData
+		valueForKey: @"NS.nameFormatterStyle"] integerValue];
+              /* Additional Apple private fields (for compatibility):
+               * NS.nameFormatterForceFamilyNameFirst
+               * NS.nameFormatterForceGivenNameFirst
+               * NS.nameFormatterIgnoresFallbacks
+               * NS.nameFormatterLocale
+	       */
             }
           else
             {
               // Fallback to direct decoding (GNUstep format)
-              _phonetic = [coder decodeBoolForKey: @"NS.nameFormatterIsPhonetic"];
-              _style = [coder decodeIntegerForKey: @"NS.nameFormatterStyle"];
+              _phonetic = [coder
+		decodeBoolForKey: @"NS.nameFormatterIsPhonetic"];
+              _style = [coder
+		decodeIntegerForKey: @"NS.nameFormatterStyle"];
               _nameOptions = 0; // Default value
             }
         }
       else
         {
           [coder decodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
-          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
-          [coder decodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+          [coder decodeValueOfObjCType:
+	    @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+          [coder decodeValueOfObjCType:
+	    @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
         }
     }
   return self;
@@ -282,13 +320,16 @@
       [privateData setObject: [NSNumber numberWithBool: NO] 
                       forKey: @"NS.nameFormatterIgnoresFallbacks"];
       
-      [coder encodeObject: privateData forKey: @"NS.nameComponentsFormatterPrivate"];
+      [coder encodeObject: privateData
+		   forKey: @"NS.nameComponentsFormatterPrivate"];
     }
   else
     {
       [coder encodeValueOfObjCType: @encode(BOOL) at: &_phonetic];
-      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterStyle) at: &_style];
-      [coder encodeValueOfObjCType: @encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
+      [coder encodeValueOfObjCType:
+	@encode(NSPersonNameComponentsFormatterStyle) at: &_style];
+      [coder encodeValueOfObjCType:
+	@encode(NSPersonNameComponentsFormatterOptions) at: &_nameOptions];
     }
 }
 
