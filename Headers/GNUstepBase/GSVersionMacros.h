@@ -358,6 +358,16 @@
 #  endif
 #endif
 
+#ifndef NS_REPLACES_RECEIVER
+#  if __has_feature(attribute_ns_consumes_self) \
+     && __has_feature(attribute_ns_returns_retained)
+#    define NS_REPLACES_RECEIVER __attribute__((ns_consumes_self)) \
+       __attribute__((ns_returns_retained))
+#  else
+#    define NS_REPLACES_RECEIVER
+#  endif
+#endif
+
 #if defined(__clang__) && defined(__OBJC__)
 static inline void gs_consumed(id NS_CONSUMED o) GS_UNUSED_FUNC;
 static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }

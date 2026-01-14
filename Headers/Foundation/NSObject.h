@@ -293,7 +293,7 @@ extern "C" {
  * documentation for [NSCoder], [NSUnarchiver], [NSKeyedUnarchiver], and/or
  * [NSPortCoder] for more information.
  */
-- (id) initWithCoder: (NSCoder*)aDecoder;
+- (id) initWithCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
 @end
 
 @protocol NSSecureCoding <NSCoding>
@@ -384,7 +384,7 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 + (void) setVersion: (NSInteger)aVersion;
 + (NSInteger) version;
 
-- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
+- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (id) copy;

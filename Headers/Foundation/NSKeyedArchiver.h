@@ -560,7 +560,7 @@ willReplaceObject: (id)anObject
  * returned, it is used to replace anObject.
  */
 - (id) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
-  didDecodeObject: (id)anObject;
+  didDecodeObject: (id) NS_CONSUMED anObject NS_RETURNS_RETAINED;
 
 /**
  * Sent when unarchiving is about to complete.

@@ -891,6 +891,10 @@ static NSUInteger	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	name, NSStringFromSelector(_cmd)];
     }
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
   NS_DURING
@@ -1907,9 +1911,10 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-          char		buf[strlen(myData->path) + 1];
+	  int	len = strlen(myData->path) + 1;
+          char	buf[len];
 
-          strcpy(buf, myData->path);
+          memcpy(buf, myData->path, len);
           unescape(buf, buf);
 	  path = [NSString stringWithUTF8String: buf];
 	}

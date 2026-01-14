@@ -185,6 +185,7 @@ static NSMapTable	*globalClassMap = 0;
       NSArray		*classes;
       Class		c;
       id		r;
+      id		s;
       NSDictionary	*savedKeyMap;
       unsigned		savedCursor;
 
@@ -230,40 +231,56 @@ static NSMapTable	*globalClassMap = 0;
       o = [c allocWithZone: _zone];	// Create instance.
       // Store object in map so that decoding of it can be self referential.
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
+
+      s = RETAIN(o);
       r = [o initWithCoder: self];
-      if (r != o)
+      if (s != r)
 	{
 	  [_delegate unarchiver: self
-	      willReplaceObject: o
+	      willReplaceObject: s
 		     withObject: r];
-	  o = r;
-	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
+	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
 	}
+      o = r;
+      DESTROY(s);
+
+      s = RETAIN(o);
       r = [o awakeAfterUsingCoder: self];
-      if (r != o)
+      if (s != r)
 	{
 	  [_delegate unarchiver: self
-	      willReplaceObject: o
+	      willReplaceObject: s
 		     withObject: r];
-	  o = r;
-	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
+	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
 	}
+      o = r;
+      DESTROY(s);
 
       if (_delegate != nil)
 	{
+	  s = RETAIN(o);
 	  r = [_delegate unarchiver: self didDecodeObject: o];
 	  /* Apple documentation says that the delegate may return nil to
 	   * indicate that the decoded objects should not be changed.
 	   */
-	  if (r != nil && r != o)
+	  if (nil == r)
 	    {
-	      [_delegate unarchiver: self
-		  willReplaceObject: o
-			 withObject: r];
-	      o = RETAIN(r);
-	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
+	      o = s;
+	    }
+	  else
+	    {
+	      if (s != r)
+		{
+		  [_delegate unarchiver: self
+		      willReplaceObject: s
+			     withObject: r];
+		  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
+		}
+	      o = r;
+	      DESTROY(s);
 	    }
 	}
+
       RELEASE(o);	// Retained in array
       obj = o;
       _keyMap = savedKeyMap;
@@ -275,6 +292,9 @@ static NSMapTable	*globalClassMap = 0;
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)obj, index);
     }
 
+#ifdef  __clang_analyzer__
+  [[clang::suppress]]
+#endif
   if ((obj == nil) || [@"$null" isEqual: obj])
     {
       // Record NilMarker for decoded object.

@@ -592,10 +592,18 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (node == 0)
     {
       char	*buf;
+      int	len = strlen(t) + 1;
 
       sig = [[self alloc] _initWithObjCTypes: t];
-      buf = malloc(strlen(t) + 1);
-      strcpy(buf, t);
+      buf = malloc(len);
+      memcpy(buf, t, len);
+
+      /* We suppress the static analyser warning about the intentional
+       * leak (until end of execution) of the cache contents.
+       */
+#ifdef  __clang_analyzer__
+      [[clang::suppress]]
+#endif
       GSIMapAddPair(&cacheTable, (GSIMapKey)buf, (GSIMapVal)(id)sig);
     }
   else
