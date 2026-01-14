@@ -1477,6 +1477,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"NS_AUTOMATED_REFCOUNT_UNAVAILABLE"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMED"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMES_SELF"];
+	  [wm setObject: @"" forKey: @"NS_REPLACES_RECEIVER"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
 	  [wm setObject: @"" forKey: @"_Nonnull"];

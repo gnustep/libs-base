@@ -1,4 +1,4 @@
-/**Definition of class NSUserActivity
+/** Definition of class NSUserActivity
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory John Casamento <greg.casamento@gmail.com>
@@ -122,21 +122,19 @@ GS_EXPORT_CLASS
 
 @end
 
-@protocol NSUserActivityDelegate <NSObject>
 #if GS_PROTOCOLS_HAVE_OPTIONAL
+@protocol NSUserActivityDelegate <NSObject>
 @optional
-#else
-@end
-@interface NSObject (NSUserActivityDelegate)
-#endif
-
 - (void) userActivityWillSave: (NSUserActivity *)userActivity;
 - (void) userActivityWasContinued: (NSUserActivity *)userActivity;
-
-#if !GS_PROTOCOLS_HAVE_OPTIONAL
+@end
+#else
+@interface NSObject (NSUserActivityDelegate)
+- (void) userActivityWillSave: (NSUserActivity *)userActivity;
+- (void) userActivityWasContinued: (NSUserActivity *)userActivity;
 @end
 #endif
-@end
+
 
 #if	defined(__cplusplus)
 }
