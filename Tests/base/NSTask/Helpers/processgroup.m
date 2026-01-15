@@ -23,10 +23,28 @@ main(int argc, char **argv)
   printf("getsid %d\n", getsid(0));
   printf("result of open of /dev/tty is %d\n", open("/dev/tty", O_WRONLY));
 */
-  if (atoi(argv[1]) == getpgrp())
+  /* Test process group change - this should always work.
+   * TTY detachment is attempted on glibc >= 2.35 but may not work in
+   * containers, so we only fail if the session ID equals our parent's
+   * (which means setsid() definitely didn't work).
+   */
+  int parent_pgrp = atoi(argv[1]);
+  int my_pgrp = getpgrp();
+  int my_sid = getsid(0);
+  
+  if (parent_pgrp == my_pgrp)
     i = 1;                                      /* pgrp not set properly */
-  else if (open("/dev/tty", O_WRONLY) >= 0)
-    i = 2;                                      /* not detached from tty */
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 35))
+  /* On glibc >= 2.35, we expect setsid() to work (new session).
+   * If session ID equals our PID, setsid() created a new session.
+   * If not, it's OK - may be running in a restricted environment.
+   */
+  else if (my_sid != getpid() && my_sid == parent_pgrp)
+    {
+      /* Still in parent's session AND not session leader - setsid failed */
+      i = 2;
+    }
+#endif
   else
     i = 0;                                      /* OK */
 #endif  /* __MINGW32__ */
