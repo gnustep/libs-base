@@ -106,6 +106,114 @@ ensure_oldNs(xmlNodePtr node)
   return newDoc;
 }
 
+#if LIBXML_VERSION >= 21200
+/* Recursively update document pointers without calling xmlSetTreeDoc
+ * to avoid automatic text node merging in libxml2 2.12.0+.
+ * This function manually updates doc pointers for the entire subtree.
+ */
+static void
+updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
+{
+  if (node == NULL || node->doc == doc)
+    {
+      return;
+    }
+  
+  node->doc = doc;
+  
+  /* CRITICAL: Ensure text nodes have unique name pointers!
+   * libxml2 merges text nodes when node->name pointers match.
+   * Allocate a unique copy of "text" for each text node to prevent merging.
+   */
+  if (node->type == XML_TEXT_NODE && node->name != NULL)
+    {
+      /* Check if name is from a dictionary (shared pointer) */
+      const xmlChar *oldName = node->name;
+      node->name = xmlStrdup((const xmlChar*)"text");
+    }
+  
+  /* Handle different node types */
+  switch (node->type)
+    {
+      case XML_ELEMENT_NODE:
+        {
+          /* Update attributes */
+          xmlAttrPtr attr = node->properties;
+          while (attr != NULL)
+            {
+              attr->doc = doc;
+              /* Update attribute value nodes */
+              if (attr->children != NULL)
+                {
+                  xmlNodePtr attrChild = attr->children;
+                  while (attrChild != NULL)
+                    {
+                      attrChild->doc = doc;
+                      attrChild = attrChild->next;
+                    }
+                }
+              attr = attr->next;
+            }
+          
+          /* Update namespace declarations */
+          xmlNsPtr ns = node->nsDef;
+          while (ns != NULL)
+            {
+              ns->context = doc;
+              ns = ns->next;
+            }
+          
+          /* Recursively update children */
+          if (node->children != NULL)
+            {
+              xmlNodePtr child = node->children;
+              while (child != NULL)
+                {
+                  updateTreeDocManually(child, doc);
+                  child = child->next;
+                }
+            }
+        }
+        break;
+        
+      case XML_ATTRIBUTE_NODE:
+        {
+          xmlAttrPtr attr = (xmlAttrPtr)node;
+          if (attr->children != NULL)
+            {
+              xmlNodePtr attrChild = attr->children;
+              while (attrChild != NULL)
+                {
+                  updateTreeDocManually(attrChild, doc);
+                  attrChild = attrChild->next;
+                }
+            }
+        }
+        break;
+        
+      case XML_TEXT_NODE:
+      case XML_CDATA_SECTION_NODE:
+      case XML_COMMENT_NODE:
+      case XML_PI_NODE:
+        /* Simple nodes with no children - doc already updated above */
+        break;
+        
+      default:
+        /* For other node types, recursively process children if any */
+        if (node->children != NULL)
+          {
+            xmlNodePtr child = node->children;
+            while (child != NULL)
+              {
+                updateTreeDocManually(child, doc);
+                child = child->next;
+              }
+          }
+        break;
+    }
+}
+#endif
+
 static int
 countAttributes(xmlNodePtr node)
 {
@@ -635,7 +743,19 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
                 }
             }
 
-#if LIBXML_VERSION >= 20620
+          /* Determine if we'll use manual linking to avoid text node merging */
+          BOOL willUseManualLinking = !mergeTextNodes 
+            && (childNode->type == XML_TEXT_NODE || parentNode->type == XML_TEXT_NODE);
+
+#if LIBXML_VERSION >= 21200
+          /* In libxml2 2.12.0+, we skip doc adoption here if we'll do manual
+           * linking later, as that will handle doc updates without merging.
+           */
+          if (!willUseManualLinking)
+            {
+              updateTreeDocManually(childNode, parentNode->doc);
+            }
+#elif LIBXML_VERSION >= 20620
           xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, 
                               parentNode->doc, parentNode, 0);
 #else
@@ -680,8 +800,35 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       /* here we avoid merging adjacent text nodes by linking
        * the new node in "by hand"
        */
+      
+#if LIBXML_VERSION >= 21200
+      /* In libxml2 2.12.0+, xmlSetTreeDoc triggers automatic text node
+       * merging internally. Update doc BEFORE setting parent to avoid
+       * triggering normalization.
+       */
+      if (childNode->doc != parentNode->doc)
+        {
+          updateTreeDocManually(childNode, parentNode->doc);
+        }
+      
+      /* CRITICAL: Even if docs match, text nodes need unique name pointers!
+       * libxml2 merges text nodes when node->name pointers are identical.
+       * Allocate a unique "text" string for each text node.
+       */
+      if (childNode->type == XML_TEXT_NODE && childNode->name != NULL)
+        {
+          const xmlChar *oldName = childNode->name;
+          childNode->name = xmlStrdup((const xmlChar*)"text");
+        }
+      
+      /* Set parent first - this is the original behavior and important for
+       * older libxml2 versions if xmlSetTreeDoc needs to be called.
+       */
+      childNode->parent = parentNode;
+#else
       childNode->parent = parentNode;
       xmlSetTreeDoc(childNode, parentNode->doc);
+#endif
 
       if (curNode)
 	{
