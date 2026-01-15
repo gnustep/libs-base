@@ -1072,12 +1072,10 @@ main(int argc, char **argv, char **env)
       sourceDirectory = @"";
     }
 
+  /* NB. The documentation directory needs to be a relative path,
+   * because it is used to generate dependencies for make.
+   */
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
-  if ([documentationDirectory isAbsolutePath] == NO)
-    {
-      documentationDirectory = [[mgr currentDirectoryPath]
-	stringByAppendingPathComponent: documentationDirectory];
-    }
   if ([mgr fileExistsAtPath: documentationDirectory] == NO)
     {
       [mgr createDirectoryAtPath: documentationDirectory
