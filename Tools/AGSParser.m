@@ -554,6 +554,10 @@ equalTypes(NSArray *t1, NSArray *t2)
 {
   NSMutableCharacterSet	*m;
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   m = [[NSCharacterSet controlCharacterSet] mutableCopy];
   [m addCharactersInString: @" "];
   spacenl = [m copy];
