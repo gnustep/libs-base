@@ -84,22 +84,25 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
 static void
 setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
 {
+  xmlDocPtr	oldDoc;
+  BOOL 		adoptStr;
+
   if (node == NULL || node->doc == doc)
     return;
   
-  xmlDocPtr oldDoc = node->doc;
-  BOOL adoptStr = NO;
+  oldDoc = node->doc;
+  adoptStr = NO;
   
   /* Only adopt strings if both docs exist and have different dicts */
-  if (oldDoc != NULL && doc != NULL && 
-      oldDoc->dict != NULL && doc->dict != NULL &&
-      oldDoc->dict != doc->dict)
+  if (oldDoc != NULL && doc != NULL
+    && oldDoc->dict != NULL && doc->dict != NULL
+    && oldDoc->dict != doc->dict)
     {
       adoptStr = YES;
     }
   /* If new doc has no dict but old doc has dict, need to copy strings out */
-  else if (oldDoc != NULL && oldDoc->dict != NULL && 
-           doc != NULL && doc->dict == NULL)
+  else if (oldDoc != NULL && oldDoc->dict != NULL
+    && doc != NULL && doc->dict == NULL)
     {
       adoptStr = 2; /* Special mode: copy strings out of dict */
     }
@@ -114,7 +117,8 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
           if (adoptStr == 1)
             {
               /* Adopt into new dict */
-              node->content = (xmlChar *)xmlDictLookup(doc->dict, node->content, -1);
+              node->content
+		= (xmlChar *)xmlDictLookup(doc->dict, node->content, -1);
             }
           else if (adoptStr == 2)
             {
@@ -214,11 +218,15 @@ ensure_oldNs(xmlNodePtr node)
 
   if (node->doc == NULL)
     {
-      // Create a private document for this node.
+      /* Create a private document for this node.
+       */
       xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
       
-      // When node->doc is NULL, we can't use xmlDOMWrapAdoptNode (it needs sourceDoc)
-      // Just set the tree doc directly - node has no doc so no namespace conflicts
+      /* When node->doc is NULL, we can't use xmlDOMWrapAdoptNode (it
+       * needs sourceDoc)
+       * Just set the tree doc directly - node has no doc so no namespace
+       * conflicts
+       */
       xmlSetTreeDoc(node, tmp);
       newDoc = YES;
     }
@@ -681,8 +689,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
               docNode = node->doc;
             }
 
-          if ((docNode != NULL) && ((xmlNodePtr)docNode != node) &&
-              (NULL != docNode->children))
+          if ((docNode != NULL) && ((xmlNodePtr)docNode != node)
+	    && (NULL != docNode->children))
             {
               doc = (NSXMLDocument*)[self _objectForNode: (xmlNodePtr)docNode];
               if (doc != nil)
@@ -797,6 +805,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
           // Try to resolve half defined namespaces
           xmlNsPtr ns;
           xmlNsPtr last = NULL;
+#if LIBXML_VERSION >= 21200
+          BOOL willUseManualLinking;
+#endif
 
 	  if (ensure_oldNs(parentNode))
 	    {
@@ -871,11 +882,13 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
                 }
             }
 
-          /* Determine if we'll use manual linking to avoid text node merging */
-          BOOL willUseManualLinking = !mergeTextNodes 
-            && (childNode->type == XML_TEXT_NODE || parentNode->type == XML_TEXT_NODE);
-
 #if LIBXML_VERSION >= 21200
+          /* Determine if we'll use manual linking to avoid text node merging
+	   */
+          willUseManualLinking = !mergeTextNodes 
+            && (childNode->type == XML_TEXT_NODE
+	      || parentNode->type == XML_TEXT_NODE);
+
           /* In libxml2 2.12.0+, we skip doc adoption here if we'll do manual
            * linking later, as that will handle doc updates without merging.
            */
@@ -1424,8 +1437,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       return 0;
     }
 
-  if ((theNode->type == XML_NAMESPACE_DECL) ||
-      (theNode->type == XML_ATTRIBUTE_NODE))
+  if ((theNode->type == XML_NAMESPACE_DECL)
+    || (theNode->type == XML_ATTRIBUTE_NODE))
     {
       return 0;
     }
@@ -1451,10 +1464,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       xmlNodePtr children = NULL;
       xmlNodePtr theNode = internal->node.node;
       
-      if ((theNode == NULL) ||
-          (theNode->type == XML_NAMESPACE_DECL) ||
-          (theNode->type == XML_ATTRIBUTE_NODE) ||
-          (theNode->children == NULL))
+      if ((theNode == NULL)
+	|| (theNode->type == XML_NAMESPACE_DECL)
+	|| (theNode->type == XML_ATTRIBUTE_NODE)
+	|| (theNode->children == NULL))
 	{
 	  return nil;
 	}
@@ -2233,8 +2246,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     {
       return;
     }
-  if ((theNode->type == XML_ATTRIBUTE_NODE) ||
-      (theNode->type == XML_ELEMENT_NODE))
+  if ((theNode->type == XML_ATTRIBUTE_NODE)
+    || (theNode->type == XML_ELEMENT_NODE))
     {
       const xmlChar *uri = XMLSTRING(URI);
       xmlNsPtr ns;
@@ -2303,8 +2316,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     {
       return nil;
     }
-  if ((theNode->type == XML_ATTRIBUTE_NODE) ||
-      (theNode->type == XML_ELEMENT_NODE))
+  if ((theNode->type == XML_ATTRIBUTE_NODE)
+    || (theNode->type == XML_ELEMENT_NODE))
     {
       xmlNsPtr ns = theNode->ns;
       
