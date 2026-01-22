@@ -163,22 +163,42 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
       xmlNodePtr cur = NULL;
       const xmlChar *xmlName = XMLSTRING(name);
-      
+      xmlNsPtr defaultNS = NULL;
+
+      // Find the default namespace (empty or NULL prefix) of this parent element
+      xmlNsPtr ns;
+      for (ns = internal->node.node->nsDef; ns != NULL; ns = ns->next)
+        {
+          if (ns->prefix == NULL || xmlStrcmp(ns->prefix, (const xmlChar*)"") == 0)
+            {
+              defaultNS = ns;
+              break;
+            }
+        }
+
       for (cur = internal->node.node->children; cur != NULL; cur = cur->next)
         {
           if (cur->type == XML_ELEMENT_NODE)
             {
-              // no namespace or default namespace
-              if ((xmlStrcmp(xmlName, cur->name) == 0) &&
-                  ((cur->ns == NULL) || (cur->ns->prefix == NULL) ||
-                   (xmlStrcmp(cur->ns->prefix, (const xmlChar*)"") == 0)))
+              if (xmlStrcmp(xmlName, cur->name) == 0)
                 {
-                  NSXMLNode *theNode = [NSXMLNode _objectForNode: cur];
-                  [results addObject: theNode];
+                  // Match elements with no namespace
+                  if (cur->ns == NULL)
+                    {
+                      NSXMLNode *theNode = [NSXMLNode _objectForNode: cur];
+                      [results addObject: theNode];
+                    }
+                  // Match elements in the default namespace if one exists
+                  else if (defaultNS != NULL && cur->ns->href != NULL &&
+                           xmlStrcmp(cur->ns->href, defaultNS->href) == 0)
+                    {
+                      NSXMLNode *theNode = [NSXMLNode _objectForNode: cur];
+                      [results addObject: theNode];
+                    }
                 }
             }
         }
-  
+
       return results;
     }
 }
