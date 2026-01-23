@@ -86,6 +86,14 @@
 #include <sys/param.h>
 #endif
 
+#if defined(__linux__) && !defined(_WIN32) && defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 29))
+/* posix_spawn is available on Linux, and we need glibc > 2.28 for:
+ * - posix_spawn_file_actions_addchdir_np() which was added in glibc 2.29
+ */
+#include <spawn.h>
+#define USE_POSIX_SPAWN 1
+#endif
+
 
 /*
  *	If we are on a streams based system, we need to include stropts.h
@@ -1698,6 +1706,154 @@ GSPrivateCheckTasks()
     }
   edesc = [hdl fileDescriptor];
 
+#if defined(USE_POSIX_SPAWN)
+  /* On Linux with glibc > 2.28, use posix_spawn instead of fork() as fork()
+   * is inherently unstable in a multithreaded environment. posix_spawn provides
+   * a safer alternative that doesn't duplicate the entire process memory space.
+   * 
+   * Note: We require glibc > 2.28 because we need:
+   * - posix_spawn_file_actions_addchdir_np() (added in glibc 2.29)
+   */
+  {
+    posix_spawn_file_actions_t file_actions;
+    posix_spawnattr_t attr;
+    int spawn_result;
+
+    /* Initialize spawn attributes and file actions */
+    if (posix_spawn_file_actions_init(&file_actions) != 0)
+      {
+        if (error)
+          {
+            *error = [NSError _last];
+          }
+        return NO;
+      }
+
+    if (posix_spawnattr_init(&attr) != 0)
+      {
+        posix_spawn_file_actions_destroy(&file_actions);
+        if (error)
+          {
+            *error = [NSError _last];
+          }
+        return NO;
+      }
+
+    /* Set flags to create a new process group and reset signals.
+     * POSIX_SPAWN_SETSID detaches from controlling terminal (like setsid()).
+     * It's reliably supported in glibc 2.26+ (2017).
+     */
+    short flags = POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF;
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 29))
+    flags |= POSIX_SPAWN_SETSID;
+#endif
+    posix_spawnattr_setflags(&attr, flags);
+    posix_spawnattr_setpgroup(&attr, 0);  /* 0 = new process group */
+
+    /* Reset all signals to default */
+    sigset_t default_signals;
+    sigfillset(&default_signals);
+    posix_spawnattr_setsigdefault(&attr, &default_signals);
+
+    if (_usePseudoTerminal == YES)
+      {
+        int s;
+        s = pty_slave(slave_name);
+        if (s < 0)
+          {
+            posix_spawn_file_actions_destroy(&file_actions);
+            posix_spawnattr_destroy(&attr);
+            if (error)
+              {
+                *error = [NSError _last];
+              }
+            return NO;
+          }
+
+        /* Set up stdin, stdout and stderr using file actions */
+        posix_spawn_file_actions_adddup2(&file_actions, s, 0);
+        posix_spawn_file_actions_adddup2(&file_actions, s, 1);
+        posix_spawn_file_actions_adddup2(&file_actions, s, 2);
+        if (s != 0 && s != 1 && s != 2)
+          {
+            posix_spawn_file_actions_addclose(&file_actions, s);
+          }
+      }
+    else
+      {
+        /* Set up stdin, stdout and stderr by duplicating descriptors */
+        if (idesc != 0)
+          {
+            posix_spawn_file_actions_adddup2(&file_actions, idesc, 0);
+          }
+        if (odesc != 1)
+          {
+            posix_spawn_file_actions_adddup2(&file_actions, odesc, 1);
+          }
+        if (edesc != 2)
+          {
+            posix_spawn_file_actions_adddup2(&file_actions, edesc, 2);
+          }
+      }
+
+    /* Close file descriptors we don't need in the child */
+    for (i = 3; i < NOFILE && i < 256; i++)
+      {
+        posix_spawn_file_actions_addclose(&file_actions, i);
+      }
+
+    /* Change working directory for the spawned process.
+     * This uses a GNU extension available in glibc 2.29+ (2019).
+     * If building on an older system, this will require updating glibc
+     * or falling back to fork() implementation.
+     */
+    if (posix_spawn_file_actions_addchdir_np(&file_actions, path) != 0)
+      {
+        posix_spawn_file_actions_destroy(&file_actions);
+        posix_spawnattr_destroy(&attr);
+        if (error)
+          {
+            *error = [NSError _last];
+          }
+        return NO;
+      }
+
+    /* Spawn the process */
+    spawn_result = posix_spawn(&pid, executable, &file_actions, &attr,
+                               (char* const*)args, (char* const*)envl);
+
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 29))
+    /* If POSIX_SPAWN_SETSID failed (e.g., in containers), fall back to fork()
+     * which can use TIOCNOTTY ioctl to detach from the controlling terminal.
+     * This provides compatibility with the original behavior.
+     */
+    if (spawn_result == EINVAL || spawn_result == EPERM)
+      {
+        /* Clean up and fall through to fork() implementation */
+        posix_spawn_file_actions_destroy(&file_actions);
+        posix_spawnattr_destroy(&attr);
+        goto use_fork_implementation;
+      }
+#endif
+
+    /* Clean up spawn structures */
+    posix_spawn_file_actions_destroy(&file_actions);
+    posix_spawnattr_destroy(&attr);
+
+    if (spawn_result != 0)
+      {
+        if (error)
+          {
+            *error = [NSError _last];
+          }
+        return NO;
+      }
+  }
+  
+  goto skip_fork_implementation;
+#endif /* USE_POSIX_SPAWN */
+
+use_fork_implementation:
   /* NB. we use fork() rather than vfork() because the bahavior of vfork()
    * is undefined when we assign to variables or make system calls (as we
    * do below) other than a very limited set.
@@ -1705,6 +1861,7 @@ GSPrivateCheckTasks()
    * there is a guarantee that vfork() is safe, but when in doubt we must
    * assume the standard POSIX behavior.
    */
+  {
   pid = fork();
   if (pid < 0)
     {
@@ -1832,6 +1989,9 @@ GSPrivateCheckTasks()
     }
   else
     {
+#if defined(USE_POSIX_SPAWN)
+skip_fork_implementation:
+#endif
       _taskId = pid;
       _hasLaunched = YES;
       ASSIGN(_launchPath, lpath);	// Actual path used.
@@ -1850,7 +2010,8 @@ GSPrivateCheckTasks()
 	  [toClose removeObjectAtIndex: 0];
 	}
     }
-  
+  }  /* end of fork() implementation */
+
   return YES;
 }
 
