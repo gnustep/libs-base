@@ -100,39 +100,42 @@ static void tls_create_keys(void)
 static NSProgress *tls_current_progress_get(void)
 {
   NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
-  if (stack != NULL)
-  {
-    return [stack lastObject];
-  }
+
+  if (stack)
+    {
+      return [stack lastObject];
+    }
   else
-  {
-    return nil;
-  }
+    {
+      return nil;
+    }
 }
+
 static void tls_current_progress_push(NSProgress *new)
 {
   NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
   if (stack == NULL)
-  {
-    stack = tls_current_progress_create();
-  }
+    {
+      stack = tls_current_progress_create();
+    }
   [stack addObject: new];
 }
+
 static void tls_current_progress_pop(void)
 {
   NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
   if (stack != NULL)
-  {
-    [stack removeLastObject];
-  }
+    {
+      [stack removeLastObject];
+    }
 }
 
 static inline BOOL
 GSProgressIsIndeterminate(int64_t total, int64_t completed)
 {
   return (total < 0
-          || completed < 0
-          || (total == 0 && completed == 0));
+    || completed < 0
+    || (total == 0 && completed == 0));
 }
 
 @interface NSProgress (Private)
@@ -187,14 +190,15 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
   return NO; // We handle this in an internal method
 }
 
-+ (NSSet *)keyPathsForValuesAffectingLocalizedDescription {
-    return [NSSet setWithObjects: @"userInfo.NSProgressFileOperationKindKey",
-                                  @"userInfo.NSProgressFileTotalCountKey",
-                                  @"completedUnitCount",
-                                  @"totalUnitCount",
-                                  @"fractionCompleted",
-                                  @"kind",
-                                  nil];
++ (NSSet *)keyPathsForValuesAffectingLocalizedDescription
+{
+  return [NSSet setWithObjects: @"userInfo.NSProgressFileOperationKindKey",
+				@"userInfo.NSProgressFileTotalCountKey",
+				@"completedUnitCount",
+				@"totalUnitCount",
+				@"fractionCompleted",
+				@"kind",
+				nil];
 }
 
 + (NSProgress *) currentProgress
@@ -224,7 +228,8 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
     {
       RELEASE(self);
       [NSException raise: NSInvalidArgumentException
-		  format: @"The parent of an NSProgress object must be the currentProgress."];
+		  format: @"The parent of an NSProgress object must"
+	@" be the currentProgress."];
     }
 
   self = [super init];
@@ -368,9 +373,9 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
 }
 
 // Logic adapted from WinObjC implementation
-- (void)_updateCompletedUnitsBy:(int64_t)deltaCompletedUnit
-            fractionCompletedBy:(double)deltaFraction
-           unitCountForFraction:(int64_t)unitCountForFraction
+- (void) _updateCompletedUnitsBy: (int64_t)deltaCompletedUnit
+             fractionCompletedBy: (double)deltaFraction
+            unitCountForFraction: (int64_t)unitCountForFraction
 {
   NSProgress *parent;
   int64_t newCompletedUnitCount;
@@ -380,19 +385,23 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
   BOOL wasIndeterminate;
   BOOL nowIndeterminate;
 
-  // This is one big atomic operation. An exclusive lock is required, as reading
-  // from _completedUnitCount and _fractionCompleted might be inconsistent over
-  // the update period.
+  /* This is one big atomic operation. An exclusive lock is required, as reading
+   * from _completedUnitCount and _fractionCompleted might be inconsistent over
+   * the update period.
+   */
   GS_MUTEX_LOCK(internal->_lock);
   prevFraction = internal->_fractionCompleted;
   wasIndeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
-                                               internal->_completedUnitCount);
+    internal->_completedUnitCount);
 
-  // If this function is called from a child, deltaFraction needs to be adjusted
-  // according to the pending unit count of the child
-  // If this function is called from self, unitCountForFraction is equal to _totalUnitCount.
-  // Therefore deltaFractionForSelf = deltaFraction.
-  adjustedDeltaFraction = deltaFraction * unitCountForFraction / internal->_totalUnitCount;
+  /* If this function is called from a child, deltaFraction needs to be
+   * adjusted according to the pending unit count of the child
+   * If this function is called from self, unitCountForFraction is equal
+   * to _totalUnitCount.
+   * Therefore deltaFractionForSelf = deltaFraction.
+   */
+  adjustedDeltaFraction
+    = deltaFraction * unitCountForFraction / internal->_totalUnitCount;
   newFraction = prevFraction + adjustedDeltaFraction;
   newCompletedUnitCount = internal->_completedUnitCount + deltaCompletedUnit;
   nowIndeterminate = GSProgressIsIndeterminate(internal->_totalUnitCount,
@@ -411,7 +420,9 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
       [self willChangeValueForKey: @"indeterminate"];
     }
 
-  // In macOS the finished check is placed before the didChangeValueForKey: @"completedUnitCount" message
+  /* In macOS the finished check is placed before the
+   * didChangeValueForKey: @"completedUnitCount" message
+   */
   if (newCompletedUnitCount == internal->_totalUnitCount)
     {
       [self willChangeValueForKey: @"finished"];
@@ -455,8 +466,8 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
       else
 	{
 	  [parent _updateCompletedUnitsBy: 0
-		      fractionCompletedBy: adjustedDeltaFraction
-		     unitCountForFraction: internal->_pendingUnitCountForParent];
+	    fractionCompletedBy: adjustedDeltaFraction
+	    unitCountForFraction: internal->_pendingUnitCountForParent];
 	}
 
       // Remove child from parent
@@ -473,10 +484,11 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
 - (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount
 {
   if ([self isEqual:[NSProgress currentProgress]])
-  {
-    [NSException raise: NSInvalidArgumentException
-                format: @"NSProgress object is already current on this thread %@", [NSThread currentThread]];
-  }
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"NSProgress object is already current on this thread %@",
+	  [NSThread currentThread]];
+    }
 
   // Push the receiver onto the thread-local current progress stack.
   tls_current_progress_push(self);
@@ -562,8 +574,9 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
   ratio = (double)count / internal->_totalUnitCount;
   internal->_totalUnitCount = count;
   [self _updateCompletedUnitsBy: 0
-            fractionCompletedBy: (internal->_fractionCompleted / ratio) - internal->_fractionCompleted
-           unitCountForFraction: internal->_totalUnitCount];
+    fractionCompletedBy: (internal->_fractionCompleted / ratio)
+      - internal->_fractionCompleted
+    unitCountForFraction: internal->_totalUnitCount];
 
   if (wasIndeterminate != nowIndeterminate)
     {
@@ -592,7 +605,9 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
   if (count != internal->_completedUnitCount)
     {
       int64_t deltaCompletedUnit = count - internal->_completedUnitCount;
-      double deltaFraction = deltaCompletedUnit / (double) internal->_totalUnitCount;
+
+      double deltaFraction
+	= deltaCompletedUnit / (double) internal->_totalUnitCount;
       [self _updateCompletedUnitsBy: deltaCompletedUnit
 		fractionCompletedBy: deltaFraction
 	       unitCountForFraction: internal->_totalUnitCount];
