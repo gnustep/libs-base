@@ -43,14 +43,16 @@
 
 #import	"GNUstepBase/GSConfig.h"
 #import	"GNUstepBase/GSVersionMacros.h"
+#import	"GNUstepBase/GNUstep.h"
 
-/* Set localisation macro for use within the base library itsself.
+/* Set localisation macro for use within the base library itself,
+ * only if not already defined by GNUstep.h
  */
+#ifndef GS_LOCALISATION_BUNDLE
 #define GS_LOCALISATION_BUNDLE \
   [NSBundle bundleForLibrary: @"gnustep-base" version: \
   OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
-
-#import	"GNUstepBase/GNUstep.h"
+#endif
 
 /* Foundation/NSObject.h imports <Foundation/NSZone.h> and
  * <Foundation/NSObjCRuntime.h> so we import local versions first.
