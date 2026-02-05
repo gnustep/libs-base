@@ -1715,9 +1715,11 @@ GSPrivateCheckTasks()
    * - posix_spawn_file_actions_addchdir_np() (added in glibc 2.29)
    */
   {
-    posix_spawn_file_actions_t file_actions;
-    posix_spawnattr_t attr;
-    int spawn_result;
+    posix_spawn_file_actions_t	file_actions;
+    posix_spawnattr_t		attr;
+    short			flags;
+    sigset_t 			default_signals;
+    int 			spawn_result;
 
     /* Initialize spawn attributes and file actions */
     if (posix_spawn_file_actions_init(&file_actions) != 0)
@@ -1743,7 +1745,7 @@ GSPrivateCheckTasks()
      * POSIX_SPAWN_SETSID detaches from controlling terminal (like setsid()).
      * It's reliably supported in glibc 2.26+ (2017).
      */
-    short flags = POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF;
+    flags = POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF;
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 29))
     flags |= POSIX_SPAWN_SETSID;
 #endif
@@ -1751,7 +1753,6 @@ GSPrivateCheckTasks()
     posix_spawnattr_setpgroup(&attr, 0);  /* 0 = new process group */
 
     /* Reset all signals to default */
-    sigset_t default_signals;
     sigfillset(&default_signals);
     posix_spawnattr_setsigdefault(&attr, &default_signals);
 
