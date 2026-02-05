@@ -86,7 +86,7 @@ static NSMutableArray * tls_current_progress_create(void)
   return stack;
 }
 /* The destructor is only invoked when the TLS value is non-NULL */
-static void tls_current_progress_destroy(void *value)
+static void GS_WINAPI tls_current_progress_destroy(void *value)
 {
   NSMutableArray *stack = value;
   RELEASE(stack);
