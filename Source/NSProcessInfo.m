@@ -455,8 +455,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		val = [NSString stringWithCharacters: start
 					      length: wenvp - start];
 		wenvp++;	// Skip past variable terminator
-		[keys addObject: key];
-		[values addObject: val];
+		if (key != nil && val != nil)
+		  {
+		    [keys addObject: key];
+		    [values addObject: val];
+		  }
 	      }
 	    FreeEnvironmentStringsW(base);
 	    env = 0;	// Suppress standard code.
