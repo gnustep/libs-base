@@ -2301,6 +2301,9 @@ if (domainMask & mask) \
 
       case NSCoreServicesDirectory:
 	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"CoreServices");
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"CoreServices");
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"CoreServices");
 	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"CoreServices");
 	}
 	break;
