@@ -1269,7 +1269,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
         {
           NSUInteger	addr = (NSUInteger)*ptrs++; 
 
-          if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
+          if (fromSym && (fromSym)(hProcess, (DWORD64)addr, 0, symbol))
             {
               syms[i] = [NSString stringWithFormat:
                 @"%s - %lx", symbol->Name, (unsigned long)addr];
