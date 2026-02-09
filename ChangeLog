@@ -1,3 +1,9 @@
+2026-02-09 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSException.m:
+	Guard SymFromAddr usage on Windows to avoid crashes when symbol
+	lookup is not initialized.
+
 2026-02-06 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSProcessInfo.m:
