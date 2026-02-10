@@ -85,9 +85,13 @@ ANNOUNCE_TEXI_FILES = version.texi
 ANNOUNCE_TEXT_MAIN = announce.texi
 ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base/ReleaseNotes
+Base_AGSDOC_LOCAL_DIR = ../Documentation/Base
+Base_AGSDOC_INSTALL_BUNDLE = Reference
+Base_DOC_INSTALL_DIR = Developer/Base
+
 ReleaseNotes_AGSDOC_LOCAL_DIR = ReleaseNotes
 ReleaseNotes_AGSDOC_INSTALL_BUNDLE = ReleaseNotes
+ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base
 
 
 ReleaseNotes_AGSDOC_FILES = \
