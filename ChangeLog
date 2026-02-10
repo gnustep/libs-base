@@ -1,3 +1,13 @@
+2026-02-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add support for services directory paths
+	* configure: regnerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Source/NSPathUtilities.m: Add support for services directory paths
+	and make NSCoreServicesDFirectory use them.
+	These have been present in gnustep-make for a long time, but never
+	had an implementation in gnustep-base. 
+
 2026-02-09 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSException.m:

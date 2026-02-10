@@ -157,6 +157,7 @@ static NSString *gnustepSystemTools = nil;
 static NSString *gnustepSystemAdminTools = nil;
 static NSString *gnustepSystemLibrary = nil;
 static NSString *gnustepSystemLibraries = nil;
+static NSString *gnustepSystemServices = nil;
 static NSString *gnustepSystemHeaders = nil;
 static NSString *gnustepSystemDocumentation = nil;
 static NSString *gnustepSystemDocumentationInfo = nil;
@@ -169,6 +170,7 @@ static NSString *gnustepNetworkTools = nil;
 static NSString *gnustepNetworkAdminTools = nil;
 static NSString *gnustepNetworkLibrary = nil;
 static NSString *gnustepNetworkLibraries = nil;
+static NSString *gnustepNetworkServices = nil;
 static NSString *gnustepNetworkHeaders = nil;
 static NSString *gnustepNetworkDocumentation = nil;
 static NSString *gnustepNetworkDocumentationInfo = nil;
@@ -181,6 +183,7 @@ static NSString *gnustepLocalTools = nil;
 static NSString *gnustepLocalAdminTools = nil;
 static NSString *gnustepLocalLibrary = nil;
 static NSString *gnustepLocalLibraries = nil;
+static NSString *gnustepLocalServices = nil;
 static NSString *gnustepLocalHeaders = nil;
 static NSString *gnustepLocalDocumentation = nil;
 static NSString *gnustepLocalDocumentationInfo = nil;
@@ -193,6 +196,7 @@ static NSString *gnustepUserTools = nil;
 static NSString *gnustepUserAdminTools = nil;
 static NSString *gnustepUserLibrary = nil;
 static NSString *gnustepUserLibraries = nil;
+static NSString *gnustepUserServices = nil;
 static NSString *gnustepUserHeaders = nil;
 static NSString *gnustepUserDocumentation = nil;
 static NSString *gnustepUserDocumentationInfo = nil;
@@ -211,6 +215,7 @@ static NSString *gnustepUserDirTools = nil;
 static NSString *gnustepUserDirAdminTools = nil;
 static NSString *gnustepUserDirLibrary = nil;
 static NSString *gnustepUserDirLibraries = nil;
+static NSString *gnustepUserDirServices = nil;
 static NSString *gnustepUserDirHeaders = nil;
 static NSString *gnustepUserDirDocumentation = nil;
 static NSString *gnustepUserDirDocumentationInfo = nil;
@@ -459,6 +464,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @"GNUSTEP_SYSTEM_LIBRARY");
   ASSIGN_PATH(gnustepSystemLibraries, c,
     @"GNUSTEP_SYSTEM_LIBRARIES");
+  ASSIGN_PATH(gnustepSystemServices, c,
+    @"GNUSTEP_SYSTEM_SERVICES");
   ASSIGN_PATH(gnustepSystemHeaders, c,
     @"GNUSTEP_SYSTEM_HEADERS");
   ASSIGN_PATH(gnustepSystemDocumentation, c,
@@ -482,6 +489,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @"GNUSTEP_NETWORK_LIBRARY");
   ASSIGN_PATH(gnustepNetworkLibraries, c,
     @"GNUSTEP_NETWORK_LIBRARIES");
+  ASSIGN_PATH(gnustepNetworkServices, c,
+    @"GNUSTEP_NETWORK_SERVICES");
   ASSIGN_PATH(gnustepNetworkHeaders, c,
     @"GNUSTEP_NETWORK_HEADERS");
   ASSIGN_PATH(gnustepNetworkDocumentation, c,
@@ -505,6 +514,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @"GNUSTEP_LOCAL_LIBRARY");
   ASSIGN_PATH(gnustepLocalLibraries, c,
     @"GNUSTEP_LOCAL_LIBRARIES");
+  ASSIGN_PATH(gnustepLocalServices, c,
+    @"GNUSTEP_LOCAL_SERVICES");
   ASSIGN_PATH(gnustepLocalHeaders, c,
     @"GNUSTEP_LOCAL_HEADERS");
   ASSIGN_PATH(gnustepLocalDocumentation, c,
@@ -542,6 +553,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @"GNUSTEP_USER_DIR_LIBRARIES");
   TEST_ASSIGN(gnustepUserDirLibraries,
     @GNUSTEP_TARGET_USER_DIR_LIBRARIES);
+  ASSIGN_USER(gnustepUserDirServices, c,
+    @"GNUSTEP_USER_DIR_SERVICES");
+  TEST_ASSIGN(gnustepUserDirServices,
+    @GNUSTEP_TARGET_USER_DIR_SERVICES);
   ASSIGN_USER(gnustepUserDirHeaders, c,
     @"GNUSTEP_USER_DIR_HEADERS");
   TEST_ASSIGN(gnustepUserDirHeaders,
@@ -637,6 +652,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     {
       ASSIGN(gnustepUserDirLibraries, @GNUSTEP_TARGET_USER_DIR_LIBRARIES);
     }
+  if (gnustepUserDirServices == nil)
+    {
+      ASSIGN(gnustepUserDirServices, @GNUSTEP_TARGET_USER_DIR_SERVICES);
+    }
   if (gnustepUserDirHeaders == nil)
     {
       ASSIGN(gnustepUserDirHeaders, @GNUSTEP_TARGET_USER_DIR_HEADERS);
@@ -668,6 +687,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_USER_PATH(gnustepUserAdminTools, gnustepUserDirAdminTools);
   ASSIGN_USER_PATH(gnustepUserLibrary, gnustepUserDirLibrary);
   ASSIGN_USER_PATH(gnustepUserLibraries, gnustepUserDirLibraries);
+  ASSIGN_USER_PATH(gnustepUserServices, gnustepUserDirServices);
   ASSIGN_USER_PATH(gnustepUserHeaders, gnustepUserDirHeaders);
   ASSIGN_USER_PATH(gnustepUserDocumentation, gnustepUserDocumentation);
   ASSIGN_USER_PATH(gnustepUserDocumentationMan, gnustepUserDocumentationMan);
@@ -716,6 +736,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @GNUSTEP_TARGET_SYSTEM_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepSystemLibraries,
     @GNUSTEP_TARGET_SYSTEM_LIBRARIES);
+  ASSIGN_DEFAULT_PATH(gnustepSystemServices,
+    @GNUSTEP_TARGET_SYSTEM_SERVICES);
   ASSIGN_DEFAULT_PATH(gnustepSystemHeaders,
     @GNUSTEP_TARGET_SYSTEM_HEADERS);
   ASSIGN_DEFAULT_PATH(gnustepSystemDocumentation,
@@ -739,6 +761,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @GNUSTEP_TARGET_NETWORK_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepNetworkLibraries,
     @GNUSTEP_TARGET_NETWORK_LIBRARIES);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkServices,
+    @GNUSTEP_TARGET_NETWORK_SERVICES);
   ASSIGN_DEFAULT_PATH(gnustepNetworkHeaders,
     @GNUSTEP_TARGET_NETWORK_HEADERS);
   ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentation,
@@ -760,7 +784,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS);
   ASSIGN_DEFAULT_PATH(gnustepLocalLibrary,
     @GNUSTEP_TARGET_LOCAL_LIBRARY);
-  ASSIGN_DEFAULT_PATH(gnustepLocalLibraries,
+  ASSIGN_DEFAULT_PATH(gnustepLocalServices,
     @GNUSTEP_TARGET_LOCAL_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepLocalHeaders,
     @GNUSTEP_TARGET_LOCAL_HEADERS);
@@ -1229,6 +1253,7 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepSystemAdminTools);
   DESTROY(gnustepSystemLibrary);
   DESTROY(gnustepSystemLibraries);
+  DESTROY(gnustepSystemServices);
   DESTROY(gnustepSystemHeaders);
   DESTROY(gnustepSystemDocumentation);
   DESTROY(gnustepSystemDocumentationMan);
@@ -1241,6 +1266,7 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepNetworkAdminTools);
   DESTROY(gnustepNetworkLibrary);
   DESTROY(gnustepNetworkLibraries);
+  DESTROY(gnustepNetworkServices);
   DESTROY(gnustepNetworkHeaders);
   DESTROY(gnustepNetworkDocumentation);
   DESTROY(gnustepNetworkDocumentationMan);
@@ -1253,6 +1279,7 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepLocalAdminTools);
   DESTROY(gnustepLocalLibrary);
   DESTROY(gnustepLocalLibraries);
+  DESTROY(gnustepLocalServices);
   DESTROY(gnustepLocalHeaders);
   DESTROY(gnustepLocalDocumentation);
   DESTROY(gnustepLocalDocumentationMan);
@@ -1267,6 +1294,7 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepUserAdminTools);
   DESTROY(gnustepUserLibrary);
   DESTROY(gnustepUserLibraries);
+  DESTROY(gnustepUserServices);
   DESTROY(gnustepUserHeaders);
   DESTROY(gnustepUserDocumentation);
   DESTROY(gnustepUserDocumentationMan);
@@ -2301,7 +2329,10 @@ if (domainMask & mask) \
 
       case NSCoreServicesDirectory:
 	{
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"CoreServices");
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserServices);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalServices);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkServices);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemServices);
 	}
 	break;
 
