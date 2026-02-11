@@ -1945,12 +1945,15 @@ failure:
 
   GSNativeChar	wthePath[cap];
   GSNativeChar	wtheRealPath[cap];
+  GSNativeChar	wtheResolvedPath[cap];
+  const GSNativeChar	*destPathForMove = wtheRealPath;
   int		c;
   FILE		*theFile;
   BOOL		useAuxiliaryFile = NO;
   BOOL		error_BadPath = YES;
 
   wthePath[0] = L'\0';
+  wtheResolvedPath[0] = L'\0';
 
   if (writeOptionsMask & NSDataWritingAtomic)
     {
@@ -1972,6 +1975,7 @@ failure:
       GSNativeChar	*slash;
       GSNativeChar	*backslash;
       GSNativeChar	*sep;
+      GSNativeChar	*fileName;
       const GSNativeChar *tempDir;
       HANDLE		hDir;
       DWORD		got;
@@ -1987,12 +1991,23 @@ failure:
       sep = (slash > backslash) ? slash : backslash;
       if (sep != 0)
 	{
+	  size_t	dirLen;
+
 	  *sep = L'\0';
+
+	  dirLen = wcslen(wtheDir);
+	  fileName = wtheRealPath + dirLen;
+	  if (*fileName == L'/' || *fileName == L'\\')
+	    {
+	      fileName++;
+	    }
 	}
       else
 	{
 	  wtheDir[0] = L'.';
 	  wtheDir[1] = L'\0';
+
+	  fileName = wtheRealPath;
 	}
 
       tempDir = wtheDir;
@@ -2008,6 +2023,36 @@ failure:
 	  if (got > 0 && got < (DWORD)(sizeof(wtheResolvedDir) / sizeof(GSNativeChar)))
 	    {
 	      tempDir = wtheResolvedDir;
+
+	      /* If we can build a resolved destination path, use it for
+	       * MoveFileExW so source and destination stay on the same
+	       * underlying volume.
+	       */
+	      if (fileName != NULL)
+		{
+		  size_t	dirLen = wcslen(wtheResolvedDir);
+		  size_t	nameLen = wcslen(fileName);
+		  size_t	capLen = (sizeof(wtheResolvedPath) / sizeof(GSNativeChar));
+
+		  if (dirLen + 1 + nameLen < capLen)
+		    {
+		      wcscpy(wtheResolvedPath, wtheResolvedDir);
+		      if (dirLen > 0
+			&& wtheResolvedPath[dirLen - 1] != L'\\'
+			&& wtheResolvedPath[dirLen - 1] != L'/')
+			{
+			  wtheResolvedPath[dirLen++] = L'\\';
+			  wtheResolvedPath[dirLen] = L'\0';
+			}
+		      wcscat(wtheResolvedPath, fileName);
+		      destPathForMove = wtheResolvedPath;
+		    }
+		  else
+		    {
+		      NSWarnMLog(@"Resolved destination path too long - "
+			"using original path for atomic rename");
+		    }
+		}
 	    }
 	}
 
@@ -2095,7 +2140,7 @@ failure:
        * and doesn't work if the destination file already exists ... so we
        * use a windoze specific move file function instead.
        */
-      if (MoveFileExW(wthePath, wtheRealPath, MOVEFILE_REPLACE_EXISTING) != 0)
+      if (MoveFileExW(wthePath, destPathForMove, MOVEFILE_REPLACE_EXISTING) != 0)
 	{
 	  c = 0;
 	}
@@ -2113,9 +2158,9 @@ failure:
 	      // Delete the intermediate name just in case
 	      DeleteFileW(secondaryFile);
 	      // Move the existing file to the temp name
-	      if (MoveFileW(wtheRealPath, secondaryFile) != 0)
+	      if (MoveFileW(destPathForMove, secondaryFile) != 0)
 		{
-		  if (MoveFileW(wthePath, wtheRealPath) != 0)
+		  if (MoveFileW(wthePath, destPathForMove) != 0)
 		    {
 		      c = 0;
 		      // Delete the old file if possible
@@ -2124,7 +2169,7 @@ failure:
 		  else
 		    {
 		      c = -1; // failure, restore the old file if possible
-		      MoveFileW(secondaryFile, wtheRealPath);
+		      MoveFileW(secondaryFile, destPathForMove);
 		    }
 		}
 	      else
@@ -2146,8 +2191,8 @@ failure:
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
 	    [NSString stringWithCharacters: wthePath
 				    length: wcslen(wthePath)],
-	    [NSString stringWithCharacters: wtheRealPath
-				    length: wcslen(wtheRealPath)],
+	    [NSString stringWithCharacters: destPathForMove
+				    length: wcslen(destPathForMove)],
 	    e);
           goto failure;
         }
