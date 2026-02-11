@@ -28,8 +28,8 @@
 
 #import "common.h"
 
+#import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/GSURITemplate.h"
-#import "GSFastEnumeration.h"
 
 /* Constants for NSError results.
  */
@@ -262,11 +262,11 @@ modError(NSError *e, int pos)
 {
   NSMutableArray	*result = [NSMutableArray array];
 
-  FOR_IN(id, item, self)
+  GS_FOR_IN(id, item, self)
     {
       [result addObject: [item gsUriString]];
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
   return [result componentsJoinedByString: @","];
 }
 
@@ -274,11 +274,11 @@ modError(NSError *e, int pos)
 {
   NSMutableArray	*result = [NSMutableArray array];
 
-  FOR_IN(id, item, self)
+  GS_FOR_IN(id, item, self)
     {
       [result addObject: [item gsUriStringEscaped: reserved]];
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
   return [result componentsJoinedByString: @","];
 }
 
@@ -295,14 +295,14 @@ modError(NSError *e, int pos)
 {
   NSMutableArray	*result = [NSMutableArray array];
 
-  FOR_IN(id, key, self)
+  GS_FOR_IN(id, key, self)
     {
       id	val = [self objectForKey: key];
 
       [result addObject: [key gsUriString]];
       [result addObject: [val gsUriString]];
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
   return [result componentsJoinedByString: @","];
 }
 
@@ -310,14 +310,14 @@ modError(NSError *e, int pos)
 {
   NSMutableArray	*result = [NSMutableArray array];
 
-  FOR_IN(id, key, self)
+  GS_FOR_IN(id, key, self)
     {
       id	val = [self objectForKey: key];
 
       [result addObject: [key gsUriStringEscaped: reserved]];
       [result addObject: [val gsUriStringEscaped: reserved]];
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
   return [result componentsJoinedByString: @","];
 }
 
@@ -325,14 +325,14 @@ modError(NSError *e, int pos)
 {
   NSMutableArray	*result = [NSMutableArray array];
 
-  FOR_IN(id, key, self)
+  GS_FOR_IN(id, key, self)
     {
       id	val = [self objectForKey: key];
 
       [result addObject: key];
       [result addObject: val];
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
   return [NSArray arrayWithArray: result];
 }
 
@@ -356,7 +356,7 @@ modError(NSError *e, int pos)
 				   callback: (addFieldCallback)cb
 				    context: (FieldContext*)ctx
 {
-  FOR_IN(NSString*, k, self)
+  GS_FOR_IN(NSString*, k, self)
     {
       NSString	*v = [self objectForKey: k];
 
@@ -364,7 +364,7 @@ modError(NSError *e, int pos)
       v = [v gsUriStringEscaped: reserved];
       cb(ctx, k, v);
     }
-  END_FOR_IN(self)
+  GS_END_FOR(self)
 }
 @end
 
@@ -401,11 +401,11 @@ modError(NSError *e, int pos)
   NSMutableArray *result = [NSMutableArray array];
   NSArray	*exploded = [self gsUriExplodedItems];
 
-  FOR_IN(id, value, exploded)
+  GS_FOR_IN(id, value, exploded)
     {
       [result addObject: [value gsUriStringEscaped: reserved]];
     }
-  END_FOR_IN(exploded)
+  GS_END_FOR(exploded)
   return [NSArray arrayWithArray: result];
 }
 
@@ -416,11 +416,11 @@ modError(NSError *e, int pos)
 {
   NSArray	*exploded = [self gsUriExplodedItemsEscaped: reserved];
 
-  FOR_IN(NSString*, value, exploded)
+  GS_FOR_IN(NSString*, value, exploded)
     {
       cb(ctx, key, value);
     }
-  END_FOR_IN(exploded)
+  GS_END_FOR(exploded)
 }
 @end
 
@@ -493,7 +493,7 @@ modError(NSError *e, int pos)
   BOOL 			isFirst = YES;
   NSMutableString	*result = [NSMutableString string];
 
-  FOR_IN(GSUTVariable*, variable, termObject)
+  GS_FOR_IN(GSUTVariable*, variable, termObject)
     {
       NSArray	*values = [variable valuesWithVariables: variables
 					 permitReserved: [self permitReserved]
@@ -503,7 +503,7 @@ modError(NSError *e, int pos)
 	  return nil;	// Error expanding the variable.
 	}
       
-      FOR_IN(NSString*, value, values)
+      GS_FOR_IN(NSString*, value, values)
 	{
 	  if (isFirst)
 	    {
@@ -516,9 +516,9 @@ modError(NSError *e, int pos)
 	    }
 	  [result appendString: value];
 	}
-      END_FOR_IN(values)
+      GS_END_FOR(values)
     }
-  END_FOR_IN(termObject)
+  GS_END_FOR(termObject)
   
   return result;
 }
@@ -561,7 +561,7 @@ modError(NSError *e, int pos)
   context.start = nil;
   context.result = [NSMutableString string];
 
-  FOR_IN(GSUTVariable*, variable, termObject)
+  GS_FOR_IN(GSUTVariable*, variable, termObject)
     {
       if (NO == [variable enumerateKeyValuesWithVariables: variables
 					   permitReserved: reserved
@@ -572,7 +572,7 @@ modError(NSError *e, int pos)
 	  return nil;
 	}
     }
-  END_FOR_IN(termObject)
+  GS_END_FOR(termObject)
   return (NSString*)context.result;
 }
 
@@ -590,21 +590,21 @@ modError(NSError *e, int pos)
 {
   NSMutableString	*result = [NSMutableString string];
 
-  FOR_IN(GSUTVariable*, variable, termObject)
+  GS_FOR_IN(GSUTVariable*, variable, termObject)
     {
       NSArray	*array;
 
       array = [variable valuesWithVariables: variables
 			     permitReserved: [self permitReserved]
 				      error: error];
-      FOR_IN(NSString*, value, array)
+      GS_FOR_IN(NSString*, value, array)
 	{
 	  [result appendString: [self prepend]];
 	  [result appendString: value];
         }
-      END_FOR_IN(array)
+      GS_END_FOR(array)
     }
-  END_FOR_IN(termObject)
+  GS_END_FOR(termObject)
     
   return result;
 }
@@ -642,7 +642,7 @@ modError(NSError *e, int pos)
   context.start = [self prepend];
   context.result = [NSMutableString string];
 
-  FOR_IN(GSUTVariable*, variable, termObject)
+  GS_FOR_IN(GSUTVariable*, variable, termObject)
     {
       if (NO == [variable enumerateKeyValuesWithVariables: variables
 					   permitReserved: reserved
@@ -653,7 +653,7 @@ modError(NSError *e, int pos)
 	  return nil;
 	}
     }
-  END_FOR_IN(termObject)
+  GS_END_FOR(termObject)
   return context.result;  
 }
 
@@ -748,11 +748,11 @@ modError(NSError *e, int pos)
     }
   
   exploded = [values gsUriExplodedItemsEscaped: reserved];
-  FOR_IN(id, value, exploded)
+  GS_FOR_IN(id, value, exploded)
     {
       [result addObject: value];
     }
-  END_FOR_IN(exploded)
+  GS_END_FOR(exploded)
   
   return result;
 }
@@ -848,11 +848,11 @@ modError(NSError *e, int pos)
       return NO;	// Error was expanding the variables.
     }
   
-  FOR_IN(NSString*, value, values)
+  GS_FOR_IN(NSString*, value, values)
     {
       cb(ctx, key, value);
     }
-  END_FOR_IN(values)
+  GS_END_FOR(values)
   return YES;
 }
 
@@ -1027,7 +1027,7 @@ modError(NSError *e, int pos)
       if (error) *error = expansionError;
       return nil;
     }
-  FOR_IN(GSUTTerm*, term, terms)
+  GS_FOR_IN(GSUTTerm*, term, terms)
     {
       NSString	*value;
 
@@ -1040,7 +1040,7 @@ modError(NSError *e, int pos)
         }
       [result appendString: value];
     }
-  END_FOR_IN(terms)
+  GS_END_FOR(terms)
   if (expansionError && error)
     {
       *error = expansionError;

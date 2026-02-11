@@ -775,7 +775,6 @@
 		18906F471610BF3C0003C892 /* GSFFCallInvocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFFCallInvocation.m; sourceTree = "<group>"; };
 		18906F481610BF3C0003C892 /* GSFFIInvocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFFIInvocation.m; sourceTree = "<group>"; };
 		18906F491610BF3C0003C892 /* GSFTPURLHandle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFTPURLHandle.m; sourceTree = "<group>"; };
-		18906F4A1610BF3C0003C892 /* GSFastEnumeration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSFastEnumeration.h; path = Source/GSFastEnumeration.h; sourceTree = "<group>"; };
 		18906F4B1610BF3C0003C892 /* GSFileHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSFileHandle.h; path = Source/GSFileHandle.h; sourceTree = "<group>"; };
 		18906F4C1610BF3C0003C892 /* GSFileHandle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFileHandle.m; sourceTree = "<group>"; };
 		18906F4D1610BF3C0003C892 /* GSFormat.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFormat.m; sourceTree = "<group>"; };
@@ -1677,7 +1676,6 @@
 				18906F3B1610BF3C0003C892 /* GSAvahiClient.h */,
 				18906F3F1610BF3C0003C892 /* GSAvahiRunLoopIntegration.h */,
 				18906F461610BF3C0003C892 /* GSDispatch.h */,
-				18906F4A1610BF3C0003C892 /* GSFastEnumeration.h */,
 				18906F4B1610BF3C0003C892 /* GSFileHandle.h */,
 				18906F501610BF3C0003C892 /* GSICUString.h */,
 				18906F521610BF3C0003C892 /* GSInternal.h */,

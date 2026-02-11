@@ -37,7 +37,6 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 
 @class	GSSet;
@@ -904,7 +903,7 @@ static Class NSMutableSet_concrete_class;
   id<NSFastEnumeration> enumerator = self;
 
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
   {
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup,enumQueue, if (shouldStop == NO) {, }, aBlock, obj, &shouldStop);
     if (shouldStop)
@@ -912,7 +911,7 @@ static Class NSMutableSet_concrete_class;
 	break;
       }
   }
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
@@ -930,7 +929,7 @@ static Class NSMutableSet_concrete_class;
 
   resultSet = [NSMutableSet setWithCapacity: [self count]];
     
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     {
       BOOL include = CALL_NON_NULL_BLOCK(aBlock, obj, &shouldStop);
 
@@ -943,7 +942,7 @@ static Class NSMutableSet_concrete_class;
           break;
         }
     }
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
     
   return GS_IMMUTABLE(resultSet);
 }

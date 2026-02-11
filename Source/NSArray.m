@@ -50,7 +50,6 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
@@ -1815,7 +1814,7 @@ compare(id elem1, id elem2, void* context)
 
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
@@ -1830,7 +1829,7 @@ compare(id elem1, id elem2, void* context)
         {
           break;
         }
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   }
 }
@@ -1865,7 +1864,7 @@ compare(id elem1, id elem2, void* context)
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -1895,7 +1894,7 @@ compare(id elem1, id elem2, void* context)
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(setLock);
@@ -1962,7 +1961,7 @@ compare(id elem1, id elem2, void* context)
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -1973,8 +1972,9 @@ compare(id elem1, id elem2, void* context)
             }
             if (predicate(obj, count, &shouldStop))
             {
-              // FIXME: atomic operation on the shouldStop variable would be nicer,
-              // but we don't expose the GSAtomic* primitives anywhere.
+              /* FIXME: atomic operation on the shouldStop variable would be
+               * nice but we don't expose the GSAtomic* primitives anywhere.
+	       */
               [indexLock lock];
               index =  count;
               // Cancel all other predicate evaluations:
@@ -1995,7 +1995,7 @@ compare(id elem1, id elem2, void* context)
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(indexLock);

@@ -1,5 +1,7 @@
+#import "Foundation/NSEnumerator.h"
 
-#ifdef __clang__
+#if	!defined(FOR_IN)
+#if	defined(__clang__) || GS_GCC_MINREQ(6,1)
 #define FOR_IN(type, var, collection) \
   for (type var in collection)\
   {
@@ -39,4 +41,5 @@ do\
 				 count: 16]));\
   }\
 } while(0);
+#endif
 #endif

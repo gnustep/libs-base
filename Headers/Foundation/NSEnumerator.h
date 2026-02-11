@@ -36,6 +36,9 @@ extern "C" {
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
 
+/** Stores state information for the
+ * -countByEnumeratingWithState:objects:count: method.
+ */ 
 typedef struct
 {
   unsigned long	state;
@@ -55,6 +58,56 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_CLASS(NSArray, IterT) *) allObjects;
 - (GS_GENERIC_TYPE(IterT)) nextObject;
 @end
+
+#if	defined(__clang__) || GS_GCC_MINREQ(6,1)
+/** Macro to support fast enumeration on older compilers.  The argument are
+ * a type specification for the value returned by the iteration, the name of
+ * a variable to hold that value, and the collection to be iterated over
+ * (may also be an instance of [NSEnumerator] rather than a collection).
+ */
+#define GS_FOR_IN(type, var, collection) \
+  for (type var in collection)\
+  {
+/** Macro to end a fast enumeration block on older compilers.  Its argument
+ * must be identical to that of the corresponding GS_FOR_IN macro. 
+ */
+#define GS_END_FOR(collection) }
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+void objc_enumerationMutation(id);
+#pragma GCC diagnostic pop
+#define GS_FOR_IN(type, var, c) \
+do\
+{\
+  type var;\
+  NSFastEnumerationState gs_##c##_enumState = { 0 };\
+  id gs_##c##_items[16];\
+  unsigned long gs_##c##_limit = \
+    [c countByEnumeratingWithState: &gs_##c##_enumState \
+                           objects: gs_##c##_items \
+                             count: 16];\
+  if (gs_##c##_limit)\
+  {\
+    unsigned long gs_startMutations = *gs_##c##_enumState.mutationsPtr;\
+    do {\
+      unsigned long gs_##c##counter = 0;\
+      do {\
+        if (gs_startMutations != *gs_##c##_enumState.mutationsPtr)\
+        {\
+          objc_enumerationMutation(c);\
+        }\
+        var = gs_##c##_enumState.itemsPtr[gs_##c##counter++];\
+
+#define GS_END_FOR(c) \
+      } while (gs_##c##counter < gs_##c##_limit);\
+    } while ((gs_##c##_limit \
+      = [c countByEnumeratingWithState: &gs_##c##_enumState\
+			       objects: gs_##c##_items\
+				 count: 16]));\
+  }\
+} while(0);
+#endif
 
 #if	defined(__cplusplus)
 }
