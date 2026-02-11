@@ -59,7 +59,7 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_TYPE(IterT)) nextObject;
 @end
 
-#if	defined(__clang__) || GS_GCC_MINREQ(6,1)
+#if	defined(__clang__) || (GS_GCC_MINREQ(6,1) && !defined(__MINGW__))
 /** Macro to support fast enumeration on older compilers.  The argument are
  * a type specification for the value returned by the iteration, the name of
  * a variable to hold that value, and the collection to be iterated over
