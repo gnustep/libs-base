@@ -368,8 +368,10 @@ etcHosts(BOOL flush)
 	  void		*addr;
 	  NSString	*a;
 
+#ifdef  __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
+#endif
 	  if (AF_INET == tmp->ai_family)
 	    {
 	      struct sockaddr_in *ipv4 = (struct sockaddr_in *)(tmp->ai_addr);
@@ -384,7 +386,9 @@ etcHosts(BOOL flush)
 	    {
 	      continue;	// Unsupported family
 	    }
+#ifdef  __clang__
 #pragma clang diagnostic pop
+#endif
 	  inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
 	  a = [NSString stringWithUTF8String: ipstr];
 	  [self _addHostAddress: a withNames: names addresses: addresses];
