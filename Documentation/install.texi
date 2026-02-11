@@ -28,7 +28,7 @@ You MUST have an Objective-C runtime library, either
 @itemize
 @item the gnu runtime library (for use with the gcc compiler, when using the gnu-gnu-gnu library combo) or,
 @item the gnustep runtime library (for use with the clang compiler, when using the ng-gnu-gnu library combo).
-@end
+@end itemize
 
 Other external libraries that you may need to install include:
 
