@@ -1936,8 +1936,7 @@ failure:
 {
 #if defined(_WIN32)
   NSUInteger	length = [path length];
-  NSUInteger	extra = length + 100;
-  NSUInteger	cap = (extra < (NSUInteger)MAX_PATH + 1) ? extra : (NSUInteger)MAX_PATH + 1;
+  NSUInteger	cap = MAX(length + 100, (NSUInteger)MAX_PATH + 1);
   GSNativeChar	wthePath[cap];
   GSNativeChar	wtheRealPath[cap];
   GSNativeChar	wtheResolvedPath[cap];
