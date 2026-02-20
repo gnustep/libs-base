@@ -2,6 +2,41 @@
 
 	* Headers/Foundation/NSZone.h:
 	Remove unused function declaration NSMakeCollectable that caused compiler errors with ARC.
+  
+2026-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSEnumerator.h:
+	* Source/Additions/GSURITemplate.m:
+	* Source/Additions/NSHashTable+GNUstepBase.m:
+	* Source/GSAvahiNetService.m:
+	* Source/GSAvahiRunLoopIntegration.h:
+	* Source/GSAvahiRunLoopIntegration.m:
+	* Source/GSFastEnumeration.h:
+	* Source/GSOrderedSet.m:
+	* Source/NSArray.m:
+	* Source/NSDictionary.m:
+	* Source/NSError.m:
+	* Source/NSFileManager.m:
+	* Source/NSHost.m:
+	* Source/NSJSONSerialization.m:
+	* Source/NSNetServices.m:
+	* Source/NSOrderedSet.m:
+	* Source/NSPredicate.m:
+	* Source/NSProgress.m:
+	* Source/NSPropertyList.m:
+	* Source/NSSet.m:
+	* Tests/base/NSFastEnumeration/basic.m:
+	* Tools/AGSParser.m:
+	* base.xcodeproj/project.pbxproj:
+	Expose fast enumeration macros as GS_FOR_IN and GS_END_FOR so that
+	people can use fast enumeration on old compilers.
+	Update macros to use the compiler built in support with more recent
+	versions of gcc.
+
+2026-02-10 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSData.m: On Windows, use a resolved destination path for
+	atomic renames so moves stay on the same underlying volume.
 
 2026-02-10 Richard Frith-Macdonald <rfm@gnu.org>
 

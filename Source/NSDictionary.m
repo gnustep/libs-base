@@ -28,6 +28,7 @@
 #import "common.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSOrderedSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
@@ -42,7 +43,6 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
@@ -174,7 +174,7 @@ static SEL	appSel;
    id obj;
 
    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-   FOR_IN(id, key, enumerator)
+   GS_FOR_IN(id, key, enumerator)
      obj = (*objectForKey)(self, objectForKeySelector, key);
      GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
      if (shouldStop == NO) {, }, aBlock, key, obj, &shouldStop);
@@ -182,7 +182,7 @@ static SEL	appSel;
        {
 	 break;
        }
-   END_FOR_IN(enumerator)
+   GS_END_FOR(enumerator)
    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
@@ -870,11 +870,11 @@ static SEL	appSel;
             andKeys: (__unsafe_unretained id<NSCopying>[])keys
 {
   NSUInteger i = 0;
-  FOR_IN(id, key, self)
+  GS_FOR_IN(id, key, self)
     if (keys != NULL) keys[i] = key;
     if (objects != NULL) objects[i] = [self objectForKey: key];
     i++;
-  END_FOR_IN(self)
+  GS_END_FOR(self)
 }
 
 /**
@@ -973,9 +973,9 @@ compareIt(id o1, id o2, void* context)
 					  usingComparator: cmptr];
   noDuplicates = [[NSOrderedSet orderedSetWithArray: sortedValues] array];
   result = [[NSMutableArray alloc] initWithCapacity: [sortedValues count]];
-  FOR_IN(NSObject*, value, noDuplicates)
+  GS_FOR_IN(NSObject*, value, noDuplicates)
     [result addObjectsFromArray: [self allKeysForObject: value]];
-  END_FOR_IN(noDuplicates)
+  GS_END_FOR(noDuplicates)
   LEAVE_POOL
   return AUTORELEASE(result);
 }
@@ -1055,7 +1055,7 @@ compareIt(id o1, id o2, void* context)
       setLock = [NSLock new];
     }
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN(id, key, enumerator)
+  GS_FOR_IN(id, key, enumerator)
     obj = (*objectForKey)(self, objectForKeySelector, key);
 #if (__has_feature(blocks) && (GS_USE_LIBDISPATCH == 1))
     if (enumQueue != NULL)
@@ -1083,7 +1083,7 @@ compareIt(id o1, id o2, void* context)
       {
         break;
       }
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   [setLock release];
   resultSet = [NSSet setWithSet: buildSet];

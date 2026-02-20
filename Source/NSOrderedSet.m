@@ -37,7 +37,6 @@
 
 #import <GNUstepBase/GSBlocks.h>
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
@@ -517,7 +516,7 @@ static SEL	remSel;
   unsigned      len = range.length;
   GS_BEGINIDBUF(os, c);
 
-  FOR_IN(id, o, other)
+  GS_FOR_IN(id, o, other)
     {
       if (i >= loc && j < len)
 	{
@@ -538,7 +537,7 @@ static SEL	remSel;
 	  break;
 	}
     }
-  END_FOR_IN(other)
+  GS_END_FOR(other)
 
   self = [self initWithObjects: os count: c];
   if (flag)
@@ -640,7 +639,7 @@ static SEL	remSel;
 
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
@@ -655,7 +654,7 @@ static SEL	remSel;
         {
           break;
         }
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   }
 }
@@ -847,7 +846,7 @@ static SEL	remSel;
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -880,7 +879,7 @@ static SEL	remSel;
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(indexLock);
@@ -924,7 +923,7 @@ static SEL	remSel;
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -954,7 +953,7 @@ static SEL	remSel;
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(setLock);
@@ -1256,9 +1255,9 @@ static SEL	remSel;
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: [self count]];
   id<NSFastEnumeration> enumerator = self;
 
-  FOR_IN(id, o, enumerator)
+  GS_FOR_IN(id, o, enumerator)
     [result addObject: o];
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
 
   return GS_IMMUTABLE(result);
 }
@@ -1268,9 +1267,9 @@ static SEL	remSel;
   NSMutableSet *result = [NSMutableSet setWithCapacity: [self count]];
   id<NSFastEnumeration> enumerator = self;
 
-  FOR_IN(id, o, enumerator)
+  GS_FOR_IN(id, o, enumerator)
     [result addObject: o];
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
 
   return GS_IMMUTABLE(result);
 }

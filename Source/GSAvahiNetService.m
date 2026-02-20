@@ -534,7 +534,7 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
   NSArray *keys = [txtDictionary allKeys];
   NSData *data = nil;
 
-  FOR_IN(NSString*, key, keys)
+  GS_FOR_IN(NSString*, key, keys)
     {
       id value = [txtDictionary objectForKey: key];
       if ([value isKindOfClass: [NSString class]])
@@ -573,7 +573,7 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
         }
       NSAssert(list,@"Error creating string list for TXT record");
     }
-  END_FOR_IN(keys)
+  GS_END_FOR(keys)
 
   // Convert string list into a data object:
   data = NSDataFromAvahiStringList(list);

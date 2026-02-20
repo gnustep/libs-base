@@ -38,7 +38,6 @@
 #import "AGSParser.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
-#import "../Source/GSFastEnumeration.h"
 
 #define	STARTBRACE	0x7B	// '{' character
 #define	ENDBRACE	0x7D	// '}' character
@@ -5863,7 +5862,7 @@ fail:
 	}
     }
 
-  FOR_IN(NSString*, tag, emptyElements)
+  GS_FOR_IN(NSString*, tag, emptyElements)
   while ((range = [ms rangeOfString: tag]).length > 0
     && NSMaxRange(range) < [ms length]
     && [ms characterAtIndex: NSMaxRange(range)] == '>')
@@ -5874,7 +5873,7 @@ fail:
        */
       [ms replaceCharactersInRange: range withString: @" /"];
     }
-  END_FOR_IN(emptyElements)
+  GS_END_FOR(emptyElements)
 
   xml = AUTORELEASE([@"<?xml version=\"1.0\"?>\n" mutableCopy]);
   [xml appendString: @"<end-of-comment>"];

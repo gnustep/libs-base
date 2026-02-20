@@ -47,7 +47,6 @@
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GSFastEnumeration.h"
 #import "GSPrivate.h"
 
 static id       boolN = nil;
@@ -1528,7 +1527,7 @@ GSPropertyListFromStringsFormat(NSData *d)
 	error: NULL];
       if ([pl isKindOfClass: [NSDictionary class]])
 	{
-	  FOR_IN (id, key, pl)
+	  GS_FOR_IN (id, key, pl)
 	    {
 	      NSString	*val = [pl objectForKey: key]; 
 
@@ -1539,7 +1538,7 @@ GSPropertyListFromStringsFormat(NSData *d)
 		  break;
 		}
 	    }
-	  END_FOR_IN(pl)
+	  GS_END_FOR(pl)
 	}
       if (pl)
 	{
@@ -2654,20 +2653,20 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
     {
       NSArray	*a = (NSArray*)aPropertyList;
 
-      FOR_IN(id, obj, a)
+      GS_FOR_IN(id, obj, a)
 	{
 	  if (NO == checkPL(obj, aFormat))
 	    {
 	      return NO;
 	    }
 	}
-      END_FOR_IN(a)
+      GS_END_FOR(a)
     }
   else if ([aPropertyList isKindOfClass: NSArrayClass])
     {
       NSDictionary	*d = (NSDictionary*)aPropertyList;
 
-      FOR_IN(id, obj, d)
+      GS_FOR_IN(id, obj, d)
 	{
 	  if (NO == checkPL(obj, aFormat))
 	    {
@@ -2679,7 +2678,7 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
 	      return NO;
 	    }
 	}
-      END_FOR_IN(d)
+      GS_END_FOR(d)
     }
   else if (NO == [aPropertyList isKindOfClass: NSStringClass]
     && NO == [aPropertyList isKindOfClass: NSDataClass])

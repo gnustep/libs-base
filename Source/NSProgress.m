@@ -60,6 +60,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSURL.h"
@@ -69,7 +70,6 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
-#import "GSFastEnumeration.h"
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
@@ -689,11 +689,11 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
 
 	  // Cancel all child progresses
 	  children = internal->_children;
-	  FOR_IN(NSProgress*, child, children)
+	  GS_FOR_IN(NSProgress*, child, children)
 	    {
 	      [child cancel];
 	    }
-	  END_FOR_IN(children)
+	  GS_END_FOR(children)
 	}
       GS_MUTEX_UNLOCK(internal->_lock);
     }

@@ -47,7 +47,6 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 
 // For pow()
 #include <math.h>
@@ -1912,12 +1911,14 @@ do { \
   NSMutableArray	*result = [NSMutableArray arrayWithCapacity:
 						    [_collection count]];
 
-  FOR_IN(NSExpression*, exp, _collection)
+  GS_FOR_IN(NSExpression*, exp, _collection)
     {
-      NSExpression *value = [exp expressionValueWithObject: object context: context];
+      NSExpression *value;
+
+      value = [exp expressionValueWithObject: object context: context];
       [result addObject: value];
     }
-  END_FOR_IN(_collection);
+  GS_END_FOR(_collection);
 
   return result;
 }

@@ -34,13 +34,13 @@
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSJSONSerialization.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
-#import "GSFastEnumeration.h"
 
 /* Boolean constants.
  */
@@ -896,7 +896,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
       BOOL writeComma = NO;
       [output appendString: @"["];
       tabs++;
-      FOR_IN(id, o, obj)
+      GS_FOR_IN(id, o, obj)
         if (writeComma)
           {
             [output appendString: @","];
@@ -905,7 +905,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
         writeNewline(output, tabs, opt);
         writeTabs(output, tabs, opt);
         writeObject(o, output, tabs, opt);
-      END_FOR_IN(obj)
+      GS_END_FOR(obj)
       tabs--;
       writeNewline(output, tabs, opt);
       writeTabs(output, tabs, opt);
@@ -923,7 +923,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
         }
 
       tabs++;
-      FOR_IN(id, o, keys)
+      GS_FOR_IN(id, o, keys)
         // Keys in dictionaries must be strings
         if (![o isKindOfClass: NSStringClass]) { return NO; }
         if (writeComma)
@@ -938,7 +938,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
 	if (opt & NSJSONWritingPrettyPrinted)
 	  [output appendString: @" "];
         writeObject([obj objectForKey: o], output, tabs, opt);
-      END_FOR_IN(keys)
+      GS_END_FOR(keys)
 
       tabs--;
       writeNewline(output, tabs, opt);

@@ -64,7 +64,6 @@
 #define	EXPOSE_NSHost_IVARS	1
 #import "Foundation/Foundation.h"
 
-#import	"GSFastEnumeration.h"
 #import	"GNUstepBase/GNUstep.h"
 
 #if defined(_WIN32)
@@ -318,13 +317,13 @@ etcHosts(BOOL flush)
 	  NSSet	*names = host->_names;
 	  NSSet *addresses = host->_addresses;
 
-	  FOR_IN (id, name, names)
+	  GS_FOR_IN (id, name, names)
 	    [_hostCache setObject: host forKey: name];
-	  END_FOR_IN (names)
+	  GS_END_FOR (names)
 
-	  FOR_IN (id, address, addresses)
+	  GS_FOR_IN (id, address, addresses)
 	    [_hostCache setObject: host forKey: address];
-	  END_FOR_IN (addresses)
+	  GS_END_FOR (addresses)
 	}
       [_hostCache setObject: host forKey: key];
     }
@@ -369,8 +368,10 @@ etcHosts(BOOL flush)
 	  void		*addr;
 	  NSString	*a;
 
+#ifdef  __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
+#endif
 	  if (AF_INET == tmp->ai_family)
 	    {
 	      struct sockaddr_in *ipv4 = (struct sockaddr_in *)(tmp->ai_addr);
@@ -385,7 +386,9 @@ etcHosts(BOOL flush)
 	    {
 	      continue;	// Unsupported family
 	    }
+#ifdef  __clang__
 #pragma clang diagnostic pop
+#endif
 	  inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
 	  a = [NSString stringWithUTF8String: ipstr];
 	  [self _addHostAddress: a withNames: names addresses: addresses];
@@ -470,9 +473,9 @@ etcHosts(BOOL flush)
        * local /etc/hosts file so we try to add them here.
        */
       loc = [etcHosts(NO) objectForKey: address];
-      FOR_IN(NSString*, name, loc)
+      GS_FOR_IN(NSString*, name, loc)
 	[self _addHostName: name withNames: names addresses: addresses];
-      END_FOR_IN(loc)
+      GS_END_FOR(loc)
     }
 }
 #endif
@@ -599,9 +602,9 @@ dnsaliases(NSString *host, NSSet *names);
     {
       NSSet	*aliases = dnsaliases(name, names);
 
-      FOR_IN(NSString*, name, aliases)
+      GS_FOR_IN(NSString*, name, aliases)
 	[self _addHostInfo: name withNames: names addresses: addresses];
-      END_FOR_IN(aliases)
+      GS_END_FOR(aliases)
     }
 #endif
     }
@@ -716,9 +719,9 @@ dnsaliases(NSString *host, NSSet *names);
     {
       NSSet	*extra = [hostClass _localAddresses];
 
-      FOR_IN(NSString*, address, extra)
+      GS_FOR_IN(NSString*, address, extra)
         [self _addHostAddress: address withNames: names addresses: addresses];
-      END_FOR_IN(extra)
+      GS_END_FOR(extra)
     }
 
   if ([addresses count] == 0 && [name isEqualToString: myHostName()])
@@ -1243,13 +1246,13 @@ dnsaliases(NSString *host, NSSet *names);
     {
       if ([a rangeOfString: @":"].length > 0)
 	{
-	  FOR_IN (NSString*, tmp, _addresses)
+	  GS_FOR_IN (NSString*, tmp, _addresses)
 	    if ([tmp rangeOfString: @":"].length == 0)
 	      {
 		a = tmp;
 		break;
 	      }
-	  END_FOR_IN (_addresses)
+	  GS_END_FOR (_addresses)
 	}
     }
   return a;
