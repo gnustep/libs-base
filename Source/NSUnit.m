@@ -105,13 +105,35 @@
 
 - (double) baseUnitValueFromValue: (double)value
 {
-  return (_coefficient* value) + _constant;
+  return (_coefficient * value) + _constant;
 }
 
 - (double) valueFromBaseUnitValue: (double)baseUnitValue
 {
   return (baseUnitValue - _constant) / _coefficient;
 }
+
+- (BOOL)isEqual: (id)object {
+  NSUnitConverterLinear * otherLinear;
+
+  if (self == object)
+    {
+      return YES;
+    }
+  if ([object isKindOfClass:[NSUnitConverterLinear class]] == NO)
+    {
+      return NO;
+    }
+
+  otherLinear = (NSUnitConverterLinear *)object;
+
+  return ([self coefficient] == [otherLinear coefficient] && [self constant] == [otherLinear constant]);
+}
+
+- (NSUInteger)hash {
+  return (NSUInteger)(_coefficient * 1000) ^ (NSUInteger)_constant;
+}
+
 @end
 
 // Abstract unit...
@@ -244,6 +266,38 @@
     {
       [coder encodeObject: _symbol];
     }
+}
+
+- (BOOL) isEqual: (id)object {
+  NSDimension *other;
+
+  if (self == object)
+    {
+      return YES;
+    }
+  if ([object isKindOfClass:[NSDimension class]] == NO)
+    {
+      return NO;
+    }
+
+  other = (NSDimension *)object;
+  if ([self isMemberOfClass:[other class]] == NO)
+    {
+      return NO;
+    }
+  if ([[self symbol] isEqualToString:[other symbol]] == NO)
+    {
+      return NO;
+    }
+  if ([[self converter] isEqual:[other converter]] == NO)
+    {
+      return NO;
+    }
+  return YES;
+}
+
+- (NSUInteger)hash {
+  return [self.class hash] ^ [_symbol hash];
 }
 
 @end
