@@ -630,8 +630,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 		kind = NSXMLElementKind;
 		break;
 	      case XML_DTD_NODE:
-		cls = [NSXMLDTD class];
-		kind = NSXMLDTDKind;
+		//DTD Node causes crashes 
+    return nil;
 		break;
 	      case XML_ATTRIBUTE_DECL: 
 		cls = [NSXMLDTDNode class];
