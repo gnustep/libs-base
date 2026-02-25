@@ -203,6 +203,12 @@
 
 // Dimension using units....
 @implementation NSDimension
+
++ (instancetype) baseUnit
+{
+  return nil;
+}
+
 - (NSUnitConverter*) converter
 {
   return _converter;
@@ -212,6 +218,40 @@
 {
   RELEASE(_converter);
   DEALLOC
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _converter forKey: @"NS.converter"];
+    }
+  else
+    {
+      [coder encodeObject: _symbol];
+    }
+}
+
+- (NSUInteger) hash
+{
+  return [self.class hash] ^ [_symbol hash];
+}
+
+- (id) initWithCoder: (NSCoder*)coder
+{
+  if ((self = [super initWithCoder: coder]) != nil)
+    {
+      if ([coder allowsKeyedCoding])
+	{
+	  _converter = [coder decodeObjectForKey: @"NS.converter"];
+	}
+      else
+	{
+	  _symbol = [coder decodeObject];
+	}
+    }
+  return self;
 }
 
 - (instancetype) initWithSymbol: (NSString*)symbol
@@ -240,68 +280,33 @@
   return self;
 }
 
-+ (instancetype) baseUnit
+- (BOOL) isEqual: (id)object
 {
-  return nil;
-}
-
-- (id) initWithCoder: (NSCoder*)coder
-{
-  self = [super initWithCoder: coder];
-  if ([coder allowsKeyedCoding])
-    {
-      _converter = [coder decodeObjectForKey: @"NS.converter"];
-    }
-  else
-    {
-      _symbol = [coder decodeObject];
-    }
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)coder
-{
-  [super encodeWithCoder: coder];
-  if ([coder allowsKeyedCoding])
-    {
-      [coder encodeObject: _converter forKey: @"NS.converter"];
-    }
-  else
-    {
-      [coder encodeObject: _symbol];
-    }
-}
-
-- (BOOL) isEqual: (id)object {
-  NSDimension *other;
+  NSDimension	*other;
 
   if (self == object)
     {
       return YES;
     }
-  if ([object isKindOfClass:[NSDimension class]] == NO)
+  if ([object isKindOfClass: [NSDimension class]] == NO)
     {
       return NO;
     }
 
   other = (NSDimension *)object;
-  if ([self isMemberOfClass:[other class]] == NO)
+  if ([self isMemberOfClass: [other class]] == NO)
     {
       return NO;
     }
-  if ([[self symbol] isEqualToString:[other symbol]] == NO)
+  if ([[self symbol] isEqualToString: [other symbol]] == NO)
     {
       return NO;
     }
-  if ([[self converter] isEqual:[other converter]] == NO)
+  if ([[self converter] isEqual: [other converter]] == NO)
     {
       return NO;
     }
   return YES;
-}
-
-- (NSUInteger)hash {
-  return [self.class hash] ^ [_symbol hash];
 }
 
 @end
