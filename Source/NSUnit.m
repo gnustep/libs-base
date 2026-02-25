@@ -47,21 +47,39 @@
 
 // Linear conversion...
 @implementation NSUnitConverterLinear
-- (instancetype) initWithCoefficient: (double)coefficient
+
+- (double) baseUnitValueFromValue: (double)value
 {
-  return [self initWithCoefficient: coefficient constant: 0.0];
+  return (_coefficient * value) + _constant;
 }
 
-- (instancetype) initWithCoefficient: (double)coefficient
-                            constant: (double)constant
+- (double) coefficient
 {
-  self = [super init];
-  if (self != nil)
+  return _coefficient;
+}
+
+- (double) constant
+{
+  return _constant;
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+  if([coder allowsKeyedCoding])
     {
-      _coefficient = coefficient;
-      _constant = constant;
+      [coder encodeDouble: _coefficient forKey: @"NS.coefficient"];
+      [coder encodeDouble: _constant forKey: @"NS.constant"];
     }
-  return self;
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(double) at: &_coefficient];
+      [coder encodeValueOfObjCType: @encode(double) at: &_constant];
+    }
+}
+
+- (NSUInteger) hash
+{
+  return (NSUInteger)(_coefficient * 1000) ^ (NSUInteger)_constant;
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -79,59 +97,45 @@
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder*)coder
+- (instancetype) initWithCoefficient: (double)coefficient
 {
-  if([coder allowsKeyedCoding])
+  return [self initWithCoefficient: coefficient constant: 0.0];
+}
+
+- (instancetype) initWithCoefficient: (double)coefficient
+                            constant: (double)constant
+{
+  self = [super init];
+  if (self != nil)
     {
-      [coder encodeDouble: _coefficient forKey: @"NS.coefficient"];
-      [coder encodeDouble: _constant forKey: @"NS.constant"];
+      _coefficient = coefficient;
+      _constant = constant;
     }
-  else
-    {
-      [coder encodeValueOfObjCType: @encode(double) at: &_coefficient];
-      [coder encodeValueOfObjCType: @encode(double) at: &_constant];
-    }
+  return self;
 }
 
-- (double) coefficient
+- (BOOL) isEqual: (id)object
 {
-  return _coefficient;
-}
-
-- (double) constant
-{
-  return _constant;
-}
-
-- (double) baseUnitValueFromValue: (double)value
-{
-  return (_coefficient * value) + _constant;
-}
-
-- (double) valueFromBaseUnitValue: (double)baseUnitValue
-{
-  return (baseUnitValue - _constant) / _coefficient;
-}
-
-- (BOOL)isEqual: (id)object {
-  NSUnitConverterLinear * otherLinear;
+  NSUnitConverterLinear	*otherLinear;
 
   if (self == object)
     {
       return YES;
     }
-  if ([object isKindOfClass:[NSUnitConverterLinear class]] == NO)
+  if ([object isKindOfClass: [NSUnitConverterLinear class]] == NO)
     {
       return NO;
     }
 
   otherLinear = (NSUnitConverterLinear *)object;
 
-  return ([self coefficient] == [otherLinear coefficient] && [self constant] == [otherLinear constant]);
+  return ([self coefficient] == [otherLinear coefficient]
+    && [self constant] == [otherLinear constant]);
 }
 
-- (NSUInteger)hash {
-  return (NSUInteger)(_coefficient * 1000) ^ (NSUInteger)_constant;
+- (double) valueFromBaseUnitValue: (double)baseUnitValue
+{
+  return (baseUnitValue - _constant) / _coefficient;
 }
 
 @end
