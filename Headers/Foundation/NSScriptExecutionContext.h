@@ -32,8 +32,19 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSScriptCommand;
+
 GS_EXPORT_CLASS
 @interface NSScriptExecutionContext : NSObject
+{
+@private
+  NSScriptCommand *_topLevelObject;
+}
+
++ (NSScriptExecutionContext *) sharedScriptExecutionContext;
+
+- (NSScriptCommand *) topLevelObject;
+- (void) setTopLevelObject: (NSScriptCommand *)obj;
 
 @end
 

@@ -144,7 +144,7 @@
 #import <Foundation/NSScriptCommandDescription.h>
 #import <Foundation/NSScriptExecutionContext.h>
 #import <Foundation/NSScriptKeyValueCoding.h>
-#import <Foundation/NSScriptObjectSpecifiers.h>
+#import <Foundation/NSScriptObjectSpecifier.h>
 #import <Foundation/NSScriptStandardSuiteCommands.h>
 #import <Foundation/NSScriptSuiteRegistry.h>
 #import	<Foundation/NSScriptWhoseTests.h>

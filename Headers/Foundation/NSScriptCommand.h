@@ -32,8 +32,66 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSScriptCommandDescription;
+@class NSScriptObjectSpecifier;
+@class NSDictionary;
+@class NSString;
+@class NSAppleEventDescriptor;
+@class NSCoder;
+
 GS_EXPORT_CLASS
 @interface NSScriptCommand : NSObject
+{
+  @private
+  NSScriptCommandDescription *_commandDescription;
+  NSDictionary *_arguments;
+  NSDictionary *_evaluatedArguments;
+  NSScriptObjectSpecifier *_directParameter;
+  NSScriptObjectSpecifier *_receiversSpecifier;
+  id _evaluatedReceivers;
+  NSAppleEventDescriptor *_appleEvent;
+  BOOL _isSuspended;
+  NSInteger _errorNumber;
+  NSString *_errorString;
+}
+
+- (id) initWithCommandDescription: (NSScriptCommandDescription *)commandDef;
+
+- (id) initWithCoder: (NSCoder *)coder;
+
+- (NSScriptCommandDescription *) commandDescription;
+
+- (NSDictionary *) arguments;
+- (void) setArguments: (NSDictionary *)args;
+- (void) setArgument: (id)value forKey: (NSString *)key;
+
+- (NSDictionary *) evaluatedArguments;
+
+- (NSScriptObjectSpecifier *) directParameter;
+- (void) setDirectParameter: (NSScriptObjectSpecifier *)directParameter;
+
+- (id) evaluatedReceivers;
+
+- (BOOL) isWellFormed;
+
+- (id) performDefaultImplementation;
+
+- (id) executeCommand;
+
+- (void) suspendExecution;
+- (void) resumeExecutionWithResult: (id)result;
+
+- (NSScriptObjectSpecifier *) receiversSpecifier;
+- (void) setReceiversSpecifier: (NSScriptObjectSpecifier *)receiversRef;
+
+- (id) currentCommand;
+
+- (NSAppleEventDescriptor *) appleEvent;
+
+- (void) setScriptErrorNumber: (NSInteger)errorNumber;
+- (void) setScriptErrorString: (NSString *)errorString;
+- (NSInteger) scriptErrorNumber;
+- (NSString *) scriptErrorString;
 
 @end
 
@@ -44,4 +102,3 @@ GS_EXPORT_CLASS
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSScriptCommand_h_GNUSTEP_BASE_INCLUDE */
-
