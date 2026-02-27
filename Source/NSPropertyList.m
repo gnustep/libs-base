@@ -2848,15 +2848,27 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
           break;
 
         case NSPropertyListGNUstepBinaryFormat:
-          if (anOption == NSPropertyListImmutable)
+          NS_DURING
             {
-              result = [NSDeserializer deserializePropertyListFromData: data
-                                                     mutableContainers: NO];
+              if (anOption == NSPropertyListImmutable)
+                {
+                  result = [NSDeserializer deserializePropertyListFromData: data
+                                                         mutableContainers: NO];
+                }
+              else
+                {
+                  result = [NSDeserializer deserializePropertyListFromData: data
+                                                         mutableContainers: YES];
+                }
             }
-          else
+          NS_HANDLER
             {
-              result = [NSDeserializer deserializePropertyListFromData: data
-                                                     mutableContainers: YES];
+              errorStr = [localException reason];
+            }
+          NS_ENDHANDLER
+          if (result == nil && errorStr == nil)
+            {
+              errorStr = @"failed to parse binary property list";
             }
           break;
           

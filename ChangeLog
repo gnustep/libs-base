@@ -1,3 +1,10 @@
+2026-02-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSPropertyList.m:
+	Catch exceptions raised by binary plist deserialization in
+	+propertyListWithData:options:format:error: and map exception reasons
+	to NSError output.
+
 2026-02-10 Simon Peter <probono@puredarwin.org>
 
 	* Headers/Foundation/NSZone.h:
