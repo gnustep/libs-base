@@ -2797,7 +2797,7 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
         }
     }
 
-  if (errorStr == nil)
+  if (nil == errorStr)
     {
       switch (format)
         {
@@ -2852,13 +2852,15 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
             {
               if (anOption == NSPropertyListImmutable)
                 {
-                  result = [NSDeserializer deserializePropertyListFromData: data
-                                                         mutableContainers: NO];
+                  result = [NSDeserializer
+		    deserializePropertyListFromData: data
+		    mutableContainers: NO];
                 }
               else
                 {
-                  result = [NSDeserializer deserializePropertyListFromData: data
-                                                         mutableContainers: YES];
+                  result = [NSDeserializer
+		    deserializePropertyListFromData: data
+		    mutableContainers: YES];
                 }
             }
           NS_HANDLER

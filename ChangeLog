@@ -8,7 +8,8 @@
 2026-02-10 Simon Peter <probono@puredarwin.org>
 
 	* Headers/Foundation/NSZone.h:
-	Remove unused function declaration NSMakeCollectable that caused compiler errors with ARC.
+	Remove unused function declaration NSMakeCollectable that caused
+	compiler errors with ARC.
   
 2026-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
