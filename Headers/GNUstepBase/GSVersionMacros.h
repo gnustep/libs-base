@@ -308,11 +308,13 @@
 #  if	!GS_NONFRAGILE
 #    if	defined(GNUSTEP_BASE_INTERNAL)
 #      error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #    endif
 #  endif
 #else
 #  if	GS_NONFRAGILE
 #    error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #  endif
 #endif
 
