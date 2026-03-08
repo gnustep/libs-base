@@ -1730,6 +1730,7 @@ XString(NSString* obj, NSMutableData *output)
       unichar	*base;
       unichar	*map;
       unichar	c;
+      unichar	d;
       unsigned	len;
       unsigned	rpos;
       unsigned	wpos;
@@ -1757,8 +1758,16 @@ XString(NSString* obj, NSMutableData *output)
 		break;
 
 	      default:
-		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
-		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
+		if (c >= 0xD800 && c <= 0xDBFF && (rpos + 1) < end
+		  && (d = base[rpos + 1]) >= 0xDC00 && d <= 0xDFFF)
+		  {
+		    // Surrogate pair will be sent unescaped
+		    rpos++;
+		    len += 2;
+		  }
+		else if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
+		  || (c > 0xD7FF && c < 0xE000) || (c > 0xFFFD && c < 0x10000)
+		  || c > 0x10FFFF)
 		  {
 		    if (osx)
 		      {
@@ -1819,8 +1828,16 @@ XString(NSString* obj, NSMutableData *output)
 		break;
 
 	      default:
-		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
-		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
+		if (c >= 0xD800 && c <= 0xDBFF && (rpos + 1) < end
+		  && (d = base[rpos + 1]) >= 0xDC00 && d <= 0xDFFF)
+		  {
+		    // Surrogate pair will be sent unescaped
+		    map[wpos++] = c;
+		    map[wpos++] = d;
+		  }
+		else if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
+		  || (c > 0xD7FF && c < 0xE000) || (c > 0xFFFD && c < 0x10000)
+		  || c > 0x10FFFF)
 		  {
 		    if (osx)
 		      {
