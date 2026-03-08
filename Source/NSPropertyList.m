@@ -1766,8 +1766,7 @@ XString(NSString* obj, NSMutableData *output)
 		    len += 2;
 		  }
 		else if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
-		  || (c > 0xD7FF && c < 0xE000) || (c > 0xFFFD && c < 0x10000)
-		  || c > 0x10FFFF)
+		  || c > 0xFFFD)
 		  {
 		    if (osx)
 		      {
@@ -1832,12 +1831,12 @@ XString(NSString* obj, NSMutableData *output)
 		  && (d = base[rpos + 1]) >= 0xDC00 && d <= 0xDFFF)
 		  {
 		    // Surrogate pair will be sent unescaped
+		    rpos++;
 		    map[wpos++] = c;
 		    map[wpos++] = d;
 		  }
 		else if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
-		  || (c > 0xD7FF && c < 0xE000) || (c > 0xFFFD && c < 0x10000)
-		  || c > 0x10FFFF)
+		  || c > 0xFFFD)
 		  {
 		    if (osx)
 		      {
@@ -2658,7 +2657,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       OAppend(obj, loc, 0, step, style, dest);
     }
-  tmp = [[NSString alloc] initWithData: dest encoding: NSASCIIStringEncoding];
+  tmp = [[NSString alloc] initWithData: dest encoding: NSUTF8StringEncoding];
   [*str appendString: tmp];
   RELEASE(tmp);
 }

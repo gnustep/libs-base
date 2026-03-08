@@ -21,7 +21,9 @@ static BOOL RunTestCase(const TestCase *testCase, unsigned idx);
 
 int main (int argc, const char * argv[])
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  ENTER_POOL
+  NSDictionary 	*d0;
+  NSDictionary 	*d1;
   unsigned i;
 
   for (i = 0; i < kTestCaseCount; i++)
@@ -30,7 +32,22 @@ int main (int argc, const char * argv[])
 	"xml propertylist parse test %d", i)
     }
     
-  [pool release];
+  [[NSUserDefaults standardUserDefaults] setBool: YES
+					  forKey: @"GSMacOSXCompatible"];
+      
+  d0 = [NSDictionary dictionaryWithContentsOfFile: @"non_baseplane_utf8.plist"];
+  PASS([d0 count] == 1, "non_baseplane_utf8.plist contains one item")
+
+  [d0 writeToFile: @"tmp.plist" atomically: YES];
+  d1 = [NSDictionary dictionaryWithContentsOfFile: @"non_baseplane_utf8.plist"];
+  PASS([d1 isEqual: d0], "non_baseplane_utf8.plist survives round trip")
+
+  [[NSFileManager defaultManager] removeFileAtPath: @"tmp.plist"
+					   handler: nil];
+
+  [[NSUserDefaults standardUserDefaults] setBool: NO
+					  forKey: @"GSMacOSXCompatible"];
+  LEAVE_POOL
   return 0;
 }
 
