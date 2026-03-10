@@ -1856,6 +1856,10 @@ setNonBlocking(SOCKET fd)
 {
   uint16_t	p = (uint16_t)port;
 
+  if (nil == address)
+    {
+      return NO;
+    }
   switch (family)
     {
       case AF_INET:

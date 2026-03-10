@@ -948,6 +948,18 @@ typedef struct {
 	  port = [[url scheme] isEqualToString: @"https"] ? 443 : 80;
 	}
 
+      if (nil == host)
+	{
+	  [self stopLoading];
+	  [this->client URLProtocol: self didFailWithError:
+	    [NSError errorWithDomain: @"host not found" code: 0 userInfo: 
+	      [NSDictionary dictionaryWithObjectsAndKeys: 
+		url, @"NSErrorFailingURLKey",
+		host, @"NSErrorFailingURLStringKey",
+		@"can't find host", @"NSLocalizedDescription",
+		nil]]];
+	  return;
+	}
       [NSStream getStreamsToHost: host
 			    port: port
 		     inputStream: &this->input
