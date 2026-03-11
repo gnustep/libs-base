@@ -1907,7 +1907,7 @@ typedef struct {
 		      [mm appendData: bytes];
 		    }
 		}
-	      if (l >= 0 && [this->request
+	      if ((l > 0 || (![[this->request HTTPMethod] isEqual: @"GET"] && l >= 0))  && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)
 		{
                   s = [NSString stringWithFormat: @"Content-Length: %d\r\n", l];
