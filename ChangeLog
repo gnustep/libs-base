@@ -1,3 +1,13 @@
+2026-03-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Adjust to only add a Content-Length header for a zero length body when
+	the method of the request requires it (POST, PUT, PATCH).  In other
+	cases we should only add that header if the request has a body.
+	Issue pointed out by William Everett referencing RFC-9110 and saying
+	at least some web servers object to Content-length in GET requests.
+
 2026-03-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m:

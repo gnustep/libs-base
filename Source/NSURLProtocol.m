@@ -1782,6 +1782,7 @@ typedef struct {
 	      NSDictionary	*d;
 	      NSEnumerator	*e;
 	      NSString		*s;
+	      NSString		*method;
 	      NSURL		*u;
 	      int		l;		
 	      NSData		*bytes;
@@ -1825,8 +1826,8 @@ typedef struct {
 	       * method /path;params?query HTTP/version
 	       * where the params or query parts may be missing
 	       */
-	      [m appendData: [[this->request HTTPMethod]
-                dataUsingEncoding: NSASCIIStringEncoding]];
+	      method = [this->request HTTPMethod];
+	      [m appendData: [method dataUsingEncoding: NSASCIIStringEncoding]];
 	      [m appendBytes: " " length: 1];
 	      u = [this->request URL];
 	      s = [u _requestPath: 0];
@@ -1859,7 +1860,7 @@ typedef struct {
 	       * we therefore won't end up adding a second header by
 	       * accident because the two header names differ in case.
 	       */
-	      if ([[this->request HTTPMethod] isEqual: @"POST"]
+	      if ([method isEqual: @"POST"]
 	        && [this->request valueForHTTPHeaderField:
 		  @"Content-Type"] == nil)
 		{
@@ -1907,8 +1908,16 @@ typedef struct {
 		      [mm appendData: bytes];
 		    }
 		}
-	      if (l >= 0 && [this->request
-	        valueForHTTPHeaderField: @"Content-Length"] == nil)
+
+	      /* When we have a non-empty body or a method which requires
+	       * a body, we must specify the content length.
+	       */
+	      s = [this->request valueForHTTPHeaderField: @"Content-Length"];
+	      if (nil == s
+		&& (l > 0
+		  || [method isEqualToString: @"POST"]
+		  || [method isEqualToString: @"PUT"]
+		  || [method isEqualToString: @"PATCH"]))
 		{
                   s = [NSString stringWithFormat: @"Content-Length: %d\r\n", l];
                   bytes = [s dataUsingEncoding: NSASCIIStringEncoding];

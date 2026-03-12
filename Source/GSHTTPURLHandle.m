@@ -447,7 +447,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMutableData		*buf;
   NSMutableData		*masked = nil;
   NSString		*version;
+  NSString		*method;
   NSMapEnumerator       enumerator;
+  NSUInteger		cl;
 
   RETAIN(self);
   if (debug)
@@ -501,15 +503,48 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  /* Ensure we set the correct content length (may be zero)
+  cl = [wData length];
+
+  /* Use default method if none is set.
+   */
+  method = [request objectForKey: GSHTTPPropertyMethodKey];
+  if (method == nil)
+    {
+      if (cl > 0)
+	{
+	  method = @"POST";
+	}
+      else
+	{
+	  method = @"GET";
+	}
+    }
+  else if ([method isEqualToString: @"TRACE"])
+    {
+      /* A TRACE must not have a body
+       */
+      DESTROY(wData);
+      cl = 0;
+      NSMapRemove(wProperties, (void*)@"Content-Length");
+    }
+
+
+  /* When we have a non-empty body or a method which requires
+   * a body, we must specify the content length.
    */
   if ((id)NSMapGet(wProperties, (void*)@"Content-Length") == nil)
     {
-      NSMapInsert(wProperties, (void*)@"Content-Length",
-        (void*)[NSString stringWithFormat: @"%"PRIuPTR, [wData length]]);
+      if (cl > 0
+	|| [method isEqualToString: @"POST"]
+	|| [method isEqualToString: @"PUT"]
+	|| [method isEqualToString: @"PATCH"])
+	{
+	  NSMapInsert(wProperties, (void*)@"Content-Length",
+	    (void*)[NSString stringWithFormat: @"%"PRIuPTR, cl]);
+	}
     }
 
-  if ([wData length] > 0)
+  if (cl > 0)
     {
       /*
        * Assume content type if not specified.
@@ -536,7 +571,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSString		*auth;
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
-	  NSString		*method;
 	  NSString		*path;
 
 	  /* Create credential from user and password stored in the URL.
@@ -560,19 +594,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		authenticationWithCredential: cred
 		inProtectionSpace: space];
 	      RELEASE(cred);
-	    }
-
-	  method = [request objectForKey: GSHTTPPropertyMethodKey];
-	  if (method == nil)
-	    {
-	      if ([wData length] > 0)
-		{
-		  method = @"POST";
-		}
-	      else
-		{
-		  method = @"GET";
-		}
 	    }
 
 	  path = [u _requestPath: [[request
