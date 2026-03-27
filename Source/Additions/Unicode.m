@@ -39,6 +39,7 @@
 #import "Foundation/NSPathUtilities.h"
 #endif
 
+#import "GNUstepBase/GSByteOrder.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/Unicode.h"
 

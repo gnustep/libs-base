@@ -28,7 +28,7 @@
 
 #import "common.h"
 
-#import "Foundation/NSEnumerator.h"
+#import "GNUstepBase/GSFastEnumeration.h"
 #import "GNUstepBase/GSURITemplate.h"
 
 /* Constants for NSError results.

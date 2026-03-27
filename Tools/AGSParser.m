@@ -27,6 +27,7 @@
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "GNUstepBase/GSFastEnumeration.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"

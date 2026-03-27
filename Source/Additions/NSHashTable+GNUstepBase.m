@@ -23,7 +23,7 @@
 */
 #import "common.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSEnumerator.h"
+#import "GNUstepBase/GSFastEnumeration.h"
 #import "GNUstepBase/NSHashTable+GNUstepBase.h"
 #import "GSPrivate.h"
 
