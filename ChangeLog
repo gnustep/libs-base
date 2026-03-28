@@ -1,3 +1,11 @@
+2026-03-19 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSOperation.m:
+	Ensure NSOperationQueue mainQueue executes queued operations on the
+	main thread, using libdispatch main-queue fast path when available.
+	* Tests/base/NSOperation/threads.m:
+	Add test for enqueuing on mainQueue from a background thread.
+
 2026-03-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:

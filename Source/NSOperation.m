@@ -66,6 +66,7 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSArray+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSDispatch.h"
 
 #define	GSInternal	NSOperationInternal
 #include	"GSInternal.h"
@@ -609,6 +610,7 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 
 @interface	NSOperationQueue (Private)
 - (void) _execute;
+- (void) _main: (NSOperation *)op;
 - (void) _thread: (NSNumber *) threadNumber;
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
@@ -632,6 +634,17 @@ sortFunc(id o1, id o2, void *ctxt)
 static NSString	*threadKey = @"NSOperationQueue";
 static NSOperationQueue *mainQueue = nil;
 
+#if GS_USE_LIBDISPATCH == 1
+static void
+mainQueueExecuteOperation(void *context)
+{
+  NSOperation	*op = (NSOperation *)context;
+
+  [mainQueue _main: op];
+  RELEASE(op);
+}
+#endif
+
 @implementation NSOperationQueue
 
 + (id) currentQueue
@@ -648,6 +661,7 @@ static NSOperationQueue *mainQueue = nil;
   if (nil == mainQueue)
     {
       mainQueue = [self new];
+      [mainQueue setMaxConcurrentOperationCount: 1];
     }
 }
 
@@ -886,6 +900,10 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt
 {
+  if (self == mainQueue)
+    {
+      cnt = 1;
+    }
   if (cnt < 0
     && cnt != NSOperationQueueDefaultMaxConcurrentOperationCount)
     {
@@ -1102,11 +1120,35 @@ static NSOperationQueue *mainQueue = nil;
   [NSThread exit];
 }
 
+- (void) _main: (NSOperation *)op
+{
+  BOOL	concurrent;
+
+  concurrent = [op isConcurrent];
+  NS_DURING
+    {
+      ENTER_POOL
+      [op start];
+      LEAVE_POOL
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Problem running operation %@ ... %@",
+	op, localException);
+    }
+  NS_ENDHANDLER
+  if (NO == concurrent)
+    {
+      [op _finish];
+    }
+}
+
 /* Check for operations which can be executed and start them.
  */
 - (void) _execute
 {
   NSInteger	max;
+  NSMutableArray *mainQueueOperations = nil;
 
   [internal->lock lock];
 
@@ -1136,9 +1178,17 @@ static NSOperationQueue *mainQueue = nil;
 	      options: NSKeyValueObservingOptionNew
 	      context: isFinishedCtxt];
       internal->executing++;
-      if (YES == [op isConcurrent])
+      if (self == mainQueue)
 	{
-          [op start];
+	  if (nil == mainQueueOperations)
+	    {
+	      mainQueueOperations = [NSMutableArray new];
+	    }
+	  [mainQueueOperations addObject: op];
+	}
+      else if (YES == [op isConcurrent])
+	{
+	  [op start];
 	}
       else
 	{
@@ -1178,6 +1228,23 @@ static NSOperationQueue *mainQueue = nil;
     }
   NS_ENDHANDLER
   [internal->lock unlock];
+
+  if (nil != mainQueueOperations)
+    {
+      GS_FOR_IN(NSOperation *, op, mainQueueOperations)
+	{
+#if GS_USE_LIBDISPATCH == 1
+	  dispatch_async_f(dispatch_get_main_queue(), RETAIN(op),
+	    mainQueueExecuteOperation);
+#else
+	  [self performSelectorOnMainThread: @selector(_main:)
+				 withObject: op
+			      waitUntilDone: NO];
+#endif
+	}
+      GS_END_FOR(mainQueueOperations)
+      RELEASE(mainQueueOperations);
+    }
 }
 
 @end
