@@ -97,15 +97,24 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #define UNICODE_INT "UNICODELITTLE"
 #endif
 
+static inline uint16_t
+GSUnicodeSwap16(uint16_t codePoint)
+{
+  return (codePoint << 8) | (codePoint >> 8);
+}
+
+static inline uint32_t
+GSUnicodeSwap32(uint32_t codePoint)
+{
+  return ((codePoint & 0xFF) << 24)
+    | ((codePoint & 0xFF00) << 8)
+    | ((codePoint & 0xFF0000) >> 8)
+    | (codePoint >> 24);
+}
+
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
 static const char *unicode_enc = NULL;
-
-static uint16_t
-SwapUChar(uint16_t val)
-{
-  return (val << 8) | (val >> 8);
-}
 
 /* Check to see what type of internal unicode format the library supports */
 static const char *
@@ -1187,7 +1196,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
               {
                 uint16_t	c = *(uint16_t*)(src + spos);
 
-	        c = SwapUChar(c);
+	        c = GSUnicodeSwap16(c);
 	        ptr[dpos++] = c;
 		spos += 2;
 	      }
@@ -1219,7 +1228,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 
 	      if (swap)
 		{
-	          c = SwapUChar(c);
+	          c = GSUnicodeSwap32(c);
 		}
 	      if (dpos >= bsize)
 		{
@@ -2019,7 +2028,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
 		  /* get first unichar */
 		  u1 = src[spos++];
-		  u1 = SwapUChar(u1);
+		  u1 = GSUnicodeSwap16(u1);
 
 		  /* Fast track ... if this is actually an ascii character
 		   * it just converts straight to utf-8
@@ -2060,7 +2069,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
 		      /* get second unichar */
 		      u2 = src[spos++];
-		      u2 = SwapUChar(u2);
+		      u2 = GSUnicodeSwap16(u2);
 
 		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
 			{
@@ -2259,7 +2268,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                 {
                   unichar	u = src[index++];
 
-		  u = SwapUChar(u);
+		  u = GSUnicodeSwap16(u);
                   if (u < 256)
                     {
                       if ((u >= ' ' && u < 127)
@@ -2353,7 +2362,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
                   if (swapped)
                     {
-		      u = SwapUChar(u);
+		      u = GSUnicodeSwap16(u);
                     }
                   if (u < 256)
                     {
@@ -2457,7 +2466,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	      {
 		unichar	u = src[spos++];
 
-		u = SwapUChar(u);
+		u = GSUnicodeSwap16(u);
 		*d++ = u;
 	      }
 	  }
@@ -2483,7 +2492,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	    /* Swap byte order if necessary */
 	    if (swapped)
 	      {
-		u1 = SwapUChar(u1);
+		u1 = GSUnicodeSwap16(u1);
 	      }
 	    u = u1;
 
@@ -2495,7 +2504,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
 		if (swapped)
 		  {
-		    u2 = SwapUChar(u2);
+		    u2 = GSUnicodeSwap16(u2);
 		  }
 		if (u2 >= 0xdc00 && u2 <= 0xdfff)
 		  {
@@ -2516,7 +2525,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	    if (NSUTF32BigEndianStringEncoding == enc)
 #endif
 	      {
-	        u = SwapUChar(u);
+	        u = GSUnicodeSwap32(u);
 	      }
 	    memcpy((ptr + dpos), &u, 4);
 	    dpos += 4;
@@ -2571,7 +2580,7 @@ bases:
 		  {
 		    unichar	u = src[spos++];
 
-		    u = SwapUChar(u);
+		    u = GSUnicodeSwap16(u);
 		    if (u < base)
 		      {
 			ptr[dpos++] = (unsigned char)u;
@@ -2607,7 +2616,7 @@ bases:
 		  {
 		    unichar	u = src[spos++];
 
-		    u = SwapUChar(u);
+		    u = GSUnicodeSwap16(u);
 		    if (u < base)
 		      {
 			ptr[dpos++] = (unsigned char)u;
@@ -2700,7 +2709,7 @@ tables:
 	    /* Swap byte order if necessary */
 	    if (swapped)
 	      {
-		u = SwapUChar(u);
+		u = GSUnicodeSwap16(u);
 	      }
 
 	    /* Grow output buffer to make room if necessary */
