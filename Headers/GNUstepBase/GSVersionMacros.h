@@ -217,7 +217,7 @@
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-
+#if !defined(GS_GCC_MINREQ)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
 #  define GS_GCC_MINREQ(maj, min) \
   ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -231,6 +231,7 @@
 #else
 #  define GS_CLANG_MINREQ(maj, min) 0
 #endif
+#endif /* GS_GCC_MINREQ */
 
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.

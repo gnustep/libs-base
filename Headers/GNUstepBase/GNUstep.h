@@ -24,6 +24,22 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
+#if !defined(GS_GCC_MINREQ)
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
+#  define GS_GCC_MINREQ(maj, min) \
+  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#  define GS_GCC_MINREQ(maj, min) 0
+#endif
+
+#if defined(__clang__)
+#  define GS_CLANG_MINREQ(maj, min) \
+  ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#else
+#  define GS_CLANG_MINREQ(maj, min) 0
+#endif
+#endif /* GS_GCC_MINREQ */
+
 /* The contents of this file are designed to be usable with either
  * GNUstep-base or MacOS-X Foundation.
  */
