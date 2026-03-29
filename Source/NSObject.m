@@ -49,6 +49,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GNUstep.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -83,6 +84,19 @@
 #endif
 #endif
 
+#if	defined(USE_GSEnumerationMutation)
+/* GSEnumerationMutation() is called whenever a collection mutates in the
+ * middle of fast enumeration which was not supported by the compiler and
+ * where we need to use our own function name because the runtime library
+ * contains a symbol which would conflict with the normal name (platforms
+ * where weak symbols don't work reliably).
+ */
+void GSEnumerationMutation(id obj)
+{
+  [NSException raise: NSGenericException 
+    format: @"Collection %@ was mutated while being enumerated", obj];
+}
+#else
 /* objc_enumerationMutation() is called whenever a collection mutates in the
  * middle of fast enumeration.  We need to have this defined and linked into
  * any code that uses fast enumeration, so we define it in NSObject.h
@@ -94,6 +108,7 @@ GS_EXPORT void objc_enumerationMutation(id obj)
   [NSException raise: NSGenericException 
     format: @"Collection %@ was mutated while being enumerated", obj];
 }
+#endif
 
 /* platforms which do not support weak */
 #if defined (__WIN32)

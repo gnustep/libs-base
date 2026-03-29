@@ -22,6 +22,7 @@
 */
 
 #include "GNUstepBase/GSConfig.h"
+#include "GNUstepBase/GSVersionMacros.h"
 #include "GNUstepBase/GNUstep.h"
 #import "GSPThread.h"
 #include <math.h>

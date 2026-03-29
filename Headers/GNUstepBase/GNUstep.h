@@ -24,6 +24,14 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
+/* Check to see if this is a MINGW build
+ */
+#if	defined(__MINGW32__) || defined(__MINGW64__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
+#  endif
+#endif
+
 #if !defined(GS_GCC_MINREQ)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
 #  define GS_GCC_MINREQ(maj, min) \
@@ -489,13 +497,28 @@ if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
   {
 /** Macro to end a fast enumeration block on older compilers.  Its argument
  * must be identical to that of the corresponding GS_FOR_IN macro. 
+ * On a more modern compiler this just ends the fast enumeration block.
  */
 #define GS_END_FOR(collection) }
 #else
+
+/* This is the code for the older compilers (and for systems where we can't
+ * override the mutation handling function safely).
+ * We declare the function to be called when a mutation of a collection is
+ * detected during fast enumeration.  If possible we use the standard one
+ * provided by the runtime, otherwise we use one provided by GNUstep-base.
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+#if	defined(__MINGW__)
+#define	USE_GSEnumerationMutation	1	/* Tells NSObject.m */ 
+void GSEnumerationMutation(id);
+#else
 void objc_enumerationMutation(id);
+#define	GSEnumerationMutation(X) objc_enumerationMutation(X)
+#endif
 #pragma GCC diagnostic pop
+
 #define GS_FOR_IN(type, var, c) \
 do\
 {\
@@ -514,7 +537,7 @@ do\
       do {\
         if (gs_startMutations != *gs_##c##_enumState.mutationsPtr)\
         {\
-          objc_enumerationMutation(c);\
+          GSEnumerationMutation(c);\
         }\
         var = gs_##c##_enumState.itemsPtr[gs_##c##counter++];\
 
