@@ -24,29 +24,8 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
-/* Check to see if this is a MINGW build
- */
-#if	defined(__MINGW32__) || defined(__MINGW64__)
-#  if	!defined(__MINGW__)
-#    define __MINGW__
-#  endif
-#endif
-
-#if !defined(GS_GCC_MINREQ)
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
-#  define GS_GCC_MINREQ(maj, min) \
-  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-#  define GS_GCC_MINREQ(maj, min) 0
-#endif
-
-#if defined(__clang__)
-#  define GS_CLANG_MINREQ(maj, min) \
-  ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
-#else
-#  define GS_CLANG_MINREQ(maj, min) 0
-#endif
-#endif /* GS_GCC_MINREQ */
+#import	"GNUstepBase/GSConfig.h"
+#import	"GNUstepBase/GSVersionMacros.h"
 
 /* The contents of this file are designed to be usable with either
  * GNUstep-base or MacOS-X Foundation.
@@ -465,9 +444,14 @@ void *__object = (void*)(object);\
 #define GSLocalizedStaticString(key, comment) key
 
 /**
+ * <p>
+ *   This function (macro) is a GNUstep extension.
+ * </p>
+ * <p>
  * To be used inside a method for making sure that a range does not specify
  * anything outside the size of an array/string.  Raises exception if range
  * extends beyond [0,size]. Size must be an unsigned integer (NSUInteger).
+ * </p>
  */
 #define GS_RANGE_CHECK(RANGE, SIZE) \
   if (RANGE.location > (NSUInteger)SIZE \
@@ -486,37 +470,40 @@ if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
     GSNameFromSelector(_cmd), (NSUInteger)INDEX]
 
 
-#if	defined(__clang__) || (GS_GCC_MINREQ(6,1) && !defined(__MINGW__))
-/** Macro to support fast enumeration on older compilers.  The argument are
+#if	defined(__clang__) \
+  || (GS_HAVE_FAST_ENUMERATION \
+    && (GS_HAVE_FAST_ENUMERATION_SETTER || !defined(__MINGW__)))
+/** <p>This function (macro) is a GNUstep extension.</p>
+ * <p>
+ * Macro to support fast enumeration on platforms where the compiler or
+ * runtime do not support fast enumeration directly. The argument are
  * a type specification for the value returned by the iteration, the name of
  * a variable to hold that value, and the collection to be iterated over
- * (may also be an instance of [NSEnumerator] rather than a collection).
+ * (may also be an instance of [NSEnumerator] rather than a collection).<br />
+ * On a compiler/runtime with fast enumeration support, this macro starts
+ * the fast enumeration block.
+ * </p>
  */
 #define GS_FOR_IN(type, var, collection) \
   for (type var in collection)\
   {
-/** Macro to end a fast enumeration block on older compilers.  Its argument
- * must be identical to that of the corresponding GS_FOR_IN macro. 
- * On a more modern compiler this just ends the fast enumeration block.
+/** <p>This function (macro) is a GNUstep extension.</p>
+ * <p>
+ * Macro to end a fast enumeration block on older compilers.  Its argument
+ * must be identical to that of the corresponding GS_FOR_IN macro.<br />
+ * On a compiler/runtime with fast enumeration support, this just ends
+ * the fast enumeration block.
+ * </p>
  */
 #define GS_END_FOR(collection) }
 #else
 
-/* This is the code for the older compilers (and for systems where we can't
- * override the mutation handling function safely).
- * We declare the function to be called when a mutation of a collection is
- * detected during fast enumeration.  If possible we use the standard one
- * provided by the runtime, otherwise we use one provided by GNUstep-base.
+/* We declare the function to be called when a mutation of a collection is
+ * detected during fast enumeration; provided by GNUstep-base.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-#if	defined(__MINGW__)
-#define	USE_GSEnumerationMutation	1	/* Tells NSObject.m */ 
 void GSEnumerationMutation(id);
-#else
-void objc_enumerationMutation(id);
-#define	GSEnumerationMutation(X) objc_enumerationMutation(X)
-#endif
 #pragma GCC diagnostic pop
 
 #define GS_FOR_IN(type, var, c) \

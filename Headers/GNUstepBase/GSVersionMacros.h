@@ -24,6 +24,8 @@
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 
+#import	"GNUstepBase/GSConfig.h"
+
 /* By default we defined NO_GNUSTEP to 0 so that we will include extensions.
  */
 #if	!defined(NO_GNUSTEP)

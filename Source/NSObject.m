@@ -84,30 +84,37 @@
 #endif
 #endif
 
-#if	defined(USE_GSEnumerationMutation)
 /* GSEnumerationMutation() is called whenever a collection mutates in the
- * middle of fast enumeration which was not supported by the compiler and
- * where we need to use our own function name because the runtime library
- * contains a symbol which would conflict with the normal name (platforms
- * where weak symbols don't work reliably).
+ * middle of fast enumeration.
  */
 void GSEnumerationMutation(id obj)
 {
   [NSException raise: NSGenericException 
     format: @"Collection %@ was mutated while being enumerated", obj];
 }
-#else
-/* objc_enumerationMutation() is called whenever a collection mutates in the
- * middle of fast enumeration.  We need to have this defined and linked into
- * any code that uses fast enumeration, so we define it in NSObject.h
- * This symbol is exported to take precedence over the weak symbol provided
- * by the runtime library.
- */
-GS_EXPORT void objc_enumerationMutation(id obj)
-{
-  [NSException raise: NSGenericException 
-    format: @"Collection %@ was mutated while being enumerated", obj];
-}
+
+#if	GS_HAVE_FAST_ENUMERATION
+  /* If possible we will ask the runtime to call our handler.
+   */
+# if	GS_HAVE_FAST_ENUMERATION_SETTER
+    extern void objc_setEnumerationMutationHandler(void (*handler)(id));
+# else
+    /* Otherwise, we can override a weak symbol in the runtime on platforms
+     * which support it (not reliable with DLLs in mingw).
+     */
+#   if	!defined(__MINGW__)
+      /* objc_enumerationMutation() is called whenever a collection mutates
+       * in the middle of fast enumeration.  We need to have this defined
+       * and linked into any code that uses fast enumeration.
+       * This symbol is exported to take precedence over the weak symbol
+       * provided by the runtime library.
+       */
+      GS_EXPORT void objc_enumerationMutation(id obj)
+      {
+	GSEnumerationMutation(obj);
+      }
+#   endif
+# endif
 #endif
 
 /* platforms which do not support weak */
@@ -1021,6 +1028,12 @@ static id gs_weak_load(id obj)
 {
   if (self == [NSObject class])
     {
+#if	GS_HAVE_FAST_ENUMERATION_SETTER
+      /* Tell runtime to pass enumeration mutation detection handling to us.
+       */
+      objc_setEnumerationMutationHandler(GSEnumerationMutation);
+#endif
+
 #ifdef _WIN32
       /* Start of sockets so we can get host name and other info */
       WORD wVersionRequested = MAKEWORD(2, 2);

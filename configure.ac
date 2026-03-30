@@ -2123,6 +2123,35 @@ else
 fi
 AC_SUBST(OBJCSYNC)
 
+#--------------------------------------------------------------------
+# Check for fast enumeration support in runtime
+#--------------------------------------------------------------------
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_enumerationMutation() on Windows MSVC])
+  OBJCSETFASTENUMERATION=0
+  OBJCFASTENUMERATION=1
+else
+  AC_CHECK_FUNCS(objc_enumerationMutation)
+  if test $ac_cv_func_objc_enumerationMutation = yes; then
+    AC_CHECK_FUNCS(objc_setEnumerationMutationHandler)
+    if test $ac_cv_func_objc_setEnumerationMutationHandler = yes; then
+      OBJCSETFASTENUMERATION=1
+    else
+      OBJCSETFASTENUMERATION=0
+    fi
+    OBJCFASTENUMERATION=1
+  else
+    OBJCSETFASTENUMERATION=0
+    OBJCFASTENUMERATION=0
+  fi
+fi
+AC_SUBST(OBJCSETFASTENUMERATION)
+AC_SUBST(OBJCFASTENUMERATION)
+
+
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
