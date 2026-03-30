@@ -470,9 +470,8 @@ if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
     GSNameFromSelector(_cmd), (NSUInteger)INDEX]
 
 
-#if	defined(__clang__) \
-  || (GS_HAVE_FAST_ENUMERATION \
-    && (GS_HAVE_FAST_ENUMERATION_SETTER || !defined(__MINGW__)))
+#if ((defined(__clang__) || GS_HAVE_FAST_ENUMERATION) \
+  && (GS_HAVE_FAST_ENUMERATION_SETTER || !defined(__MINGW__)))
 /** <p>This function (macro) is a GNUstep extension.</p>
  * <p>
  * Macro to support fast enumeration on platforms where the compiler or
