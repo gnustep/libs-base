@@ -14569,6 +14569,7 @@ printf "%s\n" "$as_me: Using system-provided ICU DLL (requires Windows 10 versio
     ;;
   esac
   if test $HAVE_ICU = 0; then
+    HAVE_ICU_I18N=0
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ICU_I18N" >&5
