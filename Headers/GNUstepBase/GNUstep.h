@@ -24,8 +24,8 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
-#import	"GNUstepBase/GSConfig.h"
-#import	"GNUstepBase/GSVersionMacros.h"
+#include	"GNUstepBase/GSConfig.h"
+#include	"GNUstepBase/GSVersionMacros.h"
 
 /* The contents of this file are designed to be usable with either
  * GNUstep-base or MacOS-X Foundation.
