@@ -102,7 +102,7 @@ void GSEnumerationMutation(id obj)
     /* Otherwise, we can override a weak symbol in the runtime on platforms
      * which support it (not reliable with DLLs in mingw).
      */
-#   if	!defined(__MINGW__)
+#   if	defined(__clang__) || !defined(__MINGW__)
       /* objc_enumerationMutation() is called whenever a collection mutates
        * in the middle of fast enumeration.  We need to have this defined
        * and linked into any code that uses fast enumeration.
