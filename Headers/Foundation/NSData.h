@@ -98,37 +98,39 @@ enum {
 DEFINE_BLOCK_TYPE(GSDataDeallocatorBlock, void, void*, NSUInteger);
 #endif
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
 @interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Allocating and Initializing a Data Object
 
 + (instancetype) data;
-+ (instancetype) dataWithBytes: (const void*)bytes
++ (instancetype) dataWithBytes: (const void *_Nullable)bytes
                         length: (NSUInteger)length;
-+ (instancetype) dataWithBytesNoCopy: (void*)bytes
++ (instancetype) dataWithBytesNoCopy: (void *_Nullable)bytes
                               length: (NSUInteger)length;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (instancetype) dataWithBytesNoCopy: (void*)aBuffer
++ (instancetype) dataWithBytesNoCopy: (void *_Nullable)aBuffer
                               length: (NSUInteger)bufferSize
                         freeWhenDone: (BOOL)shouldFree;
 #endif
-+ (instancetype) dataWithContentsOfFile: (NSString *)path
-                                options: (NSDataReadingOptions)readOptionsMask
-                                  error: (NSError **)errorPtr;
-+ (instancetype) dataWithContentsOfFile: (NSString*)path;
-+ (instancetype) dataWithContentsOfMappedFile: (NSString*)path;
++ (instancetype _Nullable) dataWithContentsOfFile: (NSString *)path
+                                          options: (NSDataReadingOptions)readOptionsMask
+                                            error: (NSError **)errorPtr;
++ (instancetype _Nullable) dataWithContentsOfFile: (NSString*)path;
++ (instancetype _Nullable) dataWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (instancetype) dataWithContentsOfURL: (NSURL *)url
-                               options: (NSDataReadingOptions)readOptionsMask
-                                 error: (NSError **)errorPtr;
-+ (instancetype) dataWithContentsOfURL: (NSURL*)url;
++ (instancetype _Nullable) dataWithContentsOfURL: (NSURL *)url
+                                         options: (NSDataReadingOptions)readOptionsMask
+                                           error: (NSError **)errorPtr;
++ (instancetype _Nullable) dataWithContentsOfURL: (NSURL*)url;
 #endif
 + (instancetype) dataWithData: (NSData*)data;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
-- (instancetype) initWithBase64EncodedData: (NSData*)base64Data
+- (instancetype _Nullable) initWithBase64EncodedData: (NSData*)base64Data
   options: (NSDataBase64DecodingOptions)options;
-- (instancetype) initWithBase64EncodedString: (NSString*)base64String
+- (instancetype _Nullable) initWithBase64EncodedString: (NSString*)base64String
   options: (NSDataBase64DecodingOptions)options;
 /**
  * <override-subclass/>
@@ -141,31 +143,31 @@ GS_EXPORT_CLASS
                               length: (NSUInteger)length
                          deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
-- (instancetype) initWithBytes: (const void*)aBuffer
+- (instancetype) initWithBytes: (const void *_Nullable)aBuffer
                         length: (NSUInteger)bufferSize;
-- (instancetype) initWithBytesNoCopy: (void*)aBuffer
+- (instancetype) initWithBytesNoCopy: (void *_Nullable)aBuffer
                               length: (NSUInteger)bufferSize;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (instancetype) initWithBytesNoCopy: (void*)aBuffer
+- (instancetype) initWithBytesNoCopy: (void *_Nullable)aBuffer
                               length: (NSUInteger)bufferSize
                         freeWhenDone: (BOOL)shouldFree;
 #endif
-- (instancetype) initWithContentsOfFile: (NSString*)path;
-- (instancetype) initWithContentsOfFile: (NSString *) path 
-                                options: (NSDataReadingOptions) readOptionsMask 
-                                  error: (NSError **) errorPtr;
-- (instancetype) initWithContentsOfMappedFile: (NSString*)path;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString *) path
+                                          options: (NSDataReadingOptions) readOptionsMask
+                                            error: (NSError **) errorPtr;
+- (instancetype _Nullable) initWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (instancetype) initWithContentsOfURL: (NSURL*)url;
-- (instancetype) initWithContentsOfURL: (NSURL *)url
-                               options: (NSDataReadingOptions)readOptionsMask
-                                 error: (NSError **)errorPtr;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL *)url
+                                         options: (NSDataReadingOptions)readOptionsMask
+                                           error: (NSError **)errorPtr;
 #endif
 - (instancetype) initWithData: (NSData*)data;
 
 // Accessing Data
 
-- (const void*) bytes;
+- (const void *_Nullable) bytes;
 - (NSString*) description;
 - (void) getBytes: (void*)buffer;
 - (void) getBytes: (void*)buffer
@@ -355,21 +357,21 @@ GS_EXPORT_CLASS
 
 - (void) increaseLengthBy: (NSUInteger)extraLength;
 - (void) setLength: (NSUInteger)size;
-- (void*) mutableBytes;
+- (void *_Nullable) mutableBytes;
 
 // Appending Data
 
-- (void) appendBytes: (const void*)aBuffer
+- (void) appendBytes: (const void *_Nullable)aBuffer
 	      length: (NSUInteger)bufferSize;
 - (void) appendData: (NSData*)other;
 
 // Modifying Data
 
 - (void) replaceBytesInRange: (NSRange)aRange
-		   withBytes: (const void*)bytes;
+		   withBytes: (const void *_Nullable)bytes;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) replaceBytesInRange: (NSRange)aRange
-		   withBytes: (const void*)bytes
+		   withBytes: (const void *_Nullable)bytes
 		      length: (NSUInteger)length;
 #endif
 - (void) resetBytesInRange: (NSRange)aRange;
@@ -391,6 +393,8 @@ GS_EXPORT_CLASS
 	       atIndex: (unsigned int)index;
 
 @end
+
+NS_ASSUME_NONNULL_END
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
