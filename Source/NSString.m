@@ -2054,61 +2054,71 @@ register_printf_atsign ()
 - (NSString *) stringByRemovingPercentEncoding
 {
   NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
-  const uint8_t	*s = [data bytes];
   NSUInteger	length = [data length]; 
-  NSUInteger	lastPercent = length - 3;
-  char		*o = (char *)NSZoneMalloc(NSDefaultMallocZone(), length + 1);
-  char		*next = o;
-  NSUInteger	index;
-  NSString	*result;
 
-  for (index = 0; index < length; index++)
+  if (length < 3)
     {
-      char	c = s[index];
-
-      if ('%' == c && index <= lastPercent)
-	{
-	  uint8_t	hi = s[index+1];
-	  uint8_t	lo = s[index+2];
-
-	  if (isxdigit(hi) && isxdigit(lo))
-	    {
-	      index += 2;
-              if (hi <= '9')
-                {
-                  c = hi - '0';
-                }
-              else if (hi <= 'F')
-                {
-                  c = hi - 'A' + 10;
-                }
-              else
-                {
-                  c = hi - 'a' + 10;
-                }
-	      c <<= 4;
-              if (lo <= '9')
-                {
-                  c += lo - '0';
-                }
-              else if (lo <= 'F')
-                {
-                  c += lo - 'A' + 10;
-                }
-              else
-                {
-                  c += lo - 'a' + 10;
-                }
-	    }
-	}
-      *next++ = c;
+      return self;	// Too short to have any percent escapes
     }
-  *next = '\0';
+  else
+    {
+      const uint8_t	*s = [data bytes];
+      NSUInteger	lastPercent = length - 3;
+      char		*o;
+      char		*next;
+      NSUInteger	index;
+      NSString		*result;
 
-  result = [NSString stringWithUTF8String: o];
-  NSZoneFree(NSDefaultMallocZone(), o);
-  
-  return result; 
+      next = o = (char *)NSZoneMalloc(NSDefaultMallocZone(), length + 1);
+
+      for (index = 0; index < length; index++)
+	{
+	  char	c = s[index];
+
+	  if ('%' == c && index <= lastPercent)
+	    {
+	      uint8_t	hi = s[index+1];
+	      uint8_t	lo = s[index+2];
+
+	      if (isxdigit(hi) && isxdigit(lo))
+		{
+		  index += 2;
+		  if (hi <= '9')
+		    {
+		      c = hi - '0';
+		    }
+		  else if (hi <= 'F')
+		    {
+		      c = hi - 'A' + 10;
+		    }
+		  else
+		    {
+		      c = hi - 'a' + 10;
+		    }
+		  c <<= 4;
+		  if (lo <= '9')
+		    {
+		      c += lo - '0';
+		    }
+		  else if (lo <= 'F')
+		    {
+		      c += lo - 'A' + 10;
+		    }
+		  else
+		    {
+		      c += lo - 'a' + 10;
+		    }
+		}
+	    }
+	  *next++ = c;
+	}
+      *next = '\0';
+
+      result = [NSString stringWithUTF8String: o];
+      NSZoneFree(NSDefaultMallocZone(), o);
+
+      return result; 
+    }  
 }
 
 /**
