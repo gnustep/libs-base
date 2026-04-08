@@ -2941,7 +2941,8 @@ failure:
 /**
  * Replace the content of the receiver which lies in aRange with
  * the specified length of data from the buffer pointed to by bytes.<br />
- * The size of the receiver is adjusted to allow for the change.
+ * The size of the receiver is adjusted to allow for the change.<br />
+ * The bytes argument may be NULL iff the length argument is zero.
  */
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
@@ -2967,7 +2968,7 @@ failure:
       [self setLength: need];
     }
   buf = [self mutableBytes];
-  if (0 == buf)
+  if (0 == buf && length > 0)
     {
       [NSException raise: NSInternalInconsistencyException
                   format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
