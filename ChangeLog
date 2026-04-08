@@ -1,3 +1,18 @@
+2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURL.h: Add newer NSURLComponents methods for
+	automatically percent-encoding most invalid characters in a URL.
+	* Source/NSURL.m: Re-implement NSURLComponents with new RFC 3986
+	parsing code and storing components in a percent encodes form
+	consistently.  Generalise the parsing code with the intention of
+	using it for NSURL soon.
+	* Tests/base/NSURL/Helpers/capture.m: cast to avoid compiler warning
+	* Tests/base/NSURL/Helpers/keepalive.m: cast to avoid compiler warning
+	* Tests/base/NSURL/Helpers/respond.m: cast to avoid compiler warning
+	* Tests/base/NSURL/basic.m: format tweaks
+	* Tests/base/NSURL/components.m: format tweaks
+	* Tests/base/NSURL/rfc3986.m: new testcases for NSURLComponents
+
 2026-04-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: -stringByRemovingPercentEncoding fix to avoid

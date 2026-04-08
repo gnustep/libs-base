@@ -38,6 +38,26 @@ function may be incorrect
 * Some functions are not implemented
 */
 
+#if defined(_WIN32)
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif // HAVE_WS2TCPIP_H
+#if !defined(HAVE_INET_NTOP)
+extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
+#endif
+#if !defined(HAVE_INET_NTOP)
+extern int WSAAPI inet_pton(int , const char *, void *);
+#endif
+#else /* !_WIN32 */
+#include <netdb.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif /* !_WIN32 */
+
+
+
 #define	GS_NSURLQueryItem_IVARS \
   NSString *_name; \
   NSString *_value; 
@@ -169,7 +189,7 @@ function may be incorrect
  * Structure describing a URL.
  * All the char* fields may be NULL pointers, except path, which
  * is *always* non-null (though it may be an empty string).
- * The sgtored values are percent escaped and must be unescaped when used
+ * The stored values are percent escaped and must be unescaped when used
  * to return an unescaped part of the URL.
  */
 typedef struct {
@@ -202,6 +222,9 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize);
 static id clientForHandle(void *data, NSURLHandle *hdl);
 static char *findUp(char *str);
 static char *unescape(const char *from, char * to);
+
+static const char	*rfc3986ok = "!#$&'()*+,/:;=?@[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 0123456789-_~.";
+static NSCharacterSet	*okCharSet = nil;
 
 /**
  * Build an absolute URL as a C string
@@ -481,6 +504,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       ptr += l;
     }
   *ptr = '\0';
+
   return buf;
 }
 
@@ -634,6 +658,7 @@ static char *unescape(const char *from, char * to)
 
 @implementation NSURL
 
+
 static NSCharacterSet	*fileCharSet = nil;
 static NSUInteger	urlAlign;
 
@@ -648,16 +673,16 @@ static NSUInteger	urlAlign;
 					    isDirectory: isDir]);
 }
 
-+ (id) fileURLWithPath: (NSString *)aPath
-	      isDirectory: (BOOL)isDir
-	    relativeToURL: (NSURL *)baseURL
++ (id) fileURLWithPath: (NSString*)aPath
+	   isDirectory: (BOOL)isDir
+	 relativeToURL: (NSURL*)baseURL
 {
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
 					    isDirectory: isDir
 					  relativeToURL: baseURL]);
 }
 
-+ (id)fileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
++ (id) fileURLWithPath: (NSString*)aPath relativeToURL: (NSURL*)baseURL
 {
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
 					  relativeToURL: baseURL]);
@@ -677,6 +702,8 @@ static NSUInteger	urlAlign;
       [[NSObject leakAt: &clientsLock] release];
       ASSIGN(fileCharSet, [NSCharacterSet characterSetWithCharactersInString:
         @"!$&'()*+,-./0123456789:=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]);
+      ASSIGN(okCharSet, [NSCharacterSet characterSetWithCharactersInString:
+	[NSString stringWithUTF8String: rfc3986ok]]);
     }
 }
 
@@ -891,17 +918,16 @@ static NSUInteger	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	name, NSStringFromSelector(_cmd)];
     }
-  if (nil == (self = [super init]))
-    {
-      return nil;
-    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
+
   NS_DURING
     {
       parsedURL	*buf;
       parsedURL	*base = baseData;
-      unsigned	size = [_urlString length];
+      const char	*utf8ptr = [_urlString UTF8String];
+      unsigned	utf8len = strlen(utf8ptr);
+      unsigned	size = utf8len;
       char	*end;
       char	*start;
       char	*ptr;
@@ -912,22 +938,11 @@ static NSUInteger	urlAlign;
 
       size += sizeof(parsedURL) + urlAlign + 1;
       buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
-      memset(buf, '\0', size);
+      memset(buf, '\0', sizeof(parsedURL));
       start = end = (char*)&buf[1];
-      NS_DURING
-        {
-          [_urlString getCString: start
-                       maxLength: size
-                        encoding: NSASCIIStringEncoding];
-        }
-      NS_HANDLER
-        {
-          /* OSX behavior when given non-ascii text is to return nil.
-           */
-          RELEASE(self);
-          return nil;
-        }
-      NS_ENDHANDLER
+
+      memcpy(start, utf8ptr, utf8len);
+      start[utf8len] = '\0';
 
       /*
        * Parse the scheme if possible.
@@ -1911,10 +1926,9 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-	  int	len = strlen(myData->path) + 1;
-          char	buf[len];
+          char		buf[strlen(myData->path) + 1];
 
-          memcpy(buf, myData->path, len);
+          strcpy(buf, myData->path);
           unescape(buf, buf);
 	  path = [NSString stringWithUTF8String: buf];
 	}
@@ -2339,8 +2353,8 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 @implementation NSURLQueryItem
 
 // Creating query items.
-+ (instancetype)queryItemWithName: (NSString *)name 
-                            value: (NSString *)value
++ (instancetype) queryItemWithName: (NSString*)name 
+                             value: (NSString*)value
 {
   NSURLQueryItem *newQueryItem = [[NSURLQueryItem alloc] initWithName: name
                                                                 value: value];
@@ -2357,8 +2371,8 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
   return self;
 }
 
-- (instancetype) initWithName: (NSString *)name 
-                        value: (NSString *)value
+- (instancetype) initWithName: (NSString*)name 
+                        value: (NSString*)value
 {
   self = [super init];
   if (self != nil)
@@ -2391,17 +2405,17 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 }
 
 // Reading a name and value from a query
-- (NSString *) name
+- (NSString*) name
 {
   return internal->_name;
 }
 
-- (NSString *) value
+- (NSString*) value
 {
   return internal->_value;
 }
 
-- (id) initWithCoder: (NSCoder *)acoder
+- (id) initWithCoder: (NSCoder*)acoder
 {
   if ((self = [super init]) != nil)
     {
@@ -2419,7 +2433,7 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
   return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)acoder
+- (void) encodeWithCoder: (NSCoder*)acoder
 {
   if ([acoder allowsKeyedCoding])
     {
@@ -2481,6 +2495,13 @@ static NSCharacterSet	*queryItemCharSet = nil;
   return AUTORELEASE([[NSURLComponents alloc] initWithString: urlString]);
 }
 
++ (instancetype) componentsWithString: (NSString*)URLString
+            encodingInvalidCharacters: (BOOL)encodingInvalidCharacters
+{
+  return AUTORELEASE([[NSURLComponents alloc] initWithString: URLString
+    encodingInvalidCharacters: encodingInvalidCharacters]);
+}
+
 + (instancetype) componentsWithURL: (NSURL *)url 
            resolvingAgainstBaseURL: (BOOL)resolve
 {
@@ -2495,6 +2516,15 @@ static NSCharacterSet	*queryItemCharSet = nil;
     {
       GS_CREATE_INTERNAL(NSURLComponents);
       
+      internal->_string = nil;
+      internal->_fragment = nil;
+      internal->_host = nil;
+      internal->_password = nil;
+      internal->_path = nil;
+      internal->_port = nil;
+      internal->_queryItems = nil;
+      internal->_scheme = nil;
+      internal->_user = nil;
       internal->_rangeOfFragment = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfHost     = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfPassword = NSMakeRange(NSNotFound, 0);
@@ -2504,6 +2534,693 @@ static NSCharacterSet	*queryItemCharSet = nil;
       internal->_rangeOfScheme   = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfUser     = NSMakeRange(NSNotFound, 0);
     }
+  return self;
+}
+
+/* The following function expects a normalised string where hex
+ * digits are uppercase.
+ */
+static inline uint8_t
+hexToByte(char u, char l)
+{
+  uint8_t	byte;
+
+  if (isupper(u))
+    byte = u - 'A' + 10;
+  else
+    byte = u - '0';
+  byte <<= 4;
+  if (isupper(u))
+    byte |= l - 'A' + 10;
+  else
+    byte |= l - '0';
+  return byte;
+}
+
+/* In a URI the unreserved characters should not be percent encoded.
+ * Removes any incorrect encoding and returns the new end pointer.
+ */
+static uint8_t *
+normalisePercentEncoding(uint8_t *start, uint8_t *end)
+{
+  uint8_t	*from = start;
+  uint8_t	*to = start;
+  uint8_t	u;
+  uint8_t	l;
+
+  while (from < end)
+    {
+      if ('%' == from[0]
+	&& isxdigit((u = from[1]))
+	&& isxdigit((l = from[2])))
+	{
+	  uint8_t	byte;
+
+	  /* Normalise hex digits to uppercase to conform to RFC3986
+	   */
+	  if (islower(u))
+	    from[1] = u = u - 'a' + 'A';
+	  if (islower(l))
+	    from[2] = l = l - 'a' + 'A';
+
+	  byte = hexToByte(u, l);
+	  if (byte < 0x8f && (isalnum(byte) || strchr("-._~", byte)))
+	    {
+	      *to++ = (char)byte;
+	    }
+	  else
+	    {
+	      *to++ = '%';
+	      *to++ = u;
+	      *to++ = l;
+	    }
+	  from += 3;
+	  continue;
+	}
+      if (to)
+	{
+	  *to++ = *from;
+	}
+      from++;
+    }
+  return to;
+}
+
+/*
+static uint8_t *
+removeEncoding(uint8_t *start, uint8_t *end)
+{
+  uint8_t	*from = start;
+  uint8_t	*to = start;
+  uint8_t	u;
+  uint8_t	l;
+
+  while (from < end)
+    {
+      if ('%' == from[0] && from + 2 < end
+	&& (u = from[1]) < 128 && isxdigit(u)
+	&& (l = from[2]) < 128 && isxdigit(l))
+	{
+	  *to++ = hexToByte(u, l);
+	  from += 3;
+	}
+      else
+	{
+	  *to++ = *from++;
+	}
+    }
+  return to;
+}
+*/
+
+typedef struct {
+  const uint8_t	*start;
+  unsigned	cursor;
+  unsigned	mark;
+  uint8_t	p;
+  uint8_t	u;
+  uint8_t	l;
+} URISource;
+
+/* Get a character, percent encoding any invalid characters (marking position
+ * of the first invalid character after the start), using the 'legal' string
+ * as a set of extra characters considered valid in the current context.
+ * The 'term' string provides an extra set of legal characters which are
+ * permitted.
+ *
+ * NB.
+ * Alphanumeric characters are counted as valid.
+ * The non-ascii (>127) and non-printable characters (126 or <=32) are
+ * counted as invalid.
+ * The percent character is a special case which is valid when it introduces
+ * two hexadecimal digits encofding a byte, and is invalid otherwise.
+ * As a special case, if 'legal' is a null pointer, any character (other than
+ * a percent without its following hex digits), is counted valid.
+ */
+static inline uint8_t
+get(URISource *src, const char *legal, const char *term)
+{
+  uint8_t	c;
+
+  if ((c = src->p) != '\0')
+    {
+      /* The pushed back character may need further checks to see if
+       * it is allowed in the current context.
+       */
+      src->p = 0;
+    }
+  else
+    {
+      /* Hex digits never need further processing and can be returned
+       * immediately, avoiding  any additional work.
+       */
+      if ((c = src->u) != '\0')
+	{
+	  src->u = 0;
+	  return c;
+	}
+      if ((c = src->l) != '\0')
+	{
+	  src->l = 0;
+	  return c;
+	}
+
+      if ((c = src->start[src->cursor]) != '\0')
+	{
+	  src->cursor++;	// We have read one byte
+
+	  /* A percent is always allowed, but it must either introduce a
+	   * hexadecimal percent encoding sequence or it needs to be
+	   * encoded itself;
+	   */
+	  if ('%' == c)
+	    {
+	      uint8_t	u;
+	      uint8_t	l;
+
+	      if ((u = src->start[src->cursor]) > 126 || !isxdigit(u)
+		|| (l = src->start[src->cursor + 1]) > 126 || !isxdigit(l))
+		{
+		  /* Input is too short or the next two characters are not
+		   * hexadecimal, so we must escape the percent.
+		   */
+		  src->u = '2';
+		  src->l = '5';
+		  if (0 == src->mark)
+		    {
+		      src->mark = src->cursor - 1;
+		    }
+		}
+	      else
+		{
+		  uint8_t	byte;
+
+		  if (islower(u))
+		    {
+		      u = u - 'a' + 'A';
+		    }
+		  if (islower(l))
+		    {
+		      l = l - 'a' + 'A';
+		    }
+		  byte = hexToByte(u, l);
+		  if (isalnum(byte) || strchr("-._~", byte))
+		    {
+		      /* Unreserved character should not be percent encoded
+		       * so just return that.
+		       */
+		      c = byte;
+		    }
+		  else
+		    {
+		      /* Cache the next wo bytes since we know that they are
+		       * parts of a percnt encoding and we have standardised
+		       * them to uppercase.
+		       */
+		      src->u = u;
+		      src->l = l;
+		    }
+		  /* We have read past the next two hex digits, and either used
+		   * them to create an unreserved character or cached them for
+		   * the next two alls to this function.
+		   */
+		  src->cursor += 2;
+		}
+	    }
+	}
+    }
+
+  if (legal != NULL && c != '%' && c != '\0')
+    {
+      if (NULL == term) term = "";
+      /* Perform checking for valid characters and percent encode any
+       * which are not valid in the current context.
+       */
+      if (c <= ' ' || c > 126
+	|| (!isalnum(c) && !strchr(legal, c) && !strchr(term, c)))
+	{
+	  src->u = "0123456789ABCDEF"[(c & 0xf0) >> 4];
+	  src->l = "0123456789ABCDEF"[c & 0x0f];
+	  c = '%';
+	  if (0 == src->mark)
+	    {
+	      src->mark = src->cursor - 1;
+	    }
+	}
+    }
+  return c;
+}
+
+/* Permit a single character pushback onto the input stream.
+ * Pushing back a nul character has no effect.
+ */
+static inline void
+push(URISource *src, uint8_t c)
+{
+  /* We can't push back a percent unless we are actually at the start of
+   * a percent encoded sequence.
+   */
+  NSCAssert(c != '%' || (src->u && src->l), NSInvalidArgumentException);
+  NSCAssert('\0' == src->p, NSInternalInconsistencyException);
+  src->p = c;
+}
+
+static uint8_t
+scanComponent(URISource *input, const char *legal, const char *term,
+  NSRange *range, NSMutableData *output)
+{
+  NSRange	r = NSMakeRange([output length], 0);
+  uint8_t	c = get(input, legal, term);
+
+  while (c != '\0' && strchr(term, c) == NULL)
+    {
+      [output appendBytes: &c length: 1];
+      c = get(input, legal, term);
+    }
+  r.length = [output length] - r.location;
+  if (range)
+    {
+      *range = r;
+    }
+  return c;
+}
+
+static uint8_t
+scanIpLiteral(URISource *input, NSRange *range, NSMutableData *output,
+  NSString **err)
+{
+  const char    *addrLegal = "-.~%!$&'()*+,;=[:";
+  NSRange	r;
+  uint8_t	c;
+  
+  [output appendBytes: "[" length: 1];
+  c = scanComponent(input, addrLegal, "]@/?#", &r, output);
+  if (c != ']')
+    {
+      *err = @"Bad Authority Host component - [...] not terminated";
+    }
+  else
+    {
+      [output appendBytes: "]" length: 1];
+      r.location -= 1;				// Step back to '['
+      r.length += 2;				// Allow for '[' and ']'
+      c = get(input, NULL, "");
+      if (c != '\0' && strchr(":@/?#", c) == NULL)
+	{
+	  *err = @"Bad Authority Host component - character after ']'";
+	}
+    }
+  if (range != NULL)
+    {
+      *range = r;
+    }
+  return c;
+}
+
+/* Returns a string from the specified range and data where the data
+ * content is ASCII characters.
+ * A zero length range produces an empty string.
+ * If the range has no location, this returns nil.
+ */
+static NSString *
+makeAscii(NSRange r, NSData *d)
+{
+  if (NSNotFound == r.location)
+    {
+      return nil;
+    }
+  if (r.length > 0)
+    {
+      NSString	*s;
+
+      s = [[NSString alloc] initWithData: [d subdataWithRange: r]
+			        encoding: NSASCIIStringEncoding];
+      return AUTORELEASE(s);
+    }
+  return @"";
+}
+
+typedef struct {
+  NSRange   fragment; \
+  NSRange   host; \
+  NSRange   parameters; \
+  NSRange   password; \
+  NSRange   path; \
+  NSRange   port; \
+  NSRange   query; \
+  NSRange   queryItems; \
+  NSRange   scheme; \
+  NSRange   user; \
+} URanges;
+
+static NSMutableData *
+parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
+{
+  NSString	*err = nil;
+  const uint8_t	*cs;
+  NSUInteger	len;
+  NSMutableData	*md;
+  uint8_t	c;
+  uint8_t	*start;
+  URISource	input;
+  uint8_t	*ptr;
+  int		portValue = 0;
+
+  // Unreserved:  -._~
+  // Percent-uncoded: %
+  // Sub-delims !$&'()*+,;=
+  static const char	*authLegal = "-.~%!$&'()*+,;=";
+  static const char	*pathLegal = "-.~%!$&'()*+,;=@:/";
+  static const char	*queryLegal = "-.~%!$&'()*+,;=@:/?";
+
+  if (NO == [URLString isKindOfClass: [NSString class]])
+    {
+      return nil;
+    }
+
+  r->fragment = NSMakeRange(NSNotFound, 0);
+  r->host = NSMakeRange(NSNotFound, 0);
+  r->parameters = NSMakeRange(NSNotFound, 0);
+  r->password = NSMakeRange(NSNotFound, 0);
+  r->path = NSMakeRange(NSNotFound, 0);
+  r->port = NSMakeRange(NSNotFound, 0);
+  r->query = NSMakeRange(NSNotFound, 0);
+  r->scheme = NSMakeRange(NSNotFound, 0);
+  r->user = NSMakeRange(NSNotFound, 0);
+
+#define	ERR(X) ({err = (X); goto done;})
+
+  /* RFC3986 parsing
+   */
+  cs = (const uint8_t*)[URLString UTF8String];
+  len = strlen((const char*)cs);
+  start = malloc(len + 1);
+  memcpy(start, cs, len);
+  start[len] = '\0';
+  ptr = start + len;
+  ptr = normalisePercentEncoding(start, ptr);
+  *ptr = '\0';
+
+  memset(&input, '\0', sizeof(input));
+  input.start = start;
+
+  md = [NSMutableData dataWithCapacity: len * 3];
+
+  /* The scheme starts with a letter and is alphanumeric with '+-.' chars.
+   * Percent encoded characters are not permitted and it is terminated by
+   * a colon.
+   */
+  c = scanComponent(&input, "+-.", ":%", &r->scheme, md);
+  if (':' == c)
+    {
+      if (0 == r->scheme.length)
+	{
+	  ERR(@"Bad Scheme component - empty string before ':'");
+	}
+      [md appendBytes: ":" length: 1];
+    }
+  else if ('\0' == c) 
+    {
+      ERR(@"Bad Scheme component - empty string");
+    }
+  else
+    {
+      /* Scheme not found ... start again trying to scan authority or path
+       */
+      r->scheme = NSMakeRange(NSNotFound, 0);
+      memset(&input, '\0', sizeof(input));
+      input.start = start;
+    }
+
+  if ((c = get(&input, NULL, "")) != '/')
+    {
+      // c should be '?' or '#' or '\0'
+    }
+  else if ((c = get(&input, NULL, "")) != '/')
+    {
+      push(&input, c);
+      c = '/';
+    }
+  else
+    {
+      NSRange		one;
+      NSRange		two;
+      NSUInteger	markOne;
+      NSUInteger	markTwo;
+
+      // Start of the Authority found
+      [md appendBytes: "//" length: 2];
+
+      if ((c = get(&input, NULL, "")) == '[')
+	{
+	  c = scanIpLiteral(&input, &one, md, &err);
+	  if (err)
+	    {
+	      goto done;
+	    }
+	}
+      else
+	{
+	  push(&input, c);
+	  c = scanComponent(&input, authLegal, ":@/?#", &one, md);
+	} 
+      markOne = input.mark;
+      input.mark = 0;
+      if (':' == c)
+	{
+	  [md appendBytes: ":" length: 1];
+	  c = scanComponent(&input, authLegal, "@/?#", &two, md);
+	  markTwo = input.mark;
+	  input.mark = 0;
+	}
+      else
+	{
+	  two = NSMakeRange(NSNotFound, 0);
+	  markTwo = 0;
+	}
+      if ('@' == c)
+	{
+	  r->user = one;
+	  if (markOne && NO == encodingInvalidCharacters)
+	    {
+	      ERR(@"Bad Authority User component - illegal character");
+	    }
+	  r->password = two;
+	  if (markTwo && NO == encodingInvalidCharacters)
+	    {
+	      ERR(@"Bad Authority Password component - illegal character");
+	    }
+	  [md appendBytes: "@" length: 1];
+
+	  if ((c = get(&input, NULL, "")) == '[')
+	    {
+	      c = scanIpLiteral(&input, &one, md, &err);
+	      if (err)
+		{
+		  goto done;
+		}
+	    }
+	  else
+	    {
+	      push(&input, c);
+	      c = scanComponent(&input, authLegal, ":/?#", &one, md);
+	    } 
+	  markOne = input.mark;
+	  input.mark = 0;
+
+	  if (':' == c)
+	    {
+	      [md appendBytes: ":" length: 1];
+	      c = scanComponent(&input, authLegal, "/?#", &two, md);
+	      markTwo = input.mark;
+	      input.mark = 0;
+	    }
+	  else
+	    {
+	      two = NSMakeRange(NSNotFound, 0);
+	      markTwo = 0;
+	    }
+	}
+
+      /* The host may be an empty string (eg in file:///tmp/foo)
+       */
+      r->host = one;
+      if (one.length > 0)
+	{
+	  uint8_t	*s = ((uint8_t*)[md mutableBytes]) + r->host.location;
+	  unsigned	len = r->host.length;
+	  BOOL		isName = NO;
+	  uint8_t	save;
+
+	  if ('[' == *s)
+	    {
+	      uint8_t	dst[sizeof(struct in6_addr)];
+	      uint8_t	*buf = s + 1;
+
+	      len -= 2;
+	      save = buf[len];
+	      buf[len] = '\0';
+	      if ('v' == buf[0])
+		{
+		  ERR(@"Bad Host component - unsupported future format");
+		}
+	      else if (inet_pton(AF_INET6, (const char*)buf, dst) != 1)
+		{
+		  ERR(@"Bad Host component - malformed IPV6 address");
+		}
+	      buf[len] = save;
+	    }
+	  else
+	    {
+	      uint8_t	dst[sizeof(struct in_addr)];
+
+	      save = s[len];
+	      s[len] = '\0';
+	      if (inet_pton(AF_INET, (const char*)s, dst) != 1)
+		{
+		  /* Not an IP address, must be host name
+		   */
+		  isName = YES;
+		}
+	      s[len] = save;
+	    }
+	  if (isName)
+	    {
+	    }
+	}
+
+      r->port = two;
+      if (NSNotFound != r->port.location)
+	{
+	  if (0 == r->port.length)
+	    {
+	      /* Empty port ... normalise by removing the ':' before it.
+	       */
+	      [md setLength: [md length] - 1];
+	    }
+	  else
+	    {
+	      const char	*p;
+	      NSUInteger	i;
+	      char		buf[12];
+
+	      p = ((const char*)[md bytes]) + r->port.location;
+
+	      for (i = 0; i < r->port.length; i++)
+		{
+		  if (!isdigit(p[i]))
+		    {
+		      ERR(@"Bad Authority Port component - non digit found");
+		    }
+		  portValue = portValue * 10 + (p[i] - '0');
+		  if (portValue > 0xffff)
+		    {
+		      ERR(@"Bad Authority Port component - number too large");
+		    }
+		}
+	      sprintf(buf, "%d", portValue);
+	      i = strlen(buf);
+	      if (i != r->port.length)
+		{
+		  [md replaceBytesInRange: r->port 
+				withBytes: buf
+				   length: i];
+		  r->port.length = i;
+		}
+	    }
+	}
+    }
+  /* Unless we have the query string or the fragment, we have the first
+   * character of the path (or the path is empty).
+   */
+  if (c != '?' && c != '#' && c != '\0')
+    {
+      push(&input, c);
+      c = scanComponent(&input, pathLegal, "?#", &r->path, md);
+      if (input.mark && NO == encodingInvalidCharacters)
+	{
+	  ERR(@"Bad Path component - illegal character");
+	}
+    }
+  else
+    {
+      r->path = NSMakeRange([md length], 0);	// Empty path
+    }
+  if ('?' == c)
+    {
+      [md appendBytes: "?" length: 1];
+      c = scanComponent(&input, queryLegal, "#", &r->query, md);
+      if (input.mark && NO == encodingInvalidCharacters)
+	{
+	  ERR(@"Bad Query component - illegal character");
+	}
+    }
+  if ('#' == c)
+    {
+      /* NB. The set of legal characters inside a fragment is the same
+       * as those in the query string ... a fragment must not contain
+       * a hash (unless percent encoded of course).
+       */
+      [md appendBytes: "#" length: 1];
+      c = scanComponent(&input, queryLegal, "", &r->fragment, md);
+      if (input.mark && NO == encodingInvalidCharacters)
+	{
+	  ERR(@"Bad Fragment component - illegal character");
+	}
+    }
+
+done:
+
+  free(start);
+  if (err)
+    {
+NSLog(@"%@", err);
+      md = nil;
+    }
+
+  return md;
+}
+
+- (instancetype) initWithString: (NSString*)URLString 
+      encodingInvalidCharacters: (BOOL)encodingInvalidCharacters
+{
+  URanges	ranges;
+  NSMutableData	*md;
+
+  if (nil == (self = [self init]))
+    {
+      return self;
+    }
+  if (nil == (md = parseURL(URLString, &ranges, encodingInvalidCharacters)))
+    {
+      DESTROY(self);
+      return nil;
+    }
+
+  /* Parse success ... set values frome the parsed data.
+   */
+  [self setScheme: makeAscii(ranges.scheme, md)];
+  [self setPercentEncodedUser: makeAscii(ranges.user, md)];
+  [self setPercentEncodedPassword: makeAscii(ranges.password, md)];
+  [self setPercentEncodedHost: makeAscii(ranges.host, md)];
+  if (NSNotFound != ranges.port.location)
+    {
+      const char	*bytes = (const char*)[md bytes];
+      int		count = ranges.port.length;
+      int		portValue = 0;
+
+      bytes += ranges.port.location;
+      while (count-- > 0)
+	{
+	  portValue = (portValue * 10) + (*bytes - '0');
+	  bytes++;
+	}
+      [self setPort: [NSNumber numberWithInt: portValue]];
+    }
+  [self setPercentEncodedPath: makeAscii(ranges.path, md)];
+  [self setPercentEncodedQuery: makeAscii(ranges.query, md)];
+  [self setPercentEncodedFragment: makeAscii(ranges.fragment, md)];
+
   return self;
 }
 
@@ -2587,12 +3304,24 @@ static NSCharacterSet	*queryItemCharSet = nil;
       [urlString appendString: component];
       len = [component length];
       internal->_rangeOfScheme = NSMakeRange(location, len);
-      [urlString appendString: @"://"];
-      location += len + 3;
+
+      /* Record end of scheme
+       */
+      [urlString appendString: @":"];
+      location += len + 1;
     }
   else
     {
       internal->_rangeOfScheme = NSMakeRange(NSNotFound, 0);
+    }
+
+  if (internal->_user || internal->_password
+    || internal->_host || internal->_port)
+    {
+      /* Record start of authority
+       */
+      [urlString appendString: @"//"];
+      location += len + 2;
     }
 
   if (internal->_user != nil) 
@@ -2621,7 +3350,13 @@ static NSCharacterSet	*queryItemCharSet = nil;
           internal->_rangeOfUser = NSMakeRange(location, len);
           [urlString appendString: @"@"];
           location += len + 1;
+          internal->_rangeOfPassword = NSMakeRange(NSNotFound, 0);
         }
+    }
+  else
+    {
+      internal->_rangeOfUser = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfPassword = NSMakeRange(NSNotFound, 0);
     }
 
   if (internal->_host != nil)
@@ -2631,6 +3366,10 @@ static NSCharacterSet	*queryItemCharSet = nil;
       [urlString appendString: component];
       internal->_rangeOfHost = NSMakeRange(location, len);
       location += len;
+    }
+  else
+    {
+      internal->_rangeOfHost = NSMakeRange(NSNotFound, 0);
     }
 
   if (internal->_port != nil)
@@ -2643,8 +3382,12 @@ static NSCharacterSet	*queryItemCharSet = nil;
       internal->_rangeOfPort = NSMakeRange(location, len);
       location += len;
     }
+  else
+    {
+      internal->_rangeOfPort = NSMakeRange(NSNotFound, 0);
+    }
 
-  /* FIXME ... if the path is empty we still need a '/' do we not?
+  /* A nil _path shouuld never happen, but play safe'.
    */
   if (internal->_path != nil)
     {
@@ -2654,16 +3397,26 @@ static NSCharacterSet	*queryItemCharSet = nil;
       internal->_rangeOfPath = NSMakeRange(location, len);
       location += len;
     }
-
-  if ([internal->_queryItems count] > 0)
+  else
     {
-      component = [self percentEncodedQuery];
-      len = [component length];
+      internal->_rangeOfPath = NSMakeRange(NSNotFound, 0);
+    }
+
+  if (internal->_queryItems)
+    {
       [urlString appendString: @"?"];
       location += 1;
+      /* The query string might be empty
+       */
+      component = [self percentEncodedQuery];
+      len = [component length];
       [urlString appendString: component];
       internal->_rangeOfQuery = NSMakeRange(location, len);
       location += len;
+    }
+  else
+    {
+      internal->_rangeOfQuery = NSMakeRange(NSNotFound, 0);
     }
 
   if (internal->_fragment != nil)
@@ -2674,6 +3427,10 @@ static NSCharacterSet	*queryItemCharSet = nil;
       location += 1;
       [urlString appendString: component];
       internal->_rangeOfFragment = NSMakeRange(location, len);
+    }
+  else
+    {
+      internal->_rangeOfFragment = NSMakeRange(NSNotFound, 0);
     }
     
   ASSIGNCOPY(internal->_string, urlString);
@@ -2707,7 +3464,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
                                           fragment: [self fragment]]);
 }
 
-- (void) setURL: (NSURL *)url
+- (void) setURL: (NSURL*)url
 {
   // Set all the components...
   [self setScheme: [url scheme]];
@@ -2720,65 +3477,77 @@ static NSCharacterSet	*queryItemCharSet = nil;
   [self setFragment: [url fragment]];
 }
 
-- (NSURL *) URLRelativeToURL: (NSURL *)baseURL
+- (NSURL*) URLRelativeToURL: (NSURL*)baseURL
 {
   return nil;
 }
 
 // Accessing Components in Native Format
-- (NSString *) fragment
+- (NSString*) fragment
 {
-  return internal->_fragment;
+  return [internal->_fragment stringByRemovingPercentEncoding];
 }
 
-- (void) setFragment: (NSString *)fragment
+- (void) setFragment: (NSString*)fragment
 {
-  ASSIGNCOPY(internal->_fragment, fragment);
-  internal->_dirty = YES;
+  [self setPercentEncodedFragment: [fragment
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLFragmentAllowedCharacterSet]]];
 }
 
-- (NSString *) host
+- (NSString*) host
 {
-  return internal->_host;
+  return [internal->_host stringByRemovingPercentEncoding];
 }
 
-- (void) setHost: (NSString *)host
+- (void) setHost: (NSString*)host
 {
-  ASSIGNCOPY(internal->_host, host);
-  internal->_dirty = YES;
+  [self setPercentEncodedHost:
+    [host stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLHostAllowedCharacterSet]]];
 }
 
-- (NSString *) password
+- (NSString*) password
 {
-  return internal->_password;
+  return [internal->_password stringByRemovingPercentEncoding];
 }
 
-- (void) setPassword: (NSString *)password
+- (void) setPassword: (NSString*)password
 {
-  ASSIGNCOPY(internal->_password, password);
-  internal->_dirty = YES;
+  [self setPercentEncodedPassword: [password
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLPasswordAllowedCharacterSet]]];
 }
 
 - (NSString *) path
 {
-  return internal->_path;
+  return [internal->_path stringByRemovingPercentEncoding];
 }
 
 - (void) setPath: (NSString *)path
 {
-  ASSIGNCOPY(internal->_path, path);
-  internal->_dirty = YES;
+  [self setPercentEncodedPath: [path
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLPathAllowedCharacterSet]]];
 }
 
-- (NSNumber *) port
+- (NSNumber*) port
 {
   return internal->_port;
 }
 
-- (void) setPort: (NSNumber *)port
+#define	SETIFCHANGED(ivar, value) \
+({ \
+  if (internal->ivar != value && NO == [internal->ivar isEqual: value]) \
+    { \
+      ASSIGNCOPY(internal->ivar, value); \
+      internal->_dirty = YES; \
+    } \
+})
+
+- (void) setPort: (NSNumber*)port
 {
-  ASSIGNCOPY(internal->_port, port);
-  internal->_dirty = YES;
+  SETIFCHANGED(_port, port);
 }
 
 - (NSString *) query
@@ -2825,7 +3594,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
   return result;
 }
 
-- (void) _setQuery: (NSString *)query fromPercentEncodedString: (BOOL)encoded
+- (void) _setQuery: (NSString*)query fromPercentEncodedString: (BOOL)encoded
 {
   /* Parse according to https://developer.apple.com/documentation/foundation/nsurlcomponents/1407752-queryitems?language=objc
    */
@@ -2883,7 +3652,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
     }
 }
 
-- (void) setQuery: (NSString *)query
+- (void) setQuery: (NSString*)query
 {
   [self _setQuery: query fromPercentEncodedString: NO];
 }
@@ -2893,84 +3662,75 @@ static NSCharacterSet	*queryItemCharSet = nil;
   return AUTORELEASE(RETAIN(internal->_queryItems));
 }
 
-- (void) setQueryItems: (NSArray *)queryItems
+- (void) setQueryItems: (NSArray*)queryItems
 { 
-  ASSIGNCOPY(internal->_queryItems, queryItems);
-  internal->_dirty = YES;
+  SETIFCHANGED(_queryItems, queryItems);
 }
 
-- (NSString *) scheme
+- (NSString*) scheme
 {
   return internal->_scheme;
 }
 
-- (void) setScheme: (NSString *)scheme
+- (void) setScheme: (NSString*)scheme
 {
-  ASSIGNCOPY(internal->_scheme, scheme);
-  internal->_dirty = YES;
+  SETIFCHANGED(_scheme, scheme);
 }
 
-- (NSString *) user
+- (NSString*) user
 {
-  return internal->_user;
+  return [internal->_user stringByRemovingPercentEncoding];
 }
 
-- (void) setUser: (NSString *)user
+- (void) setUser: (NSString*)user
 {
-  ASSIGNCOPY(internal->_user, user);
-  internal->_dirty = YES;
+  [self setPercentEncodedUser: 
+    [user stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLUserAllowedCharacterSet]]];
 }
 
 // Accessing Components in PercentEncoded Format
 - (NSString *) percentEncodedFragment
 {
-  return [internal->_fragment
-    stringByAddingPercentEncodingWithAllowedCharacters:
-    [NSCharacterSet URLFragmentAllowedCharacterSet]];
+  return internal->_fragment;
 }
 
-- (void) setPercentEncodedFragment: (NSString *)fragment
+- (void) setPercentEncodedFragment: (NSString*)fragment
 {
-  [self setFragment: [fragment stringByRemovingPercentEncoding]];
+  SETIFCHANGED(_fragment, fragment);
 }
 
 - (NSString *) percentEncodedHost
 {
-  return [internal->_host
-    stringByAddingPercentEncodingWithAllowedCharacters:
-    [NSCharacterSet URLHostAllowedCharacterSet]];
+  return internal->_host;
 }
 
-- (void) setPercentEncodedHost: (NSString *)host
+- (void) setPercentEncodedHost: (NSString*)host
 {
-  [self setHost: [host stringByRemovingPercentEncoding]];
+  SETIFCHANGED(_host, host);
 }
 
 - (NSString *) percentEncodedPassword
 {
-  return [internal->_password
-    stringByAddingPercentEncodingWithAllowedCharacters:
-    [NSCharacterSet URLPasswordAllowedCharacterSet]];
+  return internal->_password;
 }
 
-- (void) setPercentEncodedPassword: (NSString *)password
+- (void) setPercentEncodedPassword: (NSString*)password
 {
-  [self setPassword: [password stringByRemovingPercentEncoding]];
+  SETIFCHANGED(_password, password);
 }
 
 - (NSString *) percentEncodedPath
 {
-  return [internal->_path
-    stringByAddingPercentEncodingWithAllowedCharacters:
-    [NSCharacterSet URLPathAllowedCharacterSet]];
+  return internal->_path;
 }
 
-- (void) setPercentEncodedPath: (NSString *)path
+- (void) setPercentEncodedPath: (NSString*)path
 {
-  [self setPath: [path stringByRemovingPercentEncoding]];
+  SETIFCHANGED(_path, path);
 }
 
-- (NSString *) percentEncodedQuery
+- (NSString*) percentEncodedQuery
 {
   NSString	*result = nil;
 
@@ -3014,12 +3774,12 @@ static NSCharacterSet	*queryItemCharSet = nil;
   return result;
 }
 
-- (void) setPercentEncodedQuery: (NSString *)query
+- (void) setPercentEncodedQuery: (NSString*)query
 {
   [self _setQuery: query fromPercentEncodedString: YES];
 }
 
-- (NSArray *) percentEncodedQueryItems
+- (NSArray*) percentEncodedQueryItems
 {
   NSArray	*result = nil;
 
@@ -3051,7 +3811,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
   return result;
 }
 
-- (void) setPercentEncodedQueryItems: (NSArray *)queryItems
+- (void) setPercentEncodedQueryItems: (NSArray*)queryItems
 {
   NSMutableArray	*items = nil;
 
@@ -3077,15 +3837,14 @@ static NSCharacterSet	*queryItemCharSet = nil;
   [self setQueryItems: items];
 }
 
-- (NSString *) percentEncodedUser
+- (NSString*) percentEncodedUser
 {
-  return [internal->_user stringByAddingPercentEncodingWithAllowedCharacters:
-    [NSCharacterSet URLUserAllowedCharacterSet]];
+  return internal->_user;
 }
 
-- (void) setPercentEncodedUser: (NSString *)user
+- (void) setPercentEncodedUser: (NSString*)user
 {
-  [self setUser: [user stringByRemovingPercentEncoding]];
+  SETIFCHANGED(_user, user);
 }
 
 // Locating components of the URL string representation

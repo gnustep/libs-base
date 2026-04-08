@@ -57,8 +57,8 @@ int main()
    parameterString: nil
 	     query: nil
 	  fragment: nil];
-  PASS([[url absoluteString]
-    isEqual: @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/"],
+  PASS_EQUAL([url absoluteString],
+    @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/",
     "Full -initWithScheme... works");
   DESTROY(url);
 #endif
