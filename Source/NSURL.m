@@ -38,24 +38,6 @@ function may be incorrect
 * Some functions are not implemented
 */
 
-#if defined(_WIN32)
-#ifdef HAVE_WS2TCPIP_H
-#include <ws2tcpip.h>
-#endif // HAVE_WS2TCPIP_H
-#if !defined(HAVE_INET_NTOP)
-extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
-#endif
-#if !defined(HAVE_INET_NTOP)
-extern int WSAAPI inet_pton(int , const char *, void *);
-#endif
-#else /* !_WIN32 */
-#include <netdb.h>
-#include <sys/param.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif /* !_WIN32 */
-
 
 
 #define	GS_NSURLQueryItem_IVARS \
@@ -104,6 +86,24 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #import "Foundation/NSString.h"
 
 #import "GNUstepBase/NSURL+GNUstepBase.h"
+
+#if defined(_WIN32)
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif // HAVE_WS2TCPIP_H
+#if !defined(HAVE_INET_NTOP)
+extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
+#endif
+#if !defined(HAVE_INET_NTOP)
+extern int WSAAPI inet_pton(int , const char *, void *);
+#endif
+#else /* !_WIN32 */
+#include <netdb.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif /* !_WIN32 */
 
 @interface	NSURL (GSPrivate)
 - (NSURL*) _URLBySettingPath: (NSString*)newPath; 
