@@ -146,6 +146,7 @@ NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
+GSScriptingStepTalkBridge.h \
 NSStream+GNUstepBase.h \
 NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
@@ -309,7 +310,8 @@ NSScriptCommand.m \
 NSScriptCommandDescription.m \
 NSScriptExecutionContext.m \
 NSScriptKeyValueCoding.m \
-NSScriptObjectSpecifiers.m \
+NSScriptObjectSpecifier.m \
+GSScriptingStepTalkBridge.m \
 NSScriptStandardSuiteCommands.m \
 NSScriptSuiteRegistry.m \
 NSUnit.m \
@@ -554,7 +556,7 @@ NSScriptCommand.h \
 NSScriptCommandDescription.h \
 NSScriptExecutionContext.h \
 NSScriptKeyValueCoding.h \
-NSScriptObjectSpecifiers.h \
+NSScriptObjectSpecifier.h \
 NSScriptStandardSuiteCommands.h \
 NSScriptSuiteRegistry.h \
 NSUnit.h \

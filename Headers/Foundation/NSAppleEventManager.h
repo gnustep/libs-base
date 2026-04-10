@@ -32,8 +32,43 @@
 extern "C" {
 #endif
 
+@class NSAppleEventDescriptor;
+@class NSString;
+@class NSMutableDictionary;
+
+typedef uint32_t AEEventClass;
+typedef uint32_t AEEventID;
+
 GS_EXPORT_CLASS
 @interface NSAppleEventManager : NSObject
+{
+  @private
+  NSMutableDictionary *_eventHandlers;
+  NSAppleEventDescriptor *_currentEvent;
+  NSAppleEventDescriptor *_currentReply;
+  NSMutableDictionary *_suspendedEvents;
+}
+
++ (NSAppleEventManager *) sharedAppleEventManager;
+
+- (NSAppleEventDescriptor *) currentAppleEvent;
+- (NSAppleEventDescriptor *) currentReplyAppleEvent;
+
+- (void) setEventHandler: (id)handler
+             andSelector: (SEL)handleEventSelector
+           forEventClass: (AEEventClass)eventClass
+              andEventID: (AEEventID)eventID;
+
+- (void) removeEventHandlerForEventClass: (AEEventClass)eventClass
+                              andEventID: (AEEventID)eventID;
+
+- (NSAppleEventDescriptor *) replyAppleEventForSuspendedAppleEvent: (NSAppleEventDescriptor *)event;
+
+- (void) resumeWithSuspendedAppleEvent: (NSAppleEventDescriptor *)event;
+
+- (void) setCurrentAppleEventAndReplyEventWithSuspendedAppleEvent: (NSAppleEventDescriptor *)event;
+
+- (NSAppleEventDescriptor *) suspendCurrentAppleEvent;
 
 @end
 
