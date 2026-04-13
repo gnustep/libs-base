@@ -232,7 +232,8 @@ etcHosts(BOOL flush)
 		  continue;
 		}
 
-	      if (0 == (addr = strtok_r(line, " \t", &save)))
+	      if (0 == (addr = strtok_r(line, " \t", &save))
+		|| '#' == *addr)
 		{
 		  continue;
 		}
@@ -245,7 +246,7 @@ etcHosts(BOOL flush)
 		}
 
 	      name = strtok_r(NULL, " \t\n", &save);
-	      while (name)
+	      while (name && *name != '#')
 		{
 		  [names addObject: [NSString stringWithUTF8String: name]];
 		  name = strtok_r(NULL, " \t\n", &save);
