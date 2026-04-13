@@ -394,9 +394,9 @@ etcHosts(BOOL flush)
 	  a = [NSString stringWithUTF8String: ipstr];
 	  [self _addHostAddress: a withNames: names addresses: addresses];
 
-	  /* If we have a canonical name for the host, use it.
+	  /* If we have a canonical name for the host (initial entry), use it.
 	   */
-	  if (tmp->ai_canonname && *tmp->ai_canonname
+	  if (tmp == entry && tmp->ai_canonname && *tmp->ai_canonname
 	    && strcmp(tmp->ai_canonname, ptr) != 0)
 	    {
 	      NSString	*s = [NSString stringWithUTF8String: tmp->ai_canonname];
@@ -441,7 +441,7 @@ etcHosts(BOOL flush)
       [addresses addObject: address];
       if (inet_pton(AF_INET, addr, &ip_addr) != 1)
 	{
-	  /* This is not IPV4 so it must be IPV6 and getaddrinfo_r()
+	  /* This is not IPV4 so it must be IPV6 and gethostbyname_r()
 	   * does not reliably support that.
 	   */
 #if	defined(HAVE_GETADDRINFO)
@@ -504,15 +504,14 @@ etcHosts(BOOL flush)
 }
 #elif	defined(HAVE_GETADDRINFO)
 
-#if	defined(HAVE_RESOLVE_H)
+#if	defined(HAVE_RESOLV_H)
 static NSSet *
-dnsaliases(NSString *host, NSSet *names);
+dnsaliases(NSString *host, NSSet *names)
 {
   NSMutableSet	*found = nil;
   unsigned char response[NS_PACKETSZ];
   extern int 	h_errno;
   const char	*name;
-  unsigned	added = 0;
   int 		len;
 
   if (NULL == (name = getName(host)))
@@ -599,12 +598,12 @@ dnsaliases(NSString *host, NSSet *names);
     {
       [names addObject: name];
       [self _addHostInfo: name withNames: names addresses: addresses];
-#if	defined(HAVE_RESOLVE_H)
+#if	defined(HAVE_RESOLV_H)
     {
       NSSet	*aliases = dnsaliases(name, names);
 
-      GS_FOR_IN(NSString*, name, aliases)
-	[self _addHostInfo: name withNames: names addresses: addresses];
+      GS_FOR_IN(NSString*, alias, aliases)
+	[self _addHostInfo: alias withNames: names addresses: addresses];
       GS_END_FOR(aliases)
     }
 #endif
