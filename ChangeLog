@@ -1,3 +1,17 @@
+2026-04-13 Todd White <todd.white@thalion.global>
+
+	* Source/NSJSONSerialization.m: cap the JSON parser recursion depth
+	at 512 levels to prevent stack overflow on pathologically nested
+	input. The parser state now tracks current nesting depth; parseArray
+	and parseObject bail out with a parse error when the bound is
+	reached, and decrement the depth counter on every return path so
+	the bound is correctly enforced across mixed array/object nesting.
+	* Tests/base/NSJSONSerialization/depth.m: new regression test that
+	verifies (a) moderately nested documents still parse, (b) documents
+	nested past the bound are rejected with the error out-parameter
+	populated, and (c) the bound applies equally to mixed object/array
+	nesting.
+
 2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURL.h: Add newer NSURLComponents methods for

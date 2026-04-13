@@ -104,7 +104,37 @@ typedef struct ParserStateStruct
    * Error value, if this parser is currently in an error state, nil otherwise.
    */
   NSError *error;
+  /**
+   * Current nesting depth of arrays/objects on the recursive-descent
+   * stack. Zero before parsing begins and while the parser is outside
+   * any container. Incremented exactly once on successful entry to
+   * parseArray or parseObject (after the depth-guard check has been
+   * passed) and decremented exactly once on every exit path from those
+   * functions, including early returns for parse errors. The invariant
+   * that `depth` mirrors the live container stack is what lets the
+   * depth-guard check at the top of parseArray/parseObject reject
+   * pathologically nested input before the C stack is exhausted.
+   */
+  int depth;
+  /**
+   * Upper bound on `depth`. Parsing fails with an error as soon as
+   * entering another container would cause `depth` to reach this value.
+   * Initialised by the JSONObjectWithData: and JSONObjectWithStream:
+   * class methods to NS_JSON_SERIALIZATION_MAX_DEPTH.
+   */
+  int maxDepth;
 } ParserState;
+
+/**
+ * Default maximum JSON parser nesting depth. Any input that nests
+ * arrays and/or objects more than this deep is rejected before the
+ * recursive-descent parser can exhaust the C stack. 512 is deep enough
+ * to accommodate every realistic JSON document (RFC 8259 recommends
+ * supporting at least 100 levels; most parsers cap in the 100-1000
+ * range) while leaving comfortable head-room below the smallest thread
+ * stack that GNUstep runs on.
+ */
+#define NS_JSON_SERIALIZATION_MAX_DEPTH 512
 
 /**
  * Pulls the next group of characters from a string source.
@@ -581,11 +611,17 @@ parseArray(ParserState *state)
   unichar c = consumeSpace(state);
   NSMutableArray *array;
 
+  if (state->depth >= state->maxDepth)
+    {
+      parseError(state);
+      return nil;
+    }
   if (c != '[')
     {
       parseError(state);
       return nil;
     }
+  state->depth++;
   // Eat the [
   consumeChar(state);
   array = [NSMutableArray new];
@@ -597,6 +633,7 @@ parseArray(ParserState *state)
       if (nil == obj)
         {
           [array release];
+          state->depth--;
           return nil;
         }
       [array addObject: obj];
@@ -610,6 +647,7 @@ parseArray(ParserState *state)
     }
   // Eat the trailing ]
   consumeChar(state);
+  state->depth--;
   if (!state->mutableContainers)
     {
       if (NO == [array makeImmutable])
@@ -629,11 +667,17 @@ parseObject(ParserState *state)
   unichar c = consumeSpace(state);
   NSMutableDictionary *dict;
 
+  if (state->depth >= state->maxDepth)
+    {
+      parseError(state);
+      return nil;
+    }
   if (c != '{')
     {
       parseError(state);
       return nil;
     }
+  state->depth++;
   // Eat the {
   consumeChar(state);
   dict = [NSMutableDictionary new];
@@ -646,6 +690,7 @@ parseObject(ParserState *state)
       if (nil == key)
         {
           [dict release];
+          state->depth--;
           return nil;
         }
       c = consumeSpace(state);
@@ -653,6 +698,7 @@ parseObject(ParserState *state)
         {
           [key release];
           [dict release];
+          state->depth--;
           parseError(state);
           return nil;
         }
@@ -663,6 +709,7 @@ parseObject(ParserState *state)
         {
           [key release];
           [dict release];
+          state->depth--;
           return nil;
         }
       [dict setObject: obj forKey: key];
@@ -677,6 +724,7 @@ parseObject(ParserState *state)
     }
   // Eat the trailing }
   consumeChar(state);
+  state->depth--;
   if (!state->mutableContainers)
     {
       if (NO == [dict makeImmutable])
@@ -1143,6 +1191,8 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
   ParserState p = { 0 };
   id obj;
 
+  p.depth = 0;
+  p.maxDepth = NS_JSON_SERIALIZATION_MAX_DEPTH;
   [data getBytes: BOM length: 4];
   getEncoding(BOM, &p);
   p.source = [[NSString alloc] initWithData: data encoding: p.enc];
@@ -1168,6 +1218,8 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
   ParserState p = { 0 };
   id obj;
 
+  p.depth = 0;
+  p.maxDepth = NS_JSON_SERIALIZATION_MAX_DEPTH;
   // TODO: Handle failure here!
   [stream read: (uint8_t*)BOM maxLength: 4];
   getEncoding(BOM, &p);
