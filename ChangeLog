@@ -1,3 +1,12 @@
+2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Implementation of nesting limit when
+	parsing collections (JSON array/object values).  Permits up to 512
+	levels of container nesting. 
+	* Tests/base/NSJSONSerialization/depth.m: Some testcases for the limit.
+	Code changes inspired by and test cases based on analysis and code
+	from Todd White <todd.white@thalion.global> using Claude.
+	
 2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDateFormatter.m:
