@@ -217,10 +217,26 @@ etcHosts(BOOL flush)
 	    {
 	      NSMutableSet	*names = nil;
 	      NSString		*key;
+	      size_t 		len;
 	      char		*line = buf;
 	      char		*save = 0;
 	      char		*addr;
 	      char		*name;
+
+	      /* Detect truncated lines: if the buffer is full and doesn't end
+	       * with a newline, the line was too long. Drain the rest of it
+	       * and skip processing entirely.
+	       */
+	      len = strlen(buf);
+	      if (len == sizeof(buf) - 1 && buf[len - 1] != '\n')
+		{
+		  int c;
+		  while ((c = fgetc(fp)) != EOF && c != '\n')
+		    {
+		      ;   /* drain remainder of overlong line */
+		    }
+		  continue;
+		}
 
 	      // Skip comments
 	      while (isspace(*line))
