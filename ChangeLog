@@ -1,5 +1,12 @@
 2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDateFormatter.m:
+	* Tests/base/NSDateFormatter/general.m:
+	Fixes and testcases for issue #593, plus rewrite of confusing code for
+	relative dates (fixes incorrect value returned by -dateStyle method).
+
+2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSURL.h: Add newer NSURLComponents methods for
 	automatically percent-encoding most invalid characters in a URL.
 	* Source/NSURL.m: Re-implement NSURLComponents with new RFC 3986
