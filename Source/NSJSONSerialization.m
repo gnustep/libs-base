@@ -336,7 +336,6 @@ consumeSpace(ParserState *state)
   return currentChar(state);
 }
 
-static void parseError(ParserState *state);
 
 NS_RETURNS_RETAINED static inline id
 parseCollection(ParserState *state, id (*func)(ParserState*))
@@ -354,16 +353,14 @@ parseCollection(ParserState *state, id (*func)(ParserState*))
   if (state->depth >= 512)
     {
       NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
-    _(@"JSON Parse error"), NSLocalizedDescriptionKey,
-    _(([NSString stringWithFormat: @"Recursion limit reached at index %"PRIdPTR,
-        state->sourceIndex])), 
-      NSLocalizedFailureReasonErrorKey,
-    nil];
-  state->error = [NSError errorWithDomain: NSCocoaErrorDomain
-                                     code: 0
-                                 userInfo: userInfo];
-  RELEASE(userInfo);
-      parseError(state);
+	_(@"JSON Parse error"), NSLocalizedDescriptionKey,
+	_(([NSString stringWithFormat: @"Recursion limit reached at index %"PRIdPTR, state->sourceIndex])), 
+	NSLocalizedFailureReasonErrorKey,
+	nil];
+      state->error = [NSError errorWithDomain: NSCocoaErrorDomain
+					 code: 0
+				     userInfo: userInfo];
+      RELEASE(userInfo);
       return nil;
     }
   state->depth++;
