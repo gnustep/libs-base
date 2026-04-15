@@ -54,23 +54,31 @@ main(int argc, char *argv[])
   NSMethodSignature	*sig;
   const char		*types;
 
+  /* -numberOfArguments counts self + _cmd + user arguments, so
+   * "v@:" with N trailing 'i' produces (2 + N) arguments.  Each
+   * case below checks both that the call returned a signature and
+   * that the parser walked the whole type string.
+   */
+
   /* Sanity: a short signature still parses through the alloca path. */
   sig = [NSMethodSignature signatureWithObjCTypes: "v@:"];
-  PASS(sig != nil, "short signature (v@:) parsed")
+  PASS(sig != nil && [sig numberOfArguments] == 2,
+    "short signature (v@:) parsed, 2 arguments")
 
   /* Internal working buffer is (strlen+1)*16.  With blen <= 4096 the
-   * alloca path is taken; 255 int args => strlen 258 => blen 4144, so
-   * 254 int args => strlen 257 => blen 4128 — still over 4096.  Use
-   * 252 int args => strlen 255 => blen 4096 to land exactly at the cap.
+   * alloca path is taken; 252 int args gives strlen 255 and blen
+   * exactly 4096, the last case on the alloca path.
    */
   types = makeIntArgTypes(252);
   sig = [NSMethodSignature signatureWithObjCTypes: types];
-  PASS(sig != nil, "252-arg signature at alloca cap parsed")
+  PASS(sig != nil && [sig numberOfArguments] == 254,
+    "252-arg signature at alloca cap parsed, 254 arguments")
 
   /* One more argument tips the buffer over the cap and onto the heap. */
   types = makeIntArgTypes(253);
   sig = [NSMethodSignature signatureWithObjCTypes: types];
-  PASS(sig != nil, "253-arg signature just past alloca cap parsed")
+  PASS(sig != nil && [sig numberOfArguments] == 255,
+    "253-arg signature just past alloca cap parsed, 255 arguments")
 
   /* A signature whose working buffer would require ~24 MB of stack
    * space — well past any reasonable stack limit (Linux defaults to
@@ -81,7 +89,8 @@ main(int argc, char *argv[])
    */
   types = makeIntArgTypes(1500000);
   sig = [NSMethodSignature signatureWithObjCTypes: types];
-  PASS(sig != nil, "1.5M-arg signature used heap buffer instead of stack")
+  PASS(sig != nil && [sig numberOfArguments] == 1500002,
+    "1.5M-arg signature used heap path, 1500002 arguments")
 
   END_SET("NSMethodSignature alloca cap")
   return 0;
