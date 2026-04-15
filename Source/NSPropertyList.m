@@ -2894,10 +2894,18 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
           {
             GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
             
-            p = [p initWithData: data mutability: anOption];
-	    /* to avoid a leak on exception, autorelease before parse
-	     */
-            result = [AUTORELEASE(p) rootObject];
+	    NS_DURING
+	      {
+		p = [p initWithData: data mutability: anOption];
+		result = AUTORELEASE(RETAIN([p rootObject]));
+		DESTROY(p);
+	      }
+	    NS_HANDLER
+	      {
+                errorStr = [localException reason];
+		DESTROY(p);
+	      }
+	    NS_ENDHANDLER
           }
           break;
           
