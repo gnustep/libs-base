@@ -1,3 +1,11 @@
+2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMeasurement.m:
+	* Source/NSUnit.m:
+	* Tests/base/NSMeasurement/conversion.m:
+	Fix for issue #581 plus precision improvements and fixes to
+	several units.  Testcases for many conversions.
+
 2026-04-14 Todd White <todd.white@thalion.global>
 
 	* Source/NSPropertyList.m: Fix unsigned integer overflow in the
