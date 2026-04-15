@@ -1168,6 +1168,11 @@
 
 + (NSUnitMass*) pounds
 {
+  return [self poundsMass];
+}
+
++ (NSUnitMass*) poundsMass
+{
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"lb"
                                             coefficient: 0.453592
                                                constant: 0.0]);

@@ -752,9 +752,14 @@ GS_EXPORT_CLASS
 + (NSUnitMass*) ounces;
 
 /**
- * The mass units in pounds.
+ * The mass units in pounds (same as poundsMass).
  */
 + (NSUnitMass*) pounds;
+
+/**
+ * The mass units in pounds.
+ */
++ (NSUnitMass*) poundsMass;
 
 /**
  * The mass units in stones.
