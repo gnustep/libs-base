@@ -3078,20 +3078,14 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
 	}
+      /* The obvious form of the bound,
+       *   table_start + object_count * offset_size > _length,
+       * overflows on unsigned multiplication; take care when editing.
+       * See Tests/base/NSPropertyList/bplist-overflow-bounds.m.
+       */
       else if (table_start > _length
 	|| object_count > (_length - table_start) / offset_size)
         {
-	  /* Overflow-safe bound on the offset table. We need
-	   *   object_count * offset_size <= _length - table_start
-	   * but forming the product overflows on 32-bit unsigned for
-	   * attacker-controlled object_count near 2^30 (offset_size is
-	   * bounded to 4 by the guard above), wrapping past 2^32 and
-	   * letting a malformed trailer slip through. Dividing the
-	   * non-negative difference by offset_size keeps the check
-	   * exact without ever forming the product. The leading
-	   * table_start > _length test keeps the subtraction from
-	   * underflowing.
-	   */
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
 		      format: @"Table size larger than supplied data"];
