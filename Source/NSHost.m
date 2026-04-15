@@ -573,7 +573,7 @@ dnsaliases(NSString *host, NSSet *names)
 	      char 	cname[NS_MAXDNAME];
 	      NSString	*alias;
 
-	      if (ns_name_uncompress(ns_msg_base(msg), ns_msg_end(msg),
+	      if (dn_expand(ns_msg_base(msg), ns_msg_end(msg),
 		ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
 		{
 		  fprintf(stderr, "Failed to uncompress CNAME\n");
