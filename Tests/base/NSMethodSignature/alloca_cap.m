@@ -1,24 +1,25 @@
 /*
- * alloca_cap.m - regression test for NSMethodSignature type-string
- * buffer growth.
+ * alloca_cap.m - regression test for the type-string length cap in
+ * -[NSMethodSignature _initWithObjCTypes:].
  *
- * -[NSMethodSignature _initWithObjCTypes:] rewrites the caller-supplied
- * type encoding into a temporary buffer sized proportionally to the
- * input length.  Before the cap was added, that buffer was always taken
- * from the stack via alloca, so a pathologically long type encoding
+ * The initialiser rewrites the caller-supplied type encoding into a
+ * temporary buffer sized (strlen+1)*16 and takes that buffer from the
+ * stack via alloca.  With no cap a pathologically long type encoding
  * could force an arbitrarily large stack allocation and push past the
- * guard page.  The method now falls back to the heap for oversized
- * buffers while keeping the fast alloca path for ordinary signatures.
+ * guard page, so the initialiser now rejects any encoding whose
+ * working buffer would exceed 4096 bytes (roughly strlen 255) with an
+ * NSInvalidArgumentException.  No compiler-emitted method type
+ * encoding comes anywhere near that length, so legitimate callers see
+ * no change.
  *
- *   - ordinary short signatures still parse (alloca path).
+ *   - ordinary short signatures still parse.
  *   - signatures whose working buffer lands exactly at the cap still
- *     parse (last alloca-path case).
- *   - signatures whose working buffer lands just past the cap still
- *     parse (first heap-path case).
- *   - signatures whose working buffer would require more stack than
- *     is plausibly available still parse (deep heap path).  Without
- *     the cap this case would alloca a multi-megabyte buffer and
- *     crash the test process on any system with a normal stack limit.
+ *     parse (boundary case).
+ *   - signatures one argument past the cap raise
+ *     NSInvalidArgumentException.
+ *   - signatures whose working buffer would exceed any reasonable
+ *     stack limit also raise NSInvalidArgumentException rather than
+ *     crashing the process.
  */
 
 #import <Foundation/Foundation.h>
@@ -55,42 +56,34 @@ main(int argc, char *argv[])
   const char		*types;
 
   /* -numberOfArguments counts self + _cmd + user arguments, so
-   * "v@:" with N trailing 'i' produces (2 + N) arguments.  Each
-   * case below checks both that the call returned a signature and
-   * that the parser walked the whole type string.
+   * "v@:" with N trailing 'i' produces (2 + N) arguments.  The
+   * working buffer used by _initWithObjCTypes: is (strlen+1)*16,
+   * so 252 int args gives strlen 255 and blen exactly 4096 (the
+   * boundary), and 253 int args tips blen to 4112 (just past).
    */
 
-  /* Sanity: a short signature still parses through the alloca path. */
   sig = [NSMethodSignature signatureWithObjCTypes: "v@:"];
   PASS(sig != nil && [sig numberOfArguments] == 2,
     "short signature (v@:) parsed, 2 arguments")
 
-  /* Internal working buffer is (strlen+1)*16.  With blen <= 4096 the
-   * alloca path is taken; 252 int args gives strlen 255 and blen
-   * exactly 4096, the last case on the alloca path.
-   */
   types = makeIntArgTypes(252);
   sig = [NSMethodSignature signatureWithObjCTypes: types];
   PASS(sig != nil && [sig numberOfArguments] == 254,
-    "252-arg signature at alloca cap parsed, 254 arguments")
+    "252-arg signature at 4096-byte boundary parsed, 254 arguments")
 
-  /* One more argument tips the buffer over the cap and onto the heap. */
   types = makeIntArgTypes(253);
-  sig = [NSMethodSignature signatureWithObjCTypes: types];
-  PASS(sig != nil && [sig numberOfArguments] == 255,
-    "253-arg signature just past alloca cap parsed, 255 arguments")
+  PASS_EXCEPTION(([NSMethodSignature signatureWithObjCTypes: types]),
+    NSInvalidArgumentException,
+    "253-arg signature one past boundary rejected")
 
-  /* A signature whose working buffer would require ~24 MB of stack
-   * space — well past any reasonable stack limit (Linux defaults to
-   * 8 MB).  Without the cap, +signatureWithObjCTypes: would alloca
-   * that buffer and the process would die on the stack guard page
-   * before returning.  With the cap, the buffer is heap-allocated
-   * and the signature is built normally.
+  /* A signature whose working buffer would otherwise require ~24 MB
+   * of stack — well past any reasonable stack limit — must also be
+   * rejected, not crash the process.
    */
   types = makeIntArgTypes(1500000);
-  sig = [NSMethodSignature signatureWithObjCTypes: types];
-  PASS(sig != nil && [sig numberOfArguments] == 1500002,
-    "1.5M-arg signature used heap path, 1500002 arguments")
+  PASS_EXCEPTION(([NSMethodSignature signatureWithObjCTypes: types]),
+    NSInvalidArgumentException,
+    "1.5M-arg signature rejected instead of crashing on alloca")
 
   END_SET("NSMethodSignature alloca cap")
   return 0;

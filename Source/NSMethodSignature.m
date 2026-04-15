@@ -59,7 +59,6 @@ gs_string_hash(const char *s)
 #import "GNUstepBase/GSIMap.h"
 
 #import "GSInvocation.h"
-#import "GSPrivate.h"
 #import "GSPThread.h"
 
 #ifdef HAVE_MALLOC_H
@@ -516,6 +515,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
     {
       const char	*q;
       char		*args;
+      char		*ret;
       char		*end;
       char		*ptr;
       int		alen;
@@ -527,11 +527,16 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
  * the types string.
  */
       blen = (strlen(t) + 1) * 16;	// Total buffer length
-      /* A caller-supplied type encoding can make blen arbitrarily
-       * large, so avoid putting the buffer on the stack unconditionally;
-       * GS_BEGINITEMBUF falls back to the heap past the stack cap.
+      /* No compiler-emitted type encoding approaches this size, so
+       * reject an excessively long one outright rather than allocating
+       * an arbitrary amount of stack for it.
        */
-      GS_BEGINITEMBUF(ret, blen, char)
+      if (blen > 4096)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Method signature type encoding is too long"];
+	}
+      ret = alloca(blen);
       end = ret + blen;
 
       /* Copy the return type (including qualifiers) with ehough room
@@ -574,7 +579,6 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       strncpy((char*)_methodTypes, ret, rlen);
       strncpy(((char*)_methodTypes) + rlen, args, alen);
       ((char*)_methodTypes)[alen + rlen] = '\0';
-      GS_ENDITEMBUF()
     }
   return self;
 }
@@ -588,35 +592,45 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   static gs_mutex_t cacheTableLock = GS_MUTEX_INIT_STATIC;
 
   GS_MUTEX_LOCK(cacheTableLock);
-  if (cacheTable.zone == 0)
+  NS_DURING
     {
-      GSIMapInitWithZoneAndCapacity(&cacheTable, [self zone], 8);
-    }
+      if (cacheTable.zone == 0)
+	{
+	  GSIMapInitWithZoneAndCapacity(&cacheTable, [self zone], 8);
+	}
 
-  node = GSIMapNodeForKey(&cacheTable, (GSIMapKey)t);
-  if (node == 0)
-    {
-      char	*buf;
-      int	len = strlen(t) + 1;
+      node = GSIMapNodeForKey(&cacheTable, (GSIMapKey)t);
+      if (node == 0)
+	{
+	  char	*buf;
+	  int	len = strlen(t) + 1;
 
-      sig = [[self alloc] _initWithObjCTypes: t];
-      buf = malloc(len);
-      memcpy(buf, t, len);
+	  sig = [[self alloc] _initWithObjCTypes: t];
+	  buf = malloc(len);
+	  memcpy(buf, t, len);
 
-      /* We suppress the static analyser warning about the intentional
-       * leak (until end of execution) of the cache contents.
-       */
+	  /* We suppress the static analyser warning about the
+	   * intentional leak (until end of execution) of the cache
+	   * contents.
+	   */
 #ifdef  __clang_analyzer__
-      [[clang::suppress]]
+	  [[clang::suppress]]
 #endif
-      GSIMapAddPair(&cacheTable, (GSIMapKey)buf, (GSIMapVal)(id)sig);
+	  GSIMapAddPair(&cacheTable, (GSIMapKey)buf, (GSIMapVal)(id)sig);
+	}
+      else
+	{
+	  sig = RETAIN(node->value.obj);
+	}
     }
-  else
+  NS_HANDLER
     {
-      sig = RETAIN(node->value.obj);
+      GS_MUTEX_UNLOCK(cacheTableLock);
+      [localException raise];
     }
+  NS_ENDHANDLER
   GS_MUTEX_UNLOCK(cacheTableLock);
-  
+
   return AUTORELEASE(sig);
 }
 
