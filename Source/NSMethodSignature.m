@@ -518,6 +518,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       char		*ret;
       char		*end;
       char		*ptr;
+      char		*heapBuf = NULL;
       int		alen;
       int		blen;
       int		rlen;
@@ -527,7 +528,26 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
  * the types string.
  */
       blen = (strlen(t) + 1) * 16;	// Total buffer length
-      ret = alloca(blen);
+      /* Cap the on-stack allocation so that a caller-supplied type
+       * encoding cannot force an arbitrarily large alloca and overflow
+       * the stack.  Buffers beyond the cap are taken from the heap.
+       * 4096 bytes covers ~255-character type strings, which is far
+       * more than any real Objective-C method signature needs.
+       */
+      if (blen <= 4096)
+	{
+	  ret = alloca(blen);
+	}
+      else
+	{
+	  heapBuf = malloc(blen);
+	  if (heapBuf == NULL)
+	    {
+	      DESTROY(self);
+	      return nil;
+	    }
+	  ret = heapBuf;
+	}
       end = ret + blen;
 
       /* Copy the return type (including qualifiers) with ehough room
@@ -570,6 +590,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       strncpy((char*)_methodTypes, ret, rlen);
       strncpy(((char*)_methodTypes) + rlen, args, alen);
       ((char*)_methodTypes)[alen + rlen] = '\0';
+      free(heapBuf);
     }
   return self;
 }
