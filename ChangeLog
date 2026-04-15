@@ -1,3 +1,18 @@
+2026-04-15  Todd White  <todd.white@thalion.global>
+
+	* Source/NSMethodSignature.m ([NSMethodSignature
+	_initWithObjCTypes:]): Reject type encodings whose working
+	buffer would exceed 4096 bytes with
+	NSInvalidArgumentException instead of allocating an
+	arbitrary amount of stack for them; no compiler-emitted
+	type encoding comes anywhere near this length.
+	([NSMethodSignature signatureWithObjCTypes:]): Release the
+	cacheTableLock on exceptions thrown from the init path, so
+	the cap check does not leave the cache deadlocked.
+	* Tests/base/NSMethodSignature/alloca_cap.m: New regression test
+	covering the alloca path, the boundary, the first heap case, and
+	a signature whose buffer would exceed any reasonable stack limit.
+
 2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMeasurement.m:
