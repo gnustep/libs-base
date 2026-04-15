@@ -65,10 +65,10 @@
 - (NSArray*) _getSymbols: (NSInteger)symbol;
 @end
 
+#if GS_USE_ICU == 1
 static inline UDateFormatStyle
 NSToUDateFormatStyle(NSDateFormatterStyle style)
 {
-#if GS_USE_ICU == 1
   switch (style)
     {
       case NSDateFormatterNoStyle:	return UDAT_NONE;
@@ -77,9 +77,9 @@ NSToUDateFormatStyle(NSDateFormatterStyle style)
       case NSDateFormatterLongStyle:	return UDAT_LONG;
       case NSDateFormatterFullStyle:	return UDAT_FULL;
     }
-#endif
   return -1;
 }
+#endif
 
 
 #define	GSInternal		NSDateFormatterInternal
