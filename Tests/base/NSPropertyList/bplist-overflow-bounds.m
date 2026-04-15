@@ -111,12 +111,12 @@ main(int argc, char *argv[])
                         /*root_index*/    0,
                         /*table_start*/   9,
                         /*total_length*/ 64);
-  PASS_EXCEPTION(([NSPropertyListSerialization
+  PASS_EQUAL(([NSPropertyListSerialization
                     propertyListWithData: crafted
                                  options: NSPropertyListImmutable
                                   format: NULL
                                    error: NULL]),
-    NSGenericException,
+    nil,
     "object_count=0x40000000 offset_size=4 (product wraps to 0) rejected")
 
   /* Attack 2: the maximum 32-bit object_count with the same
@@ -127,12 +127,12 @@ main(int argc, char *argv[])
                         /*root_index*/    0,
                         /*table_start*/   9,
                         /*total_length*/ 64);
-  PASS_EXCEPTION(([NSPropertyListSerialization
+  PASS_EQUAL(([NSPropertyListSerialization
                     propertyListWithData: crafted
                                  options: NSPropertyListImmutable
                                   format: NULL
                                    error: NULL]),
-    NSGenericException,
+    nil,
     "object_count=0xffffffff offset_size=4 rejected")
 
   END_SET("NSPropertyList binary plist offset-table bounds")
