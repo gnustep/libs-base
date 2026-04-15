@@ -59,6 +59,7 @@ gs_string_hash(const char *s)
 #import "GNUstepBase/GSIMap.h"
 
 #import "GSInvocation.h"
+#import "GSPrivate.h"
 #import "GSPThread.h"
 
 #ifdef HAVE_MALLOC_H
@@ -515,10 +516,8 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
     {
       const char	*q;
       char		*args;
-      char		*ret;
       char		*end;
       char		*ptr;
-      char		*heapBuf = NULL;
       int		alen;
       int		blen;
       int		rlen;
@@ -528,26 +527,11 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
  * the types string.
  */
       blen = (strlen(t) + 1) * 16;	// Total buffer length
-      /* Cap the on-stack allocation so that a caller-supplied type
-       * encoding cannot force an arbitrarily large alloca and overflow
-       * the stack.  Buffers beyond the cap are taken from the heap.
-       * 4096 bytes covers ~255-character type strings, which is far
-       * more than any real Objective-C method signature needs.
+      /* A caller-supplied type encoding can make blen arbitrarily
+       * large, so avoid putting the buffer on the stack unconditionally;
+       * GS_BEGINITEMBUF falls back to the heap past the stack cap.
        */
-      if (blen <= 4096)
-	{
-	  ret = alloca(blen);
-	}
-      else
-	{
-	  heapBuf = malloc(blen);
-	  if (heapBuf == NULL)
-	    {
-	      DESTROY(self);
-	      return nil;
-	    }
-	  ret = heapBuf;
-	}
+      GS_BEGINITEMBUF(ret, blen, char)
       end = ret + blen;
 
       /* Copy the return type (including qualifiers) with ehough room
@@ -590,7 +574,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       strncpy((char*)_methodTypes, ret, rlen);
       strncpy(((char*)_methodTypes) + rlen, args, alen);
       ((char*)_methodTypes)[alen + rlen] = '\0';
-      free(heapBuf);
+      GS_ENDITEMBUF()
     }
   return self;
 }

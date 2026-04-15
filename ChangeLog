@@ -1,10 +1,10 @@
 2026-04-15  Todd White  <todd.white@thalion.global>
 
 	* Source/NSMethodSignature.m ([NSMethodSignature
-	_initWithObjCTypes:]): Cap the on-stack working buffer used to
-	rewrite type encodings at 4096 bytes; fall back to malloc for
-	larger buffers so that a pathologically long type string cannot
-	force an unbounded alloca and overflow the stack.
+	_initWithObjCTypes:]): Replace the unbounded alloca for the
+	type-rewrite working buffer with GS_BEGINITEMBUF, so that a
+	pathologically long type string cannot force an arbitrarily
+	large stack allocation.  Import GSPrivate.h for the macro.
 	* Tests/base/NSMethodSignature/alloca_cap.m: New regression test
 	covering the alloca path, the boundary, the first heap case, and
 	a signature whose buffer would exceed any reasonable stack limit.
