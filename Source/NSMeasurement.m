@@ -69,8 +69,8 @@
 {
   if ([self canBeConvertedToUnit: unit])
     {
-      NSUnitConverter	*fromConv = [_unit converter];
-      NSUnitConverter	*toConv = [unit converter];
+      NSUnitConverter	*fromConv = [(NSDimension*)_unit converter];
+      NSUnitConverter	*toConv = [(NSDimension*)unit converter];
       NSMeasurement 	*result;
       double 		val;
 
