@@ -1,3 +1,26 @@
+2026-04-14 Todd White <todd.white@thalion.global>
+
+	* Source/NSPropertyList.m: Fix unsigned integer overflow in the
+	binary property list offset-table bounds check. The old form
+	`table_start + object_count * offset_size > _length` overflows
+	on 32-bit unsigned for attacker-controlled object_count near
+	2^30 (offset_size is bounded to 1..4 by the preceding guard),
+	wrapping the product past 2^32 so the sum lands below _length
+	even when the offset table runs past the end of the buffer;
+	offsetForIndex: then reads past _bytes. Reformulated as
+	`table_start > _length
+	 || object_count > (_length - table_start) / offset_size`
+	which is overflow-free and self-contained (the leading
+	table_start > _length test guards the subtraction from
+	underflowing, removing the previous implicit dependence on the
+	next-in-chain table_start > _length - 32 branch).
+	* Tests/base/NSPropertyList/bplist-overflow-bounds.m: New
+	regression test that crafts malformed bplist trailers directly
+	and verifies they are rejected, with a positive control that
+	round-trips a legitimately serialized bplist.
+	Analysis and code from Todd White <todd.white@thalion.global>
+	using Claude.
+
 2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSJSONSerialization.m: Implementation of nesting limit when

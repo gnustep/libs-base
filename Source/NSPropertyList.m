@@ -3085,7 +3085,13 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
 	}
-      else if (table_start + object_count * offset_size > _length)
+      /* The obvious form of the bound,
+       *   table_start + object_count * offset_size > _length,
+       * overflows on unsigned multiplication; take care when editing.
+       * See Tests/base/NSPropertyList/bplist-overflow-bounds.m.
+       */
+      else if (table_start > _length
+	|| object_count > (_length - table_start) / offset_size)
         {
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
