@@ -1,3 +1,10 @@
+2026-04-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: tidyups and bugfix for crash when equality testing
+	with nil argument.
+	* Tests/base/NSHost/localhost.m: testcases for functionality which
+	doesn't require actual DNS lookups.
+
 2026-04-15  Todd White  <todd.white@thalion.global>
 
 	* Source/NSMethodSignature.m ([NSMethodSignature

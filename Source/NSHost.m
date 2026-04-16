@@ -72,9 +72,11 @@
 #endif // HAVE_WS2TCPIP_H
 #if !defined(HAVE_INET_NTOP)
 extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
+#define	HAVE_INET_NTOP	1
 #endif
-#if !defined(HAVE_INET_NTOP)
+#if !defined(HAVE_INET_PTON)
 extern int WSAAPI inet_pton(int , const char *, void *);
+#define	HAVE_INET_PTON	1
 #endif
 #else /* !_WIN32 */
 #include <netdb.h>
@@ -112,6 +114,41 @@ static NSLock			*_nameCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 static id			null = nil;
+
+/* Check the string to see if it is an internet address and
+ * place a normalised version in dst (which must be a buffer
+ * of at least INET6_ADDRSTRLEN bytes).
+ * Returns the family of the address or AF_UNSPEC if the
+ * string is not a valid address.
+ */
+static int
+normaliseAddress(const char *src, char *dst)
+{
+  struct in_addr	hostaddr;
+
+  if (NULL == src)
+    {
+      return AF_UNSPEC;
+    }
+  if (inet_pton(AF_INET, src, (void*)&hostaddr) == 1)
+    {
+      inet_ntop(AF_INET, &hostaddr, dst, INET6_ADDRSTRLEN);
+      return AF_INET;
+    }
+#if     defined(AF_INET6)
+  else
+    {
+      struct in6_addr	hostaddr6;
+
+      if (inet_pton(AF_INET6, src, (void*)&hostaddr6) == 1)
+	{
+	  inet_ntop(AF_INET6, &hostaddr6, dst, INET6_ADDRSTRLEN);
+	  return AF_INET6;
+	}
+    }
+#endif
+  return AF_UNSPEC;
+}
 
 /*
  *	Max hostname length in line with RFC  1123
@@ -415,16 +452,19 @@ etcHosts(BOOL flush)
 	  if (tmp == entry && tmp->ai_canonname && *tmp->ai_canonname
 	    && strcmp(tmp->ai_canonname, ptr) != 0)
 	    {
-	      NSString	*s = [NSString stringWithUTF8String: tmp->ai_canonname];
+	      char	buf[INET6_ADDRSTRLEN];
+	      NSString	*s;
 
-	      if (isName(tmp->ai_canonname))
+	      if (AF_UNSPEC == normaliseAddress(tmp->ai_canonname, buf))
 		{
+		  s = [NSString stringWithUTF8String: tmp->ai_canonname];
 		  [self _addHostName: s
 			   withNames: names
 			   addresses: addresses];
 		}
 	      else
 		{
+		  s = [NSString stringWithUTF8String: buf];
 		  [self _addHostAddress: s
 			      withNames: names
 			      addresses: addresses];
@@ -644,22 +684,22 @@ dnsaliases(NSString *host, NSSet *names)
   RELEASE(name);
 }
 
-- (id) _initWithAddress: (NSString*)name
+/* This must only be called with a normalised address as its parameter.
+ */
+- (id) _initWithAddress: (NSString*)address
 {
   if ((self = [super init]) == nil)
     {
       return nil;
     }
-  name = [name copy];
-  _names = [[NSSet alloc] initWithObjects: &name count: 1];
+  _names = [[NSSet alloc] initWithObjects: &address count: 1];
   _addresses = RETAIN(_names);
-  if (YES == _hostCacheEnabled)
+  if (_hostCacheEnabled)
     {
       [_hostCacheLock lock];
-      [_hostCache setObject: self forKey: name];
+      [_hostCache setObject: self forKey: address];
       [_hostCacheLock unlock];
     }
-  RELEASE(name);
   return self;
 }
 
@@ -1010,7 +1050,7 @@ dnsaliases(NSString *host, NSSet *names)
 + (NSHost*) hostWithAddress: (NSString*)address
 {
   NSHost		*host = nil;
-  char			buf[40];
+  char			buf[INET6_ADDRSTRLEN];
   const char		*a;
 
   if (address == nil)
@@ -1028,37 +1068,12 @@ dnsaliases(NSString *host, NSSet *names)
   /* Now check that the address is of valid format, and standardise it
    * by converting from characters to binary and back.
    */
-  if (0 == strchr(a, ':'))
+  if (AF_UNSPEC == normaliseAddress(a, buf))
     {
-      struct in_addr	hostaddr;
-
-      if (inet_pton(AF_INET, a, (void*)&hostaddr) <= 0)
-	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
-	  return nil;
-	}
-      inet_ntop(AF_INET, (void*)&hostaddr, buf, sizeof(buf));
-      a = buf;
-      address = [NSString stringWithUTF8String: a];
+      NSLog(@"Unsupported host address sent to [NSHost +hostWithAddress:]");
+      return nil;
     }
-  else
-#if     defined(AF_INET6)
-    {
-      struct in6_addr	hostaddr6;
-
-      if (inet_pton(AF_INET6, a, (void*)&hostaddr6) <= 0)
-	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
-	  return nil;
-	}
-      inet_ntop(AF_INET6, (void*)&hostaddr6, buf, sizeof(buf));
-      a = buf;
-      address = [NSString stringWithUTF8String: a];
-    }
-#else
-  NSLog(@"Unsupported host address sent to [NSHost +hostWithAddress:]");
-  return nil;
-#endif
+  address = [NSString stringWithUTF8String: buf];
 
   if (YES == _hostCacheEnabled)
     {
@@ -1212,21 +1227,21 @@ dnsaliases(NSString *host, NSSet *names)
 
 - (BOOL) isEqualToHost: (NSHost*)aHost
 {
-  NSEnumerator	*e;
-  NSString	*a;
+  NSArray	*addresses;
 
   if (aHost == self)
     {
       return YES;
     }
-  e = [aHost->_addresses objectEnumerator];
-  while ((a = [e nextObject]) != nil)
+  addresses = [aHost addresses];
+  GS_FOR_IN(NSString *, address, addresses)
     {
-      if ([_addresses member: a] != nil)
+      if ([_addresses member: address] != nil)
 	{
 	  return YES;
 	}
     }
+  GS_END_FOR(addresses)
   return NO;
 }
 
