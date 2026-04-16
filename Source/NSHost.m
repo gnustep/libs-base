@@ -848,6 +848,8 @@ dnsaliases(NSString *host, NSSet *names)
     }
   else
     {
+      // A real host name ... ensure it is listed
+      [names addObject: name];
       extra = nil;
     }
 
