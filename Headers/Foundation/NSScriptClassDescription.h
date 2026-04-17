@@ -33,8 +33,45 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSScriptCommandDescription;
+@class NSString;
+@class NSArray;
+
+typedef uint32_t FourCharCode;
+
 GS_EXPORT_CLASS
 @interface NSScriptClassDescription : NSClassDescription
+{
+@private
+  NSString *_suiteName;
+  NSString *_className;
+  FourCharCode _appleEventCode;
+  NSScriptClassDescription *_superclassDescription;
+  NSString *_superclassName;
+  Class _implementationClass;
+}
+
++ (NSScriptClassDescription *) classDescriptionForClass: (Class)aClass;
+
+- (id) initWithSuiteName: (NSString *)suiteName
+               className: (NSString *)className
+          appleEventCode: (FourCharCode)appleEventCode
+              superclass: (NSScriptClassDescription *)superclassDesc;
+
+- (id) initWithSuiteName: (NSString *)suiteName
+               className: (NSString *)className
+          appleEventCode: (FourCharCode)appleEventCode;
+
+- (FourCharCode) appleEventCode;
+- (NSString *) className;
+- (NSScriptCommandDescription *) commandDescriptionWithAppleEventClass: (FourCharCode)appleEventClassCode
+                                                    andAppleEventCode: (FourCharCode)appleEventIDCode;
+- (Class) implementationClass;
+- (BOOL) isLocationRequiredToCreateForKey: (NSString *)toManyRelationshipKey;
+- (NSString *) suiteName;
+- (NSScriptClassDescription *) superclassDescription;
+- (BOOL) supportsCommand: (NSScriptCommandDescription *)commandDef;
+- (NSString *) typeForKey: (NSString *)key;
 
 @end
 
