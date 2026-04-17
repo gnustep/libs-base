@@ -80,7 +80,12 @@ GS_EXPORT_CLASS
   void		*_Nullable _data;
 #endif
 }
- 
+
+/**
+ * Initialize an empty URL object.
+ */
+- (nonnull instancetype) init;
+
 /**
  * Create and return a file URL with the supplied path.<br />
  * The value of aPath must be a valid filesystem path.<br />
@@ -796,5 +801,4 @@ GS_NSURLComponents_IVARS;
 #endif	/* GS_API_MACOSX */
 
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
-
 
