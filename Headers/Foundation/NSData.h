@@ -117,13 +117,13 @@ GS_EXPORT_CLASS
 #endif
 + (instancetype _Nullable) dataWithContentsOfFile: (NSString *)path
                                           options: (NSDataReadingOptions)readOptionsMask
-                                            error: (NSError **)errorPtr;
+                                            error: (NSError *_Nullable *_Nullable)errorPtr;
 + (instancetype _Nullable) dataWithContentsOfFile: (NSString*)path;
 + (instancetype _Nullable) dataWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (instancetype _Nullable) dataWithContentsOfURL: (NSURL *)url
                                          options: (NSDataReadingOptions)readOptionsMask
-                                           error: (NSError **)errorPtr;
+                                           error: (NSError *_Nullable *_Nullable)errorPtr;
 + (instancetype _Nullable) dataWithContentsOfURL: (NSURL*)url;
 #endif
 + (instancetype) dataWithData: (NSData*)data;
@@ -155,13 +155,13 @@ GS_EXPORT_CLASS
 - (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
 - (instancetype _Nullable) initWithContentsOfFile: (NSString *) path
                                           options: (NSDataReadingOptions) readOptionsMask
-                                            error: (NSError **) errorPtr;
+                                            error: (NSError *_Nullable *_Nullable) errorPtr;
 - (instancetype _Nullable) initWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url;
 - (instancetype _Nullable) initWithContentsOfURL: (NSURL *)url
                                          options: (NSDataReadingOptions)readOptionsMask
-                                           error: (NSError **)errorPtr;
+                                           error: (NSError *_Nullable *_Nullable)errorPtr;
 #endif
 - (instancetype) initWithData: (NSData*)data;
 
