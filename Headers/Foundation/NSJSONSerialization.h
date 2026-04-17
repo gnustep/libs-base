@@ -91,18 +91,18 @@ GS_EXPORT_CLASS
 @interface NSJSONSerialization : NSObject
 + (NSData *_Nullable) dataWithJSONObject: (id)obj
                                  options: (NSJSONWritingOptions)opt
-                                   error: (NSError **)error;
+                                   error: (NSError *_Nullable *_Nullable)error;
 + (BOOL) isValidJSONObject: (id)obj;
 + (id _Nullable) JSONObjectWithData: (NSData *)data
                             options: (NSJSONReadingOptions)opt
-                              error: (NSError **)error;
+                              error: (NSError *_Nullable *_Nullable)error;
 + (id _Nullable) JSONObjectWithStream: (NSInputStream *)stream
                               options: (NSJSONReadingOptions)opt
-                                error: (NSError **)error;
+                                error: (NSError *_Nullable *_Nullable)error;
 + (NSInteger) writeJSONObject: (id)obj
                      toStream: (NSOutputStream *)stream
                       options: (NSJSONWritingOptions)opt
-                        error: (NSError **)error;
+                        error: (NSError *_Nullable *_Nullable)error;
 @end
 
 NS_ASSUME_NONNULL_END

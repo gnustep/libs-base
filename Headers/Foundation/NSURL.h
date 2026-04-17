@@ -250,7 +250,7 @@ GS_EXPORT_CLASS
  * response if the data is unrachable.<br />
  * Returns YES on success, NO on failure.
  */
-- (BOOL) checkResourceIsReachableAndReturnError: (NSError **)error;
+- (BOOL) checkResourceIsReachableAndReturnError: (NSError *_Nullable *_Nullable)error;
 #endif
 
 /**
@@ -801,4 +801,3 @@ GS_NSURLComponents_IVARS;
 #endif	/* GS_API_MACOSX */
 
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
-
