@@ -1,3 +1,10 @@
+2026-04-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/Foundation/NSFileManager.h:
+	* Source/NSFileManager.m:
+	Add missing macOS 10.6+ methods level and skipDescendants to
+	NSDirectoryEnumerator.
+
 2026-04-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: tidyups and bugfix for crash when equality testing
