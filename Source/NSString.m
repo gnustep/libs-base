@@ -116,6 +116,15 @@
 #if	defined(HAVE_UNICODE_UTYPES_H)
 # include <unicode/utypes.h>
 #endif
+#if defined(__has_include)
+# if __has_include(<unicode/utrans.h>)
+#  include <unicode/utrans.h>
+#  define GS_HAVE_ICU_UTRANS 1
+# endif
+#endif
+#ifndef GS_HAVE_ICU_UTRANS
+# define GS_HAVE_ICU_UTRANS 0
+#endif
 #if	defined(HAVE_ICU_H)
 # include <icu.h>
 #endif
@@ -677,6 +686,222 @@ GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
     }
 }
 #endif	// GS_USE_ICU
+
+static NSString *
+GSStringApplyTransliterator(const unichar *src,
+  NSUInteger srcLength,
+  const unichar *transId,
+  int32_t transIdLength)
+{
+  if (srcLength == 0)
+    {
+      return @"";
+    }
+
+#if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
+  {
+    UErrorCode		err = U_ZERO_ERROR;
+    UParseError		parseError;
+    UTransliterator	*trans;
+    unichar		*dst;
+    unichar		stackDst[100];
+    BOOL		dstOnStack = NO;
+    int32_t		srcLen = (int32_t)srcLength;
+    int32_t		capacity;
+    int32_t		textLen;
+    int32_t		limit;
+    NSString		*result;
+
+    trans = utrans_openU((const UChar *)transId, transIdLength, UTRANS_FORWARD,
+      NULL, 0, &parseError, &err);
+    if (U_FAILURE(err) || trans == NULL)
+      {
+	[NSException raise: NSCharacterConversionException
+		    format: @"libicu transliterator open failed"];
+      }
+
+    capacity = srcLen + 16;
+    if (capacity < 32)
+      {
+	capacity = 32;
+      }
+    if ((NSUInteger)capacity * sizeof(unichar) <= 200)
+      {
+	dst = stackDst;
+	dstOnStack = YES;
+      }
+    else
+      {
+	dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+	  capacity * sizeof(unichar));
+      }
+
+    /* A transliterator can increase output size beyond the input size
+     * (for example decomposition stages), so we retry with a larger
+     * destination buffer when ICU reports overflow.
+     */
+    for (;;)
+      {
+	memcpy(dst, src, srcLen * sizeof(unichar));
+	textLen = srcLen;
+	limit = textLen;
+	err = U_ZERO_ERROR;
+	utrans_transUChars(trans, (UChar *)dst, &textLen, capacity, 0, &limit, &err);
+	if (err == U_BUFFER_OVERFLOW_ERROR)
+	  {
+	    unichar	*tmp;
+
+	    capacity = textLen + 16;
+	    if (dstOnStack == YES)
+	      {
+		dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+		  capacity * sizeof(unichar));
+		dstOnStack = NO;
+	      }
+	    else
+	      {
+		tmp = (unichar *)NSZoneRealloc(NSDefaultMallocZone(), dst,
+		  capacity * sizeof(unichar));
+		dst = tmp;
+	      }
+	    continue;
+	  }
+	if (U_FAILURE(err))
+	  {
+	    if (dstOnStack == NO)
+	      {
+		NSZoneFree(NSDefaultMallocZone(), dst);
+	      }
+	    utrans_close(trans);
+	    [NSException raise: NSCharacterConversionException
+			format: @"libicu transliteration failed"];
+	  }
+	break;
+      }
+
+    result = [NSString stringWithCharacters: dst length: textLen];
+    if (dstOnStack == NO)
+      {
+	NSZoneFree(NSDefaultMallocZone(), dst);
+      }
+    utrans_close(trans);
+    return result;
+  }
+#else
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"ICU transliterator support is required"];
+  return nil;
+#endif
+}
+
+static NSString *
+GSStringApplyTransliteratorToString(NSString *input,
+  const unichar *transId,
+  int32_t transIdLength)
+{
+  NSUInteger	length = [input length];
+  unichar	*src;
+  NSString	*result;
+
+  if (length == 0)
+    {
+      return @"";
+    }
+
+  src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
+  [input getCharacters: src range: NSMakeRange(0, length)];
+  result = GSStringApplyTransliterator(src, length, transId, transIdLength);
+  NSZoneFree(NSDefaultMallocZone(), src);
+
+  return result;
+}
+
+static NSString *
+GSStringApplyTransliteratorIdentifierToString(NSString *input,
+  NSString *transliteratorId)
+{
+  NSUInteger	transIdLength = [transliteratorId length];
+  unichar	*transId;
+  NSString	*result;
+
+  transId = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+    transIdLength * sizeof(unichar));
+  [transliteratorId getCharacters: transId range: NSMakeRange(0, transIdLength)];
+  result = GSStringApplyTransliteratorToString(input, transId, (int32_t)transIdLength);
+  NSZoneFree(NSDefaultMallocZone(), transId);
+
+  return result;
+}
+
+#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_USTRING_H)
+static NSString *
+GSStringFoldCase(NSString *input, id locale)
+{
+  NSUInteger	length = [input length];
+  unichar	*src;
+  unichar	*dst;
+  int32_t	newLength;
+  UErrorCode	err;
+  const char	*localeId = NULL;
+  NSString	*result;
+
+  if (length == 0)
+    {
+      return @"";
+    }
+
+  if (locale == nil)
+    {
+      locale = [NSLocale systemLocale];
+    }
+  else if ([locale isKindOfClass: [NSLocale class]] == NO)
+    {
+      locale = [NSLocale currentLocale];
+    }
+
+  if (locale != nil)
+    {
+      localeId = [[locale localeIdentifier] UTF8String];
+    }
+
+  src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
+  [input getCharacters: src range: NSMakeRange(0, length)];
+
+  err = U_ZERO_ERROR;
+  newLength = u_strToLower(NULL, 0, (const UChar *)src, (int32_t)length,
+    localeId, &err);
+  if (err != U_BUFFER_OVERFLOW_ERROR)
+    {
+      NSZoneFree(NSDefaultMallocZone(), src);
+      [NSException raise: NSCharacterConversionException
+		  format: @"libicu case folding length check failed"];
+    }
+
+  dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+    newLength * sizeof(unichar));
+  err = U_ZERO_ERROR;
+  u_strToLower((UChar *)dst, newLength, (const UChar *)src,
+    (int32_t)length, localeId, &err);
+  NSZoneFree(NSDefaultMallocZone(), src);
+
+  if (U_FAILURE(err))
+    {
+      NSZoneFree(NSDefaultMallocZone(), dst);
+      [NSException raise: NSCharacterConversionException
+		  format: @"libicu case folding failed"];
+    }
+
+  result = [NSString stringWithCharacters: dst length: newLength];
+  NSZoneFree(NSDefaultMallocZone(), dst);
+  return result;
+}
+#else
+static NSString *
+GSStringFoldCase(NSString *input, id locale)
+{
+  return [input lowercaseString];
+}
+#endif
 
 
 @implementation NSString
@@ -1968,6 +2193,64 @@ register_printf_atsign ()
   return [self notImplemented: _cmd];
 #endif
 }
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+- (NSString *) stringByFoldingWithOptions: (NSStringCompareOptions)options
+				    locale: (NSLocale *)locale
+{
+  NSString	*result = self;
+  static NSString * const widthTransliteratorId = @"Fullwidth-Halfwidth";
+  static NSString * const diacriticTransliteratorId
+    = @"NFD; [:Nonspacing Mark:] Remove; NFC";
+  static NSString * const widthDiacriticTransliteratorId
+    = @"Fullwidth-Halfwidth; NFD; [:Nonspacing Mark:] Remove; NFC";
+  BOOL		foldCase;
+  BOOL		foldDiacritic;
+  BOOL		foldWidth;
+
+  if ([self length] == 0)
+    {
+      return @"";
+    }
+
+  foldCase = ((options & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch);
+  foldDiacritic = ((options & NSDiacriticInsensitiveSearch)
+    == NSDiacriticInsensitiveSearch);
+  foldWidth = ((options & NSWidthInsensitiveSearch) == NSWidthInsensitiveSearch);
+
+  if (foldCase == NO && foldDiacritic == NO && foldWidth == NO)
+    {
+      return IMMUTABLE(self);
+    }
+
+  if (foldWidth == YES && foldDiacritic == YES)
+    {
+      result = GSStringApplyTransliteratorIdentifierToString(
+	result, widthDiacriticTransliteratorId);
+      foldWidth = NO;
+      foldDiacritic = NO;
+    }
+
+  if (foldDiacritic == YES)
+    {
+      result = GSStringApplyTransliteratorIdentifierToString(
+	result, diacriticTransliteratorId);
+    }
+
+  if (foldWidth == YES)
+    {
+      result = GSStringApplyTransliteratorIdentifierToString(
+	result, widthTransliteratorId);
+    }
+
+  if (foldCase == YES)
+    {
+      result = GSStringFoldCase(result, locale);
+    }
+
+  return IMMUTABLE(result);
+}
+#endif
  
 /**
  * Returns this string as an array of 16-bit <code>unichar</code> (unsigned
@@ -6912,4 +7195,3 @@ static NSFileManager *fm = nil;
 }
 
 @end
-
