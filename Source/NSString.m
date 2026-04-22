@@ -116,10 +116,12 @@
 #if	defined(HAVE_UNICODE_UTYPES_H)
 # include <unicode/utypes.h>
 #endif
-#if defined(__has_include)
-# if __has_include(<unicode/utrans.h>)
-#  include <unicode/utrans.h>
-#  define GS_HAVE_ICU_UTRANS 1
+#if !defined(GS_HAVE_ICU_UTRANS)
+# if defined(__has_include)
+#  if __has_include(<unicode/utrans.h>)
+#   include <unicode/utrans.h>
+#   define GS_HAVE_ICU_UTRANS 1
+#  endif
 # endif
 #endif
 #ifndef GS_HAVE_ICU_UTRANS
@@ -807,7 +809,7 @@ GSICUCachedTransliterator(NSString *transliteratorId)
 static NSString *
 GSStringApplyTransliterator(const unichar *src,
   NSUInteger srcLength,
-  UTransliterator *trans)
+  void *transOpaque)
 {
   if (srcLength == 0)
     {
@@ -816,6 +818,7 @@ GSStringApplyTransliterator(const unichar *src,
 
 #if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
   {
+    UTransliterator	*trans = (UTransliterator *)transOpaque;
     UErrorCode		err = U_ZERO_ERROR;
     unichar		*dst;
     unichar		stackDst[100];
@@ -898,9 +901,10 @@ GSStringApplyTransliterator(const unichar *src,
 #endif
 }
 
+#if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
 static NSString *
 GSStringApplyTransliteratorToString(NSString *input,
-  UTransliterator *trans)
+  void *transOpaque)
 {
   NSUInteger	length = [input length];
   unichar	*src;
@@ -913,11 +917,12 @@ GSStringApplyTransliteratorToString(NSString *input,
 
   src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
   [input getCharacters: src range: NSMakeRange(0, length)];
-  result = GSStringApplyTransliterator(src, length, trans);
+  result = GSStringApplyTransliterator(src, length, transOpaque);
   NSZoneFree(NSDefaultMallocZone(), src);
 
   return result;
 }
+#endif
 
 static NSString *
 GSStringApplyTransliteratorIdentifierToString(NSString *input,
@@ -935,7 +940,7 @@ GSStringApplyTransliteratorIdentifierToString(NSString *input,
 
 #if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_USTRING_H)
 static NSString *
-GSStringFoldCase(NSString *input, id locale)
+GSStringFoldCaseWithLocale(NSString *input, id locale)
 {
   NSUInteger	length = [input length];
   unichar	*src;
@@ -2323,6 +2328,13 @@ register_printf_atsign ()
       return IMMUTABLE(self);
     }
 
+#if !((GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS)
+  if (foldDiacritic == YES || foldWidth == YES)
+    {
+      return [self notImplemented: _cmd];
+    }
+#endif
+
   if (foldWidth == YES && foldDiacritic == YES)
     {
       result = GSStringApplyTransliteratorIdentifierToString(
@@ -2345,7 +2357,8 @@ register_printf_atsign ()
 
   if (foldCase == YES)
     {
-      result = GSStringFoldCase(result, locale);
+      /* TODO: use `lowercaseStringWithLocale` once implemented. */
+      result = GSStringFoldCaseWithLocale(result, locale);
     }
 
   return IMMUTABLE(result);
