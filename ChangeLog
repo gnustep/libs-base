@@ -1,3 +1,12 @@
+2026-04-22 Hendrik Huebner <hendrik.huebner@algoriddim.com>
+
+	* Headers/Foundation/NSString.h:
+	Declare -stringByFoldingWithOptions:locale:.
+	* Source/NSString.m:
+	Implement -stringByFoldingWithOptions:locale: using ICU transliteration.
+	* Tests/base/NSString/locale.m:
+	Add folding tests for case, diacritic, width and combined behavior.
+
 2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDateFormatter.m:

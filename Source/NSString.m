@@ -649,6 +649,8 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
 @interface NSThread (StringCollatorCache)
 - (id) _stringCollatorCache;
 - (void) _setStringCollatorCache: (id)cache;
+- (id) _stringTransliteratorCache;
+- (void) _setStringTransliteratorCache: (id)cache;
 @end
 
 // The locale parameter must not be nil at this point.
@@ -687,11 +689,125 @@ GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
 }
 #endif	// GS_USE_ICU
 
+#if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
+typedef struct
+{
+  NSString		*transliteratorId;
+  UTransliterator	*transliterator;
+} GSICUTransliteratorEntry;
+
+@interface GSICUTransliteratorCache : NSObject
+{
+  @public
+  GSICUTransliteratorEntry	entries[4];
+  NSUInteger			nextEviction;
+}
+- (UTransliterator *) transliteratorForId: (NSString *)transliteratorId;
+@end
+
+static UTransliterator *
+GSICUCreateTransliterator(NSString *transliteratorId)
+{
+  NSUInteger		transIdLength = [transliteratorId length];
+  unichar		*transId;
+  UErrorCode		err = U_ZERO_ERROR;
+  UParseError		parseError;
+  UTransliterator	*trans;
+
+  transId = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+    transIdLength * sizeof(unichar));
+  [transliteratorId getCharacters: transId
+			    range: NSMakeRange(0, transIdLength)];
+  trans = utrans_openU((const UChar *)transId, (int32_t)transIdLength,
+    UTRANS_FORWARD, NULL, 0, &parseError, &err);
+  NSZoneFree(NSDefaultMallocZone(), transId);
+
+  if (U_FAILURE(err) || trans == NULL)
+    {
+      [NSException raise: NSCharacterConversionException
+		  format: @"libicu transliterator open failed"];
+    }
+  return trans;
+}
+
+@implementation GSICUTransliteratorCache
+- (UTransliterator *) transliteratorForId: (NSString *)transliteratorId
+{
+  NSUInteger		i;
+
+  /* We only cache a few static transliterator IDs, so do a simple
+   * linear search to find matches.
+   */
+  for (i = 0; i < sizeof(entries) / sizeof(*entries); i++)
+    {
+      if (entries[i].transliteratorId == transliteratorId)
+	{
+	  return entries[i].transliterator;
+	}
+    }
+
+  for (i = 0; i < sizeof(entries) / sizeof(*entries); i++)
+    {
+      if (entries[i].transliteratorId == nil)
+	{
+	  ASSIGN(entries[i].transliteratorId, transliteratorId);
+	  entries[i].transliterator = GSICUCreateTransliterator(transliteratorId);
+	  return entries[i].transliterator;
+	}
+    }
+
+  /* If cache is full, use a FIFO eviction strategy. */
+  RELEASE(entries[nextEviction].transliteratorId);
+  if (entries[nextEviction].transliterator != NULL)
+    {
+      utrans_close(entries[nextEviction].transliterator);
+    }
+  ASSIGN(entries[nextEviction].transliteratorId, transliteratorId);
+  entries[nextEviction].transliterator
+    = GSICUCreateTransliterator(transliteratorId);
+  i = nextEviction;
+  nextEviction = (nextEviction + 1) % (sizeof(entries) / sizeof(*entries));
+  return entries[i].transliterator;
+}
+
+- (void) dealloc
+{
+  NSUInteger		i;
+
+  for (i = 0; i < sizeof(entries) / sizeof(*entries); i++)
+    {
+      RELEASE(entries[i].transliteratorId);
+      if (entries[i].transliterator != NULL)
+	{
+	  utrans_close(entries[i].transliterator);
+	}
+    }
+  [super dealloc];
+}
+@end
+
+static UTransliterator *
+GSICUCachedTransliterator(NSString *transliteratorId)
+{
+  NSThread			*current;
+  GSICUTransliteratorCache	*cache;
+
+  current = [NSThread currentThread];
+  cache = [current _stringTransliteratorCache];
+  if (nil == cache)
+    {
+      cache = [[GSICUTransliteratorCache alloc] init];
+      [current _setStringTransliteratorCache: cache];
+      [cache release];
+    }
+  return [cache transliteratorForId: transliteratorId];
+}
+#endif
+
 static NSString *
 GSStringApplyTransliterator(const unichar *src,
   NSUInteger srcLength,
-  const unichar *transId,
-  int32_t transIdLength)
+  UTransliterator *trans)
 {
   if (srcLength == 0)
     {
@@ -701,8 +817,6 @@ GSStringApplyTransliterator(const unichar *src,
 #if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
   {
     UErrorCode		err = U_ZERO_ERROR;
-    UParseError		parseError;
-    UTransliterator	*trans;
     unichar		*dst;
     unichar		stackDst[100];
     BOOL		dstOnStack = NO;
@@ -711,14 +825,6 @@ GSStringApplyTransliterator(const unichar *src,
     int32_t		textLen;
     int32_t		limit;
     NSString		*result;
-
-    trans = utrans_openU((const UChar *)transId, transIdLength, UTRANS_FORWARD,
-      NULL, 0, &parseError, &err);
-    if (U_FAILURE(err) || trans == NULL)
-      {
-	[NSException raise: NSCharacterConversionException
-		    format: @"libicu transliterator open failed"];
-      }
 
     capacity = srcLen + 16;
     if (capacity < 32)
@@ -772,7 +878,6 @@ GSStringApplyTransliterator(const unichar *src,
 	      {
 		NSZoneFree(NSDefaultMallocZone(), dst);
 	      }
-	    utrans_close(trans);
 	    [NSException raise: NSCharacterConversionException
 			format: @"libicu transliteration failed"];
 	  }
@@ -784,7 +889,6 @@ GSStringApplyTransliterator(const unichar *src,
       {
 	NSZoneFree(NSDefaultMallocZone(), dst);
       }
-    utrans_close(trans);
     return result;
   }
 #else
@@ -796,8 +900,7 @@ GSStringApplyTransliterator(const unichar *src,
 
 static NSString *
 GSStringApplyTransliteratorToString(NSString *input,
-  const unichar *transId,
-  int32_t transIdLength)
+  UTransliterator *trans)
 {
   NSUInteger	length = [input length];
   unichar	*src;
@@ -810,7 +913,7 @@ GSStringApplyTransliteratorToString(NSString *input,
 
   src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
   [input getCharacters: src range: NSMakeRange(0, length)];
-  result = GSStringApplyTransliterator(src, length, transId, transIdLength);
+  result = GSStringApplyTransliterator(src, length, trans);
   NSZoneFree(NSDefaultMallocZone(), src);
 
   return result;
@@ -820,17 +923,14 @@ static NSString *
 GSStringApplyTransliteratorIdentifierToString(NSString *input,
   NSString *transliteratorId)
 {
-  NSUInteger	transIdLength = [transliteratorId length];
-  unichar	*transId;
-  NSString	*result;
-
-  transId = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
-    transIdLength * sizeof(unichar));
-  [transliteratorId getCharacters: transId range: NSMakeRange(0, transIdLength)];
-  result = GSStringApplyTransliteratorToString(input, transId, (int32_t)transIdLength);
-  NSZoneFree(NSDefaultMallocZone(), transId);
-
-  return result;
+#if (GS_USE_ICU == 1) && GS_HAVE_ICU_UTRANS
+  return GSStringApplyTransliteratorToString(input,
+    GSICUCachedTransliterator(transliteratorId));
+#else
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"ICU transliterator support is required"];
+  return nil;
+#endif
 }
 
 #if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_USTRING_H)
