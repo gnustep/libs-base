@@ -1,3 +1,29 @@
+2026-04-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/Unicode.h:
+	* Source/Additions/Unicode.m:
+	* Source/GSPrivate.h:
+	* Source/GSString.m:
+	* Source/NSString.m:
+	* Tests/base/NSString/NSString_tests.h:
+	* Tests/base/NSString/basic.m:
+	* Tests/base/NSString/pairs.m:
+	* Tests/base/NSString/surrogates.m:
+	* Tests/base/NSString/test00.m:
+	* Tests/base/NSString/test02.m:
+	* Tests/base/NSString/test04.m:
+	Match OSX in allowing NSString to contain lone surrogate pair
+	characters at the point of creation (rather than only as a result
+	of taking a substring or replacing/deleting a range).
+	Support lossy conversion from UTF16 containing bad characters to
+	valid UTF8 by use of the Unicode replacement character (0xFFFD).
+	Make the -UTF8String method use lossy conversion rather than
+	raising an exception or returning a NULL pointer.
+	This seems a more Unicode conformant behavor and avoids uncaught
+	exceptions or null pointer crashes in code which expects the
+	-UTF8String method to work for all strings.
+	Remove a few old testcases and add a load of new ones.
+	
 2026-04-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSFileManager.h:

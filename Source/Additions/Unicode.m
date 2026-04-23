@@ -753,13 +753,14 @@ octdigit(int c)
  */
 unsigned
 GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1)
+  BOOL *isASCII, BOOL *isLatin1, BOOL *isBad)
 {
   unsigned	i = 0;
   unichar	c;
 
   if (isASCII) *isASCII = YES;
   if (isLatin1) *isLatin1 = YES;
+  if (isBad) *isBad = NO;
   while (i < length)
     {
       if (chars[i++] > 127)
@@ -777,19 +778,37 @@ GSUnicode(const unichar *chars, unsigned length,
 		      c = chars[i++];
 		      if (c >= 0xdc00 && c <= 0xdfff)
 		        {
-			  return i - 1;	// Second half of a surrogate pair.
+			  // Second half of a surrogate pair.
+			  if (NULL == isBad)
+			    {
+			      return i - 1;
+			    }
+			  *isBad = YES;
+			  return length;
 		        }
 		      if (c >= 0xd800 && c <= 0xdbff)
 		        {
 			  // First half of a surrogate pair.
 			  if (i >= length)
 			    {
-			      return i - 1;	// Second half missing
+			      // Second half missing
+			      if (NULL == isBad)
+				{
+				  return i - 1;
+				}
+			      *isBad = YES;
+			      return length;
 			    }
 			  c = chars[i];
 			  if (c < 0xdc00 || c > 0xdfff)
 			    {
-			      return i - 1;	// Second half missing
+			      // Second half missing
+			      if (NULL == isBad)
+				{
+				  return i - 1;
+				}
+			      *isBad = YES;
+			      return length;
 			    }
 			  i++;		// Step past second half
 		        }
@@ -799,6 +818,45 @@ GSUnicode(const unichar *chars, unsigned length,
         }
     }
   return i;
+}
+
+void
+GSPrivateCleanUnichars(unichar *u, unsigned l)
+{
+  unsigned	i;
+
+  for (i = 0; i < l; i++)
+    {
+      unichar	c = u[i];
+
+      if (c >= 0xdc00 && c <= 0xdfff)
+	{
+	  // Second half of surrogate pair without first half
+	  u[i] = 0xFFFD;
+	}
+      if (c >= 0xd800 && c <= 0xdbff)
+	{
+	  // First half of a surrogate pair.
+	  if (i + 1 >= l)
+	    {
+	      // Second half missing (short string)
+	      u[i] = 0xFFFD;
+	    }
+	  else
+	    {
+	      c = u[i + 1];
+	      if (c < 0xdc00 || c > 0xdfff)
+		{
+		  // Second half missing
+		  u[i] = 0xFFFD;
+		}
+	      else
+		{
+		  i++;
+		}
+	    }
+	}
+    }
 }
 
 #define	GROW() \
@@ -1917,7 +1975,8 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * an autoreleased buffer rather than in a buffer that the caller must
  * release.</item>
  * <item>If GSUniBOM is set, the function will read the first unicode
- * character as a byte order marker.</item>
+ * character as a byte order marker, otherwise the unicode data must be
+ * in host byte order.</item>
  * <item>If GSUniShortOk is set, the function will return a buffer containing
  * any decoded characters even if the whole conversion fails.</item>
  * </list>
@@ -2043,48 +2102,68 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 > 0xfffd)
 		    {
+		      /* Illegal codepoint (BOM in stream or non-characcter)
+		       */
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;	// Skip invalid character.
+		      u = 0xfffd;	// Replacement character
 		    }
-
-		  /* possibly get second character and calculate 'u' */
-		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		  else if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
+		      /* The (unmatched) second part of a surrogate pair
+		       */
+		      if (strict)
+			{
+			  result = NO;
+			  goto done;
+			}
+		      u = 0xfffd;	// Replacement character
+		    }
+		  else if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      /* The first part of a surrogate pair?
+		       */
 		      if (spos >= slen)
 			{
+			  /* Second half is missing - premature end of string
+			   */
 			  if (strict)
 			    {
 			      result = NO;
 			      goto done;
 			    }
-			  continue;	// At end.
+			  u = 0xfffd;	// Replacement character
 			}
-
-		      /* get second unichar */
-		      u2 = src[spos++];
-		      u2 = GSUnicodeSwap16(u2);
-
-		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
+		      else
 			{
-			  spos--;
-			  if (strict)
-			    {
-			      result = NO;
-			      goto done;
-			    }
-			  continue;	// Skip bad half of surrogate pair.
-			}
+			  /* get second unichar */
+			  u2 = src[spos++];
+			  u2 = GSUnicodeSwap16(u2);
 
-		      /* make the full value */
-		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
-			+ (u2 - 0xdc00) + 0x10000;
+			  if ((u2 < 0xdc00) || (u2 > 0xdfff))
+			    {
+			      /* Not the second part of a surrogate pair :-(
+			       */
+			      spos--;
+			      if (strict)
+				{
+				  result = NO;
+				  goto done;
+				}
+			      u = 0xfffd;	// replacement
+			    }
+			  else
+			    {
+			      /* make the full value */
+			      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+				+ (u2 - 0xdc00) + 0x10000;
+			    }
+			}
 		    }
 		  else
 		    {
@@ -2162,47 +2241,67 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 > 0xfffd)
 		    {
+		      /* Illegal codepoint (BOM in stream or non-characcter)
+		       */
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;	// Skip invalid character.
+		      u = 0xfffd;	// Replacement character
 		    }
-
-		  /* possibly get second character and calculate 'u' */
-		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		  else if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
+		      /* The (unmatched) second part of a surrogate pair?
+		       */
+		      if (strict)
+			{
+			  result = NO;
+			  goto done;
+			}
+		      u = 0xfffd;	// Replacement character
+		    }
+		  else if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      /* The first part of a surrogate pair?
+		       */
 		      if (spos >= slen)
 			{
+			  /* Second half is missing - premature end of string
+			   */
 			  if (strict)
 			    {
 			      result = NO;
 			      goto done;
 			    }
-			  continue;	// At end.
+			  u = 0xfffd;	// Replacement character
 			}
-
-		      /* get second unichar */
-		      u2 = src[spos++];
-
-		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
+		      else
 			{
-			  spos--;
-			  if (strict)
-			    {
-			      result = NO;
-			      goto done;
-			    }
-			  continue;	// Skip bad half of surrogate pair.
-			}
+			  /* get second unichar */
+			  u2 = src[spos++];
 
-		      /* make the full value */
-		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
-			+ (u2 - 0xdc00) + 0x10000;
+			  if ((u2 < 0xdc00) || (u2 > 0xdfff))
+			    {
+			      /* Not the second part of a surrogate pair :-(
+			       */
+			      spos--;
+			      if (strict)
+				{
+				  result = NO;
+				  goto done;
+				}
+			      u = 0xfffd;	// replacement
+			    }
+			  else
+			    {
+			      /* make the full value */
+			      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+				+ (u2 - 0xdc00) + 0x10000;
+			    }
+			}
 		    }
 		  else
 		    {
