@@ -2102,18 +2102,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  if (u1 > 0xfffd)
-		    {
-		      /* Illegal codepoint (BOM in stream or non-characcter)
-		       */
-		      if (strict)
-			{
-			  result = NO;
-			  goto done;
-			}
-		      u = 0xfffd;	// Replacement character
-		    }
-		  else if (u1 >= 0xdc00 && u1 <= 0xdfff)
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
 		      /* The (unmatched) second part of a surrogate pair
 		       */
@@ -2241,18 +2230,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  if (u1 > 0xfffd)
-		    {
-		      /* Illegal codepoint (BOM in stream or non-characcter)
-		       */
-		      if (strict)
-			{
-			  result = NO;
-			  goto done;
-			}
-		      u = 0xfffd;	// Replacement character
-		    }
-		  else if (u1 >= 0xdc00 && u1 <= 0xdfff)
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
 		      /* The (unmatched) second part of a surrogate pair?
 		       */
