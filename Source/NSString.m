@@ -3904,12 +3904,10 @@ register_printf_atsign ()
  * than a true Unicode character. As such some Unicode characters are
  * represented by two UTF16 characters in an NSString (these two values are
  * known as a 'surrogate pair').<br />
- * An NSString can therefore contain invalid 16bit sequences (individual values
- * which should be part of a pair but aren't) as well as a couple of other bad
- * values which can not be represented as UTF8.<br />
- * When an NSString contains such values, the GNUstep implementation of
- * this method used the Unicode 'replacement character' to indicate their
- * presence.<br />
+ * When an NSString contains lone parts of a surrogate pair they cannot be
+ * converted to legal Unicode codepoints for encoding as UTF8, so the GNUstep
+ * implementation of this method uses the Unicode Replacement Character to
+ * indicate their presence (a lossy conversion).<br />
  * To check whether a string can be converted to UTF8 without any replacement
  * characters, you can use the -canBeConvertedToEncoding: method, and then
  * use the -dataUsingEncoding:allowLossyConversion: method or the
