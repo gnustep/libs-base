@@ -6026,6 +6026,18 @@ static NSFileManager *fm = nil;
 }
 
 /**
+ * Compares this instance with string as if sorted by Apple's Finder,
+ * using +[NSLocale currentLocale].
+ */
+- (NSComparisonResult) localizedStandardCompare: (NSString *)string
+{
+  return [self compare: string
+               options: NSCaseInsensitiveSearch|NSNumericSearch|NSWidthInsensitiveSearch|NSForcedOrderingSearch
+                 range: NSMakeRange(0, [self length])
+                locale: [NSLocale currentLocale]];
+}
+
+/**
  * Compares this instance with string, using +[NSLocale currentLocale],
  * ignoring case.
  */
