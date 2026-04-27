@@ -561,88 +561,126 @@ etcHosts(BOOL flush)
 #elif	defined(HAVE_GETADDRINFO)
 
 #if	defined(HAVE_RESOLV_H)
-static NSSet *
-dnsaliases(NSString *host, NSSet *names)
+
+#if	defined(HAVE_RES_NQUERY)
+/* res_nquery() is thread safe because it explicitly uses a locally controlled
+ * area of memory to store state information.
+ */
+#define	RES_START(X)	\
+res_state X = (res_state)alloca(sizeof(res_state*));
+res_ninit(X)
+#define	RES_END(X)	\
+res_ndestroy(X);
+free(X)
+#else
+/* res_query() is thread safe on platforms where state infrmation is stored in
+ * thread-local memory, but not all systems do that so this is sometimes not
+ * thread safe.  The res_nquery code is therefore preferred.
+ */
+#define	RES_START(X)	
+#define	RES_END(X)	
+#define	res_nquery(X,A1,A2,A3,A4.A5)	res_query(A1, A2, A3, A4, A5)
+#endif
+
+static void
+dnsaliases(NSString *host, NSMutableSet *names)
 {
-  NSMutableSet	*found = nil;
-  unsigned char response[NS_PACKETSZ];
-  extern int 	h_errno;
+  ENTER_POOL
   const char	*name;
-  int 		len;
 
-  if (NULL == (name = getName(host)))
+  if ((name = getName(host)) != nil)
     {
-      return nil;
-    }
+      NSMutableSet	*found = nil;
+      unsigned char 	response[NS_PACKETSZ];
+      extern int	h_errno;
+      int 		len;
+      RES_START(statp);
 
-  /* Perform DNS query for CNAME records so that we can get
-   * any name pointed to by this one.
-   */
-  len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
-  if (len < 0)
-    {
-      if (h_errno != NO_DATA)
-	{
-	  herror(name);
-	}
-    }
-  else
-    {
-      ns_msg 	msg;
-      int	count;
-      int	i;
+      /* Add the host to the set of all aliases for the host.
+       */
+      [names addObject: host];
 
-      if (ns_initparse(response, len, &msg) < 0)
+      /* Perform DNS query for CNAME records so that we can get
+       * any name pointed to by this one.
+       */
+      len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
+      if (len < 0)
 	{
-	  perror("ns_initparse");
-	}
-      count = ns_msg_count(msg, ns_s_an);
-      for (i = 0; i < count; i++)
-	{
-	  ns_rr	rr;
-
-	  if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
+	  if (h_errno != NO_DATA)
 	    {
-	      perror("ns_parserr");
-	      continue;
+	      herror(name);
 	    }
+	}
+      else
+	{
+	  ns_msg 	msg;
+	  int	count;
+	  int	i;
 
-	  // Check if the record is a CNAME
-	  if (ns_rr_type(rr) == ns_t_cname)
+	  if (ns_initparse(response, len, &msg) < 0)
 	    {
-	      char 	cname[NS_MAXDNAME];
-	      NSString	*alias;
+	      perror("ns_initparse");
+	    }
+	  count = ns_msg_count(msg, ns_s_an);
+	  for (i = 0; i < count; i++)
+	    {
+	      ns_rr	rr;
 
-	      if (dn_expand(ns_msg_base(msg), ns_msg_end(msg),
-		ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+	      if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
 		{
-		  fprintf(stderr, "Failed to uncompress CNAME\n");
+		  perror("ns_parserr");
 		  continue;
 		}
-	      NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
-		host, cname);
-	      alias = [NSString stringWithUTF8String: cname];
-	      if ([names member: alias] == nil)
+
+	      // Check if the record is a CNAME
+	      if (ns_rr_type(rr) == ns_t_cname)
 		{
+		  char 	cname[NS_MAXDNAME];
+		  NSString	*alias;
+
+		  if (dn_expand(ns_msg_base(msg), ns_msg_end(msg),
+		    ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+		    {
+		      fprintf(stderr, "Failed to uncompress CNAME\n");
+		      continue;
+		    }
+		  NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
+		    host, cname);
+		  alias = [NSString stringWithUTF8String: cname];
 		  if (nil == found)
 		    {
 		      found = [NSMutableSet set];
 		    }
 		  [found addObject: alias];
 		}
-	    }
-	  else
-	    {
-	      NSDebugFLLog(@"NSHost", @"res_query for '%@' unused type '%d'",
-		host, ns_rr_type(rr));
+	      else
+		{
+		  NSDebugFLLog(@"NSHost",
+		    @"res_query for '%@' unused type '%d'",
+		    host, ns_rr_type(rr));
+		}
 	    }
 	}
+      RES_END(statp);
+      if (nil == found)
+	{
+	  NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
+	}
+      else
+	{
+	  /* Re-check any alias we haven't already got recorded.
+	   * This gets the aliases of the aliases so the recursion
+	   * should quickly get all the names.
+	   */
+	  GS_FOR_IN(NSString*, alias, found)
+	    if ([names member: alias] == nil)
+	      {
+		dnsaliases(alias, names);
+	      }
+	  GS_END_FOR(found)
+	}
     }
-  if (nil == found)
-    {
-      NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
-    }
-  return found;
+  LEAVE_POOL
 }
 #endif
 
@@ -653,16 +691,10 @@ dnsaliases(NSString *host, NSSet *names)
   if ([name length] > 0 && nil == [names member: name])
     {
       [names addObject: name];
-      [self _addHostInfo: name withNames: names addresses: addresses];
 #if	defined(HAVE_RESOLV_H)
-    {
-      NSSet	*aliases = dnsaliases(name, names);
-
-      GS_FOR_IN(NSString*, alias, aliases)
-	[self _addHostInfo: alias withNames: names addresses: addresses];
-      GS_END_FOR(aliases)
-    }
+      dnsaliases(name, names);
 #endif
+      [self _addHostInfo: name withNames: names addresses: addresses];
     }
 }
 #endif

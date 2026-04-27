@@ -1,3 +1,10 @@
+2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add test for res_nquery()
+	* Headers/GNUstepBase/config.h.in: Regenerate
+	* configure: Regenerate
+	* Source/NSHost.m: Update to use res_nquery if available and simplify
+
 2026-04-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/Unicode.h:
