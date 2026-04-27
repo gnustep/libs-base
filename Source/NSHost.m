@@ -566,20 +566,24 @@ etcHosts(BOOL flush)
 /* res_nquery() is thread safe because it explicitly uses a locally controlled
  * area of memory to store state information.
  */
-#define	RES_START(X)	\
-res_state X = (res_state)alloca(sizeof(res_state*));
-res_ninit(X)
-#define	RES_END(X)	\
-res_ndestroy(X);
-free(X)
+#define	RES_START(X) \
+struct __res_state X; \
+if (res_ninit(&X) < 0) \
+{ \
+  NSLog(@"Unable to initialise libresolv"); \
+  return; \
+}
+#define	RES_END(X) \
+res_nclose(&X)
+#define	RES_NQUERY(X,A1,A2,A3,A4,A5)	res_nquery(&X, A1, A2, A3, A4, A5)
 #else
-/* res_query() is thread safe on platforms where state infrmation is stored in
+/* res_query() is thread safe on platforms where state information is stored in
  * thread-local memory, but not all systems do that so this is sometimes not
  * thread safe.  The res_nquery code is therefore preferred.
  */
-#define	RES_START(X)	
+#define	RES_START(X)	res_init()
 #define	RES_END(X)	
-#define	res_nquery(X,A1,A2,A3,A4.A5)	res_query(A1, A2, A3, A4, A5)
+#define	RES_NQUERY(X,A1,A2,A3,A4,A5)	res_query(A1, A2, A3, A4, A5)
 #endif
 
 static void
@@ -588,13 +592,13 @@ dnsaliases(NSString *host, NSMutableSet *names)
   ENTER_POOL
   const char	*name;
 
-  if ((name = getName(host)) != nil)
+  if ((name = getName(host)) != NULL)
     {
       NSMutableSet	*found = nil;
       unsigned char 	response[NS_PACKETSZ];
       extern int	h_errno;
       int 		len;
-      RES_START(statp);
+      RES_START(state);
 
       /* Add the host to the set of all aliases for the host.
        */
@@ -603,7 +607,8 @@ dnsaliases(NSString *host, NSMutableSet *names)
       /* Perform DNS query for CNAME records so that we can get
        * any name pointed to by this one.
        */
-      len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
+      len = RES_NQUERY(state, name, ns_c_in, ns_t_cname,
+	response, sizeof(response));
       if (len < 0)
 	{
 	  if (h_errno != NO_DATA)
@@ -661,7 +666,7 @@ dnsaliases(NSString *host, NSMutableSet *names)
 		}
 	    }
 	}
-      RES_END(statp);
+      RES_END(state);
       if (nil == found)
 	{
 	  NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
