@@ -1744,7 +1744,66 @@ static NSUInteger	urlAlign;
                    forKey: (NSString *)key 
                     error: (NSError**)error
 {
-  // TODO: unimplemented
+  if (value != 0)
+    {
+      *value = nil;
+    }
+
+  if (NO == [self isFileURL])
+    {
+      return NO;
+    }
+
+  if (nil == key)
+    {
+      return NO;
+    }
+
+  if ([key isEqualToString: NSURLNameKey])
+    {
+      if (value != 0)
+	{
+	  *value = [self lastPathComponent];
+	}
+      return YES;
+    }
+  else if ([key isEqualToString: NSURLIsDirectoryKey]
+    || [key isEqualToString: NSURLFileSizeKey])
+    {
+      NSDictionary	*attributes;
+      NSString		*path = [self path];
+
+      if (nil == path)
+	{
+	  return NO;
+	}
+
+      attributes = [[NSFileManager defaultManager] fileAttributesAtPath: path
+							    traverseLink: YES];
+      if (nil == attributes)
+	{
+	  return NO;
+	}
+
+      if ([key isEqualToString: NSURLIsDirectoryKey])
+	{
+	  if (value != 0)
+	    {
+	      NSString	*fileType = [attributes objectForKey: NSFileType];
+
+	      *value = [NSNumber numberWithBool:
+		[fileType isEqualToString: NSFileTypeDirectory]];
+	    }
+	  return YES;
+	}
+
+      if (value != 0)
+	{
+	  *value = [attributes objectForKey: NSFileSize];
+	}
+      return (*value != nil);
+    }
+
   return NO;
 }
 
