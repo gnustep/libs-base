@@ -44,33 +44,15 @@
   NSMutableArray *dependencies; \
   id completionBlock;
 
-#if GS_USE_LIBDISPATCH == 1
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
   NSMutableArray	*operations; \
   NSMutableArray	*waiting; \
-  dispatch_queue_t underlyingQueue; \
   NSString		*name; \
   BOOL			suspended; \
-  BOOL			isMainQueue; \
-  BOOL			ownsUnderlyingQueue; \
   NSInteger		executing; \
-  NSInteger		maxThreads;
-
-#else
-#define	GS_NSOperationQueue_IVARS \
-  NSRecursiveLock	*lock; \
-  NSConditionLock	*cond; \
-  NSMutableArray	*operations; \
-  NSMutableArray	*waiting; \
-  NSMutableArray	*starting; \
-  NSString		*name; \
-  NSString		*threadName; \
-  BOOL			suspended; \
-  NSInteger		executing; \
-  NSInteger		threadCount; \
-  NSInteger		maxThreads;
-#endif
+  NSInteger		maxThreads; \
+  id			queueImpl;
 
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSArray.h"
@@ -629,15 +611,41 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 - (void) _execute;
 - (void) _main: (NSOperation *)op;
 
-#if GS_USE_LIBDISPATCH == 0
-- (void) _thread: (NSNumber *) threadNumber;
-#endif
-
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
                          change: (NSDictionary *)change
                         context: (void *)context;
 @end
+
+@interface GSOperationQueueImpl : NSObject
+{
+@protected
+  NSOperationQueue *_queue;
+}
+- (id) initWithQueue: (NSOperationQueue *)queue;
+- (void) execute;
+- (void) setInternalQueueName: (NSString *)name;
+- (void) initAsMainQueue;
+@end
+
+@interface GSThreadOperationQueueImpl : GSOperationQueueImpl
+{
+  NSConditionLock *_cond;
+  NSMutableArray *_starting;
+  NSString *_threadName;
+  NSInteger _threadCount;
+}
+@end
+
+#if GS_USE_LIBDISPATCH == 1
+@interface GSDispatchOperationQueueImpl : GSOperationQueueImpl
+{
+  dispatch_queue_t _underlyingQueue;
+  BOOL _ownsUnderlyingQueue;
+}
+- (dispatch_queue_t) underlyingQueue;
+@end
+#endif
 
 static NSInteger	maxConcurrent = 8;	// Thread pool size
 
@@ -655,7 +663,338 @@ compareByQueuePriority(id op1, id op2, void *ctxt)
 static NSString	*threadKey = @"NSOperationQueue";
 static NSOperationQueue *mainQueue = nil;
 
+@implementation GSOperationQueueImpl
+
+- (void) dealloc
+{
+  _queue = nil;
+  [super dealloc];
+}
+
+- (id) initWithQueue: (NSOperationQueue *)queue
+{
+  if ((self = [super init]) != nil)
+    {
+      _queue = queue;
+    }
+  return self;
+}
+
+- (void) execute
+{
+}
+
+- (void) setInternalQueueName: (NSString *)name
+{
+}
+
+- (void) initAsMainQueue
+{
+}
+
+@end
+
+@implementation GSThreadOperationQueueImpl
+
+- (void) dealloc
+{
+  DESTROY(_starting);
+  DESTROY(_cond);
+  [super dealloc];
+}
+
+- (id) initWithQueue: (NSOperationQueue *)queue
+{
+  if ((self = [super initWithQueue: queue]) != nil)
+    {
+      _starting = [NSMutableArray new];
+      _cond = [[NSConditionLock alloc] initWithCondition: 0];
+      [_cond setName:
+	[NSString stringWithFormat: @"cond-for-op-%p", queue]];
+      _threadName = @"NSOperationQ";
+      _threadCount = 0;
+    }
+  return self;
+}
+
+- (void) _thread: (NSNumber *) threadNumber
+{
+  NSString *tName;
+  NSThread *current;
+  NSOperationQueue *queue = _queue;
+
+  CREATE_AUTORELEASE_POOL(arp);
+
+  current = [NSThread currentThread];
+
+  [GSIVar(queue, lock) lock];
+  tName = [_threadName stringByAppendingFormat: @"_%@", threadNumber];
+  [GSIVar(queue, lock) unlock];
+
+  [[current threadDictionary] setObject: queue forKey: threadKey];
+  [current setName: tName];
+
+  for (;;)
+    {
+      NSOperation	*op;
+      NSDate		*when;
+      BOOL		found;
+      RECREATE_AUTORELEASE_POOL(arp);
+
+      when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
+      found = [_cond lockWhenCondition: 1 beforeDate: when];
+      RELEASE(when);
+      if (NO == found)
+	{
+	  [_cond lock];
+	  if ([_starting count] == 0)
+	    {
+	      [_cond unlock];
+	      [[[NSThread currentThread] threadDictionary]
+		removeObjectForKey: threadKey];
+	      [GSIVar(queue, lock) lock];
+	      _threadCount--;
+	      [GSIVar(queue, lock) unlock];
+	      break;
+	    }
+	}
+
+      if ([_starting count] > 0)
+	{
+          op = RETAIN([_starting objectAtIndex: 0]);
+	  [_starting removeObjectAtIndex: 0];
+	}
+      else
+	{
+	  op = nil;
+	}
+
+      if ([_starting count] > 0)
+	{
+          [_cond unlockWithCondition: 1];
+	}
+      else
+	{
+          [_cond unlockWithCondition: 0];
+	}
+
+      if (nil != op)
+	{
+          NS_DURING
+	    {
+	      ENTER_POOL
+              [NSThread setThreadPriority: [op threadPriority]];
+              [op start];
+	      LEAVE_POOL
+	    }
+          NS_HANDLER
+	    {
+	      NSLog(@"Problem running operation %@ ... %@",
+		op, localException);
+	    }
+          NS_ENDHANDLER
+	  [op _finish];
+          RELEASE(op);
+	}
+    }
+
+  DESTROY(arp);
+  [NSThread exit];
+}
+
+- (void) execute
+{
+  NSInteger	max;
+  NSMutableArray *mainQueueOperations = nil;
+  NSOperationQueue *queue = _queue;
+
+  [GSIVar(queue, lock) lock];
+
+  max = [queue maxConcurrentOperationCount];
+  if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
+    {
+      max = maxConcurrent;
+    }
+
+  NS_DURING
+  while (NO == [queue isSuspended]
+    && max > GSIVar(queue, executing)
+    && [GSIVar(queue, waiting) count] > 0)
+    {
+      NSOperation	*op;
+
+      op = [GSIVar(queue, waiting) objectAtIndex: 0];
+      [GSIVar(queue, waiting) removeObjectAtIndex: 0];
+      [op removeObserver: queue forKeyPath: @"queuePriority"];
+      [op addObserver: queue
+	   forKeyPath: @"isFinished"
+	      options: NSKeyValueObservingOptionNew
+	      context: isFinishedCtxt];
+      GSIVar(queue, executing)++;
+      if (queue == mainQueue)
+	{
+	  if (nil == mainQueueOperations)
+	    {
+	      mainQueueOperations = [NSMutableArray new];
+	    }
+	  [mainQueueOperations addObject: op];
+	}
+      else if (YES == [op isConcurrent])
+	{
+	  [op start];
+	}
+      else
+	{
+	  [_cond lock];
+	  [_starting addObject: op];
+
+	  if (_threadCount < max)
+	    {
+	      NSInteger	count = _threadCount++;
+	      NSNumber 	*threadNumber = [NSNumber numberWithInteger: count];
+
+	      NS_DURING
+		{
+		  [NSThread detachNewThreadSelector: @selector(_thread:)
+					   toTarget: self
+					 withObject: threadNumber];
+		}
+	      NS_HANDLER
+		{
+		  NSLog(@"Failed to create thread %@ for %@: %@",
+		    threadNumber, queue, localException);
+		}
+	      NS_ENDHANDLER
+	    }
+	  [_cond unlockWithCondition: 1];
+	}
+    }
+  NS_HANDLER
+    {
+      [GSIVar(queue, lock) unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [GSIVar(queue, lock) unlock];
+
+  if (nil != mainQueueOperations)
+    {
+      GS_FOR_IN(NSOperation *, op, mainQueueOperations)
+	{
+	  [queue performSelectorOnMainThread: @selector(_main:)
+				  withObject: op
+			       waitUntilDone: NO];
+	}
+      GS_END_FOR(mainQueueOperations)
+      RELEASE(mainQueueOperations);
+    }
+}
+
+- (void) setInternalQueueName: (NSString *)name
+{
+  _threadName = name;
+}
+
+@end
+
 #if GS_USE_LIBDISPATCH == 1
+/* Function passed to dispatch_async_f to execute a NSOperation */
+static void dispatchQueueExecuteOperation(void *context);
+
+@implementation GSDispatchOperationQueueImpl
+
+- (void) dealloc
+{
+  if (YES == _ownsUnderlyingQueue)
+    {
+      dispatch_release(_underlyingQueue);
+    }
+  [super dealloc];
+}
+
+- (id) initWithQueue: (NSOperationQueue *)queue
+{
+  if ((self = [super initWithQueue: queue]) != nil)
+    {
+      _underlyingQueue = dispatch_queue_create(
+	[[queue name] UTF8String], DISPATCH_QUEUE_CONCURRENT);
+      _ownsUnderlyingQueue = YES;
+    }
+  return self;
+}
+
+- (void) execute
+{
+  NSInteger	max;
+  NSMutableArray *operationsToStart = nil;
+  NSOperationQueue *queue = _queue;
+
+  [GSIVar(queue, lock) lock];
+
+  max = [queue maxConcurrentOperationCount];
+  if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
+    {
+      max = maxConcurrent;
+    }
+
+  NS_DURING
+  while (NO == [queue isSuspended]
+    && max > GSIVar(queue, executing)
+    && [GSIVar(queue, waiting) count] > 0)
+    {
+      NSOperation	*op;
+
+      op = [GSIVar(queue, waiting) objectAtIndex: 0];
+      [GSIVar(queue, waiting) removeObjectAtIndex: 0];
+      [op removeObserver: queue forKeyPath: @"queuePriority"];
+      [op addObserver: queue
+	   forKeyPath: @"isFinished"
+	      options: NSKeyValueObservingOptionNew
+	      context: isFinishedCtxt];
+      GSIVar(queue, executing)++;
+      if (nil == operationsToStart)
+	{
+	  operationsToStart = [NSMutableArray new];
+	}
+      [operationsToStart addObject: op];
+    }
+  NS_HANDLER
+    {
+      [GSIVar(queue, lock) unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [GSIVar(queue, lock) unlock];
+
+  if (nil != operationsToStart)
+    {
+      GS_FOR_IN(NSOperation *, op, operationsToStart)
+	{
+	  NSArray *context = [[NSArray alloc] initWithObjects: queue, op, nil];
+	  dispatch_async_f(_underlyingQueue, context,
+	    dispatchQueueExecuteOperation);
+	}
+      GS_END_FOR(operationsToStart)
+      RELEASE(operationsToStart);
+    }
+}
+
+- (dispatch_queue_t) underlyingQueue
+{
+  return _underlyingQueue;
+}
+
+- (void) initAsMainQueue
+{
+  if (YES == _ownsUnderlyingQueue && _underlyingQueue != NULL)
+    {
+      dispatch_release(_underlyingQueue);
+    }
+  _underlyingQueue = dispatch_get_main_queue();
+  _ownsUnderlyingQueue = NO;
+}
+
+@end
 
 /* Function passed to dispatch_async_f to execute a NSOperation */
 static void
@@ -685,11 +1024,7 @@ dispatchQueueExecuteOperation(void *context)
 {
   if (nil == mainQueue)
     {
-#if GS_USE_LIBDISPATCH == 1
       mainQueue = [[self alloc] _initMainQueue];
-#else
-      mainQueue = [self new];
-#endif
       [mainQueue setMaxConcurrentOperationCount: 1];
     }
 }
@@ -702,7 +1037,7 @@ dispatchQueueExecuteOperation(void *context)
 #if GS_USE_LIBDISPATCH == 1 && OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 - (dispatch_queue_t) underlyingQueue
 {
-  return self->underlyingQueue;
+  return [(GSDispatchOperationQueueImpl *)internal->queueImpl underlyingQueue];
 }
 #endif
 
@@ -852,23 +1187,10 @@ dispatchQueueExecuteOperation(void *context)
   if (GS_EXISTS_INTERNAL && internal->lock != nil)
     {
       [self cancelAllOperations];
-
-#if GS_USE_LIBDISPATCH == 1
-      if (YES == internal->ownsUnderlyingQueue)
-	{
-	  dispatch_release(internal->underlyingQueue);
-	}
       DESTROY(internal->operations);
       DESTROY(internal->waiting);
       DESTROY(internal->name);
-#else
-      DESTROY(internal->operations);
-      DESTROY(internal->starting);
-      DESTROY(internal->waiting);
-      DESTROY(internal->name);
-      DESTROY(internal->cond);
-#endif
-
+      DESTROY(internal->queueImpl);
       DESTROY(internal->lock);
       GS_DESTROY_INTERNAL(NSOperationQueue);
     }
@@ -881,63 +1203,37 @@ dispatchQueueExecuteOperation(void *context)
     {
       GS_CREATE_INTERNAL(NSOperationQueue);
       internal->suspended = NO;
-#if GS_USE_LIBDISPATCH == 1
-      internal->isMainQueue = NO;
-      internal->ownsUnderlyingQueue = YES;
-#endif
       internal->maxThreads = NSOperationQueueDefaultMaxConcurrentOperationCount;
       internal->operations = [NSMutableArray new];
-#if GS_USE_LIBDISPATCH == 0
-      internal->starting = [NSMutableArray new];
-#endif
       internal->waiting = [NSMutableArray new];
       internal->lock = [NSRecursiveLock new];
       [internal->lock setName:
         [NSString stringWithFormat: @"lock-for-op-%p", self]];
-#if GS_USE_LIBDISPATCH == 0
-      internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
-      [internal->cond setName:
-        [NSString stringWithFormat: @"cond-for-op-%p", self]];
-#endif
       internal->name
 	= [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
 #if GS_USE_LIBDISPATCH == 1
-      internal->underlyingQueue = dispatch_queue_create(
-	[internal->name UTF8String], DISPATCH_QUEUE_CONCURRENT);
+      internal->queueImpl
+	= [[GSDispatchOperationQueueImpl alloc] initWithQueue: self];
 #else
-      /* Ensure that default thread name can be displayed on systems with a
-       * limited thread name length.
-       *
-       * This value is set to internal->name, when altered with -setName:
-       * Worker threads are not renamed during their lifetime.
-       */
-      internal->threadName = @"NSOperationQ";
+      internal->queueImpl
+	= [[GSThreadOperationQueueImpl alloc] initWithQueue: self];
 #endif
+      [internal->queueImpl setInternalQueueName: internal->name];
     }
   return self;
 }
 
-#if GS_USE_LIBDISPATCH == 1
 - (id) _initMainQueue
 {
   if ((self = [self init]) != nil)
     {
       [internal->lock lock];
-      internal->isMainQueue = YES;
       internal->maxThreads = 1;
-      
-      if (YES == internal->ownsUnderlyingQueue
-	&& internal->underlyingQueue != NULL)
-	{
-	  dispatch_release(internal->underlyingQueue);
-	}
-      internal->underlyingQueue = dispatch_get_main_queue();
-      internal->ownsUnderlyingQueue = NO;
+      [internal->queueImpl initAsMainQueue];
       [internal->lock unlock];
     }
   return self;
 }
-#endif
 
 - (BOOL) isSuspended
 {
@@ -1014,10 +1310,7 @@ dispatchQueueExecuteOperation(void *context)
       [self willChangeValueForKey: @"name"];
       RELEASE(internal->name);
       internal->name = [s copy];
-#if GS_USE_LIBDISPATCH == 0
-      // internal->threadName is unretained
-      internal->threadName = internal->name;
-#endif
+      [internal->queueImpl setInternalQueueName: internal->name];
       [self didChangeValueForKey: @"name"];
     }
   [internal->lock unlock];
@@ -1109,103 +1402,6 @@ dispatchQueueExecuteOperation(void *context)
   [self _execute];
 }
 
-#if GS_USE_LIBDISPATCH == 0
-- (void) _thread: (NSNumber *) threadNumber
-{
-  NSString *tName;
-  NSThread *current;
-
-  CREATE_AUTORELEASE_POOL(arp);
-
-  current = [NSThread currentThread];
-
-  [internal->lock lock];
-  tName = [internal->threadName stringByAppendingFormat: @"_%@", threadNumber];
-  [internal->lock unlock];
-
-  [[current threadDictionary] setObject: self forKey: threadKey];
-  [current setName: tName];
-
-  for (;;)
-    {
-      NSOperation	*op;
-      NSDate		*when;
-      BOOL		found;
-      /* We use a pool for each operation in case releasing the operation
-       * causes it to be deallocated, and the deallocation of the operation
-       * autoreleases something which needs to be cleaned up.
-       */
-      RECREATE_AUTORELEASE_POOL(arp);
-
-      when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
-      found = [internal->cond lockWhenCondition: 1 beforeDate: when];
-      RELEASE(when);
-      if (NO == found)
-	{
-	  [internal->cond lock];
-	  if ([internal->starting count] == 0)
-	    {
-	      // Idle for 5 seconds ... exit thread.
-	      [internal->cond unlock];
-	      [[[NSThread currentThread] threadDictionary]
-		removeObjectForKey: threadKey];
-	      [internal->lock lock];
-	      internal->threadCount--;
-	      [internal->lock unlock];
-	      break;
-	    }
-	  /* An operation was added in the gap between the failed wait for
-	   * the condition and us unconditionally locking the condition, so
-	   * we fall through to execute that operation.
-	   */
-	}
-
-      if ([internal->starting count] > 0)
-	{
-          op = RETAIN([internal->starting objectAtIndex: 0]);
-	  [internal->starting removeObjectAtIndex: 0];
-	}
-      else
-	{
-	  op = nil;
-	}
-
-      if ([internal->starting count] > 0)
-	{
-	  // Signal any other idle threads,
-          [internal->cond unlockWithCondition: 1];
-	}
-      else
-	{
-	  // There are no more operations starting.
-          [internal->cond unlockWithCondition: 0];
-	}
-
-      if (nil != op)
-	{
-          NS_DURING
-	    {
-	      ENTER_POOL
-              [NSThread setThreadPriority: [op threadPriority]];
-              [op start];
-	      LEAVE_POOL
-	    }
-          NS_HANDLER
-	    {
-	      NSLog(@"Problem running operation %@ ... %@",
-		op, localException);
-	    }
-          NS_ENDHANDLER
-	  [op _finish];
-          RELEASE(op);
-	}
-    }
-
-  DESTROY(arp);
-  [NSThread exit];
-}
-#endif
-
 - (void) _main: (NSOperation *)op
 {
   BOOL	concurrent;
@@ -1240,158 +1436,7 @@ dispatchQueueExecuteOperation(void *context)
  */
 - (void) _execute
 {
-#if GS_USE_LIBDISPATCH == 1
-  NSInteger	max;
-  NSMutableArray *operationsToStart = nil;
-
-  [internal->lock lock];
-
-  max = [self maxConcurrentOperationCount];
-  if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
-    {
-      max = maxConcurrent;
-    }
-
-  NS_DURING
-  while (NO == [self isSuspended]
-    && max > internal->executing
-    && [internal->waiting count] > 0)
-    {
-      NSOperation	*op;
-
-      /* Take the first operation from the queue and start it executing.
-       * We set ourselves up as an observer for the operating finishing
-       * and we keep track of the count of operations we have started,
-       * but the actual startup is left to the NSOperation -start method.
-       */
-      op = [internal->waiting objectAtIndex: 0];
-      [internal->waiting removeObjectAtIndex: 0];
-      [op removeObserver: self forKeyPath: @"queuePriority"];
-      [op addObserver: self
-	   forKeyPath: @"isFinished"
-	      options: NSKeyValueObservingOptionNew
-	      context: isFinishedCtxt];
-      internal->executing++;
-      if (nil == operationsToStart)
-	{
-	  operationsToStart = [NSMutableArray new];
-	}
-      [operationsToStart addObject: op];
-    }
-  NS_HANDLER
-    {
-      [internal->lock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  [internal->lock unlock];
-
-  if (nil != operationsToStart)
-    {
-      GS_FOR_IN(NSOperation *, op, operationsToStart)
-	{
-	  NSArray *context = [[NSArray alloc] initWithObjects: self, op, nil];
-	  dispatch_async_f(internal->underlyingQueue, context,
-	    dispatchQueueExecuteOperation);
-	}
-      GS_END_FOR(operationsToStart)
-      RELEASE(operationsToStart);
-    }
-#else
-  NSInteger	max;
-  NSMutableArray *mainQueueOperations = nil;
-
-  [internal->lock lock];
-
-  max = [self maxConcurrentOperationCount];
-  if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
-    {
-      max = maxConcurrent;
-    }
-
-  NS_DURING
-  while (NO == [self isSuspended]
-    && max > internal->executing
-    && [internal->waiting count] > 0)
-    {
-      NSOperation	*op;
-
-      /* Take the first operation from the queue and start it executing.
-       * We set ourselves up as an observer for the operating finishing
-       * and we keep track of the count of operations we have started,
-       * but the actual startup is left to the NSOperation -start method.
-       */
-      op = [internal->waiting objectAtIndex: 0];
-      [internal->waiting removeObjectAtIndex: 0];
-      [op removeObserver: self forKeyPath: @"queuePriority"];
-      [op addObserver: self
-	   forKeyPath: @"isFinished"
-	      options: NSKeyValueObservingOptionNew
-	      context: isFinishedCtxt];
-      internal->executing++;
-      if (self == mainQueue)
-	{
-	  if (nil == mainQueueOperations)
-	    {
-	      mainQueueOperations = [NSMutableArray new];
-	    }
-	  [mainQueueOperations addObject: op];
-	}
-      else if (YES == [op isConcurrent])
-	{
-	  [op start];
-	}
-      else
-	{
-	  [internal->cond lock];
-	  [internal->starting addObject: op];
-
-	  /* Create a new thread if all existing threads are busy and
-	   * we haven't reached the pool limit.
-	   */
-	  if (internal->threadCount < max)
-	    {
-	      NSInteger	count = internal->threadCount++;
-	      NSNumber 	*threadNumber = [NSNumber numberWithInteger: count];
-
-	      NS_DURING
-		{
-		  [NSThread detachNewThreadSelector: @selector(_thread:)
-					   toTarget: self
-					 withObject: threadNumber];
-		}
-	      NS_HANDLER
-		{
-		  NSLog(@"Failed to create thread %@ for %@: %@",
-		    threadNumber, self, localException);
-		}
-	      NS_ENDHANDLER
-	    }
-	  /* Tell the thread pool that there is an operation to start.
-	   */
-	  [internal->cond unlockWithCondition: 1];
-	}
-    }
-  NS_HANDLER
-    {
-      [internal->lock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  [internal->lock unlock];
-
-  if (nil != mainQueueOperations)
-    {
-      GS_FOR_IN(NSOperation *, op, mainQueueOperations)
-	{
-	  [self performSelectorOnMainThread: @selector(_main:)
-				 withObject: op
-			      waitUntilDone: NO];
-	}
-      GS_END_FOR(mainQueueOperations)
-      RELEASE(mainQueueOperations);
-    }
-#endif
+  [internal->queueImpl execute];
 }
 
 @end
