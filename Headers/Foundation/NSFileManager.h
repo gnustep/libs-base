@@ -590,6 +590,7 @@ GS_EXPORT_CLASS
     BOOL justContents: 1;
     BOOL skipHidden: 1;
     BOOL currentIsDir: 1;
+    BOOL skipPackages: 1;
   } _flags;
 #endif
 #if     GS_NONFRAGILE
