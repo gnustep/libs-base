@@ -310,7 +310,7 @@ GS_EXPORT_CLASS
  */
 - (BOOL) createSymbolicLinkAtPath: (NSString*)path
               withDestinationPath: (NSString*)destPath
-                            error: (NSError**)error;
+                            error: (NSError *_Nullable *_Nullable)error;
 
 - (BOOL) setAttributes:(NSDictionary *)attributes ofItemAtPath:(NSString *)path error:(NSError **)error;
 #endif
@@ -391,7 +391,7 @@ GS_EXPORT_CLASS
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error;
 
 - (NSDictionary*) attributesOfFileSystemForPath: (NSString*)path
-                                          error: (NSError**)error;
+                                          error: (NSError *_Nullable *_Nullable)error;
 #endif
 
 - (BOOL) copyPath: (NSString*)source
