@@ -1767,11 +1767,20 @@ static NSUInteger	urlAlign;
 	}
       return YES;
     }
-  else if ([key isEqualToString: NSURLIsDirectoryKey]
+  else if ([key isEqualToString: NSURLIsRegularFileKey]
+    || [key isEqualToString: NSURLIsDirectoryKey]
+    || [key isEqualToString: NSURLIsSymbolicLinkKey]
+    || [key isEqualToString: NSURLIsPackageKey]
+    || [key isEqualToString: NSURLIsHiddenKey]
+    || [key isEqualToString: NSURLCreationDateKey]
+    || [key isEqualToString: NSURLContentAccessDateKey]
+    || [key isEqualToString: NSURLContentModificationDateKey]
+    || [key isEqualToString: NSURLAttributeModificationDateKey]
     || [key isEqualToString: NSURLFileSizeKey])
     {
       NSDictionary	*attributes;
       NSString		*path = [self path];
+      NSString		*fileType;
 
       if (nil == path)
 	{
@@ -1779,22 +1788,94 @@ static NSUInteger	urlAlign;
 	}
 
       attributes = [[NSFileManager defaultManager] fileAttributesAtPath: path
-							    traverseLink: YES];
+							    traverseLink: NO];
       if (nil == attributes)
 	{
 	  return NO;
 	}
 
-      if ([key isEqualToString: NSURLIsDirectoryKey])
+      fileType = [attributes objectForKey: NSFileType];
+      if ([key isEqualToString: NSURLIsRegularFileKey])
 	{
 	  if (value != 0)
 	    {
-	      NSString	*fileType = [attributes objectForKey: NSFileType];
-
+	      *value = [NSNumber numberWithBool:
+		[fileType isEqualToString: NSFileTypeRegular]];
+	    }
+	  return YES;
+	}
+      else if ([key isEqualToString: NSURLIsDirectoryKey])
+	{
+	  if (value != 0)
+	    {
 	      *value = [NSNumber numberWithBool:
 		[fileType isEqualToString: NSFileTypeDirectory]];
 	    }
 	  return YES;
+	}
+      else if ([key isEqualToString: NSURLIsSymbolicLinkKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [NSNumber numberWithBool:
+		[fileType isEqualToString: NSFileTypeSymbolicLink]];
+	    }
+	  return YES;
+	}
+      else if ([key isEqualToString: NSURLIsPackageKey])
+	{
+	  if (value != 0)
+	    {
+	      NSString	*extension = [[path pathExtension] lowercaseString];
+
+	      *value = [NSNumber numberWithBool:
+		[extension isEqualToString: @"app"]
+		|| [extension isEqualToString: @"bundle"]
+		|| [extension isEqualToString: @"framework"]
+		|| [extension isEqualToString: @"plugin"]];
+	    }
+	  return YES;
+	}
+      else if ([key isEqualToString: NSURLIsHiddenKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [NSNumber numberWithBool:
+		[[path lastPathComponent] hasPrefix: @"."]];
+	    }
+	  return YES;
+	}
+      else if ([key isEqualToString: NSURLCreationDateKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [attributes objectForKey: NSFileCreationDate];
+	    }
+	  return (*value != nil);
+	}
+      else if ([key isEqualToString: NSURLContentAccessDateKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [attributes objectForKey: NSFileModificationDate];
+	    }
+	  return (*value != nil);
+	}
+      else if ([key isEqualToString: NSURLContentModificationDateKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [attributes objectForKey: NSFileModificationDate];
+	    }
+	  return (*value != nil);
+	}
+      else if ([key isEqualToString: NSURLAttributeModificationDateKey])
+	{
+	  if (value != 0)
+	    {
+	      *value = [attributes objectForKey: NSFileModificationDate];
+	    }
+	  return (*value != nil);
 	}
 
       if (value != 0)
