@@ -23,6 +23,7 @@
    <title>NSOperation class reference</title>
    Created: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008)
    */
+
 #import "common.h"
 #if GS_USE_LIBDISPATCH == 1
 #include "dispatch/dispatch.h"
@@ -69,6 +70,7 @@
 
 #define	GSInternal	NSOperationInternal
 #include	"GSInternal.h"
+
 GS_PRIVATE_INTERNAL(NSOperation)
 
 static void     *isFinishedCtxt = (void*)"isFinished";
@@ -728,6 +730,8 @@ static void dispatchQueueExecuteOperation(void *context);
   return self;
 }
 
+/* Check for operations which can be executed and start them.
+ */
 - (void) execute
 {
   NSInteger	max;
@@ -739,7 +743,7 @@ static void dispatchQueueExecuteOperation(void *context);
   max = [queue maxConcurrentOperationCount];
   if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
     {
-      max = maxConcurrent;
+      max = maxConcurrent;  // Set default value
     }
 
   NS_DURING
@@ -1351,6 +1355,11 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
       NSOperation	*op;
       NSDate		*when;
       BOOL		found;
+
+      /* We use a pool for each operation in case releasing the operation
+       * causes it to be deallocated, and the deallocation of the operation
+       * autoreleases something which needs to be cleaned up.
+       */
       RECREATE_AUTORELEASE_POOL(arp);
 
       /* Wait up to five seconds for work to be added to `_starting`. */
@@ -1372,6 +1381,11 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 	      [GSIVar(queue, lock) unlock];
 	      break;
 	    }
+
+    /* An operation was added in the gap between the failed wait for
+	   * the condition and us unconditionally locking the condition, so
+	   * we fall through to execute that operation.
+	   */
 	}
 
       if ([_starting count] > 0)
@@ -1420,6 +1434,8 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
   [NSThread exit];
 }
 
+/* Check for operations which can be executed and start them.
+ */
 - (void) execute
 {
   NSInteger	max;
@@ -1441,6 +1457,11 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
     {
       NSOperation	*op;
 
+      /* Take the first operation from the queue and start it executing.
+       * We set ourselves up as an observer for the operating finishing
+       * and we keep track of the count of operations we have started,
+       * but the actual startup is left to the NSOperation -start method.
+       */
       op = [GSIVar(queue, waiting) objectAtIndex: 0];
       [GSIVar(queue, waiting) removeObjectAtIndex: 0];
       [op removeObserver: queue forKeyPath: @"queuePriority"];
@@ -1466,6 +1487,9 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 	  [_cond lock];
 	  [_starting addObject: op];
 
+	  /* Create a new thread if all existing threads are busy and
+	   * we haven't reached the pool limit.
+	   */
 	  if (_threadCount < max)
 	    {
 	      NSInteger	count = _threadCount++;

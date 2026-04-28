@@ -8,11 +8,6 @@
 #endif
 #import "ObjectTesting.h"
 
-/* Ensure this TU contributes an Objective-C constant string section.
- * Some toolchain/runtime combinations expect it at link time.
- */
-static NSString *forceConstantStringSection = @"queue_dispatch";
-
 @interface Counter : NSObject
 {
   NSLock *_lock;
@@ -94,9 +89,6 @@ static NSString *forceConstantStringSection = @"queue_dispatch";
 }
 @end
 
-/* Keep tests buildable against environments where Foundation headers are older
- * than the checked-out source tree.
- */
 @interface NSOperationQueue (QueueDispatchTest)
 - (void *) underlyingQueue;
 - (void) setUnderlyingQueue: (void *)queue;

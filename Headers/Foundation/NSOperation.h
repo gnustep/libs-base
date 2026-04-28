@@ -347,7 +347,13 @@ GS_EXPORT_CLASS
   /** Returns the underlying dispatch queue.
    */
 - (dispatch_queue_t) underlyingQueue;
+
   /** Sets the underlying dispatch queue.
+   *
+   * Throws `NSInvalidArgumentException` if:
+   *  - The argument is `NULL`
+   *  - There are operations in the queue `(operationCount > 0)`
+   *  - The argument is the value returned by `dispatch_get_main_queue()`
    */
 - (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue;
 #endif
