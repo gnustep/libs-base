@@ -80,6 +80,10 @@ static void     *queuePriorityCtxt = (void*)"queuePriority";
 - (void) _updateReadyState;
 @end
 
+
+static const NSInteger GSOperationInitialCondition = 0;
+static const NSInteger GSOperationFinishedCondition = 1;
+
 @implementation NSOperation
 
 + (BOOL) automaticallyNotifiesObserversForKey: (NSString*)theKey
@@ -242,7 +246,8 @@ static void     *queuePriorityCtxt = (void*)"queuePriority";
       internal->lock = [NSRecursiveLock new];
       [internal->lock setName:
         [NSString stringWithFormat: @"lock-for-opqueue-%p", self]];
-      internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
+      internal->cond
+	= [[NSConditionLock alloc] initWithCondition: GSOperationInitialCondition];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-opqueue-%p", self]];
       [self addObserver: self
@@ -317,7 +322,7 @@ static void     *queuePriorityCtxt = (void*)"queuePriority";
        * any waiting thread can continue.
        */
       [internal->cond lock];
-      [internal->cond unlockWithCondition: 1];
+      [internal->cond unlockWithCondition: GSOperationFinishedCondition];
 
       [internal->lock unlock];
     }
@@ -480,8 +485,8 @@ static void     *queuePriorityCtxt = (void*)"queuePriority";
 
 - (void) waitUntilFinished
 {
-  [internal->cond lockWhenCondition: 1];	// Wait for finish
-  [internal->cond unlockWithCondition: 1];	// Signal any other watchers
+  [internal->cond lockWhenCondition: GSOperationFinishedCondition];
+  [internal->cond unlockWithCondition: GSOperationFinishedCondition];
 }
 @end
 
@@ -694,6 +699,10 @@ static NSOperationQueue *mainQueue = nil;
 
 @end
 
+
+static const NSInteger GSThreadQueueIdleCondition = 0;
+static const NSInteger GSThreadQueueHasWorkCondition = 1;
+
 @implementation GSThreadOperationQueueImpl
 
 - (void) dealloc
@@ -708,7 +717,8 @@ static NSOperationQueue *mainQueue = nil;
   if ((self = [super initWithQueue: queue]) != nil)
     {
       _starting = [NSMutableArray new];
-      _cond = [[NSConditionLock alloc] initWithCondition: 0];
+      _cond = [[NSConditionLock alloc] initWithCondition:
+	GSThreadQueueIdleCondition];
       [_cond setName:
 	[NSString stringWithFormat: @"cond-for-op-%p", queue]];
       _threadName = @"NSOperationQ";
@@ -741,14 +751,17 @@ static NSOperationQueue *mainQueue = nil;
       BOOL		found;
       RECREATE_AUTORELEASE_POOL(arp);
 
+      /* Wait up to five seconds for work to be added to `_starting`. */
       when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
-      found = [_cond lockWhenCondition: 1 beforeDate: when];
+      found = [_cond lockWhenCondition: GSThreadQueueHasWorkCondition
+			     beforeDate: when];
       RELEASE(when);
       if (NO == found)
 	{
 	  [_cond lock];
 	  if ([_starting count] == 0)
 	    {
+	      /* Still no work after timeout: remove queue mapping and exit. */
 	      [_cond unlock];
 	      [[[NSThread currentThread] threadDictionary]
 		removeObjectForKey: threadKey];
@@ -771,11 +784,11 @@ static NSOperationQueue *mainQueue = nil;
 
       if ([_starting count] > 0)
 	{
-          [_cond unlockWithCondition: 1];
+          [_cond unlockWithCondition: GSThreadQueueHasWorkCondition];
 	}
       else
 	{
-          [_cond unlockWithCondition: 0];
+          [_cond unlockWithCondition: GSThreadQueueIdleCondition];
 	}
 
       if (nil != op)
@@ -783,6 +796,9 @@ static NSOperationQueue *mainQueue = nil;
           NS_DURING
 	    {
 	      ENTER_POOL
+              /* Execute on this worker thread using the operation's
+               * configured thread priority.
+               */
               [NSThread setThreadPriority: [op threadPriority]];
               [op start];
 	      LEAVE_POOL
@@ -856,17 +872,18 @@ static NSOperationQueue *mainQueue = nil;
 	      NS_DURING
 		{
 		  [NSThread detachNewThreadSelector: @selector(_thread:)
-					   toTarget: self
+					   toTarget: queue
 					 withObject: threadNumber];
 		}
 	      NS_HANDLER
 		{
 		  NSLog(@"Failed to create thread %@ for %@: %@",
 		    threadNumber, queue, localException);
+		  --_threadCount;
 		}
 	      NS_ENDHANDLER
 	    }
-	  [_cond unlockWithCondition: 1];
+	  [_cond unlockWithCondition: GSThreadQueueHasWorkCondition];
 	}
     }
   NS_HANDLER
@@ -984,6 +1001,44 @@ static void dispatchQueueExecuteOperation(void *context);
   return _underlyingQueue;
 }
 
+- (void) setUnderlyingQueue: (dispatch_queue_t) dispatchQueue
+{
+  [GSIVar(_queue, lock) lock];
+  NS_DURING
+    {
+      if ([GSIVar(_queue, operations) count] > 0)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Cannot set underlyingQueue while operations are enqueued."];
+        }
+      if (dispatchQueue == dispatch_get_main_queue())
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"underlyingQueue must not be dispatch_get_main_queue()."];
+        }
+      if (dispatchQueue == NULL)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"underlyingQueue must not be NULL."];
+        }
+
+      dispatch_retain(dispatchQueue);
+      if (YES == _ownsUnderlyingQueue && _underlyingQueue != NULL)
+        {
+          dispatch_release(_underlyingQueue);
+        }
+      _underlyingQueue = dispatchQueue;
+      _ownsUnderlyingQueue = YES;
+    }
+  NS_HANDLER
+    {
+      [GSIVar(_queue, lock) unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [GSIVar(_queue, lock) unlock];
+}
+
 - (void) initAsMainQueue
 {
   if (YES == _ownsUnderlyingQueue && _underlyingQueue != NULL)
@@ -1038,6 +1093,12 @@ dispatchQueueExecuteOperation(void *context)
 - (dispatch_queue_t) underlyingQueue
 {
   return [(GSDispatchOperationQueueImpl *)internal->queueImpl underlyingQueue];
+}
+
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue
+{
+  [(GSDispatchOperationQueueImpl *)internal->queueImpl
+    setUnderlyingQueue: dispatchQueue];
 }
 #endif
 
@@ -1437,6 +1498,11 @@ dispatchQueueExecuteOperation(void *context)
 - (void) _execute
 {
   [internal->queueImpl execute];
+}
+
+- (void) _thread: (NSNumber *) threadNumber
+{
+  [internal->queueImpl _thread: threadNumber];
 }
 
 @end

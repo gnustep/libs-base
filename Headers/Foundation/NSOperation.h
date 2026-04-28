@@ -347,6 +347,9 @@ GS_EXPORT_CLASS
   /** Returns the underlying dispatch queue.
    */
 - (dispatch_queue_t) underlyingQueue;
+  /** Sets the underlying dispatch queue.
+   */
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue;
 #endif
 @end
 
