@@ -15,6 +15,17 @@ int main()
   PASS(tmp != nil, "NSHost gets localhost");
   NSLog(@"localhost is %@", tmp);
 
+  /* Check some stable well kown information from the public DNS
+   */
+  tmp = [NSHost hostWithName: @"example.com"];
+  PASS(tmp != nil, "NSHost gets example.com")
+  PASS_EQUAL([tmp names], [NSArray arrayWithObject: @"example.com"],
+    "example.com gas just one name")
+  PASS([[tmp addresses] containsObject: @"172.66.147.243"],
+    "example.com has addresses 172.66.147.243")
+  PASS([[tmp addresses] containsObject: @"104.20.23.154"],
+    "example.com has addresses 104.20.23.154")
+
   tmp = [NSHost hostWithName: @"www.w3.org"];
   PASS(tmp != nil, "NSHost gets www.w3.org");
   NSLog(@"www.w3.org is %@", tmp);
