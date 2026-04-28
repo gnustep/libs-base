@@ -9,8 +9,6 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSArray *result;
-  char *testPath = NULL;
-  char *resultPath = NULL;
 
 NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory, NSAllDomainsMask, YES));
 

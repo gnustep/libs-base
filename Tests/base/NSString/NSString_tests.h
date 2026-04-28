@@ -178,7 +178,7 @@ BOOL test_getCString_maxLength_range_remainingRange(void)
     unsigned char referenceBytes[4];
     int referenceBytesLength = 4;
     NSString *referenceString;
-    unsigned char buffer[16];
+    char buffer[16];
     NSRange remainingRange;
     int i, j;
     BOOL ok = YES;
@@ -200,9 +200,9 @@ BOOL test_getCString_maxLength_range_remainingRange(void)
     for (i = 0; i < referenceBytesLength; i++)
       {
 	[referenceString getCString: buffer
-		maxLength: i
-		range: NSMakeRange(0, [referenceString length])
-		remainingRange: &remainingRange];
+	  maxLength: i
+	  range: NSMakeRange(0, [referenceString length])
+	  remainingRange: &remainingRange];
 
 	for (j = 0; j <= i ; j++)
 	  if (buffer[j] == 0 || buffer[j] != referenceBytes[j])

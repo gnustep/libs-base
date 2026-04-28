@@ -1922,12 +1922,12 @@ NSFullUserName(void)
       /* Trim trailing field separators etc
        */
       userName = [userName stringByTrimmingSpaces];
-      length = [userName length];
-      if (length > 0)
+      if ([userName length] > 0)
 	{
 	  NSCharacterSet	*s = [NSCharacterSet punctuationCharacterSet];
 
-	  while ([s characterIsMember: [userName characterAtIndex: length - 1]])
+	  while ((length = [userName length]) > 0
+	    && [s characterIsMember: [userName characterAtIndex: length - 1]])
 	    {
 	      userName = [userName substringToIndex: --length];
 	      userName = [userName stringByTrimmingSpaces];

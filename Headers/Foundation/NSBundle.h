@@ -144,13 +144,16 @@ GS_EXPORT_CLASS
 
 /**
  * <p>Return the bundle containing the resources for the executable.  If
- * the executable is an application, this is the main application
- * bundle (the xxx.app directory); if the executable is a tool, this
- * is a bundle 'naturally' associated with the tool: if the tool
+ * the executable is an application (executable and associated resources
+ * treated as a single unit), this is the main application bundle
+ * (the xxx.app directory); if the executable is a tool, this is a
+ * bundle 'naturally' associated with the tool: if the tool
  * executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control then the
- * tool's main bundle directory is xxx/Tools/Resources/Control.
+ * tool's main bundle directory is xxx/Tools/Resources/Control in the
+ * standard GNUstep file system layout (for alternative file system
+ * layouts see the gnustep-make documentation).
  * </p>
- * <p>NB: traditionally tools didn't have a main bundle -- this is a recent
+ * <p>NB: traditionally tools didn't have a main bundle -- this is a
  * GNUstep extension, but it's quite nice and it's here to stay.
  * </p>
  * <p>The main bundle is where the application should put all of its

@@ -2877,12 +2877,44 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   if (GSIArrayCount(_stack) > 0)
     {
+      _flags.currentIsDir = NO;
       GSIArrayRemoveLastItem(_stack);
       if (_currentFilePath != 0)
 	{
 	  DESTROY(_currentFilePath);
 	}
     }
+}
+
+/**
+ * An alias for skipDescendents that fixes the typo in the method name.
+ */
+- (void) skipDescendants
+{
+  [self skipDescendents];
+}
+
+/**
+ * Returns the number of levels the current file is nested in the
+ * directory hierarchy. The level of the initial directory is 0,
+ * so all files immediately in that directory are at level 1.
+ */
+- (NSUInteger) level
+{
+  /* NB Apple's implementation returns 1 after the last file (and also
+   * before the first one), so we do that here, too.
+   */
+  NSUInteger level = GSIArrayCount(_stack);
+  if (level == 0)
+    {
+      level = 1;
+    }
+  else if (_flags.currentIsDir)
+    {
+      NSParameterAssert(level > 1);
+      level--;
+    }
+  return level;
 }
 
 /*
@@ -2900,6 +2932,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   NSString      *returnFileName = nil;
 
+  _flags.currentIsDir = NO;
   if (_currentFilePath != 0)
     {
       DESTROY(_currentFilePath);
@@ -3023,6 +3056,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #endif
 
 		      GSIArrayAddItem(_stack, item);
+                      _flags.currentIsDir = YES;
 		    }
 		  else
 		    {

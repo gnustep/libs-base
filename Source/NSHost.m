@@ -72,9 +72,11 @@
 #endif // HAVE_WS2TCPIP_H
 #if !defined(HAVE_INET_NTOP)
 extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
+#define	HAVE_INET_NTOP	1
 #endif
-#if !defined(HAVE_INET_NTOP)
+#if !defined(HAVE_INET_PTON)
 extern int WSAAPI inet_pton(int , const char *, void *);
+#define	HAVE_INET_PTON	1
 #endif
 #else /* !_WIN32 */
 #include <netdb.h>
@@ -112,6 +114,41 @@ static NSLock			*_nameCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 static id			null = nil;
+
+/* Check the string to see if it is an internet address and
+ * place a normalised version in dst (which must be a buffer
+ * of at least INET6_ADDRSTRLEN bytes).
+ * Returns the family of the address or AF_UNSPEC if the
+ * string is not a valid address.
+ */
+static int
+normaliseAddress(const char *src, char *dst)
+{
+  struct in_addr	hostaddr;
+
+  if (NULL == src)
+    {
+      return AF_UNSPEC;
+    }
+  if (inet_pton(AF_INET, src, (void*)&hostaddr) == 1)
+    {
+      inet_ntop(AF_INET, &hostaddr, dst, INET6_ADDRSTRLEN);
+      return AF_INET;
+    }
+#if     defined(AF_INET6)
+  else
+    {
+      struct in6_addr	hostaddr6;
+
+      if (inet_pton(AF_INET6, src, (void*)&hostaddr6) == 1)
+	{
+	  inet_ntop(AF_INET6, &hostaddr6, dst, INET6_ADDRSTRLEN);
+	  return AF_INET6;
+	}
+    }
+#endif
+  return AF_UNSPEC;
+}
 
 /*
  *	Max hostname length in line with RFC  1123
@@ -415,16 +452,19 @@ etcHosts(BOOL flush)
 	  if (tmp == entry && tmp->ai_canonname && *tmp->ai_canonname
 	    && strcmp(tmp->ai_canonname, ptr) != 0)
 	    {
-	      NSString	*s = [NSString stringWithUTF8String: tmp->ai_canonname];
+	      char	buf[INET6_ADDRSTRLEN];
+	      NSString	*s;
 
-	      if (isName(tmp->ai_canonname))
+	      if (AF_UNSPEC == normaliseAddress(tmp->ai_canonname, buf))
 		{
+		  s = [NSString stringWithUTF8String: tmp->ai_canonname];
 		  [self _addHostName: s
 			   withNames: names
 			   addresses: addresses];
 		}
 	      else
 		{
+		  s = [NSString stringWithUTF8String: buf];
 		  [self _addHostAddress: s
 			      withNames: names
 			      addresses: addresses];
@@ -521,88 +561,131 @@ etcHosts(BOOL flush)
 #elif	defined(HAVE_GETADDRINFO)
 
 #if	defined(HAVE_RESOLV_H)
-static NSSet *
-dnsaliases(NSString *host, NSSet *names)
+
+#if	defined(HAVE_RES_NQUERY)
+/* res_nquery() is thread safe because it explicitly uses a locally controlled
+ * area of memory to store state information.
+ */
+#define	RES_START(X) \
+struct __res_state X; \
+if (res_ninit(&X) < 0) \
+{ \
+  NSLog(@"Unable to initialise libresolv"); \
+  return; \
+}
+#define	RES_END(X) \
+res_nclose(&X)
+#define	RES_NQUERY(X,A1,A2,A3,A4,A5)	res_nquery(&X, A1, A2, A3, A4, A5)
+#else
+/* res_query() is thread safe on platforms where state information is stored in
+ * thread-local memory, but not all systems do that so this is sometimes not
+ * thread safe.  The res_nquery code is therefore preferred.
+ */
+#define	RES_START(X)	res_init()
+#define	RES_END(X)	
+#define	RES_NQUERY(X,A1,A2,A3,A4,A5)	res_query(A1, A2, A3, A4, A5)
+#endif
+
+static void
+dnsaliases(NSString *host, NSMutableSet *names)
 {
-  NSMutableSet	*found = nil;
-  unsigned char response[NS_PACKETSZ];
-  extern int 	h_errno;
+  ENTER_POOL
   const char	*name;
-  int 		len;
 
-  if (NULL == (name = getName(host)))
+  if ((name = getName(host)) != NULL)
     {
-      return nil;
-    }
+      NSMutableSet	*found = nil;
+      unsigned char 	response[NS_PACKETSZ];
+      extern int	h_errno;
+      int 		len;
+      RES_START(state);
 
-  /* Perform DNS query for CNAME records so that we can get
-   * any name pointed to by this one.
-   */
-  len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
-  if (len < 0)
-    {
-      if (h_errno != NO_DATA)
-	{
-	  herror(name);
-	}
-    }
-  else
-    {
-      ns_msg 	msg;
-      int	count;
-      int	i;
+      /* Add the host to the set of all aliases for the host.
+       */
+      [names addObject: host];
 
-      if (ns_initparse(response, len, &msg) < 0)
+      /* Perform DNS query for CNAME records so that we can get
+       * any name pointed to by this one.
+       */
+      len = RES_NQUERY(state, name, ns_c_in, ns_t_cname,
+	response, sizeof(response));
+      if (len < 0)
 	{
-	  perror("ns_initparse");
-	}
-      count = ns_msg_count(msg, ns_s_an);
-      for (i = 0; i < count; i++)
-	{
-	  ns_rr	rr;
-
-	  if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
+	  if (h_errno != NO_DATA)
 	    {
-	      perror("ns_parserr");
-	      continue;
+	      herror(name);
 	    }
+	}
+      else
+	{
+	  ns_msg 	msg;
+	  int	count;
+	  int	i;
 
-	  // Check if the record is a CNAME
-	  if (ns_rr_type(rr) == ns_t_cname)
+	  if (ns_initparse(response, len, &msg) < 0)
 	    {
-	      char 	cname[NS_MAXDNAME];
-	      NSString	*alias;
+	      perror("ns_initparse");
+	    }
+	  count = ns_msg_count(msg, ns_s_an);
+	  for (i = 0; i < count; i++)
+	    {
+	      ns_rr	rr;
 
-	      if (ns_name_uncompress(ns_msg_base(msg), ns_msg_end(msg),
-		ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+	      if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
 		{
-		  fprintf(stderr, "Failed to uncompress CNAME\n");
+		  perror("ns_parserr");
 		  continue;
 		}
-	      NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
-		host, cname);
-	      alias = [NSString stringWithUTF8String: cname];
-	      if ([names member: alias] == nil)
+
+	      // Check if the record is a CNAME
+	      if (ns_rr_type(rr) == ns_t_cname)
 		{
+		  char 	cname[NS_MAXDNAME];
+		  NSString	*alias;
+
+		  if (dn_expand(ns_msg_base(msg), ns_msg_end(msg),
+		    ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+		    {
+		      fprintf(stderr, "Failed to uncompress CNAME\n");
+		      continue;
+		    }
+		  NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
+		    host, cname);
+		  alias = [NSString stringWithUTF8String: cname];
 		  if (nil == found)
 		    {
 		      found = [NSMutableSet set];
 		    }
 		  [found addObject: alias];
 		}
-	    }
-	  else
-	    {
-	      NSDebugFLLog(@"NSHost", @"res_query for '%@' unused type '%d'",
-		host, ns_rr_type(rr));
+	      else
+		{
+		  NSDebugFLLog(@"NSHost",
+		    @"res_query for '%@' unused type '%d'",
+		    host, ns_rr_type(rr));
+		}
 	    }
 	}
+      RES_END(state);
+      if (nil == found)
+	{
+	  NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
+	}
+      else
+	{
+	  /* Re-check any alias we haven't already got recorded.
+	   * This gets the aliases of the aliases so the recursion
+	   * should quickly get all the names.
+	   */
+	  GS_FOR_IN(NSString*, alias, found)
+	    if ([names member: alias] == nil)
+	      {
+		dnsaliases(alias, names);
+	      }
+	  GS_END_FOR(found)
+	}
     }
-  if (nil == found)
-    {
-      NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
-    }
-  return found;
+  LEAVE_POOL
 }
 #endif
 
@@ -613,16 +696,10 @@ dnsaliases(NSString *host, NSSet *names)
   if ([name length] > 0 && nil == [names member: name])
     {
       [names addObject: name];
-      [self _addHostInfo: name withNames: names addresses: addresses];
 #if	defined(HAVE_RESOLV_H)
-    {
-      NSSet	*aliases = dnsaliases(name, names);
-
-      GS_FOR_IN(NSString*, alias, aliases)
-	[self _addHostInfo: alias withNames: names addresses: addresses];
-      GS_END_FOR(aliases)
-    }
+      dnsaliases(name, names);
 #endif
+      [self _addHostInfo: name withNames: names addresses: addresses];
     }
 }
 #endif
@@ -644,22 +721,22 @@ dnsaliases(NSString *host, NSSet *names)
   RELEASE(name);
 }
 
-- (id) _initWithAddress: (NSString*)name
+/* This must only be called with a normalised address as its parameter.
+ */
+- (id) _initWithAddress: (NSString*)address
 {
   if ((self = [super init]) == nil)
     {
       return nil;
     }
-  name = [name copy];
-  _names = [[NSSet alloc] initWithObjects: &name count: 1];
+  _names = [[NSSet alloc] initWithObjects: &address count: 1];
   _addresses = RETAIN(_names);
-  if (YES == _hostCacheEnabled)
+  if (_hostCacheEnabled)
     {
       [_hostCacheLock lock];
-      [_hostCache setObject: self forKey: name];
+      [_hostCache setObject: self forKey: address];
       [_hostCacheLock unlock];
     }
-  RELEASE(name);
   return self;
 }
 
@@ -808,6 +885,8 @@ dnsaliases(NSString *host, NSSet *names)
     }
   else
     {
+      // A real host name ... ensure it is listed
+      [names addObject: name];
       extra = nil;
     }
 
@@ -1010,7 +1089,7 @@ dnsaliases(NSString *host, NSSet *names)
 + (NSHost*) hostWithAddress: (NSString*)address
 {
   NSHost		*host = nil;
-  char			buf[40];
+  char			buf[INET6_ADDRSTRLEN];
   const char		*a;
 
   if (address == nil)
@@ -1028,37 +1107,12 @@ dnsaliases(NSString *host, NSSet *names)
   /* Now check that the address is of valid format, and standardise it
    * by converting from characters to binary and back.
    */
-  if (0 == strchr(a, ':'))
+  if (AF_UNSPEC == normaliseAddress(a, buf))
     {
-      struct in_addr	hostaddr;
-
-      if (inet_pton(AF_INET, a, (void*)&hostaddr) <= 0)
-	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
-	  return nil;
-	}
-      inet_ntop(AF_INET, (void*)&hostaddr, buf, sizeof(buf));
-      a = buf;
-      address = [NSString stringWithUTF8String: a];
+      NSLog(@"Unsupported host address sent to [NSHost +hostWithAddress:]");
+      return nil;
     }
-  else
-#if     defined(AF_INET6)
-    {
-      struct in6_addr	hostaddr6;
-
-      if (inet_pton(AF_INET6, a, (void*)&hostaddr6) <= 0)
-	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
-	  return nil;
-	}
-      inet_ntop(AF_INET6, (void*)&hostaddr6, buf, sizeof(buf));
-      a = buf;
-      address = [NSString stringWithUTF8String: a];
-    }
-#else
-  NSLog(@"Unsupported host address sent to [NSHost +hostWithAddress:]");
-  return nil;
-#endif
+  address = [NSString stringWithUTF8String: buf];
 
   if (YES == _hostCacheEnabled)
     {
@@ -1212,21 +1266,21 @@ dnsaliases(NSString *host, NSSet *names)
 
 - (BOOL) isEqualToHost: (NSHost*)aHost
 {
-  NSEnumerator	*e;
-  NSString	*a;
+  NSArray	*addresses;
 
   if (aHost == self)
     {
       return YES;
     }
-  e = [aHost->_addresses objectEnumerator];
-  while ((a = [e nextObject]) != nil)
+  addresses = [aHost addresses];
+  GS_FOR_IN(NSString *, address, addresses)
     {
-      if ([_addresses member: a] != nil)
+      if ([_addresses member: address] != nil)
 	{
 	  return YES;
 	}
     }
+  GS_END_FOR(addresses)
   return NO;
 }
 

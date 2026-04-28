@@ -1,3 +1,4 @@
+#include "Foundation/NSObjCRuntime.h"
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
@@ -53,7 +54,18 @@ static void testBasic(void)
   compRes = [@"z" localizedCompare: @"A"];
   PASS(compRes == NSOrderedDescending, "expected 1 got %d", (int)compRes);
 
-  
+  // `localizedStandardCompare` orders file names ending in numbers
+  // by numeric value instead of lexicographically.
+  compRes = [@"Foo 10.txt" localizedCompare: @"Foo 5.txt"];
+  PASS(compRes == NSOrderedAscending, "expected 1 got %d", (int)compRes);
+
+  compRes = [@"Foo 10.txt" localizedStandardCompare: @"Foo 5.txt"];
+  PASS(compRes == NSOrderedDescending, "expected 1 got %d", (int)compRes);
+
+  // `localizedStandardCompare` is case insensitive
+  compRes = [@"foo 50.txt" localizedStandardCompare:@"FOO 5.txt"];
+  PASS(compRes == NSOrderedAscending, "expected 1 got %d", (int)compRes);
+
   // These two may be considered implementation details
   {
     BOOL wasHopeful = testHopeful;

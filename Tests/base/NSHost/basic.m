@@ -10,7 +10,7 @@ int main()
   NSHost        *h = [NSHost currentHost];
 
   test_NSObject(@"NSHost", [NSArray arrayWithObject: h]);
-  NSLog(@"%@", h);
+  // NSLog(@"%@", h);
   LEAVE_POOL
   return 0;
 }

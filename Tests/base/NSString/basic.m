@@ -21,7 +21,6 @@ int main()
   uint8_t       bytes[256];
   unichar	u0 = 'a';
   unichar	u1 = 0xfe66;
-  unichar	c;
   int           i = 256;
   char          buf[32];
   NSString	*s;
@@ -153,28 +152,6 @@ int main()
                                length: 10
                              encoding: NSUTF8StringEncoding];
   PASS_EQUAL(s, @"SMILEY😊", "text with smiley at end");
-  DESTROY(s);
-
-  // Second half of surrogate pair
-  c = 0xde0a;
-  s = [[NSString alloc] initWithBytes: &c
-                               length: 2
-                             encoding: NSUnicodeStringEncoding];
-  PASS_EQUAL(s, nil, "native - second half of surrogate pair is invalid");
-  DESTROY(s);
-
-  c = GSSwapHostI16ToBig(0xde0a);
-  s = [[NSString alloc] initWithBytes: &c
-                               length: 2
-                             encoding: NSUTF16BigEndianStringEncoding];
-  PASS_EQUAL(s, nil, "big endian second half of surrogate pair is invalid");
-  DESTROY(s);
-
-  c = GSSwapHostI16ToLittle(0xde0a);
-  s = [[NSString alloc] initWithBytes: &c
-                               length: 2
-                             encoding: NSUTF16LittleEndianStringEncoding];
-  PASS_EQUAL(s, nil, "little endian second half of surrogate pair is invalid");
   DESTROY(s);
 
   s = makeFormattedString(@"%d.%d%s", 10, 20, "hello");

@@ -589,6 +589,7 @@ GS_EXPORT_CLASS
     BOOL isFollowing: 1;
     BOOL justContents: 1;
     BOOL skipHidden: 1;
+    BOOL currentIsDir: 1;
   } _flags;
 #endif
 #if     GS_NONFRAGILE
@@ -604,6 +605,10 @@ GS_EXPORT_CLASS
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;
 - (void) skipDescendents;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSUInteger) level;
+- (void) skipDescendants;
+#endif
 
 @end /* NSDirectoryEnumerator */
 

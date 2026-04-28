@@ -191,7 +191,7 @@
 
 - (instancetype) copyWithZone: (NSZone*)zone
 {
-  return [[NSUnit allocWithZone: zone] initWithSymbol: [self symbol]];
+  return [[[self class] allocWithZone: zone] initWithSymbol: [self symbol]];
 }
 
 - (NSString*) symbol
@@ -212,6 +212,13 @@
 - (NSUnitConverter*) converter
 {
   return _converter;
+}
+
+- (instancetype) copyWithZone: (NSZone*)zone 
+{
+  return [[[self class] allocWithZone: zone]
+    initWithSymbol: [self symbol]
+    converter: [self converter]];
 }
 
 - (void) dealloc
@@ -255,7 +262,7 @@
 }
 
 - (instancetype) initWithSymbol: (NSString*)symbol
-		      converter: (NSUnitConverter*) converter
+		      converter: (NSUnitConverter*)converter
 {
   self = [super initWithSymbol: symbol];
   if (self != nil)
@@ -1001,7 +1008,7 @@
 + (NSUnitLength*) inches
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"in"
-                                              coefficient: 0.254
+                                              coefficient: 0.0254
                                                  constant: 0.0]);
 }
 
@@ -1022,7 +1029,7 @@
 + (NSUnitLength*) miles
 {
   return AUTORELEASE([[NSUnitLength alloc] initWithSymbol: @"mi"
-                                              coefficient: 1609.34
+                                              coefficient: 1609.344
                                                  constant: 0.0]);
 }
 
@@ -1162,14 +1169,19 @@
 + (NSUnitMass*) ounces
 {
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"oz"
-                                            coefficient: 0.0283495
+                                            coefficient: 0.0283495231
                                                constant: 0.0]);
 }
 
 + (NSUnitMass*) pounds
 {
+  return [self poundsMass];
+}
+
++ (NSUnitMass*) poundsMass
+{
   return AUTORELEASE([[NSUnitMass alloc] initWithSymbol: @"lb"
-                                            coefficient: 0.453592
+                                            coefficient: 0.45359237
                                                constant: 0.0]);
 }
 
@@ -1404,7 +1416,7 @@
 + (NSUnitSpeed*) kilometersPerHour
 {
   return AUTORELEASE([[NSUnitSpeed alloc] initWithSymbol: @"km/h"
-                                             coefficient: 0.277778
+                                             coefficient: 0.2777777778
                                                 constant: 0.0]);
 }
 

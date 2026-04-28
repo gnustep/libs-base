@@ -1,3 +1,36 @@
+2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add test for res_nquery()
+	* Headers/GNUstepBase/config.h.in: Regenerate
+	* configure: Regenerate
+	* Source/NSHost.m: Update to use res_nquery if available and simplify
+
+2026-04-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/Unicode.h:
+	* Source/Additions/Unicode.m:
+	* Source/GSPrivate.h:
+	* Source/GSString.m:
+	* Source/NSString.m:
+	* Tests/base/NSString/NSString_tests.h:
+	* Tests/base/NSString/basic.m:
+	* Tests/base/NSString/pairs.m:
+	* Tests/base/NSString/surrogates.m:
+	* Tests/base/NSString/test00.m:
+	* Tests/base/NSString/test02.m:
+	* Tests/base/NSString/test04.m:
+	Match OSX in allowing NSString to contain lone surrogate pair
+	characters at the point of creation (rather than only as a result
+	of taking a substring or replacing/deleting a range).
+	Support lossy conversion from UTF16 containing bad characters to
+	valid UTF8 by use of the Unicode replacement character (0xFFFD).
+	Make the -UTF8String method use lossy conversion rather than
+	raising an exception or returning a NULL pointer.
+	This seems a more Unicode conformant behavor and avoids uncaught
+	exceptions or null pointer crashes in code which expects the
+	-UTF8String method to work for all strings.
+	Remove a few old testcases and add a load of new ones.
+
 2026-04-22 Hendrik Huebner <hendrik.huebner@algoriddim.com>
 
 	* Headers/Foundation/NSString.h:
@@ -7,6 +40,75 @@
 	* Tests/base/NSString/locale.m:
 	Add folding tests for case, diacritic, width and combined behavior.
 
+2026-04-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/Foundation/NSFileManager.h:
+	* Source/NSFileManager.m:
+	Add missing macOS 10.6+ methods level and skipDescendants to
+	NSDirectoryEnumerator.
+
+2026-04-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: tidyups and bugfix for crash when equality testing
+	with nil argument.
+	* Tests/base/NSHost/localhost.m: testcases for functionality which
+	doesn't require actual DNS lookups.
+
+2026-04-15  Todd White  <todd.white@thalion.global>
+
+	* Source/NSMethodSignature.m ([NSMethodSignature
+	_initWithObjCTypes:]): Reject type encodings whose working
+	buffer would exceed 4096 bytes with
+	NSInvalidArgumentException instead of allocating an
+	arbitrary amount of stack for them; no compiler-emitted
+	type encoding comes anywhere near this length.
+	([NSMethodSignature signatureWithObjCTypes:]): Release the
+	cacheTableLock on exceptions thrown from the init path, so
+	the cap check does not leave the cache deadlocked.
+	* Tests/base/NSMethodSignature/alloca_cap.m: New regression test
+	covering the alloca path, the boundary, the first heap case, and
+	a signature whose buffer would exceed any reasonable stack limit.
+
+2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMeasurement.m:
+	* Source/NSUnit.m:
+	* Tests/base/NSMeasurement/conversion.m:
+	Fix for issue #581 plus precision improvements and fixes to
+	several units.  Testcases for many conversions.
+
+2026-04-14 Todd White <todd.white@thalion.global>
+
+	* Source/NSPropertyList.m: Fix unsigned integer overflow in the
+	binary property list offset-table bounds check. The old form
+	`table_start + object_count * offset_size > _length` overflows
+	on 32-bit unsigned for attacker-controlled object_count near
+	2^30 (offset_size is bounded to 1..4 by the preceding guard),
+	wrapping the product past 2^32 so the sum lands below _length
+	even when the offset table runs past the end of the buffer;
+	offsetForIndex: then reads past _bytes. Reformulated as
+	`table_start > _length
+	 || object_count > (_length - table_start) / offset_size`
+	which is overflow-free and self-contained (the leading
+	table_start > _length test guards the subtraction from
+	underflowing, removing the previous implicit dependence on the
+	next-in-chain table_start > _length - 32 branch).
+	* Tests/base/NSPropertyList/bplist-overflow-bounds.m: New
+	regression test that crafts malformed bplist trailers directly
+	and verifies they are rejected, with a positive control that
+	round-trips a legitimately serialized bplist.
+	Analysis and code from Todd White <todd.white@thalion.global>
+	using Claude.
+
+2026-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Implementation of nesting limit when
+	parsing collections (JSON array/object values).  Permits up to 512
+	levels of container nesting. 
+	* Tests/base/NSJSONSerialization/depth.m: Some testcases for the limit.
+	Code changes inspired by and test cases based on analysis and code
+	from Todd White <todd.white@thalion.global> using Claude.
+	
 2026-04-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDateFormatter.m:

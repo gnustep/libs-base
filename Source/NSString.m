@@ -4249,10 +4249,14 @@ register_printf_atsign ()
  */
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
-  NSData	*d;
+  NSUInteger	l;
 
-  d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
-  return [d length];
+  NS_DURING
+    l = [[self dataUsingEncoding: encoding allowLossyConversion: NO] length];
+  NS_HANDLER
+    l = 0;
+  NS_ENDHANDLER
+  return l;
 }
 
 /**
@@ -4289,10 +4293,24 @@ register_printf_atsign ()
   return (const char*)[m bytes];
 }
 
-/**
- * Returns null-terminated UTF-8 version of this unicode string.  The char[]
- * memory comes from an autoreleased object, so it will eventually go out of
- * scope.
+/** Returns null-terminated UTF8 version of this unicode string.  The char[]
+ * memory may come from an autoreleased object which will eventually go out of
+ * scope.<br />
+ * The NSString concept of a 'character' is that of a UTF16 code point rather
+ * than a true Unicode character. As such some Unicode characters are
+ * represented by two UTF16 characters in an NSString (these two values are
+ * known as a 'surrogate pair').<br />
+ * When an NSString contains lone parts of a surrogate pair they cannot be
+ * converted to legal Unicode codepoints for encoding as UTF8, so the GNUstep
+ * implementation of this method uses the Unicode Replacement Character to
+ * indicate their presence (a lossy conversion).<br />
+ * To check whether a string can be converted to UTF8 without any replacement
+ * characters, you can use the -canBeConvertedToEncoding: method, and then
+ * use the -dataUsingEncoding:allowLossyConversion: method or the
+ * -getCString:maxLength:encoding: method.<br />
+ * NB. Returning a valid UTF8 containing replacement characters is different
+ * from the OSX implementation (tested 2026). In this situation OSX returns a
+ * NULL pointer, potentially causing a crash.
  */
 - (const char *) UTF8String
 {
@@ -4300,7 +4318,7 @@ register_printf_atsign ()
   NSMutableData	*m;
 
   d = [self dataUsingEncoding: NSUTF8StringEncoding
-         allowLossyConversion: NO];
+         allowLossyConversion: YES];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
   IF_NO_ARC([m autorelease];)
@@ -4660,6 +4678,7 @@ register_printf_atsign ()
     {
       unichar	*u;
       unsigned	l;
+      BOOL	bad = NO;
 
       /* Fast path for Unicode (UTF16) without a specific byte order,
        * where we must prepend a byte order mark.
@@ -4669,7 +4688,11 @@ register_printf_atsign ()
 	(len + 1) * sizeof(unichar));
       *u = byteOrderMark;
       [self getCharacters: u + 1];
-      l = GSUnicode(u, len, 0, 0);
+      l = GSUnicode(u, len, NULL, NULL, (flag ? &bad : NULL));
+      if (bad)
+	{
+	  GSPrivateCleanUnichars(u, l);
+	}
       d = [NSDataClass dataWithBytesNoCopy: u
 				    length: (l + 1) * sizeof(unichar)];
     }
@@ -6394,6 +6417,18 @@ static NSFileManager *fm = nil;
 {
   return [self compare: string
                options: 0
+                 range: NSMakeRange(0, [self length])
+                locale: [NSLocale currentLocale]];
+}
+
+/**
+ * Compares this instance with string as if sorted by Apple's Finder,
+ * using +[NSLocale currentLocale].
+ */
+- (NSComparisonResult) localizedStandardCompare: (NSString *)string
+{
+  return [self compare: string
+               options: NSCaseInsensitiveSearch|NSNumericSearch|NSWidthInsensitiveSearch|NSForcedOrderingSearch
                  range: NSMakeRange(0, [self length])
                 locale: [NSLocale currentLocale]];
 }
