@@ -1728,6 +1728,7 @@ if test $ac_cv_header_resolv_h = yes; then
   AC_CHECK_LIB(resolv, res_query, resolv_ok=yes, resolv_ok=no)
   if test "$resolv_ok" = yes; then
     LIBS="$saveLIBS -lresolv";
+    AC_CHECK_FUNCS(res_nquery)
   else
     LIBS="$saveLIBS"
   fi

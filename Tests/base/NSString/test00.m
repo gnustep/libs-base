@@ -168,9 +168,6 @@ static void strRange(char *s0, char *s1, unsigned int opts,
   NSRange range, NSRange want)
 {
   NSString *cs0, *cs1, *us0, *us1 = nil; /* cstrings and unicode strings */
-  NSMutableData *d;
-  unichar *b;
-  int l;
   NSRange res;
   
   cs0 = nil; 
@@ -262,10 +259,8 @@ static void testLineRange(char *s, NSRange range, NSRange want)
 {
   NSRange res;
   NSString *cs0;
-  int l;
   
   cs0 = [NSString stringWithCString: s];
-  l = [cs0 length];
   res = [cs0 lineRangeForRange: range];
   PASS(rangesEqual(res,want), "lineRangeForRange: with '%s' is ok",s);
 }
@@ -275,7 +270,6 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSString	*str;
   NSString	*sub;
-  const char    *ptr;
   char	        buf[10];
   
   str = @"a";
@@ -287,7 +281,6 @@ int main()
     {
       str = [str stringByAppendingString: @"x"];
     }
-  ptr = [str cStringUsingEncoding: NSASCIIStringEncoding];
 
   PASS_EXCEPTION([NSString stringWithUTF8String: 0],
     NSInvalidArgumentException,

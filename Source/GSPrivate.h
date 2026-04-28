@@ -496,6 +496,12 @@ void
 GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
   GS_ATTRIB_PRIVATE;
 
+/* Replace bad UTF16 codepoints with the replacement character (0xFFFD)
+ */
+void
+GSPrivateCleanUnichars(unichar *u, unsigned l)
+  GS_ATTRIB_PRIVATE;
+
 /* Make the content of this string into unicode if it is not in
  * the external defaults C string encoding.
  */

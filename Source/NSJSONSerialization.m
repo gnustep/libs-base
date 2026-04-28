@@ -47,67 +47,84 @@
 static id       boolN;
 static id       boolY;
 
-/**
- * The number of (unicode) characters to fetch from the source at once.
+/* The number of (unicode) characters to fetch from the source at once.
  */
 #define BUFFER_SIZE 64
 
-/**
- * Structure for storing the internal state of the parser.  An instance of this
+/* Structure for storing the internal state of the parser.  An instance of this
  * is allocated on the stack, and a copy of it passed down to each parse
  * function.
  */
 typedef struct ParserStateStruct
 {
-  /**
-   * The data source.  This is either an NSString or an NSStream, depending on
+  /* The data source.  This is either an NSString or an NSStream, depending on
    * the source.
    */
   id source;
-  /**
-   * The length of the byte order mark in the source.  0 if there is no BOM.
+
+  /* The length of the byte order mark in the source.  0 if there is no BOM.
    */
   int BOMLength;
-  /**
-   * The string encoding used in the source.
+
+  /* The string encoding used in the source.
    */
   NSStringEncoding enc;
-  /**
-   * Function used to pull the next BUFFER_SIZE characters from the string.
+
+  /* Function used to pull the next BUFFER_SIZE characters from the string.
    */
   void (*updateBuffer)(struct ParserStateStruct*);
-  /**
-   * Buffer used to store the next data from the input stream.
+
+  /* Buffer used to store the next data from the input stream.
    */
   unichar buffer[BUFFER_SIZE];
-  /**
-   * The index of the parser within the buffer.
+
+  /* The index of the parser within the buffer.
    */
   NSUInteger bufferIndex;
-  /**
-   * The number of bytes stored within the buffer.
+
+  /* The number of bytes stored within the buffer.
    */
   NSUInteger bufferLength;
-  /**
-   * The index of the parser within the source.
+
+  /* The index of the parser within the source.
    */
   NSInteger sourceIndex;
-  /**
-   * Should the parser construct mutable string objects?
+
+  /* Should the parser construct mutable string objects?
    */
   BOOL mutableStrings;
-  /**
-   * Should the parser construct mutable containers?
+
+  /* Should the parser construct mutable containers?
    */
   BOOL mutableContainers;
-  /**
-   * Error value, if this parser is currently in an error state, nil otherwise.
+
+  /* Error value, if this parser is currently in an error state, nil otherwise.
    */
   NSError *error;
+
+  /* Current nesting depth of arrays/objects on the recursive-descent
+   * stack. Zero before parsing begins and while the parser is outside
+   * any container. Incremented exactly once upon entry to
+   * parseCollection (after the depth-guard check has been
+   * passed) and decremented exactly once before exit from that
+   * function. The invariant
+   * that `depth` mirrors the live container stack is what lets the
+   * depth-guard check at the top of parseCollection reject
+   * pathologically nested input before the C stack is exhausted.
+   */
+  int depth;
 } ParserState;
 
-/**
- * Pulls the next group of characters from a string source.
+/* Maximum JSON parser nesting depth. Any input that nests
+ * arrays and/or objects more than this deep is rejected before the
+ * recursive-descent parser can exhaust the C stack. 512 is deep enough
+ * to accommodate every realistic JSON document (RFC 8259 recommends
+ * supporting at least 100 levels; most parsers cap in the 100-1000
+ * range) while leaving comfortable head-room below the smallest thread
+ * stack that GNUstep runs on.
+ */
+
+/* Pulls the next group of characters from a string source.
  */
 static inline void
 updateStringBuffer(ParserState* state)
@@ -213,7 +230,7 @@ updateStreamBuffer(ParserState* state)
                       str = [[NSString alloc] initWithUTF8String: (char*)bytes];
                       [str getCharacters: state->buffer
                                    range: NSMakeRange(0,1)];
-                      [str release];
+                      RELEASE(str);
                     }
                   else
                     {
@@ -280,8 +297,7 @@ updateStreamBuffer(ParserState* state)
   state->source = stream;
 }
 
-/**
- * Returns the current character.
+/* Returns the current character.
  */
 static inline unichar
 currentChar(ParserState *state)
@@ -293,8 +309,7 @@ currentChar(ParserState *state)
   return state->buffer[state->bufferIndex];
 }
 
-/**
- * Consumes a character.
+/* Consumes a character.
  */
 static inline unichar
 consumeChar(ParserState *state)
@@ -308,8 +323,7 @@ consumeChar(ParserState *state)
   return currentChar(state);
 }
 
-/**
- * Consumes all whitespace characters and returns the first non-space
+/* Consumes all whitespace characters and returns the first non-space
  * character.  Returns 0 if we're past the end of the input.
  */
 static inline unichar
@@ -322,8 +336,40 @@ consumeSpace(ParserState *state)
   return currentChar(state);
 }
 
-/**
- * Sets an error state.
+
+NS_RETURNS_RETAINED static inline id
+parseCollection(ParserState *state, id (*func)(ParserState*))
+{
+  id	result;
+
+  /* Maximum JSON parser nesting depth. Any input that nests
+   * arrays and/or objects more than this deep is rejected before the
+   * recursive-descent parser can exhaust the C stack. 512 is deep enough
+   * to accommodate every realistic JSON document (RFC 8259 recommends
+   * supporting at least 100 levels; most parsers cap in the 100-1000
+   * range) while leaving comfortable head-room below the smallest thread
+   * stack that GNUstep runs on.
+   */
+  if (state->depth >= 512)
+    {
+      NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+	_(@"JSON Parse error"), NSLocalizedDescriptionKey,
+	_(([NSString stringWithFormat: @"Recursion limit reached at index %"PRIdPTR, state->sourceIndex])), 
+	NSLocalizedFailureReasonErrorKey,
+	nil];
+      state->error = [NSError errorWithDomain: NSCocoaErrorDomain
+					 code: 0
+				     userInfo: userInfo];
+      RELEASE(userInfo);
+      return nil;
+    }
+  state->depth++;
+  result = func(state);
+  state->depth--;
+  return result;
+}
+
+/* Sets an error state.
  */
 static void
 parseError(ParserState *state)
@@ -346,8 +392,7 @@ parseError(ParserState *state)
 
 NS_RETURNS_RETAINED static id parseValue(ParserState *state);
 
-/**
- * Parse a string, as defined by RFC4627, section 2.5
+/* Parse a string, as defined by RFC4627, section 2.5
  */
 NS_RETURNS_RETAINED static NSString*
 parseString(ParserState *state)
@@ -398,7 +443,7 @@ parseString(ParserState *state)
                       next = consumeChar(state);
                       if (!isxdigit(next))
                         {
-                          [val release];
+                          RELEASE(val);
                           parseError(state);
                           return nil;
                         }
@@ -449,7 +494,7 @@ parseString(ParserState *state)
 
   if (currentChar(state) != '"')
     {
-      [val release];
+      RELEASE(val);
       parseError(state);
       return nil;
     }
@@ -467,7 +512,7 @@ parseString(ParserState *state)
       else
         {
           [val appendString: str];
-          [str release];
+          RELEASE(str);
         }
     }
   else if (nil == val)
@@ -489,8 +534,7 @@ parseString(ParserState *state)
   return val;
 }
 
-/**
- * Parses a number, as defined by section 2.4 of the JSON specification.
+/* Parses a number, as defined by section 2.4 of the JSON specification.
  */
 NS_RETURNS_RETAINED static NSNumber*
 parseNumber(ParserState *state)
@@ -572,8 +616,8 @@ parseNumber(ParserState *state)
     return [[NSNumber alloc] initWithDouble: num];
 #undef BUFFER
 }
-/**
- * Parse an array, as described by section 2.3 of RFC 4627.
+
+/* Parse an array, as described by section 2.3 of RFC 4627.
  */
 NS_RETURNS_RETAINED static NSArray*
 parseArray(ParserState *state)
@@ -596,11 +640,11 @@ parseArray(ParserState *state)
       id obj = parseValue(state);
       if (nil == obj)
         {
-          [array release];
+          RELEASE(array);
           return nil;
         }
       [array addObject: obj];
-      [obj release];
+      RELEASE(obj);
       c = consumeSpace(state);
       if (c == ',')
         {
@@ -645,14 +689,14 @@ parseObject(ParserState *state)
 
       if (nil == key)
         {
-          [dict release];
+          RELEASE(dict);
           return nil;
         }
       c = consumeSpace(state);
       if (':' != c)
         {
-          [key release];
-          [dict release];
+          RELEASE(key);
+          RELEASE(dict);
           parseError(state);
           return nil;
         }
@@ -661,13 +705,13 @@ parseObject(ParserState *state)
       obj = parseValue(state);
       if (nil == obj)
         {
-          [key release];
-          [dict release];
+          RELEASE(key);
+          RELEASE(dict);
           return nil;
         }
       [dict setObject: obj forKey: key];
-      [key release];
-      [obj release];
+      RELEASE(key);
+      RELEASE(obj);
       c = consumeSpace(state);
       if (c == ',')
         {
@@ -690,8 +734,7 @@ parseObject(ParserState *state)
   return dict;
 }
 
-/**
- * Parses a JSON value, as defined by RFC4627, section 2.1.
+/* Parses a JSON value, as defined by RFC4627, section 2.1.
  */
 NS_RETURNS_RETAINED static id
 parseValue(ParserState *state)
@@ -709,9 +752,9 @@ parseValue(ParserState *state)
       case (unichar)'"':
         return parseString(state);
       case (unichar)'[':
-        return parseArray(state);
+        return parseCollection(state, parseArray);
       case (unichar)'{':
-        return parseObject(state);
+        return parseCollection(state, parseObject);
       case (unichar)'-':
       case (unichar)'0' ... (unichar)'9':
         return parseNumber(state);
@@ -723,7 +766,7 @@ parseValue(ParserState *state)
 	    && (consumeChar(state) == 'l'))
             {
 	      consumeChar(state);
-              return [[NSNull null] retain];
+              return RETAIN([NSNull null]);
             }
           break;
         }
@@ -735,7 +778,7 @@ parseValue(ParserState *state)
 	    && (consumeChar(state) == 'e'))
             {
 	      consumeChar(state);
-              return [boolY retain];
+              return RETAIN(boolY);
             }
           break;
         }
@@ -747,7 +790,7 @@ parseValue(ParserState *state)
 	    && (consumeChar(state) == 'e'))
             {
 	      consumeChar(state);
-              return [boolN retain];
+              return RETAIN(boolN);
             }
           break;
         }
@@ -756,8 +799,7 @@ parseValue(ParserState *state)
   return nil;
 }
 
-/**
- * We have to autodetect the string encoding.  We know that it is some
+/* We have to autodetect the string encoding.  We know that it is some
  * unicode encoding, which may or may not contain a BOM.  If it contains a
  * BOM, then we need to skip that.  If it doesn't, then we need to work out
  * the encoding from the position of the NULLs.  The first two characters are
@@ -828,8 +870,7 @@ getEncoding(const uint8_t BOM[4], ParserState *state)
   state->BOMLength = BOMLength;
 }
 
-/**
- * Classes that are permitted to be written.  
+/* Classes that are permitted to be written.  
  */
 static Class NSArrayClass;
 static Class NSDictionaryClass;
@@ -1027,7 +1068,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
           NSZoneFree (NSDefaultMallocZone (), to);
           NSZoneFree (NSDefaultMallocZone (), from);
           [output appendString: str];
-          [str release];
+          RELEASE(str);
         }
     }
   else if (obj == boolN)
@@ -1126,7 +1167,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
 	  RELEASE(userInfo);
 	}
     }
-  [str release];
+  RELEASE(str);
   return data;
 }
 
@@ -1152,12 +1193,12 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
   p.mutableStrings
     = (opt & NSJSONReadingMutableLeaves) == NSJSONReadingMutableLeaves;
   obj = parseValue(&p);
-  [p.source release];
+  RELEASE(p.source);
   if (NULL != error)
     {
       *error = p.error;
     }
-  return [obj autorelease];
+  return AUTORELEASE(obj);
 }
 
 + (id) JSONObjectWithStream: (NSInputStream *)stream
@@ -1197,7 +1238,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
     {
       *error = p.error;
     }
-  return [obj autorelease];
+  return AUTORELEASE(obj);
 }
 
 + (NSInteger) writeJSONObject: (id)obj

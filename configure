@@ -7969,6 +7969,13 @@ fi
 
   if test "$resolv_ok" = yes; then
     LIBS="$saveLIBS -lresolv";
+    ac_fn_c_check_func "$LINENO" "res_nquery" "ac_cv_func_res_nquery"
+if test "x$ac_cv_func_res_nquery" = xyes
+then :
+  printf "%s\n" "#define HAVE_RES_NQUERY 1" >>confdefs.h
+
+fi
+
   else
     LIBS="$saveLIBS"
   fi

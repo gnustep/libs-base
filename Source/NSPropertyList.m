@@ -2892,12 +2892,19 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
           
         case NSPropertyListBinaryFormat_v1_0:
           {
-            GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
+	    NS_DURING
+	      {
+                GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
             
-            p = [p initWithData: data mutability: anOption];
-	    /* to avoid a leak on exception, autorelease before parse
-	     */
-            result = [AUTORELEASE(p) rootObject];
+		p = [p initWithData: data mutability: anOption];
+		result = AUTORELEASE(RETAIN([p rootObject]));
+		RELEASE(p);
+	      }
+	    NS_HANDLER
+	      {
+                errorStr = [localException reason];
+	      }
+	    NS_ENDHANDLER
           }
           break;
           
@@ -3078,7 +3085,13 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
 	}
-      else if (table_start + object_count * offset_size > _length)
+      /* The obvious form of the bound,
+       *   table_start + object_count * offset_size > _length,
+       * overflows on unsigned multiplication; take care when editing.
+       * See Tests/base/NSPropertyList/bplist-overflow-bounds.m.
+       */
+      else if (table_start > _length
+	|| object_count > (_length - table_start) / offset_size)
         {
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
