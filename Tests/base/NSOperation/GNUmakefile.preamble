@@ -1,0 +1,4 @@
+include ../../../config.mak
+ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH),1)
+queue_dispatch_TOOL_LIBS += -ldispatch
+endif
