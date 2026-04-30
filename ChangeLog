@@ -1,5 +1,22 @@
 2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSObject.m: Move calls to memory allocation code.
+	* Source/GSArray.m: Call super -init
+	* Headers/Foundation/NSDebug.h: Document location of add/remove
+	* Source/NSCopyObject.m: Call memory allocation add fnction.
+	Changes to try to cope with the change of the language such that
+	clag will, in some cases, fail to call memory allocation methods
+	and will create instances diectly, thus omitting the calls to
+	record the allocation of instances of classes in some cases.
+	Instead of doing the recording at the point of allocation and
+	deallocation, we now do it in the NSObject implementations of
+	the -init and -dealloc methods.  This does mean that we are
+	going to have to be more careful about having subclass code
+	always call the superclass -init since it will now be doing
+	something more than just returning self.
+
+2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Add test for res_nquery()
 	* Headers/GNUstepBase/config.h.in: Regenerate
 	* configure: Regenerate

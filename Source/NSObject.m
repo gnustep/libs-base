@@ -771,10 +771,6 @@ NSIncrementExtraRefCount(id anObject)
    retain_fast(anObject);
 }
 
-#define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#define	AREM(c, o) GSDebugAllocationRemove(c, o)
-
-
 #ifndef OBJC_CAP_ARC
 static SEL cxx_construct, cxx_destruct;
 
@@ -818,18 +814,13 @@ callCXXConstructors(Class aClass, id anObject)
  *	the start of each object.
  */
 
-// FIXME rewrite object allocation to use class_createInstance when we
-// are using libobjc2.
 inline id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
 
 #ifdef OBJC_CAP_ARC
-  if ((new = class_createInstance(aClass, extraBytes)) != nil)
-    {
-      AADD(aClass, new);
-    }
+  new = class_createInstance(aClass, extraBytes);
 #else
   int	size;
 
@@ -845,7 +836,6 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
       memset (new, 0, size);
       new = (id)&((obj)new)[1];
       object_setClass(new, aClass);
-      AADD(aClass, new);
     }
 
   /* Don't bother doing this in a thread-safe way, because the cost of locking
@@ -880,8 +870,6 @@ NSDeallocateObject(id anObject)
       /* Call the default finalizer to handle C++ destructors.
        */
       (*finalize_imp)(anObject, finalize_sel);
-
-      AREM(aClass, (id)anObject);
 
 #ifndef OBJC_CAP_ARC
       if (GSPrivateMarkedAssociations(anObject, NO))
@@ -1222,14 +1210,6 @@ static id gs_weak_load(id obj)
  *  (this is typically needed to implement class clusters and
  *  similar design schemes).
  * </p>
- * <p>
- *   If you have turned on debugging of object allocation (by
- *   calling the <code>GSDebugAllocationActive</code>
- *   function), this method will also update the various
- *   debugging counts and monitors of allocated objects, which
- *   you can access using the <code>GSDebugAllocation...</code>
- *   functions.
- * </p>
  */
 + (id) allocWithZone: (NSZone*)z
 {
@@ -1429,6 +1409,7 @@ static id gs_weak_load(id obj)
  */
 - (void) dealloc
 {
+  GSDebugAllocationRemove(object_getClass(self), self);
   NSDeallocateObject(self);
 }
 
@@ -1502,11 +1483,18 @@ static id gs_weak_load(id obj)
   return nil;
 }
 
-/**
- * Initialises the receiver ... the NSObject implementation simply returns self.
+/** Initialises the receiver.  The NSObject implementation 
+ * calls GSDebugAllocationAdd() and returns self.<br />
+ * If you have turned on debugging of object allocation (by
+ * calling the <code>GSDebugAllocationActive</code>
+ * function), GSDebugAllocationAdd() will update the various
+ * debugging counts and monitors of allocated objects, which
+ * you can access using the <code>GSDebugAllocation...</code>
+ * functions.
  */
 - (id) init
 {
+  GSDebugAllocationAdd(object_getClass(self), self);
   return self;
 }
 
