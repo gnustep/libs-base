@@ -1520,7 +1520,7 @@ register_printf_atsign ()
   len = [format length];
   if (len >= 1024)
     {
-      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
+      fmt = malloc((len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt range: ((NSRange){0, len})];
   fmt[len] = '\0';
@@ -1543,7 +1543,7 @@ register_printf_atsign ()
   GSPrivateStrExternalize(f);
   if (fmt != fbuf)
     {
-      NSZoneFree(NSDefaultMallocZone(), fmt);
+      free(fmt);
     }
 
   /*
@@ -2019,7 +2019,7 @@ register_printf_atsign ()
       unsigned int	spos = 0;
       unsigned int	dpos = 0;
 
-      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+      dst = (unsigned char*)malloc(slen * 3);
       while (spos < slen)
 	{
 	  unichar	c = src[spos++];
@@ -2045,7 +2045,7 @@ register_printf_atsign ()
       s = [[NSString alloc] initWithBytes: dst
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
-      NSZoneFree(NSDefaultMallocZone(), dst);
+      free(dst);
       IF_NO_ARC([s autorelease];)
     }
   return s;
@@ -2069,7 +2069,7 @@ register_printf_atsign ()
       NSUInteger	index;
       NSString		*result;
 
-      next = o = (char *)NSZoneMalloc(NSDefaultMallocZone(), length + 1);
+      next = o = (char *)malloc(length + 1);
 
       for (index = 0; index < length; index++)
 	{
@@ -2115,7 +2115,7 @@ register_printf_atsign ()
       *next = '\0';
 
       result = [NSString stringWithUTF8String: o];
-      NSZoneFree(NSDefaultMallocZone(), o);
+      free(o);
 
       return result; 
     }  
@@ -2153,7 +2153,7 @@ register_printf_atsign ()
       unsigned int	spos = 0;
       unsigned int	dpos = 0;
 
-      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+      dst = (unsigned char*)malloc(slen * 3);
       while (spos < slen)
 	{
 	  unsigned char	c = src[spos++];
@@ -2178,7 +2178,7 @@ register_printf_atsign ()
       s = [[NSString alloc] initWithBytes: dst
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
-      NSZoneFree(NSDefaultMallocZone(), dst);
+      free(dst);
       IF_NO_ARC([s autorelease];)
     }
   return s;
@@ -5989,8 +5989,8 @@ static NSFileManager *fm = nil;
 	    }
 	  else
 	    {
-	      charsSelf = NSZoneMalloc(NSDefaultMallocZone(), sizeSelf);
-	      charsOther = NSZoneMalloc(NSDefaultMallocZone(), sizeOther);
+	      charsSelf = malloc(sizeSelf);
+	      charsOther = malloc(sizeOther);
 	    }
 
 	  // Copy to buffer
@@ -6002,8 +6002,8 @@ static NSFileManager *fm = nil;
 
 	  if (!useStack)
 	    {
-	      NSZoneFree(NSDefaultMallocZone(), charsSelf);
-	      NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+	      free(charsSelf);
+	      free(charsOther);	  
 	    }
 	  
 	  /* UCollationResult enums are stable and match
@@ -6201,12 +6201,12 @@ static NSFileManager *fm = nil;
 	     'int' to read/write these variables.  */
 	  [aCoder encodeValueOfObjCType: @encode(int) at: &enc];
 
-	  chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
+	  chars = malloc(count*sizeof(unichar));
 	  [self getCharacters: chars range: ((NSRange){0, count})];
 	  [aCoder encodeArrayOfObjCType: @encode(unichar)
 				  count: count
 				     at: chars];
-	  NSZoneFree(NSDefaultMallocZone(), chars);
+	  free(chars);
 	}
     }
 }
