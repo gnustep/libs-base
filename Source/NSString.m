@@ -5973,25 +5973,26 @@ static NSFileManager *fm = nil;
 
       if (coll != NULL)
 	{
-	  NSUInteger countSelf = compareRange.length;
-	  NSUInteger countOther = [string length];       
-	  unichar *charsSelf;
-	  unichar *charsOther;
-	  UCollationResult result;
-    NSUInteger sizeSelf = countSelf * sizeof(unichar);
-    NSUInteger sizeOther = countOther * sizeof(unichar);
-    bool useStack = sizeSelf + sizeOther < 128;
+	  NSUInteger		countSelf = compareRange.length;
+	  NSUInteger		countOther = [string length];       
+	  unichar		*charsSelf;
+	  unichar		*charsOther;
+	  UCollationResult	result;
+	  NSUInteger 		sizeSelf = countSelf * sizeof(unichar);
+	  NSUInteger 		sizeOther = countOther * sizeof(unichar);
+	  BOOL			useStack = (sizeSelf + sizeOther) < 128;
 
-    if (useStack)
-    {
-      charsSelf = alloca(sizeSelf);
-      charsOther = alloca(sizeOther);
-    } else {
-      charsSelf = NSZoneMalloc(NSDefaultMallocZone(), sizeSelf);
-      charsOther = NSZoneMalloc(NSDefaultMallocZone(), sizeOther);
-    }
+	  if (useStack)
+	    {
+	      charsSelf = alloca(sizeSelf ? sizeSelf : 1);
+	      charsOther = alloca(sizeOther ? sizeOther : 1);
+	    }
+	  else
+	    {
+	      charsSelf = NSZoneMalloc(NSDefaultMallocZone(), sizeSelf);
+	      charsOther = NSZoneMalloc(NSDefaultMallocZone(), sizeOther);
+	    }
 
-	  
 	  // Copy to buffer
 	  [self getCharacters: charsSelf range: compareRange];
 	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
@@ -5999,14 +6000,16 @@ static NSFileManager *fm = nil;
 	  result = ucol_strcoll(coll,
 	    charsSelf, countSelf, charsOther, countOther);
 
-    if (!useStack)
-    {
-      NSZoneFree(NSDefaultMallocZone(), charsSelf);
-      NSZoneFree(NSDefaultMallocZone(), charsOther);	  
-    }
+	  if (!useStack)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), charsSelf);
+	      NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+	    }
 	  
-    // UCollationResult enums are stable and match NSComparisonResult enums
-    return (NSComparisonResult)result;
+	  /* UCollationResult enums are stable and match
+	   * NSComparisonResult enums
+	   */
+	  return (NSComparisonResult)result;
 	}
     }
 #endif
