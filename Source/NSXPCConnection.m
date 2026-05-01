@@ -22,7 +22,15 @@
 */
 
 #import "common.h"
+#define EXPOSE_NSXPCConnection_IVARS 1
+#define EXPOSE_NSXPCListener_IVARS 1
+#define EXPOSE_NSXPCInterface_IVARS 1
+#define EXPOSE_NSXPCListenerEndpoint_IVARS 1
+
 #import "Foundation/NSXPCConnection.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArchiver.h"
+
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSConfig.h"
 
@@ -30,25 +38,23 @@
 #include <xpc/xpc.h>
 #endif
 
-@interface NSXPCConnection ()
-{
-  NSString *_serviceName;
-  NSXPCListenerEndpoint *_endpoint;
-  NSXPCInterface *_exportedInterface;
-  NSXPCInterface *_remoteObjectInterface;
-  id _remoteObjectProxy;
-  GSXPCInterruptionHandler _interruptionHandler;
-  GSXPCInvalidationHandler _invalidationHandler;
-  NSXPCConnectionOptions _options;
-  BOOL _resumed;
-  BOOL _invalidated;
-#if GS_USE_LIBXPC
-  xpc_connection_t _xpcConnection;
-#endif
-}
-
+@interface NSXPCConnection (Private)
 - (void) _setupLibXPCConnectionIfPossible;
 @end
+
+@interface NSXPCListenerEndpoint (Private)
+- (instancetype) initWithServiceName: (NSString *)serviceName;
+- (NSString *) _serviceName;
+@end
+
+static NSString *
+GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
+{
+  return [NSString stringWithFormat: @"%s:%lu:%u",
+    (sel == 0 ? "" : sel_getName(sel)),
+    (unsigned long)arg,
+    (unsigned int)(ofReply ? 1 : 0)];
+}
 
 @implementation NSXPCConnection
 
@@ -76,7 +82,7 @@
   uint64_t flags = 0;
   NSXPCConnection *connection = self;
 
-  if (_xpcConnection != NULL || _serviceName == nil || _invalidated == YES)
+  if (_xpcConnection != 0 || _serviceName == nil || _invalidated == YES)
     {
       return;
     }
@@ -86,14 +92,15 @@
       flags |= XPC_CONNECTION_MACH_SERVICE_PRIVILEGED;
     }
 #endif
-  _xpcConnection = xpc_connection_create_mach_service([_serviceName UTF8String],
-    NULL, flags);
-  if (_xpcConnection == NULL)
+  _xpcConnection = (void *)xpc_connection_create_mach_service(
+    [_serviceName UTF8String], NULL, flags);
+  if (_xpcConnection == 0)
     {
       return;
     }
 
-  xpc_connection_set_event_handler(_xpcConnection, ^(xpc_object_t event) {
+  xpc_connection_set_event_handler((xpc_connection_t)_xpcConnection,
+    ^(xpc_object_t event) {
     if (event == XPC_ERROR_CONNECTION_INTERRUPTED)
       {
         if (connection->_interruptionHandler != NULL)
@@ -113,7 +120,7 @@
 
   if (_resumed == YES)
     {
-      xpc_connection_resume(_xpcConnection);
+      xpc_connection_resume((xpc_connection_t)_xpcConnection);
     }
 #endif
 }
@@ -149,7 +156,17 @@
 {
   if ((self = [super init]) != nil)
     {
+      NSString *serviceName = nil;
+
       ASSIGN(_endpoint, endpoint);
+      if ([_endpoint respondsToSelector: @selector(_serviceName)])
+        {
+          serviceName = [_endpoint performSelector: @selector(_serviceName)];
+        }
+      if (serviceName != nil)
+        {
+          [self setServiceName: serviceName];
+        }
     }
   return self;
 }
@@ -231,9 +248,9 @@
   _resumed = YES;
   [self _setupLibXPCConnectionIfPossible];
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      xpc_connection_resume(_xpcConnection);
+      xpc_connection_resume((xpc_connection_t)_xpcConnection);
     }
 #endif
 }
@@ -242,9 +259,9 @@
 {
   _resumed = NO;
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      xpc_connection_suspend(_xpcConnection);
+      xpc_connection_suspend((xpc_connection_t)_xpcConnection);
     }
 #endif
 }
@@ -255,11 +272,11 @@
 
   _invalidated = YES;
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      xpc_connection_cancel(_xpcConnection);
-      xpc_release(_xpcConnection);
-      _xpcConnection = NULL;
+      xpc_connection_cancel((xpc_connection_t)_xpcConnection);
+      xpc_release((xpc_connection_t)_xpcConnection);
+      _xpcConnection = 0;
     }
 #endif
   if (wasInvalidated == NO && _invalidationHandler != NULL)
@@ -275,9 +292,9 @@
 - (pid_t) processIdentifier
 {
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      return xpc_connection_get_pid(_xpcConnection);
+      return xpc_connection_get_pid((xpc_connection_t)_xpcConnection);
     }
 #endif
   return 0;
@@ -285,9 +302,9 @@
 - (uid_t) effectiveUserIdentifier
 {
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      return xpc_connection_get_euid(_xpcConnection);
+      return xpc_connection_get_euid((xpc_connection_t)_xpcConnection);
     }
 #endif
   return (uid_t)0;
@@ -295,9 +312,9 @@
 - (gid_t) effectiveGroupIdentifier
 {
 #if GS_USE_LIBXPC
-  if (_xpcConnection != NULL)
+  if (_xpcConnection != 0)
     {
-      return xpc_connection_get_egid(_xpcConnection);
+      return xpc_connection_get_egid((xpc_connection_t)_xpcConnection);
     }
 #endif
   return (gid_t)0;
@@ -308,52 +325,80 @@
 
 + (NSXPCListener *) serviceListener
 {
-  return [self notImplemented: _cmd];
+  return AUTORELEASE([[self alloc] initWithMachServiceName: nil]);
 }
 
 + (NSXPCListener *) anonymousListener
 {
-  return [self notImplemented: _cmd];
+  return AUTORELEASE([[self alloc] initWithMachServiceName: nil]);
 }
 
 - (instancetype) initWithMachServiceName:(NSString *)name
 {
-  return [self notImplemented: _cmd];
+  if ((self = [super init]) != nil)
+    {
+      NSXPCListenerEndpoint *ep;
+
+      ASSIGNCOPY(_machServiceName, name);
+      ep = [[NSXPCListenerEndpoint alloc] initWithServiceName: _machServiceName];
+      ASSIGN(_endpoint, ep);
+      RELEASE(ep);
+      _resumed = NO;
+      _invalidated = NO;
+    }
+  return self;
+}
+
+- (instancetype) init
+{
+  return [self initWithMachServiceName: nil];
+}
+
+- (void) dealloc
+{
+  DESTROY(_delegate);
+  DESTROY(_endpoint);
+  DESTROY(_machServiceName);
+  [super dealloc];
 }
 
 - (id <NSXPCListenerDelegate>) delegate
 {
-  return [self notImplemented: _cmd];
+  return _delegate;
 }
 
 - (void) setDelegate: (id <NSXPCListenerDelegate>) delegate
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_delegate, delegate);
 }
 
 - (NSXPCListenerEndpoint *) endpoint
 {
-  return [self notImplemented: _cmd];
+  return _endpoint;
 }
 
 - (void) setEndpoint: (NSXPCListenerEndpoint *)endpoint
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_endpoint, endpoint);
 }
 
 - (void) resume
 {
-  [self notImplemented: _cmd];
+  if (_invalidated == NO)
+    {
+      _resumed = YES;
+    }
 }
 
 - (void) suspend
 {
-  [self notImplemented: _cmd];
+  _resumed = NO;
 }
 
 - (void) invalidate
 {
-  [self notImplemented: _cmd];
+  _resumed = NO;
+  _invalidated = YES;
 }
 
 @end
@@ -362,17 +407,38 @@
 
 + (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol
 {
-  return [self notImplemented: _cmd];
+  NSXPCInterface *ifc;
+
+  ifc = AUTORELEASE([[self alloc] init]);
+  [ifc setProtocol: protocol];
+  return ifc;
+}
+
+- (instancetype) init
+{
+  if ((self = [super init]) != nil)
+    {
+      _classes = [NSMutableDictionary new];
+      _interfaces = [NSMutableDictionary new];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  DESTROY(_classes);
+  DESTROY(_interfaces);
+  [super dealloc];
 }
 
 - (Protocol *) protocol
 {
-  return [self notImplemented: _cmd];
+  return _protocol;
 }
 
 - (void) setProtocol: (Protocol *)protocol
 {
-  [self notImplemented: _cmd];
+  _protocol = protocol;
 }
 
 - (void) setClasses: (NSSet *)classes
@@ -380,14 +446,25 @@
       argumentIndex: (NSUInteger)arg
 	    ofReply: (BOOL)ofReply
 {
-  [self notImplemented: _cmd];
+  NSString *key = GSXPCSignatureKey(sel, arg, ofReply);
+
+  if (classes == nil)
+    {
+      [_classes removeObjectForKey: key];
+    }
+  else
+    {
+      [_classes setObject: [[classes copy] autorelease] forKey: key];
+    }
 }
 
 - (NSSet *) classesForSelector: (SEL)sel
 		 argumentIndex: (NSUInteger)arg
 		       ofReply: (BOOL)ofReply
 {
-  return [self notImplemented: _cmd];
+  NSString *key = GSXPCSignatureKey(sel, arg, ofReply);
+
+  return [_classes objectForKey: key];
 }
 
 - (void) setInterface: (NSXPCInterface *)ifc
@@ -395,29 +472,85 @@
 	argumentIndex: (NSUInteger)arg
 	      ofReply: (BOOL)ofReply
 {
-  [self notImplemented: _cmd];
+  NSString *key = GSXPCSignatureKey(sel, arg, ofReply);
+
+  if (ifc == nil)
+    {
+      [_interfaces removeObjectForKey: key];
+    }
+  else
+    {
+      [_interfaces setObject: ifc forKey: key];
+    }
 }
 
 - (NSXPCInterface *) interfaceForSelector: (SEL)sel
 			    argumentIndex: (NSUInteger)arg
 				  ofReply: (BOOL)ofReply
 {
-  return [self notImplemented: _cmd];
+  NSString *key = GSXPCSignatureKey(sel, arg, ofReply);
+
+  return [_interfaces objectForKey: key];
 }
 
 @end
 
 @implementation NSXPCListenerEndpoint
 
+- (instancetype) initWithServiceName: (NSString *)serviceName
+{
+  if ((self = [super init]) != nil)
+    {
+      ASSIGNCOPY(_serviceName, serviceName);
+    }
+  return self;
+}
+
+- (instancetype) init
+{
+  return [self initWithServiceName: nil];
+}
+
+- (void) dealloc
+{
+  DESTROY(_serviceName);
+  [super dealloc];
+}
+
+- (NSString *) _serviceName
+{
+  return _serviceName;
+}
+
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  return [self notImplemented: _cmd];
+  NSString *serviceName = nil;
+
+  if ((self = [super init]) != nil)
+    {
+      if ([coder respondsToSelector: @selector(decodeObjectForKey:)])
+        {
+          serviceName = [coder decodeObjectForKey: @"serviceName"];
+        }
+      else
+        {
+          serviceName = [coder decodeObject];
+        }
+      ASSIGNCOPY(_serviceName, serviceName);
+    }
+  return self;
 }
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  [self notImplemented: _cmd];
+  if ([coder respondsToSelector: @selector(encodeObject:forKey:)])
+    {
+      [coder encodeObject: _serviceName forKey: @"serviceName"];
+    }
+  else
+    {
+      [coder encodeObject: _serviceName];
+    }
 }
 
 @end
-

@@ -70,6 +70,22 @@ typedef NSUInteger NSXPCConnectionOptions;
   
 GS_EXPORT_CLASS
 @interface NSXPCConnection : NSObject <NSXPCProxyCreating>
+{
+#if GS_EXPOSE(NSXPCConnection)
+  @private
+  NSString *_serviceName;
+  NSXPCListenerEndpoint *_endpoint;
+  NSXPCInterface *_exportedInterface;
+  NSXPCInterface *_remoteObjectInterface;
+  id _remoteObjectProxy;
+  GSXPCInterruptionHandler _interruptionHandler;
+  GSXPCInvalidationHandler _invalidationHandler;
+  NSXPCConnectionOptions _options;
+  BOOL _resumed;
+  BOOL _invalidated;
+  void *_xpcConnection;
+#endif
+}
 
 - (instancetype) initWithListenerEndpoint: (NSXPCListenerEndpoint *)endpoint;
 
@@ -120,6 +136,16 @@ GS_EXPORT_CLASS
 
 
 @interface NSXPCListener : NSObject
+{
+#if GS_EXPOSE(NSXPCListener)
+  @private
+  id <NSXPCListenerDelegate> _delegate;
+  NSXPCListenerEndpoint *_endpoint;
+  NSString *_machServiceName;
+  BOOL _resumed;
+  BOOL _invalidated;
+#endif
+}
 
 + (NSXPCListener *) serviceListener;
 
@@ -149,6 +175,14 @@ GS_EXPORT_CLASS
 @end
 
 @interface NSXPCInterface : NSObject
+{
+#if GS_EXPOSE(NSXPCInterface)
+  @private
+  Protocol *_protocol;
+  NSMutableDictionary *_classes;
+  NSMutableDictionary *_interfaces;
+#endif
+}
 
 + (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol;
 
@@ -177,6 +211,12 @@ GS_EXPORT_CLASS
 
 GS_EXPORT_CLASS
 @interface NSXPCListenerEndpoint : NSObject <NSCoding>  // NSSecureCoding
+{
+#if GS_EXPOSE(NSXPCListenerEndpoint)
+  @private
+  NSString *_serviceName;
+#endif
+}
 @end
 
 #if	defined(__cplusplus)
