@@ -21,139 +21,286 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "common.h"
 #import "Foundation/NSXPCConnection.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/GSConfig.h"
+
+#if GS_USE_LIBXPC
+#include <xpc/xpc.h>
+#endif
+
+@interface NSXPCConnection ()
+{
+  NSString *_serviceName;
+  NSXPCListenerEndpoint *_endpoint;
+  NSXPCInterface *_exportedInterface;
+  NSXPCInterface *_remoteObjectInterface;
+  id _remoteObjectProxy;
+  GSXPCInterruptionHandler _interruptionHandler;
+  GSXPCInvalidationHandler _invalidationHandler;
+  NSXPCConnectionOptions _options;
+  BOOL _resumed;
+  BOOL _invalidated;
+#if GS_USE_LIBXPC
+  xpc_connection_t _xpcConnection;
+#endif
+}
+
+- (void) _setupLibXPCConnectionIfPossible;
+@end
 
 @implementation NSXPCConnection
 
+- (instancetype) init
+{
+  return [self initWithServiceName: nil];
+}
+
+- (void) dealloc
+{
+  [self invalidate];
+  DESTROY(_serviceName);
+  DESTROY(_endpoint);
+  DESTROY(_exportedInterface);
+  DESTROY(_remoteObjectInterface);
+  DESTROY(_remoteObjectProxy);
+  DESTROY(_interruptionHandler);
+  DESTROY(_invalidationHandler);
+  [super dealloc];
+}
+
+- (void) _setupLibXPCConnectionIfPossible
+{
+#if GS_USE_LIBXPC
+  uint64_t flags = 0;
+  NSXPCConnection *connection = self;
+
+  if (_xpcConnection != NULL || _serviceName == nil || _invalidated == YES)
+    {
+      return;
+    }
+#ifdef XPC_CONNECTION_MACH_SERVICE_PRIVILEGED
+  if ((_options & NSXPCConnectionPrivileged) == NSXPCConnectionPrivileged)
+    {
+      flags |= XPC_CONNECTION_MACH_SERVICE_PRIVILEGED;
+    }
+#endif
+  _xpcConnection = xpc_connection_create_mach_service([_serviceName UTF8String],
+    NULL, flags);
+  if (_xpcConnection == NULL)
+    {
+      return;
+    }
+
+  xpc_connection_set_event_handler(_xpcConnection, ^(xpc_object_t event) {
+    if (event == XPC_ERROR_CONNECTION_INTERRUPTED)
+      {
+        if (connection->_interruptionHandler != NULL)
+          {
+            connection->_interruptionHandler();
+          }
+      }
+    else if (event == XPC_ERROR_CONNECTION_INVALID)
+      {
+        connection->_invalidated = YES;
+        if (connection->_invalidationHandler != NULL)
+          {
+            connection->_invalidationHandler();
+          }
+      }
+  });
+
+  if (_resumed == YES)
+    {
+      xpc_connection_resume(_xpcConnection);
+    }
+#endif
+}
+
 - (instancetype) initWithServiceName:(NSString *)serviceName
 {
-  return [self notImplemented: _cmd];
+  return [self initWithMachServiceName: serviceName options: 0];
 }
 
 - (NSString *) serviceName
 {
-  return [self notImplemented: _cmd];
+  return _serviceName;
 }
 
 - (void) setServiceName: (NSString *)serviceName
 {
-  [self notImplemented: _cmd];
+  ASSIGNCOPY(_serviceName, serviceName);
+  [self _setupLibXPCConnectionIfPossible];
 }
 
 - (instancetype) initWithMachServiceName: (NSString *)name
 				 options: (NSXPCConnectionOptions)options
 {
-  return [self notImplemented: _cmd];
+  if ((self = [super init]) != nil)
+    {
+      _options = options;
+      [self setServiceName: name];
+    }
+  return self;
 }
 
 - (instancetype) initWithListenerEndpoint: (NSXPCListenerEndpoint *)endpoint
 {
-  return [self notImplemented: _cmd];
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_endpoint, endpoint);
+    }
+  return self;
 }
 
 
 - (NSXPCListenerEndpoint *) endpoint
 {
-  return [self notImplemented: _cmd];
+  return _endpoint;
 }
 
 - (void) setEndpoint: (NSXPCListenerEndpoint *) endpoint
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_endpoint, endpoint);
 }
 
 - (NSXPCInterface *) exportedInterface
 {
-  return [self notImplemented: _cmd];
+  return _exportedInterface;
 }
 
 - (void) setExportInterface: (NSXPCInterface *)exportedInterface
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_exportedInterface, exportedInterface);
 }
 
 - (NSXPCInterface *) remoteObjectInterface
 {
-  return [self notImplemented: _cmd];
+  return _remoteObjectInterface;
 }
 
 - (void) setRemoteObjectInterface: (NSXPCInterface *)remoteObjectInterface
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_remoteObjectInterface, remoteObjectInterface);
 }
 
 - (id) remoteObjectProxy
 {
-  return [self notImplemented: _cmd];
+  return _remoteObjectProxy;
 }
 
 - (void) setRemoteObjectProxy: (id)remoteObjectProxy
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_remoteObjectProxy, remoteObjectProxy);
 }
 
 - (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
 {
-  return [self notImplemented: _cmd];
+  return [self remoteObjectProxy];
 }
 
 - (id) synchronousRemoteObjectProxyWithErrorHandler:
   (GSXPCProxyErrorHandler)handler
 {
-  return [self notImplemented: _cmd];
+  return [self remoteObjectProxy];
 }
 
 - (GSXPCInterruptionHandler) interruptionHandler 
 {
-  return NULL;
+  return _interruptionHandler;
 }
 
 - (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler
 {
-  [self notImplemented: _cmd];
+  ASSIGNCOPY(_interruptionHandler, handler);
 }
 
 - (GSXPCInvalidationHandler) invalidationHandler 
 {
-  return NULL;
+  return _invalidationHandler;
 }
 
 - (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler
 {
-  [self notImplemented: _cmd];
+  ASSIGNCOPY(_invalidationHandler, handler);
 }
 
 - (void) resume
 {
-  [self notImplemented: _cmd];
+  _resumed = YES;
+  [self _setupLibXPCConnectionIfPossible];
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      xpc_connection_resume(_xpcConnection);
+    }
+#endif
 }
 
 - (void) suspend
 {
-  [self notImplemented: _cmd];
+  _resumed = NO;
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      xpc_connection_suspend(_xpcConnection);
+    }
+#endif
 }
 
 - (void) invalidate
 {
-  [self notImplemented: _cmd];
+  BOOL wasInvalidated = _invalidated;
+
+  _invalidated = YES;
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      xpc_connection_cancel(_xpcConnection);
+      xpc_release(_xpcConnection);
+      _xpcConnection = NULL;
+    }
+#endif
+  if (wasInvalidated == NO && _invalidationHandler != NULL)
+    {
+      _invalidationHandler();
+    }
 }
 
 - (NSUInteger) auditSessionIdentifier
 {
-  return (NSUInteger)[self notImplemented: _cmd];
+  return 0;
 }
 - (pid_t) processIdentifier
 {
-  return (pid_t)(uintptr_t)[self notImplemented: _cmd];
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      return xpc_connection_get_pid(_xpcConnection);
+    }
+#endif
+  return 0;
 }
 - (uid_t) effectiveUserIdentifier
 {
-  return (uid_t)(uintptr_t)[self notImplemented: _cmd];
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      return xpc_connection_get_euid(_xpcConnection);
+    }
+#endif
+  return (uid_t)0;
 }
 - (gid_t) effectiveGroupIdentifier
 {
-  return (gid_t)(uintptr_t)[self notImplemented: _cmd];
+#if GS_USE_LIBXPC
+  if (_xpcConnection != NULL)
+    {
+      return xpc_connection_get_egid(_xpcConnection);
+    }
+#endif
+  return (gid_t)0;
 }
 @end
 
