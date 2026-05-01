@@ -48,8 +48,11 @@ static id       boolN;
 static id       boolY;
 
 /* The number of (unicode) characters to fetch from the source at once.
+ * Needs to be big enough to minimise overheads of refilling the buffer,
+ * but small enough to fit comfortably on the stack for the parseString()
+ * function below and in the state structure for any whole parse.
  */
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 4096
 
 /* Structure for storing the internal state of the parser.  An instance of this
  * is allocated on the stack, and a copy of it passed down to each parse
@@ -540,27 +543,16 @@ NS_RETURNS_RETAINED static NSNumber*
 parseNumber(ParserState *state)
 {
   unichar c = currentChar(state);
-  char numberBuffer[128];
-  char *number = numberBuffer;
-  int bufferSize = 128;
+  char number[255];
   int parsedSize = 0;
-  double num;
+  BOOL	isFloat = NO;
 
   // Define a macro to add a character to the buffer, because we'll need to do
-  // it a lot.  This resizes the buffer if required.
+  // it a lot.  This generates a parse error if the maximum size is exceeded.
 #define BUFFER(x) do {\
-  if (parsedSize == bufferSize)\
+  if (parsedSize == sizeof(number))\
     {\
-      bufferSize *= 2;\
-      if (number == numberBuffer)\
-        {\
-          number = malloc(bufferSize);\
-          memcpy(number, numberBuffer, sizeof(numberBuffer));\
-        }\
-      else\
-        {\
-          number = realloc(number, bufferSize);\
-        }\
+      parseError(state);\
     }\
   number[parsedSize++] = (char)x; } while (0)
   // JSON numbers must start with a - or a digit
@@ -579,6 +571,7 @@ parseNumber(ParserState *state)
   // Parse the fractional component, if there is one
   if ('.' == c)
     {
+      isFloat = YES;
       BUFFER(c);
       while (isdigit(c = consumeChar(state)))
         {
@@ -588,15 +581,12 @@ parseNumber(ParserState *state)
   // parse the exponent if there is one
   if ('e' == tolower(c))
     {
+      isFloat = YES;
       BUFFER(c);
       c = consumeChar(state);
       // The exponent must be a valid number
       if (!(c == '-' || c == '+' || isdigit(c)))
         {
-          if (number != numberBuffer)
-            {
-              free(number);
-            }
 	  parseError(state);
 	  return nil;
         }
@@ -608,12 +598,11 @@ parseNumber(ParserState *state)
     }
     // Add a null terminator on the buffer.
     BUFFER(0);
-    num = strtod(number, 0);
-    if (number != numberBuffer)
+    if (NO == isFloat)
       {
-        free(number);
+	return [[NSNumber alloc] initWithLongLong: atoll(number)];
       }
-    return [[NSNumber alloc] initWithDouble: num];
+    return [[NSNumber alloc] initWithDouble: strtod(number, 0)];
 #undef BUFFER
 }
 

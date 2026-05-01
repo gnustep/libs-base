@@ -26,11 +26,21 @@
 
 #import "common.h"
 
+/** Creates a copy of anObject (simply copying object memory)
+ * and returns it.  This also calls GSDebugAllocationAdd().<br />
+ * If you have turned on debugging of object allocation (by
+ * calling the <code>GSDebugAllocationActive</code>
+ * function), GSDebugAllocationAdd() will update the various
+ * debugging counts and monitors of allocated objects, which
+ * you can access using the <code>GSDebugAllocation...</code>
+ * functions.
+ */
 NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
 {
   Class	c = object_getClass(anObject);
   id copy = NSAllocateObject(c, extraBytes, zone);
 
   memcpy(copy, anObject, class_getInstanceSize(c) + extraBytes);
+  GSDebugAllocationAdd(c, copy);
   return copy;
 }

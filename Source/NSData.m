@@ -4692,7 +4692,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       growth = capacity/2;
       if (growth == 0)
 	{
-	  growth = 1;
+	  growth = 64;
 	}
     }
   if (size < length)
@@ -4822,7 +4822,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       growth = capacity/2;
       if (growth == 0)
 	{
-	  growth = 1;
+	  growth = 64;
 	}
     }
   if (size < length)
