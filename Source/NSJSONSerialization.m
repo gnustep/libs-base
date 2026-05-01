@@ -48,8 +48,11 @@ static id       boolN;
 static id       boolY;
 
 /* The number of (unicode) characters to fetch from the source at once.
+ * Needs to be big enough to minimise overheads of refilling the buffer,
+ * but small enough to fit comfortably on the stack for the parseString()
+ * function below and in the state structure for any whole parse.
  */
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 4096
 
 /* Structure for storing the internal state of the parser.  An instance of this
  * is allocated on the stack, and a copy of it passed down to each parse
