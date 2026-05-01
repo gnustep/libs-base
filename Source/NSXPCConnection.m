@@ -56,6 +56,20 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
     (unsigned int)(ofReply ? 1 : 0)];
 }
 
+#define GS_ASSIGN_BLOCK(var, val) do { \
+  if ((var) != (val)) { \
+    if ((var) != 0) { Block_release(var); } \
+    (var) = ((val) != 0) ? Block_copy(val) : 0; \
+  } \
+} while (0)
+
+#define GS_DESTROY_BLOCK(var) do { \
+  if ((var) != 0) { \
+    Block_release(var); \
+    (var) = 0; \
+  } \
+} while (0)
+
 @implementation NSXPCConnection
 
 - (instancetype) init
@@ -71,8 +85,8 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
   DESTROY(_exportedInterface);
   DESTROY(_remoteObjectInterface);
   DESTROY(_remoteObjectProxy);
-  DESTROY(_interruptionHandler);
-  DESTROY(_invalidationHandler);
+  GS_DESTROY_BLOCK(_interruptionHandler);
+  GS_DESTROY_BLOCK(_invalidationHandler);
   [super dealloc];
 }
 
@@ -105,7 +119,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
       {
         if (connection->_interruptionHandler != NULL)
           {
-            connection->_interruptionHandler();
+            CALL_BLOCK_NO_ARGS(connection->_interruptionHandler);
           }
       }
     else if (event == XPC_ERROR_CONNECTION_INVALID)
@@ -113,7 +127,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
         connection->_invalidated = YES;
         if (connection->_invalidationHandler != NULL)
           {
-            connection->_invalidationHandler();
+            CALL_BLOCK_NO_ARGS(connection->_invalidationHandler);
           }
       }
   });
@@ -230,7 +244,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 
 - (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler
 {
-  ASSIGNCOPY(_interruptionHandler, handler);
+  GS_ASSIGN_BLOCK(_interruptionHandler, handler);
 }
 
 - (GSXPCInvalidationHandler) invalidationHandler 
@@ -240,7 +254,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 
 - (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler
 {
-  ASSIGNCOPY(_invalidationHandler, handler);
+  GS_ASSIGN_BLOCK(_invalidationHandler, handler);
 }
 
 - (void) resume
@@ -281,7 +295,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 #endif
   if (wasInvalidated == NO && _invalidationHandler != NULL)
     {
-      _invalidationHandler();
+      CALL_BLOCK_NO_ARGS(_invalidationHandler);
     }
 }
 
