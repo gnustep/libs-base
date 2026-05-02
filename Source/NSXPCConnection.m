@@ -30,9 +30,12 @@
 #import "Foundation/NSXPCConnection.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArchiver.h"
+#import "Foundation/NSArray.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSProxy.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSLock.h"
 
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSConfig.h"
@@ -127,13 +130,103 @@ GSXPCProxyError(NSString *description)
                          userInfo: userInfo];
 }
 
+static BOOL
+GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
+{
+  NSEnumerator *enumerator;
+  id candidate;
+
+  if (object == nil || allowedClasses == nil || [allowedClasses count] == 0)
+    {
+      return YES;
+    }
+
+  enumerator = [allowedClasses objectEnumerator];
+  while ((candidate = [enumerator nextObject]) != nil)
+    {
+      if (class_isMetaClass(object_getClass(candidate))
+        && [object isKindOfClass: candidate])
+        {
+          return YES;
+        }
+    }
+  return NO;
+}
+
+@implementation NSXPCCoder
+
++ (NSData *) archivedDataWithRootObject: (id)object
+{
+  return [NSArchiver archivedDataWithRootObject: object];
+}
+
++ (id) unarchivedObjectWithData: (NSData *)data
+{
+  return [self unarchivedObjectWithData: data error: NULL];
+}
+
++ (id) unarchivedObjectWithData: (NSData *)data
+                          error: (NSError **)error
+{
+  return [self unarchivedObjectWithData: data
+                         allowedClasses: nil
+                                  error: error];
+}
+
++ (id) unarchivedObjectWithData: (NSData *)data
+                 allowedClasses: (NSSet *)allowedClasses
+                          error: (NSError **)error
+{
+  id value;
+
+  value = [NSUnarchiver unarchiveObjectWithData: data];
+  if (value == nil && data != nil && [data length] > 0)
+    {
+      if (error != NULL)
+        {
+          NSDictionary *userInfo;
+
+          userInfo = [NSDictionary dictionaryWithObject:
+            @"Unable to decode XPC payload data."
+            forKey: NSLocalizedDescriptionKey];
+          *error = [NSError errorWithDomain: @"NSXPCConnectionErrorDomain"
+                                       code: 2
+                                   userInfo: userInfo];
+        }
+      return nil;
+    }
+
+  if (GSXPCObjectMatchesAllowedClasses(value, allowedClasses) == NO)
+    {
+      if (error != NULL)
+        {
+          NSDictionary *userInfo;
+
+          userInfo = [NSDictionary dictionaryWithObject:
+            @"Decoded XPC object is not in the allowed class set."
+            forKey: NSLocalizedDescriptionKey];
+          *error = [NSError errorWithDomain: @"NSXPCConnectionErrorDomain"
+                                       code: 3
+                                   userInfo: userInfo];
+        }
+      return nil;
+    }
+  return value;
+}
+
+@end
+
 @interface GSXPCPendingReply : NSObject
 {
   NSCondition *_condition;
   BOOL _resolved;
+  NSSet *_allowedClasses;
   id _returnObject;
   NSError *_error;
 }
+
+- (instancetype) initWithAllowedClasses: (NSSet *)allowedClasses;
+- (NSSet *) allowedClasses;
 
 - (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error;
 - (BOOL) waitForResolutionUntilDate: (NSDate *)limitDate
@@ -144,11 +237,12 @@ GSXPCProxyError(NSString *description)
 
 @implementation GSXPCPendingReply
 
-- (instancetype) init
+- (instancetype) initWithAllowedClasses: (NSSet *)allowedClasses
 {
   if ((self = [super init]) != nil)
     {
       _condition = [NSCondition new];
+      ASSIGN(_allowedClasses, allowedClasses);
       _resolved = NO;
     }
   return self;
@@ -157,9 +251,15 @@ GSXPCProxyError(NSString *description)
 - (void) dealloc
 {
   DESTROY(_condition);
+  DESTROY(_allowedClasses);
   DESTROY(_returnObject);
   DESTROY(_error);
   [super dealloc];
+}
+
+- (NSSet *) allowedClasses
+{
+  return _allowedClasses;
 }
 
 - (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error
@@ -404,10 +504,18 @@ GSXPCProxyError(NSString *description)
           if (returnData != NULL && returnDataLength > 0)
             {
               NSData *encoded;
+              NSError *decodeError;
 
               encoded = [NSData dataWithBytes: returnData
                                        length: (NSUInteger)returnDataLength];
-              returnObject = [NSUnarchiver unarchiveObjectWithData: encoded];
+              decodeError = nil;
+              returnObject = [NSXPCCoder unarchivedObjectWithData: encoded
+                                                   allowedClasses: [pending allowedClasses]
+                                                            error: &decodeError];
+              if (decodeError != nil && error == nil)
+                {
+                  error = decodeError;
+                }
             }
 
           [pending resolveWithReturnObject: returnObject error: error];
@@ -452,7 +560,7 @@ GSXPCProxyError(NSString *description)
     }
   else if (returnObject != nil)
     {
-      encoded = [NSArchiver archivedDataWithRootObject: returnObject];
+      encoded = [NSXPCCoder archivedDataWithRootObject: returnObject];
       if (encoded != nil)
         {
           xpc_dictionary_set_data(reply,
@@ -648,9 +756,31 @@ GSXPCProxyError(NSString *description)
       if (argData != NULL && argDataLength > 0)
         {
           NSData *encoded;
+          NSSet *allowedClasses;
+          NSError *decodeError;
 
           encoded = [NSData dataWithBytes: argData length: (NSUInteger)argDataLength];
-          decoded = [NSUnarchiver unarchiveObjectWithData: encoded];
+          allowedClasses = nil;
+          if (_exportedInterface != nil)
+            {
+              allowedClasses = [_exportedInterface classesForSelector: selector
+                                                         argumentIndex: index
+                                                               ofReply: NO];
+            }
+          decodeError = nil;
+          decoded = [NSXPCCoder unarchivedObjectWithData: encoded
+                                           allowedClasses: allowedClasses
+                                                    error: &decodeError];
+          if (decodeError != nil)
+            {
+              if (expectsReply == YES)
+                {
+                  [self _sendInvokeReplyForEvent: eventPtr
+                                withReturnObject: nil
+                                           error: decodeError];
+                }
+              return;
+            }
         }
       [invocation setArgument: &decoded atIndex: index + 2];
     }
@@ -903,12 +1033,7 @@ GSXPCProxyError(NSString *description)
 {
   NSMethodSignature *signature;
   const char *returnType;
-  BOOL expectsReply;
   BOOL supportsObjectReturn;
-  NSNumber *messageID;
-  GSXPCPendingReply *pending;
-  id returnObject = nil;
-  NSError *replyError = nil;
 
   if (invocation == nil)
     {
@@ -930,7 +1055,6 @@ GSXPCProxyError(NSString *description)
     }
 
   returnType = GSXPCStrippedTypeEncoding([signature methodReturnType]);
-  expectsReply = (synchronous == YES || returnType[0] != 'v');
   supportsObjectReturn = (returnType[0] == '@');
   if (returnType[0] != 'v'
     && supportsObjectReturn == NO)
@@ -965,6 +1089,12 @@ GSXPCProxyError(NSString *description)
     }
 
 #if GS_USE_LIBXPC
+  BOOL expectsReply;
+  NSNumber *messageID;
+  GSXPCPendingReply *pending;
+  id returnObject;
+  NSError *replyError;
+
   if (_xpcConnection == 0)
     {
       if (errorHandler != NULL)
@@ -975,11 +1105,23 @@ GSXPCProxyError(NSString *description)
       return;
     }
 
+  expectsReply = (synchronous == YES || returnType[0] != 'v');
+  returnObject = nil;
+  replyError = nil;
   messageID = [self _nextMessageIdentifierObject];
   pending = nil;
   if (expectsReply == YES)
     {
-      pending = [GSXPCPendingReply new];
+      NSSet *allowedClasses;
+
+      allowedClasses = nil;
+      if (supportsObjectReturn == YES && _remoteObjectInterface != nil)
+        {
+          allowedClasses = [_remoteObjectInterface classesForSelector: [invocation selector]
+                                                         argumentIndex: 0
+                                                               ofReply: YES];
+        }
+      pending = [[GSXPCPendingReply alloc] initWithAllowedClasses: allowedClasses];
       [self _registerPendingReply: pending forMessageID: messageID];
     }
 
@@ -1032,7 +1174,7 @@ GSXPCProxyError(NSString *description)
           NSString *key;
 
           [invocation getArgument: &value atIndex: index];
-          encoded = [NSArchiver archivedDataWithRootObject: value];
+          encoded = [NSXPCCoder archivedDataWithRootObject: value];
           if (encoded == nil)
             {
               if (errorHandler != NULL)

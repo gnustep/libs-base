@@ -101,6 +101,40 @@ enum
  * Bitmask of options controlling how an XPC connection is created.
  */
 typedef NSUInteger NSXPCConnectionOptions; 
+
+/**
+ * NSXPCCoder provides object encoding and decoding helpers used by
+ * NSXPCConnection message transport.
+ */
+GS_EXPORT_CLASS
+@interface NSXPCCoder : NSObject
+
+/**
+ * Archives an object graph into transport data.
+ */
++ (NSData *) archivedDataWithRootObject: (id)object;
+
+/**
+ * Unarchives an object graph from transport data.
+ */
++ (id) unarchivedObjectWithData: (NSData *)data;
+
+/**
+ * Unarchives an object graph from transport data and returns details
+ * via error if decoding fails.
+ */
++ (id) unarchivedObjectWithData: (NSData *)data
+                          error: (NSError **)error;
+
+/**
+ * Unarchives an object graph and verifies the top-level object belongs to
+ * one of the allowed classes when a class set is supplied.
+ */
++ (id) unarchivedObjectWithData: (NSData *)data
+                 allowedClasses: (NSSet *)allowedClasses
+                          error: (NSError **)error;
+
+@end
   
 /**
  * Represents a bidirectional communication channel to an XPC service or
