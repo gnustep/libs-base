@@ -119,6 +119,9 @@ GS_EXPORT_CLASS
   id _remoteObjectProxy;
   GSXPCInterruptionHandler _interruptionHandler;
   GSXPCInvalidationHandler _invalidationHandler;
+  NSMutableDictionary *_pendingReplies;
+  NSLock *_pendingRepliesLock;
+  unsigned long long _nextMessageIdentifier;
   NSXPCConnectionOptions _options;
   BOOL _resumed;
   BOOL _invalidated;

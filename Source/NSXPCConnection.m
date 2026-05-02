@@ -45,10 +45,21 @@
 
 @interface NSXPCConnection (Private)
 - (void) _setupLibXPCConnectionIfPossible;
+- (void) _initializeReplyTracking;
+- (NSNumber *) _nextMessageIdentifierObject;
+- (void) _registerPendingReply: (id)pending forMessageID: (NSNumber *)messageID;
+- (id) _takePendingReplyForMessageID: (NSNumber *)messageID;
+- (void) _failAllPendingRepliesWithError: (NSError *)error;
+- (void) _handleIncomingXPCEvent: (void *)event;
+- (void) _handleIncomingInvokeEvent: (void *)event;
+- (void) _sendInvokeReplyForEvent: (void *)event
+                  withReturnObject: (id)returnObject
+                             error: (NSError *)error;
 - (void) _sendInvocation: (NSInvocation *)invocation
             errorHandler: (GSXPCProxyErrorHandler)errorHandler
              synchronous: (BOOL)synchronous;
 - (NSMethodSignature *) _remoteMethodSignatureForSelector: (SEL)sel;
+- (NSMethodSignature *) _exportedMethodSignatureForSelector: (SEL)sel;
 @end
 
 @interface NSXPCListenerEndpoint (Private)
@@ -63,6 +74,18 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
     (sel == 0 ? "" : sel_getName(sel)),
     (unsigned long)arg,
     (unsigned int)(ofReply ? 1 : 0)];
+}
+
+static const char *
+GSXPCStrippedTypeEncoding(const char *type)
+{
+  while (*type == 'r' || *type == 'n' || *type == 'N'
+    || *type == 'o' || *type == 'O' || *type == 'R'
+    || *type == 'V')
+    {
+      type++;
+    }
+  return type;
 }
 
 #define GS_ASSIGN_BLOCK(var, val) do { \
@@ -103,6 +126,90 @@ GSXPCProxyError(NSString *description)
                              code: 1
                          userInfo: userInfo];
 }
+
+@interface GSXPCPendingReply : NSObject
+{
+  NSCondition *_condition;
+  BOOL _resolved;
+  id _returnObject;
+  NSError *_error;
+}
+
+- (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error;
+- (BOOL) waitForResolutionUntilDate: (NSDate *)limitDate
+                       returnObject: (id *)returnObject
+                              error: (NSError **)error;
+
+@end
+
+@implementation GSXPCPendingReply
+
+- (instancetype) init
+{
+  if ((self = [super init]) != nil)
+    {
+      _condition = [NSCondition new];
+      _resolved = NO;
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  DESTROY(_condition);
+  DESTROY(_returnObject);
+  DESTROY(_error);
+  [super dealloc];
+}
+
+- (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error
+{
+  [_condition lock];
+  if (_resolved == NO)
+    {
+      ASSIGN(_returnObject, returnObject);
+      ASSIGN(_error, error);
+      _resolved = YES;
+      [_condition broadcast];
+    }
+  [_condition unlock];
+}
+
+- (BOOL) waitForResolutionUntilDate: (NSDate *)limitDate
+                       returnObject: (id *)returnObject
+                              error: (NSError **)error
+{
+  BOOL resolved;
+
+  [_condition lock];
+  while (_resolved == NO)
+    {
+      if (limitDate == nil)
+        {
+          [_condition wait];
+        }
+      else if ([_condition waitUntilDate: limitDate] == NO)
+        {
+          break;
+        }
+    }
+  resolved = _resolved;
+  if (resolved == YES)
+    {
+      if (returnObject != 0)
+        {
+          *returnObject = [[_returnObject retain] autorelease];
+        }
+      if (error != 0)
+        {
+          *error = [[_error retain] autorelease];
+        }
+    }
+  [_condition unlock];
+  return resolved;
+}
+
+@end
 
 @implementation GSXPCRemoteProxy
 
@@ -165,9 +272,421 @@ GSXPCProxyError(NSString *description)
   DESTROY(_exportedObject);
   DESTROY(_remoteObjectInterface);
   DESTROY(_remoteObjectProxy);
+  DESTROY(_pendingReplies);
+  DESTROY(_pendingRepliesLock);
   GS_DESTROY_BLOCK(_interruptionHandler);
   GS_DESTROY_BLOCK(_invalidationHandler);
   [super dealloc];
+}
+
+- (void) _initializeReplyTracking
+{
+  if (_pendingRepliesLock == nil)
+    {
+      _pendingRepliesLock = [NSLock new];
+    }
+  if (_pendingReplies == nil)
+    {
+      _pendingReplies = [NSMutableDictionary new];
+    }
+  if (_nextMessageIdentifier == 0)
+    {
+      _nextMessageIdentifier = 1;
+    }
+}
+
+- (NSNumber *) _nextMessageIdentifierObject
+{
+  NSNumber *value;
+
+  [self _initializeReplyTracking];
+  [_pendingRepliesLock lock];
+  value = [NSNumber numberWithUnsignedLongLong: _nextMessageIdentifier++];
+  [_pendingRepliesLock unlock];
+  return value;
+}
+
+- (void) _registerPendingReply: (id)pending forMessageID: (NSNumber *)messageID
+{
+  if (pending == nil || messageID == nil)
+    {
+      return;
+    }
+  [self _initializeReplyTracking];
+  [_pendingRepliesLock lock];
+  [_pendingReplies setObject: pending forKey: messageID];
+  [_pendingRepliesLock unlock];
+}
+
+- (id) _takePendingReplyForMessageID: (NSNumber *)messageID
+{
+  id pending;
+
+  if (messageID == nil)
+    {
+      return nil;
+    }
+  [self _initializeReplyTracking];
+  [_pendingRepliesLock lock];
+  pending = [[[_pendingReplies objectForKey: messageID] retain] autorelease];
+  if (pending != nil)
+    {
+      [_pendingReplies removeObjectForKey: messageID];
+    }
+  [_pendingRepliesLock unlock];
+  return pending;
+}
+
+- (void) _failAllPendingRepliesWithError: (NSError *)error
+{
+  NSArray *pending;
+  NSUInteger index;
+
+  [self _initializeReplyTracking];
+  [_pendingRepliesLock lock];
+  pending = [[_pendingReplies allValues] retain];
+  [_pendingReplies removeAllObjects];
+  [_pendingRepliesLock unlock];
+
+  for (index = 0; index < [pending count]; index++)
+    {
+      GSXPCPendingReply *entry;
+
+      entry = [pending objectAtIndex: index];
+      [entry resolveWithReturnObject: nil error: error];
+    }
+  RELEASE(pending);
+}
+
+- (void) _handleIncomingXPCEvent: (void *)eventPtr
+{
+#if GS_USE_LIBXPC
+  xpc_object_t event;
+
+  event = (xpc_object_t)eventPtr;
+  if (xpc_get_type(event) == XPC_TYPE_DICTIONARY)
+    {
+      const char *kind;
+
+      kind = xpc_dictionary_get_string(event, "gsxpc.kind");
+      if (kind != NULL && strcmp(kind, "reply") == 0)
+        {
+          NSNumber *messageID;
+          GSXPCPendingReply *pending;
+          const char *errorText;
+          NSError *error;
+          id returnObject;
+          const void *returnData;
+          size_t returnDataLength;
+
+          messageID = [NSNumber numberWithUnsignedLongLong:
+            xpc_dictionary_get_uint64(event, "gsxpc.messageID")];
+          pending = [self _takePendingReplyForMessageID: messageID];
+          if (pending == nil)
+            {
+              return;
+            }
+
+          error = nil;
+          returnObject = nil;
+          errorText = xpc_dictionary_get_string(event, "gsxpc.error");
+          if (errorText != NULL)
+            {
+              NSString *reason;
+
+              reason = [NSString stringWithUTF8String: errorText];
+              error = GSXPCProxyError(reason);
+            }
+
+          returnData = xpc_dictionary_get_data(event,
+            "gsxpc.return",
+            &returnDataLength);
+          if (returnData != NULL && returnDataLength > 0)
+            {
+              NSData *encoded;
+
+              encoded = [NSData dataWithBytes: returnData
+                                       length: (NSUInteger)returnDataLength];
+              returnObject = [NSUnarchiver unarchiveObjectWithData: encoded];
+            }
+
+          [pending resolveWithReturnObject: returnObject error: error];
+          return;
+        }
+      if (kind != NULL && strcmp(kind, "invoke") == 0)
+        {
+          [self _handleIncomingInvokeEvent: eventPtr];
+          return;
+        }
+    }
+#else
+  (void)eventPtr;
+#endif
+}
+
+- (void) _sendInvokeReplyForEvent: (void *)eventPtr
+                  withReturnObject: (id)returnObject
+                             error: (NSError *)error
+{
+#if GS_USE_LIBXPC
+  xpc_object_t event;
+  xpc_object_t reply;
+  NSData *encoded;
+
+  if (_xpcConnection == 0)
+    {
+      return;
+    }
+
+  event = (xpc_object_t)eventPtr;
+  reply = xpc_dictionary_create(NULL, NULL, 0);
+  xpc_dictionary_set_string(reply, "gsxpc.kind", "reply");
+  xpc_dictionary_set_uint64(reply, "gsxpc.messageID",
+    xpc_dictionary_get_uint64(event, "gsxpc.messageID"));
+
+  if (error != nil)
+    {
+      xpc_dictionary_set_string(reply,
+        "gsxpc.error",
+        [[error localizedDescription] UTF8String]);
+    }
+  else if (returnObject != nil)
+    {
+      encoded = [NSArchiver archivedDataWithRootObject: returnObject];
+      if (encoded != nil)
+        {
+          xpc_dictionary_set_data(reply,
+            "gsxpc.return",
+            [encoded bytes],
+            (size_t)[encoded length]);
+        }
+      else
+        {
+          xpc_dictionary_set_string(reply,
+            "gsxpc.error",
+            "Unable to encode return object.");
+        }
+    }
+
+  xpc_connection_send_message((xpc_connection_t)_xpcConnection, reply);
+  xpc_release(reply);
+#else
+  (void)eventPtr;
+  (void)returnObject;
+  (void)error;
+#endif
+}
+
+- (NSMethodSignature *) _exportedMethodSignatureForSelector: (SEL)sel
+{
+  Protocol *protocol;
+  struct objc_method_description desc;
+
+  if (_exportedInterface != nil)
+    {
+      protocol = [_exportedInterface protocol];
+      if (protocol != NULL)
+        {
+          desc = protocol_getMethodDescription(protocol, sel, YES, YES);
+          if (desc.name == NULL)
+            {
+              desc = protocol_getMethodDescription(protocol, sel, NO, YES);
+            }
+          if (desc.name != NULL && desc.types != NULL)
+            {
+              return [NSMethodSignature signatureWithObjCTypes: desc.types];
+            }
+          return nil;
+        }
+    }
+
+  if (_exportedObject != nil && [_exportedObject respondsToSelector: sel])
+    {
+      return [_exportedObject methodSignatureForSelector: sel];
+    }
+  return nil;
+}
+
+- (void) _handleIncomingInvokeEvent: (void *)eventPtr
+{
+#if GS_USE_LIBXPC
+  xpc_object_t event;
+  const char *selectorName;
+  SEL selector;
+  NSMethodSignature *signature;
+  NSInvocation *invocation;
+  NSUInteger argumentCount;
+  NSUInteger messageArgumentCount;
+  NSUInteger index;
+  NSError *error;
+  BOOL expectsReply;
+  id returnObject;
+  const char *returnType;
+
+  event = (xpc_object_t)eventPtr;
+  expectsReply = xpc_dictionary_get_bool(event, "gsxpc.expectsReply") ? YES : NO;
+  error = nil;
+  returnObject = nil;
+
+  if (_exportedObject == nil)
+    {
+      error = GSXPCProxyError(@"No exported object is configured.");
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  selectorName = xpc_dictionary_get_string(event, "gsxpc.selector");
+  if (selectorName == NULL)
+    {
+      error = GSXPCProxyError(@"Missing selector in incoming invoke message.");
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  selector = sel_getUid(selectorName);
+  signature = [self _exportedMethodSignatureForSelector: selector];
+  if (signature == nil)
+    {
+      NSString *reason;
+
+      reason = [NSString stringWithFormat:
+        @"Exported interface does not allow selector '%s'.",
+        selectorName];
+      error = GSXPCProxyError(reason);
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  if ([_exportedObject respondsToSelector: selector] == NO)
+    {
+      NSString *reason;
+
+      reason = [NSString stringWithFormat:
+        @"Exported object does not respond to selector '%s'.",
+        selectorName];
+      error = GSXPCProxyError(reason);
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  argumentCount = [signature numberOfArguments] - 2;
+  messageArgumentCount = (NSUInteger)xpc_dictionary_get_uint64(event,
+    "gsxpc.argumentCount");
+  if (argumentCount != messageArgumentCount)
+    {
+      error = GSXPCProxyError(@"Incoming argument count does not match exported selector.");
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  returnType = GSXPCStrippedTypeEncoding([signature methodReturnType]);
+  if (returnType[0] != 'v' && returnType[0] != '@')
+    {
+      error = GSXPCProxyError(@"Only object and void return types are supported for exported methods.");
+      if (expectsReply == YES)
+        {
+          [self _sendInvokeReplyForEvent: eventPtr
+                        withReturnObject: nil
+                                   error: error];
+        }
+      return;
+    }
+
+  invocation = [NSInvocation invocationWithMethodSignature: signature];
+  [invocation setTarget: _exportedObject];
+  [invocation setSelector: selector];
+
+  for (index = 0; index < argumentCount; index++)
+    {
+      NSString *key;
+      const void *argData;
+      size_t argDataLength;
+      const char *argType;
+      id decoded;
+
+      argType = GSXPCStrippedTypeEncoding([signature getArgumentTypeAtIndex: index + 2]);
+      if (argType[0] != '@')
+        {
+          error = GSXPCProxyError(@"Only object arguments are supported for exported methods.");
+          if (expectsReply == YES)
+            {
+              [self _sendInvokeReplyForEvent: eventPtr
+                            withReturnObject: nil
+                                       error: error];
+            }
+          return;
+        }
+
+      key = [NSString stringWithFormat: @"gsxpc.arg.%lu", (unsigned long)index];
+      argData = xpc_dictionary_get_data(event, [key UTF8String], &argDataLength);
+      decoded = nil;
+      if (argData != NULL && argDataLength > 0)
+        {
+          NSData *encoded;
+
+          encoded = [NSData dataWithBytes: argData length: (NSUInteger)argDataLength];
+          decoded = [NSUnarchiver unarchiveObjectWithData: encoded];
+        }
+      [invocation setArgument: &decoded atIndex: index + 2];
+    }
+
+  @try
+    {
+      [invocation invoke];
+      if (returnType[0] == '@')
+        {
+          id returned;
+
+          returned = nil;
+          [invocation getReturnValue: &returned];
+          returnObject = returned;
+        }
+    }
+  @catch (id exception)
+    {
+      NSString *reason;
+
+      reason = [NSString stringWithFormat:
+        @"Exception while invoking exported selector '%s': %@",
+        selectorName,
+        [exception description]];
+      error = GSXPCProxyError(reason);
+    }
+
+  if (expectsReply == YES)
+    {
+      [self _sendInvokeReplyForEvent: eventPtr
+                    withReturnObject: returnObject
+                               error: error];
+    }
+#else
+  (void)eventPtr;
+#endif
 }
 
 - (void) _setupLibXPCConnectionIfPossible
@@ -195,6 +714,7 @@ GSXPCProxyError(NSString *description)
 
   xpc_connection_set_event_handler((xpc_connection_t)_xpcConnection,
     ^(xpc_object_t event) {
+    [connection _handleIncomingXPCEvent: (void *)event];
     if (event == XPC_ERROR_CONNECTION_INTERRUPTED)
       {
         if (connection->_interruptionHandler != NULL)
@@ -205,6 +725,8 @@ GSXPCProxyError(NSString *description)
     else if (event == XPC_ERROR_CONNECTION_INVALID)
       {
         connection->_invalidated = YES;
+        [connection _failAllPendingRepliesWithError:
+          GSXPCProxyError(@"Connection was invalidated.")];
         if (connection->_invalidationHandler != NULL)
           {
             CALL_BLOCK_NO_ARGS(connection->_invalidationHandler);
@@ -241,6 +763,7 @@ GSXPCProxyError(NSString *description)
   if ((self = [super init]) != nil)
     {
       _options = options;
+      [self _initializeReplyTracking];
       [self setServiceName: name];
     }
   return self;
@@ -261,6 +784,7 @@ GSXPCProxyError(NSString *description)
         {
           [self setServiceName: serviceName];
         }
+      [self _initializeReplyTracking];
     }
   return self;
 }
@@ -378,6 +902,13 @@ GSXPCProxyError(NSString *description)
              synchronous: (BOOL)synchronous
 {
   NSMethodSignature *signature;
+  const char *returnType;
+  BOOL expectsReply;
+  BOOL supportsObjectReturn;
+  NSNumber *messageID;
+  GSXPCPendingReply *pending;
+  id returnObject = nil;
+  NSError *replyError = nil;
 
   if (invocation == nil)
     {
@@ -398,22 +929,26 @@ GSXPCProxyError(NSString *description)
       return;
     }
 
-  if (synchronous == YES)
+  returnType = GSXPCStrippedTypeEncoding([signature methodReturnType]);
+  expectsReply = (synchronous == YES || returnType[0] != 'v');
+  supportsObjectReturn = (returnType[0] == '@');
+  if (returnType[0] != 'v'
+    && supportsObjectReturn == NO)
     {
       if (errorHandler != NULL)
         {
           CALL_BLOCK(errorHandler,
-            GSXPCProxyError(@"Synchronous proxy messaging is not implemented yet."));
+            GSXPCProxyError(@"Only object and void return types are currently supported."));
         }
       return;
     }
 
-  if (strcmp([signature methodReturnType], "v") != 0)
+  if (synchronous == NO && returnType[0] != 'v')
     {
       if (errorHandler != NULL)
         {
           CALL_BLOCK(errorHandler,
-            GSXPCProxyError(@"Only void-returning methods are currently supported."));
+            GSXPCProxyError(@"Non-void methods require a synchronous proxy."));
         }
       return;
     }
@@ -440,6 +975,14 @@ GSXPCProxyError(NSString *description)
       return;
     }
 
+  messageID = [self _nextMessageIdentifierObject];
+  pending = nil;
+  if (expectsReply == YES)
+    {
+      pending = [GSXPCPendingReply new];
+      [self _registerPendingReply: pending forMessageID: messageID];
+    }
+
   {
     xpc_object_t message;
     const char *selectorName;
@@ -448,7 +991,12 @@ GSXPCProxyError(NSString *description)
 
     message = xpc_dictionary_create(NULL, NULL, 0);
     selectorName = sel_getName([invocation selector]);
+    xpc_dictionary_set_string(message, "gsxpc.kind", "invoke");
+    xpc_dictionary_set_uint64(message, "gsxpc.messageID",
+      [messageID unsignedLongLongValue]);
     xpc_dictionary_set_string(message, "gsxpc.selector", selectorName);
+    xpc_dictionary_set_bool(message, "gsxpc.expectsReply",
+      expectsReply ? true : false);
 
     count = [signature numberOfArguments];
     xpc_dictionary_set_uint64(message, "gsxpc.argumentCount", (uint64_t)(count - 2));
@@ -457,7 +1005,7 @@ GSXPCProxyError(NSString *description)
       {
         const char *argType;
 
-        argType = [signature getArgumentTypeAtIndex: index];
+        argType = GSXPCStrippedTypeEncoding([signature getArgumentTypeAtIndex: index]);
         if (argType[0] != '@')
           {
             if (errorHandler != NULL)
@@ -468,6 +1016,11 @@ GSXPCProxyError(NSString *description)
                   @"Only object arguments are currently supported (argument %lu).",
                   (unsigned long)(index - 2)];
                 CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
+              }
+            if (pending != nil)
+              {
+                [self _takePendingReplyForMessageID: messageID];
+                RELEASE(pending);
               }
             xpc_release(message);
             return;
@@ -491,6 +1044,11 @@ GSXPCProxyError(NSString *description)
                     (unsigned long)(index - 2)];
                   CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
                 }
+              if (pending != nil)
+                {
+                  [self _takePendingReplyForMessageID: messageID];
+                  RELEASE(pending);
+                }
               xpc_release(message);
               return;
             }
@@ -507,6 +1065,42 @@ GSXPCProxyError(NSString *description)
     xpc_connection_send_message((xpc_connection_t)_xpcConnection, message);
     xpc_release(message);
   }
+
+  if (expectsReply == YES)
+    {
+      BOOL didResolve;
+
+      didResolve = [pending waitForResolutionUntilDate:
+        [NSDate dateWithTimeIntervalSinceNow: 30.0]
+        returnObject: &returnObject
+        error: &replyError];
+      if (didResolve == NO)
+        {
+          [self _takePendingReplyForMessageID: messageID];
+          replyError = GSXPCProxyError(@"Timed out waiting for reply.");
+        }
+
+      if (replyError != nil)
+        {
+          if (errorHandler != NULL)
+            {
+              CALL_BLOCK(errorHandler, replyError);
+            }
+          RELEASE(pending);
+          return;
+        }
+
+      if (synchronous == YES && supportsObjectReturn == YES)
+        {
+          id returned;
+
+          returned = returnObject;
+          [invocation setReturnValue: &returned];
+        }
+
+      RELEASE(pending);
+      return;
+    }
 #else
   if (errorHandler != NULL)
     {
