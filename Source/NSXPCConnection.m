@@ -1197,7 +1197,7 @@ GSXPCTypeSize(const char *type, NSUInteger *size)
   return _exportedInterface;
 }
 
-- (void) setExportInterface: (NSXPCInterface *)exportedInterface
+- (void) setExportedInterface: (NSXPCInterface *)exportedInterface
 {
   ASSIGN(_exportedInterface, exportedInterface);
 }

@@ -199,7 +199,7 @@ GS_EXPORT_CLASS
  * Sets the interface that describes methods this process exports to the
  * remote side.
  */
-- (void) setExportInterface: (NSXPCInterface *)exportedInterface;
+- (void) setExportedInterface: (NSXPCInterface *)exportedInterface;
 
 /**
  * Returns the object exported to the remote side for incoming invocations.
