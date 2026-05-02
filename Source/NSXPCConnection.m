@@ -303,6 +303,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 {
   return 0;
 }
+
 - (pid_t) processIdentifier
 {
 #if GS_USE_LIBXPC
@@ -313,6 +314,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 #endif
   return 0;
 }
+
 - (uid_t) effectiveUserIdentifier
 {
 #if GS_USE_LIBXPC
@@ -323,6 +325,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 #endif
   return (uid_t)0;
 }
+
 - (gid_t) effectiveGroupIdentifier
 {
 #if GS_USE_LIBXPC
@@ -383,7 +386,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 
 - (void) setDelegate: (id <NSXPCListenerDelegate>) delegate
 {
-  ASSIGN(_delegate, delegate);
+  _delegate = delegate; // weak reference...
 }
 
 - (NSXPCListenerEndpoint *) endpoint
@@ -544,7 +547,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
     {
       if ([coder respondsToSelector: @selector(decodeObjectForKey:)])
         {
-          serviceName = [coder decodeObjectForKey: @"serviceName"];
+          serviceName = [coder decodeObjectForKey: @"GSServiceName"];
         }
       else
         {
@@ -559,7 +562,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 {
   if ([coder respondsToSelector: @selector(encodeObject:forKey:)])
     {
-      [coder encodeObject: _serviceName forKey: @"serviceName"];
+      [coder encodeObject: _serviceName forKey: @"GSServiceName"];
     }
   else
     {
