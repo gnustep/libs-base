@@ -56,7 +56,9 @@
 - (void) _handleIncomingXPCEvent: (void *)event;
 - (void) _handleIncomingInvokeEvent: (void *)event;
 - (void) _sendInvokeReplyForEvent: (void *)event
-                  withReturnObject: (id)returnObject
+            withReturnObject: (id)returnObject
+              returnData: (NSData *)returnData
+              returnType: (const char *)returnType
                              error: (NSError *)error;
 - (void) _sendInvocation: (NSInvocation *)invocation
             errorHandler: (GSXPCProxyErrorHandler)errorHandler
@@ -153,6 +155,86 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   return NO;
 }
 
+static BOOL
+GSXPCValidateDecodedObjectGraph(id object, NSSet *allowedClasses)
+{
+  NSEnumerator *enumerator;
+  id child;
+
+  if (object == nil || allowedClasses == nil || [allowedClasses count] == 0)
+    {
+      return YES;
+    }
+
+  if (GSXPCObjectMatchesAllowedClasses(object, allowedClasses) == NO)
+    {
+      return NO;
+    }
+
+  if ([object isKindOfClass: [NSArray class]])
+    {
+      enumerator = [object objectEnumerator];
+      while ((child = [enumerator nextObject]) != nil)
+        {
+          if (GSXPCValidateDecodedObjectGraph(child, allowedClasses) == NO)
+            {
+              return NO;
+            }
+        }
+    }
+  else if ([object isKindOfClass: [NSSet class]])
+    {
+      enumerator = [object objectEnumerator];
+      while ((child = [enumerator nextObject]) != nil)
+        {
+          if (GSXPCValidateDecodedObjectGraph(child, allowedClasses) == NO)
+            {
+              return NO;
+            }
+        }
+    }
+  else if ([object isKindOfClass: [NSDictionary class]])
+    {
+      id key;
+      id value;
+
+      enumerator = [object keyEnumerator];
+      while ((key = [enumerator nextObject]) != nil)
+        {
+          value = [object objectForKey: key];
+          if (GSXPCValidateDecodedObjectGraph(key, allowedClasses) == NO
+            || GSXPCValidateDecodedObjectGraph(value, allowedClasses) == NO)
+            {
+              return NO;
+            }
+        }
+    }
+
+  return YES;
+}
+
+static BOOL
+GSXPCTypeSize(const char *type, NSUInteger *size)
+{
+  NSUInteger localSize;
+
+  if (type == 0 || type[0] == '\0')
+    {
+      return NO;
+    }
+  localSize = 0;
+  NSGetSizeAndAlignment(type, &localSize, NULL);
+  if (localSize == 0)
+    {
+      return NO;
+    }
+  if (size != 0)
+    {
+      *size = localSize;
+    }
+  return YES;
+}
+
 @implementation NSXPCCoder
 
 + (NSData *) archivedDataWithRootObject: (id)object
@@ -196,7 +278,7 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       return nil;
     }
 
-  if (GSXPCObjectMatchesAllowedClasses(value, allowedClasses) == NO)
+  if (GSXPCValidateDecodedObjectGraph(value, allowedClasses) == NO)
     {
       if (error != NULL)
         {
@@ -222,15 +304,22 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   BOOL _resolved;
   NSSet *_allowedClasses;
   id _returnObject;
+  NSData *_returnData;
+  NSString *_returnType;
   NSError *_error;
 }
 
 - (instancetype) initWithAllowedClasses: (NSSet *)allowedClasses;
 - (NSSet *) allowedClasses;
 
-- (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error;
+- (void) resolveWithReturnObject: (id)returnObject
+        returnData: (NSData *)returnData
+        returnType: (NSString *)returnType
+          error: (NSError *)error;
 - (BOOL) waitForResolutionUntilDate: (NSDate *)limitDate
                        returnObject: (id *)returnObject
+          returnData: (NSData **)returnData
+          returnType: (NSString **)returnType
                               error: (NSError **)error;
 
 @end
@@ -253,6 +342,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   DESTROY(_condition);
   DESTROY(_allowedClasses);
   DESTROY(_returnObject);
+  DESTROY(_returnData);
+  DESTROY(_returnType);
   DESTROY(_error);
   [super dealloc];
 }
@@ -262,12 +353,17 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   return _allowedClasses;
 }
 
-- (void) resolveWithReturnObject: (id)returnObject error: (NSError *)error
+- (void) resolveWithReturnObject: (id)returnObject
+                    returnData: (NSData *)returnData
+                    returnType: (NSString *)returnType
+                         error: (NSError *)error
 {
   [_condition lock];
   if (_resolved == NO)
     {
       ASSIGN(_returnObject, returnObject);
+      ASSIGN(_returnData, returnData);
+      ASSIGN(_returnType, returnType);
       ASSIGN(_error, error);
       _resolved = YES;
       [_condition broadcast];
@@ -277,6 +373,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 
 - (BOOL) waitForResolutionUntilDate: (NSDate *)limitDate
                        returnObject: (id *)returnObject
+                         returnData: (NSData **)returnData
+                         returnType: (NSString **)returnType
                               error: (NSError **)error
 {
   BOOL resolved;
@@ -299,6 +397,14 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       if (returnObject != 0)
         {
           *returnObject = [[_returnObject retain] autorelease];
+        }
+      if (returnData != 0)
+        {
+          *returnData = [[_returnData retain] autorelease];
+        }
+      if (returnType != 0)
+        {
+          *returnType = [[_returnType retain] autorelease];
         }
       if (error != 0)
         {
@@ -453,7 +559,10 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       GSXPCPendingReply *entry;
 
       entry = [pending objectAtIndex: index];
-      [entry resolveWithReturnObject: nil error: error];
+      [entry resolveWithReturnObject: nil
+              returnData: nil
+              returnType: nil
+               error: error];
     }
   RELEASE(pending);
 }
@@ -476,6 +585,9 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
           const char *errorText;
           NSError *error;
           id returnObject;
+          NSData *returnValueData;
+          NSString *returnValueType;
+          const char *returnTypeCString;
           const void *returnData;
           size_t returnDataLength;
 
@@ -489,6 +601,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 
           error = nil;
           returnObject = nil;
+          returnValueData = nil;
+          returnValueType = nil;
           errorText = xpc_dictionary_get_string(event, "gsxpc.error");
           if (errorText != NULL)
             {
@@ -498,27 +612,45 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
               error = GSXPCProxyError(reason);
             }
 
+          returnTypeCString = xpc_dictionary_get_string(event, "gsxpc.returnType");
+          if (returnTypeCString != NULL)
+            {
+              returnValueType = [NSString stringWithUTF8String: returnTypeCString];
+            }
+
           returnData = xpc_dictionary_get_data(event,
             "gsxpc.return",
             &returnDataLength);
-          if (returnData != NULL && returnDataLength > 0)
+          if (returnData != NULL && returnDataLength > 0 && error == nil)
             {
-              NSData *encoded;
-              NSError *decodeError;
+              NSData *payload;
 
-              encoded = [NSData dataWithBytes: returnData
-                                       length: (NSUInteger)returnDataLength];
-              decodeError = nil;
-              returnObject = [NSXPCCoder unarchivedObjectWithData: encoded
-                                                   allowedClasses: [pending allowedClasses]
-                                                            error: &decodeError];
-              if (decodeError != nil && error == nil)
+              payload = [NSData dataWithBytes: returnData
+                                      length: (NSUInteger)returnDataLength];
+              if (returnTypeCString != NULL
+                && GSXPCStrippedTypeEncoding(returnTypeCString)[0] != '@')
                 {
-                  error = decodeError;
+                  returnValueData = payload;
+                }
+              else
+                {
+                  NSError *decodeError;
+
+                  decodeError = nil;
+                  returnObject = [NSXPCCoder unarchivedObjectWithData: payload
+                                                       allowedClasses: [pending allowedClasses]
+                                                                error: &decodeError];
+                  if (decodeError != nil && error == nil)
+                    {
+                      error = decodeError;
+                    }
                 }
             }
 
-          [pending resolveWithReturnObject: returnObject error: error];
+          [pending resolveWithReturnObject: returnObject
+                              returnData: returnValueData
+                              returnType: returnValueType
+                                   error: error];
           return;
         }
       if (kind != NULL && strcmp(kind, "invoke") == 0)
@@ -534,6 +666,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 
 - (void) _sendInvokeReplyForEvent: (void *)eventPtr
                   withReturnObject: (id)returnObject
+                     returnData: (NSData *)returnData
+                     returnType: (const char *)returnType
                              error: (NSError *)error
 {
 #if GS_USE_LIBXPC
@@ -558,21 +692,32 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         "gsxpc.error",
         [[error localizedDescription] UTF8String]);
     }
-  else if (returnObject != nil)
+  else if (returnType != NULL)
     {
-      encoded = [NSXPCCoder archivedDataWithRootObject: returnObject];
-      if (encoded != nil)
+      xpc_dictionary_set_string(reply, "gsxpc.returnType", returnType);
+      if (GSXPCStrippedTypeEncoding(returnType)[0] == '@')
+        {
+          encoded = [NSXPCCoder archivedDataWithRootObject: returnObject];
+          if (encoded != nil)
+            {
+              xpc_dictionary_set_data(reply,
+                "gsxpc.return",
+                [encoded bytes],
+                (size_t)[encoded length]);
+            }
+          else if (returnObject != nil)
+            {
+              xpc_dictionary_set_string(reply,
+                "gsxpc.error",
+                "Unable to encode return object.");
+            }
+        }
+      else if (returnData != nil)
         {
           xpc_dictionary_set_data(reply,
             "gsxpc.return",
-            [encoded bytes],
-            (size_t)[encoded length]);
-        }
-      else
-        {
-          xpc_dictionary_set_string(reply,
-            "gsxpc.error",
-            "Unable to encode return object.");
+            [returnData bytes],
+            (size_t)[returnData length]);
         }
     }
 
@@ -581,6 +726,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 #else
   (void)eventPtr;
   (void)returnObject;
+  (void)returnData;
+  (void)returnType;
   (void)error;
 #endif
 }
@@ -629,12 +776,14 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   NSError *error;
   BOOL expectsReply;
   id returnObject;
+  NSData *returnData;
   const char *returnType;
 
   event = (xpc_object_t)eventPtr;
   expectsReply = xpc_dictionary_get_bool(event, "gsxpc.expectsReply") ? YES : NO;
   error = nil;
   returnObject = nil;
+  returnData = nil;
 
   if (_exportedObject == nil)
     {
@@ -643,6 +792,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
@@ -656,6 +807,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
@@ -675,6 +828,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
@@ -692,6 +847,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
@@ -707,19 +864,23 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
     }
 
   returnType = GSXPCStrippedTypeEncoding([signature methodReturnType]);
-  if (returnType[0] != 'v' && returnType[0] != '@')
+  if (returnType[0] != 'v' && GSXPCTypeSize(returnType, NULL) == NO)
     {
-      error = GSXPCProxyError(@"Only object and void return types are supported for exported methods.");
+      error = GSXPCProxyError(@"Unsupported return type for exported method.");
       if (expectsReply == YES)
         {
           [self _sendInvokeReplyForEvent: eventPtr
                         withReturnObject: nil
+                           returnData: nil
+                           returnType: nil
                                    error: error];
         }
       return;
@@ -735,54 +896,127 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       const void *argData;
       size_t argDataLength;
       const char *argType;
-      id decoded;
+      const char *argTypeFromMessage;
+      NSString *typeKey;
+      BOOL hasNilObject;
+      NSString *nilKey;
 
       argType = GSXPCStrippedTypeEncoding([signature getArgumentTypeAtIndex: index + 2]);
-      if (argType[0] != '@')
+      typeKey = [NSString stringWithFormat: @"gsxpc.argtype.%lu", (unsigned long)index];
+      argTypeFromMessage = xpc_dictionary_get_string(event, [typeKey UTF8String]);
+      if (argTypeFromMessage != NULL)
         {
-          error = GSXPCProxyError(@"Only object arguments are supported for exported methods.");
-          if (expectsReply == YES)
-            {
-              [self _sendInvokeReplyForEvent: eventPtr
-                            withReturnObject: nil
-                                       error: error];
-            }
-          return;
-        }
+          const char *normalized;
 
-      key = [NSString stringWithFormat: @"gsxpc.arg.%lu", (unsigned long)index];
-      argData = xpc_dictionary_get_data(event, [key UTF8String], &argDataLength);
-      decoded = nil;
-      if (argData != NULL && argDataLength > 0)
-        {
-          NSData *encoded;
-          NSSet *allowedClasses;
-          NSError *decodeError;
-
-          encoded = [NSData dataWithBytes: argData length: (NSUInteger)argDataLength];
-          allowedClasses = nil;
-          if (_exportedInterface != nil)
+          normalized = GSXPCStrippedTypeEncoding(argTypeFromMessage);
+          if (normalized[0] != argType[0])
             {
-              allowedClasses = [_exportedInterface classesForSelector: selector
-                                                         argumentIndex: index
-                                                               ofReply: NO];
-            }
-          decodeError = nil;
-          decoded = [NSXPCCoder unarchivedObjectWithData: encoded
-                                           allowedClasses: allowedClasses
-                                                    error: &decodeError];
-          if (decodeError != nil)
-            {
+              error = GSXPCProxyError(@"Incoming argument type does not match exported selector signature.");
               if (expectsReply == YES)
                 {
                   [self _sendInvokeReplyForEvent: eventPtr
                                 withReturnObject: nil
-                                           error: decodeError];
+                                   returnData: nil
+                                   returnType: nil
+                                       error: error];
                 }
               return;
             }
         }
-      [invocation setArgument: &decoded atIndex: index + 2];
+
+      key = [NSString stringWithFormat: @"gsxpc.arg.%lu", (unsigned long)index];
+      argData = xpc_dictionary_get_data(event, [key UTF8String], &argDataLength);
+      nilKey = [NSString stringWithFormat: @"gsxpc.argnil.%lu", (unsigned long)index];
+      hasNilObject = xpc_dictionary_get_bool(event, [nilKey UTF8String]) ? YES : NO;
+
+      if (argType[0] == '@')
+        {
+          id decoded;
+
+          decoded = nil;
+          if (hasNilObject == NO && argData != NULL && argDataLength > 0)
+            {
+              NSData *encoded;
+              NSSet *allowedClasses;
+              NSError *decodeError;
+
+              encoded = [NSData dataWithBytes: argData length: (NSUInteger)argDataLength];
+              allowedClasses = nil;
+              if (_exportedInterface != nil)
+                {
+                  allowedClasses = [_exportedInterface classesForSelector: selector
+                                                             argumentIndex: index
+                                                                   ofReply: NO];
+                }
+              decodeError = nil;
+              decoded = [NSXPCCoder unarchivedObjectWithData: encoded
+                                               allowedClasses: allowedClasses
+                                                        error: &decodeError];
+              if (decodeError != nil)
+                {
+                  if (expectsReply == YES)
+                    {
+                      [self _sendInvokeReplyForEvent: eventPtr
+                                    withReturnObject: nil
+                                       returnData: nil
+                                       returnType: nil
+                                           error: decodeError];
+                    }
+                  return;
+                }
+            }
+          [invocation setArgument: &decoded atIndex: index + 2];
+        }
+      else
+        {
+          NSUInteger expectedSize;
+          void *buffer;
+
+          if (GSXPCTypeSize(argType, &expectedSize) == NO)
+            {
+              error = GSXPCProxyError(@"Unsupported argument type in exported selector.");
+              if (expectsReply == YES)
+                {
+                  [self _sendInvokeReplyForEvent: eventPtr
+                                withReturnObject: nil
+                                   returnData: nil
+                                   returnType: nil
+                                       error: error];
+                }
+              return;
+            }
+          if (argData == NULL || argDataLength != expectedSize)
+            {
+              error = GSXPCProxyError(@"Incoming argument payload size does not match selector signature.");
+              if (expectsReply == YES)
+                {
+                  [self _sendInvokeReplyForEvent: eventPtr
+                                withReturnObject: nil
+                                   returnData: nil
+                                   returnType: nil
+                                       error: error];
+                }
+              return;
+            }
+
+          buffer = malloc(expectedSize);
+          if (buffer == NULL)
+            {
+              error = GSXPCProxyError(@"Unable to allocate memory for incoming argument decode.");
+              if (expectsReply == YES)
+                {
+                  [self _sendInvokeReplyForEvent: eventPtr
+                                withReturnObject: nil
+                                   returnData: nil
+                                   returnType: nil
+                                       error: error];
+                }
+              return;
+            }
+          memcpy(buffer, argData, expectedSize);
+          [invocation setArgument: buffer atIndex: index + 2];
+          free(buffer);
+        }
     }
 
   @try
@@ -795,6 +1029,32 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
           returned = nil;
           [invocation getReturnValue: &returned];
           returnObject = returned;
+        }
+      else if (returnType[0] != 'v')
+        {
+          NSUInteger returnSize;
+
+          if (GSXPCTypeSize(returnType, &returnSize) == YES)
+            {
+              void *buffer;
+
+              buffer = malloc(returnSize);
+              if (buffer != NULL)
+                {
+                  [invocation getReturnValue: buffer];
+                  returnData = [NSData dataWithBytes: buffer
+                                              length: returnSize];
+                  free(buffer);
+                }
+              else
+                {
+                  error = GSXPCProxyError(@"Unable to allocate memory for return value encoding.");
+                }
+            }
+          else
+            {
+              error = GSXPCProxyError(@"Unsupported return type for exported method.");
+            }
         }
     }
   @catch (id exception)
@@ -812,6 +1072,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
     {
       [self _sendInvokeReplyForEvent: eventPtr
                     withReturnObject: returnObject
+                       returnData: returnData
+                       returnType: returnType
                                error: error];
     }
 #else
@@ -1033,7 +1295,6 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 {
   NSMethodSignature *signature;
   const char *returnType;
-  BOOL supportsObjectReturn;
 
   if (invocation == nil)
     {
@@ -1055,14 +1316,12 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
     }
 
   returnType = GSXPCStrippedTypeEncoding([signature methodReturnType]);
-  supportsObjectReturn = (returnType[0] == '@');
-  if (returnType[0] != 'v'
-    && supportsObjectReturn == NO)
+  if (returnType[0] != 'v' && GSXPCTypeSize(returnType, NULL) == NO)
     {
       if (errorHandler != NULL)
         {
           CALL_BLOCK(errorHandler,
-            GSXPCProxyError(@"Only object and void return types are currently supported."));
+            GSXPCProxyError(@"Unsupported method return type."));
         }
       return;
     }
@@ -1093,6 +1352,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
   NSNumber *messageID;
   GSXPCPendingReply *pending;
   id returnObject;
+  NSData *returnValueData;
+  NSString *returnValueType;
   NSError *replyError;
 
   if (_xpcConnection == 0)
@@ -1107,6 +1368,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
 
   expectsReply = (synchronous == YES || returnType[0] != 'v');
   returnObject = nil;
+  returnValueData = nil;
+  returnValueType = nil;
   replyError = nil;
   messageID = [self _nextMessageIdentifierObject];
   pending = nil;
@@ -1115,7 +1378,7 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       NSSet *allowedClasses;
 
       allowedClasses = nil;
-      if (supportsObjectReturn == YES && _remoteObjectInterface != nil)
+      if (returnType[0] == '@' && _remoteObjectInterface != nil)
         {
           allowedClasses = [_remoteObjectInterface classesForSelector: [invocation selector]
                                                          argumentIndex: 0
@@ -1146,62 +1409,125 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
     for (index = 2; index < count; index++)
       {
         const char *argType;
+        NSString *typeKey;
+        NSString *nilKey;
+        NSString *dataKey;
 
         argType = GSXPCStrippedTypeEncoding([signature getArgumentTypeAtIndex: index]);
-        if (argType[0] != '@')
+        typeKey = [NSString stringWithFormat: @"gsxpc.argtype.%lu",
+                                              (unsigned long)(index - 2)];
+        xpc_dictionary_set_string(message, [typeKey UTF8String], argType);
+        dataKey = [NSString stringWithFormat: @"gsxpc.arg.%lu",
+                                              (unsigned long)(index - 2)];
+        nilKey = [NSString stringWithFormat: @"gsxpc.argnil.%lu",
+                                             (unsigned long)(index - 2)];
+
+        if (argType[0] == '@')
           {
-            if (errorHandler != NULL)
-              {
-                NSString *reason;
+            id value;
+            NSData *encoded;
 
-                reason = [NSString stringWithFormat:
-                  @"Only object arguments are currently supported (argument %lu).",
-                  (unsigned long)(index - 2)];
-                CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
-              }
-            if (pending != nil)
+            value = nil;
+            [invocation getArgument: &value atIndex: index];
+            if (value == nil)
               {
-                [self _takePendingReplyForMessageID: messageID];
-                RELEASE(pending);
+                xpc_dictionary_set_bool(message, [nilKey UTF8String], true);
+                continue;
               }
-            xpc_release(message);
-            return;
+
+            encoded = [NSXPCCoder archivedDataWithRootObject: value];
+            if (encoded == nil)
+              {
+                if (errorHandler != NULL)
+                  {
+                    NSString *reason;
+
+                    reason = [NSString stringWithFormat:
+                      @"Unable to encode object argument %lu.",
+                      (unsigned long)(index - 2)];
+                    CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
+                  }
+                if (pending != nil)
+                  {
+                    [self _takePendingReplyForMessageID: messageID];
+                    RELEASE(pending);
+                  }
+                xpc_release(message);
+                return;
+              }
+
+            xpc_dictionary_set_data(message,
+              [dataKey UTF8String],
+              [encoded bytes],
+              (size_t)[encoded length]);
           }
+        else
+          {
+            NSUInteger argSize;
+            void *buffer;
+            NSData *encoded;
 
-        {
-          id value = nil;
-          NSData *encoded = nil;
-          NSString *key;
+            if (GSXPCTypeSize(argType, &argSize) == NO)
+              {
+                if (errorHandler != NULL)
+                  {
+                    NSString *reason;
 
-          [invocation getArgument: &value atIndex: index];
-          encoded = [NSXPCCoder archivedDataWithRootObject: value];
-          if (encoded == nil)
-            {
-              if (errorHandler != NULL)
-                {
-                  NSString *reason;
+                    reason = [NSString stringWithFormat:
+                      @"Unsupported argument type at index %lu.",
+                      (unsigned long)(index - 2)];
+                    CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
+                  }
+                if (pending != nil)
+                  {
+                    [self _takePendingReplyForMessageID: messageID];
+                    RELEASE(pending);
+                  }
+                xpc_release(message);
+                return;
+              }
 
-                  reason = [NSString stringWithFormat:
-                    @"Unable to encode object argument %lu.",
-                    (unsigned long)(index - 2)];
-                  CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
-                }
-              if (pending != nil)
-                {
-                  [self _takePendingReplyForMessageID: messageID];
-                  RELEASE(pending);
-                }
-              xpc_release(message);
-              return;
-            }
+            buffer = malloc(argSize);
+            if (buffer == NULL)
+              {
+                if (errorHandler != NULL)
+                  {
+                    CALL_BLOCK(errorHandler,
+                      GSXPCProxyError(@"Unable to allocate memory for argument encoding."));
+                  }
+                if (pending != nil)
+                  {
+                    [self _takePendingReplyForMessageID: messageID];
+                    RELEASE(pending);
+                  }
+                xpc_release(message);
+                return;
+              }
+            [invocation getArgument: buffer atIndex: index];
+            encoded = [NSData dataWithBytes: buffer length: argSize];
+            free(buffer);
 
-          key = [NSString stringWithFormat: @"gsxpc.arg.%lu",
-                                          (unsigned long)(index - 2)];
-          xpc_dictionary_set_data(message,
-            [key UTF8String],
-            [encoded bytes],
-            (size_t)[encoded length]);
-        }
+            if (encoded == nil)
+              {
+                if (errorHandler != NULL)
+                  {
+                    CALL_BLOCK(errorHandler,
+                      GSXPCProxyError(@"Unable to encode non-object argument payload."));
+                  }
+                if (pending != nil)
+                  {
+                    [self _takePendingReplyForMessageID: messageID];
+                    RELEASE(pending);
+                  }
+                xpc_release(message);
+                return;
+              }
+
+            xpc_dictionary_set_data(message,
+              [dataKey UTF8String],
+              [encoded bytes],
+              (size_t)[encoded length]);
+          }
       }
 
     xpc_connection_send_message((xpc_connection_t)_xpcConnection, message);
@@ -1215,6 +1541,8 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
       didResolve = [pending waitForResolutionUntilDate:
         [NSDate dateWithTimeIntervalSinceNow: 30.0]
         returnObject: &returnObject
+        returnData: &returnValueData
+        returnType: &returnValueType
         error: &replyError];
       if (didResolve == NO)
         {
@@ -1232,12 +1560,71 @@ GSXPCObjectMatchesAllowedClasses(id object, NSSet *allowedClasses)
           return;
         }
 
-      if (synchronous == YES && supportsObjectReturn == YES)
+      if (synchronous == YES && returnType[0] == '@')
         {
           id returned;
 
           returned = returnObject;
           [invocation setReturnValue: &returned];
+        }
+      else if (synchronous == YES && returnType[0] != 'v')
+        {
+          const char *resolvedType;
+          NSUInteger expectedSize;
+
+          resolvedType = returnType;
+          if (returnValueType != nil)
+            {
+              resolvedType = GSXPCStrippedTypeEncoding([returnValueType UTF8String]);
+            }
+
+          if (resolvedType[0] != returnType[0])
+            {
+              if (errorHandler != NULL)
+                {
+                  CALL_BLOCK(errorHandler,
+                    GSXPCProxyError(@"Reply type does not match method return type."));
+                }
+              RELEASE(pending);
+              return;
+            }
+
+          if (GSXPCTypeSize(returnType, &expectedSize) == NO)
+            {
+              if (errorHandler != NULL)
+                {
+                  CALL_BLOCK(errorHandler,
+                    GSXPCProxyError(@"Unsupported method return type."));
+                }
+              RELEASE(pending);
+              return;
+            }
+
+          if (returnValueData == nil)
+            {
+              void *empty;
+
+              empty = calloc(1, expectedSize);
+              if (empty != NULL)
+                {
+                  [invocation setReturnValue: empty];
+                  free(empty);
+                }
+            }
+          else if ([returnValueData length] != expectedSize)
+            {
+              if (errorHandler != NULL)
+                {
+                  CALL_BLOCK(errorHandler,
+                    GSXPCProxyError(@"Reply payload size does not match method return type."));
+                }
+              RELEASE(pending);
+              return;
+            }
+          else
+            {
+              [invocation setReturnValue: (void *)[returnValueData bytes]];
+            }
         }
 
       RELEASE(pending);
