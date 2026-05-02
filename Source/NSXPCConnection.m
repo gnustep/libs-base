@@ -30,9 +30,14 @@
 #import "Foundation/NSXPCConnection.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArchiver.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSProxy.h"
 
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSConfig.h"
+
+#import <objc/runtime.h>
 
 #if GS_USE_LIBXPC
 #include <xpc/xpc.h>
@@ -40,6 +45,10 @@
 
 @interface NSXPCConnection (Private)
 - (void) _setupLibXPCConnectionIfPossible;
+- (void) _sendInvocation: (NSInvocation *)invocation
+            errorHandler: (GSXPCProxyErrorHandler)errorHandler
+             synchronous: (BOOL)synchronous;
+- (NSMethodSignature *) _remoteMethodSignatureForSelector: (SEL)sel;
 @end
 
 @interface NSXPCListenerEndpoint (Private)
@@ -70,6 +79,76 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
   } \
 } while (0)
 
+@interface GSXPCRemoteProxy : NSProxy
+{
+  NSXPCConnection *_connection;
+  GSXPCProxyErrorHandler _errorHandler;
+  BOOL _synchronous;
+}
+
+- (instancetype) initWithConnection: (NSXPCConnection *)connection
+                       errorHandler: (GSXPCProxyErrorHandler)errorHandler
+                        synchronous: (BOOL)synchronous;
+
+@end
+
+static NSError *
+GSXPCProxyError(NSString *description)
+{
+  NSDictionary *userInfo;
+
+  userInfo = [NSDictionary dictionaryWithObject: description
+                                         forKey: NSLocalizedDescriptionKey];
+  return [NSError errorWithDomain: @"NSXPCConnectionErrorDomain"
+                             code: 1
+                         userInfo: userInfo];
+}
+
+@implementation GSXPCRemoteProxy
+
+- (instancetype) initWithConnection: (NSXPCConnection *)connection
+                       errorHandler: (GSXPCProxyErrorHandler)errorHandler
+                        synchronous: (BOOL)synchronous
+{
+  _connection = RETAIN(connection);
+  GS_ASSIGN_BLOCK(_errorHandler, errorHandler);
+  _synchronous = synchronous;
+  return self;
+}
+
+- (void) dealloc
+{
+  DESTROY(_connection);
+  GS_DESTROY_BLOCK(_errorHandler);
+  [super dealloc];
+}
+
+- (NSMethodSignature *) methodSignatureForSelector: (SEL)sel
+{
+  NSMethodSignature *sig;
+
+  sig = [_connection _remoteMethodSignatureForSelector: sel];
+  if (sig == nil)
+    {
+      sig = [NSMethodSignature signatureWithObjCTypes: "v@:"];
+    }
+  return sig;
+}
+
+- (void) forwardInvocation: (NSInvocation *)invocation
+{
+  [_connection _sendInvocation: invocation
+                  errorHandler: _errorHandler
+                   synchronous: _synchronous];
+}
+
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  return ([_connection _remoteMethodSignatureForSelector: aSelector] != nil);
+}
+
+@end
+
 @implementation NSXPCConnection
 
 - (instancetype) init
@@ -83,6 +162,7 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
   DESTROY(_serviceName);
   DESTROY(_endpoint);
   DESTROY(_exportedInterface);
+  DESTROY(_exportedObject);
   DESTROY(_remoteObjectInterface);
   DESTROY(_remoteObjectProxy);
   GS_DESTROY_BLOCK(_interruptionHandler);
@@ -206,6 +286,16 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
   ASSIGN(_exportedInterface, exportedInterface);
 }
 
+- (id) exportedObject
+{
+  return _exportedObject;
+}
+
+- (void) setExportedObject: (id)exportedObject
+{
+  ASSIGN(_exportedObject, exportedObject);
+}
+
 - (NSXPCInterface *) remoteObjectInterface
 {
   return _remoteObjectInterface;
@@ -218,6 +308,15 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 
 - (id) remoteObjectProxy
 {
+  if (_remoteObjectProxy == nil)
+    {
+      id proxy = [[GSXPCRemoteProxy alloc] initWithConnection: self
+                                                 errorHandler: NULL
+                                                  synchronous: NO];
+
+      [self setRemoteObjectProxy: proxy];
+      RELEASE(proxy);
+    }
   return _remoteObjectProxy;
 }
 
@@ -228,13 +327,193 @@ GSXPCSignatureKey(SEL sel, NSUInteger arg, BOOL ofReply)
 
 - (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
 {
-  return [self remoteObjectProxy];
+  if (handler == NULL)
+    {
+      return [self remoteObjectProxy];
+    }
+  return AUTORELEASE([[GSXPCRemoteProxy alloc] initWithConnection: self
+                                                     errorHandler: handler
+                                                      synchronous: NO]);
 }
 
 - (id) synchronousRemoteObjectProxyWithErrorHandler:
   (GSXPCProxyErrorHandler)handler
 {
-  return [self remoteObjectProxy];
+  return AUTORELEASE([[GSXPCRemoteProxy alloc] initWithConnection: self
+                                                     errorHandler: handler
+                                                      synchronous: YES]);
+}
+
+- (NSMethodSignature *) _remoteMethodSignatureForSelector: (SEL)sel
+{
+  Protocol *protocol;
+  struct objc_method_description desc;
+
+  if (_remoteObjectInterface == nil)
+    {
+      return nil;
+    }
+
+  protocol = [_remoteObjectInterface protocol];
+  if (protocol == NULL)
+    {
+      return nil;
+    }
+
+  desc = protocol_getMethodDescription(protocol, sel, YES, YES);
+  if (desc.name == NULL)
+    {
+      desc = protocol_getMethodDescription(protocol, sel, NO, YES);
+    }
+  if (desc.name == NULL || desc.types == NULL)
+    {
+      return nil;
+    }
+
+  return [NSMethodSignature signatureWithObjCTypes: desc.types];
+}
+
+- (void) _sendInvocation: (NSInvocation *)invocation
+            errorHandler: (GSXPCProxyErrorHandler)errorHandler
+             synchronous: (BOOL)synchronous
+{
+  NSMethodSignature *signature;
+
+  if (invocation == nil)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler, GSXPCProxyError(@"Missing invocation."));
+        }
+      return;
+    }
+
+  signature = [invocation methodSignature];
+  if (signature == nil)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler, GSXPCProxyError(@"Missing method signature."));
+        }
+      return;
+    }
+
+  if (synchronous == YES)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler,
+            GSXPCProxyError(@"Synchronous proxy messaging is not implemented yet."));
+        }
+      return;
+    }
+
+  if (strcmp([signature methodReturnType], "v") != 0)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler,
+            GSXPCProxyError(@"Only void-returning methods are currently supported."));
+        }
+      return;
+    }
+
+  [self _setupLibXPCConnectionIfPossible];
+
+  if (_invalidated == YES)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler, GSXPCProxyError(@"Connection is invalidated."));
+        }
+      return;
+    }
+
+#if GS_USE_LIBXPC
+  if (_xpcConnection == 0)
+    {
+      if (errorHandler != NULL)
+        {
+          CALL_BLOCK(errorHandler,
+            GSXPCProxyError(@"XPC transport is unavailable for this connection."));
+        }
+      return;
+    }
+
+  {
+    xpc_object_t message;
+    const char *selectorName;
+    NSUInteger count;
+    NSUInteger index;
+
+    message = xpc_dictionary_create(NULL, NULL, 0);
+    selectorName = sel_getName([invocation selector]);
+    xpc_dictionary_set_string(message, "gsxpc.selector", selectorName);
+
+    count = [signature numberOfArguments];
+    xpc_dictionary_set_uint64(message, "gsxpc.argumentCount", (uint64_t)(count - 2));
+
+    for (index = 2; index < count; index++)
+      {
+        const char *argType;
+
+        argType = [signature getArgumentTypeAtIndex: index];
+        if (argType[0] != '@')
+          {
+            if (errorHandler != NULL)
+              {
+                NSString *reason;
+
+                reason = [NSString stringWithFormat:
+                  @"Only object arguments are currently supported (argument %lu).",
+                  (unsigned long)(index - 2)];
+                CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
+              }
+            xpc_release(message);
+            return;
+          }
+
+        {
+          id value = nil;
+          NSData *encoded = nil;
+          NSString *key;
+
+          [invocation getArgument: &value atIndex: index];
+          encoded = [NSArchiver archivedDataWithRootObject: value];
+          if (encoded == nil)
+            {
+              if (errorHandler != NULL)
+                {
+                  NSString *reason;
+
+                  reason = [NSString stringWithFormat:
+                    @"Unable to encode object argument %lu.",
+                    (unsigned long)(index - 2)];
+                  CALL_BLOCK(errorHandler, GSXPCProxyError(reason));
+                }
+              xpc_release(message);
+              return;
+            }
+
+          key = [NSString stringWithFormat: @"gsxpc.arg.%lu",
+                                          (unsigned long)(index - 2)];
+          xpc_dictionary_set_data(message,
+            [key UTF8String],
+            [encoded bytes],
+            (size_t)[encoded length]);
+        }
+      }
+
+    xpc_connection_send_message((xpc_connection_t)_xpcConnection, message);
+    xpc_release(message);
+  }
+#else
+  if (errorHandler != NULL)
+    {
+      CALL_BLOCK(errorHandler,
+        GSXPCProxyError(@"This build does not include libxpc support."));
+    }
+#endif
 }
 
 - (GSXPCInterruptionHandler) interruptionHandler 

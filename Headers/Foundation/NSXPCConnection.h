@@ -114,6 +114,7 @@ GS_EXPORT_CLASS
   NSString *_serviceName;
   NSXPCListenerEndpoint *_endpoint;
   NSXPCInterface *_exportedInterface;
+  id _exportedObject;
   NSXPCInterface *_remoteObjectInterface;
   id _remoteObjectProxy;
   GSXPCInterruptionHandler _interruptionHandler;
@@ -162,6 +163,16 @@ GS_EXPORT_CLASS
  * remote side.
  */
 - (void) setExportInterface: (NSXPCInterface *)exportedInterface;
+
+/**
+ * Returns the object exported to the remote side for incoming invocations.
+ */
+- (id) exportedObject;
+
+/**
+ * Sets the object exported to the remote side for incoming invocations.
+ */
+- (void) setExportedObject: (id)exportedObject;
   
 /**
  * Returns the interface that describes methods available on the remote
