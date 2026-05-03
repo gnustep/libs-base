@@ -716,13 +716,12 @@ GSICUCreateTransliterator(NSString *transliteratorId)
   UParseError		parseError;
   UTransliterator	*trans;
 
-  transId = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
-    transIdLength * sizeof(unichar));
+  transId = (unichar *)malloc(transIdLength * sizeof(unichar));
   [transliteratorId getCharacters: transId
 			    range: NSMakeRange(0, transIdLength)];
   trans = utrans_openU((const UChar *)transId, (int32_t)transIdLength,
     UTRANS_FORWARD, NULL, 0, &parseError, &err);
-  NSZoneFree(NSDefaultMallocZone(), transId);
+  free(transId);
 
   if (U_FAILURE(err) || trans == NULL)
     {
@@ -841,8 +840,7 @@ GSStringApplyTransliterator(const unichar *src,
       }
     else
       {
-	dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
-	  capacity * sizeof(unichar));
+	dst = (unichar *)malloc(capacity * sizeof(unichar));
       }
 
     /* A transliterator can increase output size beyond the input size
@@ -863,14 +861,12 @@ GSStringApplyTransliterator(const unichar *src,
 	    capacity = textLen + 16;
 	    if (dstOnStack == YES)
 	      {
-		dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
-		  capacity * sizeof(unichar));
+		dst = (unichar *)malloc(capacity * sizeof(unichar));
 		dstOnStack = NO;
 	      }
 	    else
 	      {
-		tmp = (unichar *)NSZoneRealloc(NSDefaultMallocZone(), dst,
-		  capacity * sizeof(unichar));
+		tmp = (unichar *)realloc(dst, capacity * sizeof(unichar));
 		dst = tmp;
 	      }
 	    continue;
@@ -879,7 +875,7 @@ GSStringApplyTransliterator(const unichar *src,
 	  {
 	    if (dstOnStack == NO)
 	      {
-		NSZoneFree(NSDefaultMallocZone(), dst);
+		      free(dst);
 	      }
 	    [NSException raise: NSCharacterConversionException
 			format: @"libicu transliteration failed"];
@@ -890,7 +886,7 @@ GSStringApplyTransliterator(const unichar *src,
     result = [NSString stringWithCharacters: dst length: textLen];
     if (dstOnStack == NO)
       {
-	NSZoneFree(NSDefaultMallocZone(), dst);
+	      free(dst);
       }
     return result;
   }
@@ -915,10 +911,10 @@ GSStringApplyTransliteratorToString(NSString *input,
       return @"";
     }
 
-  src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
+  src = (unichar *)malloc(length * sizeof(unichar));
   [input getCharacters: src range: NSMakeRange(0, length)];
   result = GSStringApplyTransliterator(src, length, transOpaque);
-  NSZoneFree(NSDefaultMallocZone(), src);
+  free(src);
 
   return result;
 }
@@ -969,7 +965,7 @@ GSStringFoldCaseWithLocale(NSString *input, id locale)
       localeId = [[locale localeIdentifier] UTF8String];
     }
 
-  src = (unichar *)NSZoneMalloc(NSDefaultMallocZone(), length * sizeof(unichar));
+  src = (unichar *)malloc(length * sizeof(unichar));
   [input getCharacters: src range: NSMakeRange(0, length)];
 
   err = U_ZERO_ERROR;
@@ -977,32 +973,31 @@ GSStringFoldCaseWithLocale(NSString *input, id locale)
     localeId, &err);
   if (err != U_BUFFER_OVERFLOW_ERROR)
     {
-      NSZoneFree(NSDefaultMallocZone(), src);
+      free(src);
       [NSException raise: NSCharacterConversionException
 		  format: @"libicu case folding length check failed"];
     }
 
-  dst = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
-    newLength * sizeof(unichar));
+  dst = (unichar *)malloc(newLength * sizeof(unichar));
   err = U_ZERO_ERROR;
   u_strToLower((UChar *)dst, newLength, (const UChar *)src,
     (int32_t)length, localeId, &err);
-  NSZoneFree(NSDefaultMallocZone(), src);
+  free(src);
 
   if (U_FAILURE(err))
     {
-      NSZoneFree(NSDefaultMallocZone(), dst);
+      free(dst);
       [NSException raise: NSCharacterConversionException
 		  format: @"libicu case folding failed"];
     }
 
   result = [NSString stringWithCharacters: dst length: newLength];
-  NSZoneFree(NSDefaultMallocZone(), dst);
+  free(dst);
   return result;
 }
 #else
 static NSString *
-GSStringFoldCase(NSString *input, id locale)
+GSStringFoldCaseWithLocale(NSString *input, id locale)
 {
   return [input lowercaseString];
 }
