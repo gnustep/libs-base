@@ -620,6 +620,13 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 @interface	NSOperationQueue (Private)
 - (void) _execute;
 - (void) _main: (NSOperation *)op;
+#if GS_USE_LIBDISPATCH == 1
+- (id) _initMainQueue;
+#endif
+- (NSRecursiveLock *) _internalLock;
+- (NSMutableArray *) _internalOperations;
+- (NSMutableArray *) _internalWaiting;
+- (NSInteger *) _internalExecutingPtr;
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
@@ -631,6 +638,10 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 {
 @protected
   NSOperationQueue *_queue;
+  NSRecursiveLock *_lock;
+  NSMutableArray *_operations;
+  NSMutableArray *_waiting;
+  NSInteger *_executing;
 }
 - (id) initWithQueue: (NSOperationQueue *)queue;
 - (void) execute;
@@ -686,6 +697,10 @@ static NSOperationQueue *mainQueue = nil;
   if ((self = [super init]) != nil)
     {
       _queue = queue;
+      _lock = [_queue _internalLock];
+      _operations = [_queue _internalOperations];
+      _waiting = [_queue _internalWaiting];
+      _executing = [_queue _internalExecutingPtr];
     }
   return self;
 }
@@ -738,7 +753,7 @@ static void dispatchQueueExecuteOperation(void *context);
   NSMutableArray *operationsToStart = nil;
   NSOperationQueue *queue = _queue;
 
-  [GSIVar(queue, lock) lock];
+  [_lock lock];
 
   max = [queue maxConcurrentOperationCount];
   if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
@@ -748,19 +763,19 @@ static void dispatchQueueExecuteOperation(void *context);
 
   NS_DURING
   while (NO == [queue isSuspended]
-    && max > GSIVar(queue, executing)
-    && [GSIVar(queue, waiting) count] > 0)
+    && max > (*_executing)
+    && [_waiting count] > 0)
     {
       NSOperation	*op;
 
-      op = [GSIVar(queue, waiting) objectAtIndex: 0];
-      [GSIVar(queue, waiting) removeObjectAtIndex: 0];
+      op = [_waiting objectAtIndex: 0];
+      [_waiting removeObjectAtIndex: 0];
       [op removeObserver: queue forKeyPath: @"queuePriority"];
       [op addObserver: queue
 	   forKeyPath: @"isFinished"
 	      options: NSKeyValueObservingOptionNew
 	      context: isFinishedCtxt];
-      GSIVar(queue, executing)++;
+      (*_executing)++;
       if (nil == operationsToStart)
 	{
 	  operationsToStart = [NSMutableArray new];
@@ -769,11 +784,11 @@ static void dispatchQueueExecuteOperation(void *context);
     }
   NS_HANDLER
     {
-      [GSIVar(queue, lock) unlock];
+      [_lock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [GSIVar(queue, lock) unlock];
+  [_lock unlock];
 
   if (nil != operationsToStart)
     {
@@ -1201,6 +1216,26 @@ dispatchQueueExecuteOperation(void *context)
 
 @implementation	NSOperationQueue (Private)
 
+- (NSRecursiveLock *) _internalLock
+{
+  return internal->lock;
+}
+
+- (NSMutableArray *) _internalOperations
+{
+  return internal->operations;
+}
+
+- (NSMutableArray *) _internalWaiting
+{
+  return internal->waiting;
+}
+
+- (NSInteger *) _internalExecutingPtr
+{
+  return &internal->executing;
+}
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
                          change: (NSDictionary *)change
@@ -1343,9 +1378,9 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 
   current = [NSThread currentThread];
 
-  [GSIVar(queue, lock) lock];
+  [_lock lock];
   tName = [_threadName stringByAppendingFormat: @"_%@", threadNumber];
-  [GSIVar(queue, lock) unlock];
+  [_lock unlock];
 
   [[current threadDictionary] setObject: queue forKey: threadKey];
   [current setName: tName];
@@ -1376,9 +1411,9 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 	      [_cond unlock];
 	      [[[NSThread currentThread] threadDictionary]
 		removeObjectForKey: threadKey];
-	      [GSIVar(queue, lock) lock];
+	      [_lock lock];
 	      _threadCount--;
-	      [GSIVar(queue, lock) unlock];
+	      [_lock unlock];
 	      break;
 	    }
 
@@ -1442,7 +1477,7 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
   NSMutableArray *mainQueueOperations = nil;
   NSOperationQueue *queue = _queue;
 
-  [GSIVar(queue, lock) lock];
+  [_lock lock];
 
   max = [queue maxConcurrentOperationCount];
   if (NSOperationQueueDefaultMaxConcurrentOperationCount == max)
@@ -1452,8 +1487,8 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 
   NS_DURING
   while (NO == [queue isSuspended]
-    && max > GSIVar(queue, executing)
-    && [GSIVar(queue, waiting) count] > 0)
+    && max > (*_executing)
+    && [_waiting count] > 0)
     {
       NSOperation	*op;
 
@@ -1462,14 +1497,14 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
        * and we keep track of the count of operations we have started,
        * but the actual startup is left to the NSOperation -start method.
        */
-      op = [GSIVar(queue, waiting) objectAtIndex: 0];
-      [GSIVar(queue, waiting) removeObjectAtIndex: 0];
+      op = [_waiting objectAtIndex: 0];
+      [_waiting removeObjectAtIndex: 0];
       [op removeObserver: queue forKeyPath: @"queuePriority"];
       [op addObserver: queue
 	   forKeyPath: @"isFinished"
 	      options: NSKeyValueObservingOptionNew
 	      context: isFinishedCtxt];
-      GSIVar(queue, executing)++;
+      (*_executing)++;
       if (queue == mainQueue)
 	{
 	  if (nil == mainQueueOperations)
@@ -1514,11 +1549,11 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
     }
   NS_HANDLER
     {
-      [GSIVar(queue, lock) unlock];
+      [_lock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [GSIVar(queue, lock) unlock];
+  [_lock unlock];
 
   if (nil != mainQueueOperations)
     {
