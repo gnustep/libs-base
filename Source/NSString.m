@@ -934,7 +934,7 @@ GSStringApplyTransliteratorIdentifierToString(NSString *input,
 #endif
 }
 
-#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_USTRING_H)
+#if (GS_USE_ICU == 1)
 static NSString *
 GSStringFoldCaseWithLocale(NSString *input, id locale)
 {
