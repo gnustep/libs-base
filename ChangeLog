@@ -1,3 +1,15 @@
+2026-04-28 Hendrik Huebner <hendrik.huebner@algoriddim.com>
+        
+        * Source/NSOperation.m: Added libdispatch based NSOperationQueue
+        implementation (Enabled by default for platforms where libdispatch
+        is available).
+        * Headers/Foundation/NSOperation.h: Exposed underlyingQueue getter
+        and setter for platforms using libdispatch.
+        * Tests/base/NSOperation/queue_dispatch.m:
+        Added tests for underlying queue and dispatch implementation.
+        * Tests/base/NSOperation/GNUmakefile.preamble: Link libdispatch to
+        queue_dispatch.m.
+
 2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Move calls to memory allocation code.
