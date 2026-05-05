@@ -619,14 +619,12 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 
 @interface	NSOperationQueue (Private)
 - (void) _execute;
-- (void) _main: (NSOperation *)op;
-#if GS_USE_LIBDISPATCH == 1
 - (id) _initMainQueue;
-#endif
 - (NSRecursiveLock *) _internalLock;
 - (NSMutableArray *) _internalOperations;
 - (NSMutableArray *) _internalWaiting;
 - (NSInteger *) _internalExecutingPtr;
+- (void) _main: (NSOperation *)op;
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
@@ -1215,6 +1213,18 @@ dispatchQueueExecuteOperation(void *context)
 @end
 
 @implementation	NSOperationQueue (Private)
+
+- (id) _initMainQueue
+{
+  if ((self = [self init]) != nil)
+    {
+      [internal->lock lock];
+      internal->maxThreads = 1;
+      [internal->queueImpl initAsMainQueue];
+      [internal->lock unlock];
+    }
+  return self;
+}
 
 - (NSRecursiveLock *) _internalLock
 {
