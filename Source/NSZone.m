@@ -132,7 +132,6 @@ struct _NSZone
 };
 
 
-
 static gs_mutex_t  zoneLock = GS_MUTEX_INIT_STATIC;
 
 /**
@@ -147,118 +146,40 @@ GSOutOfMemory(NSUInteger size, BOOL retry)
   return 0;
 }
 
-/* Default zone functions for default zone. */
-static void* default_malloc (NSZone *zone, size_t size);
-static void* default_realloc (NSZone *zone, void *ptr, size_t size);
-static void default_free (NSZone *zone, void *ptr);
-static void default_recycle (NSZone *zone);
-static BOOL default_check (NSZone *zone);
-static BOOL default_lookup (NSZone *zone, void *ptr);
-static struct NSZoneStats default_stats (NSZone *zone);
-
-static void*
-default_malloc (NSZone *zone, size_t size)
+static NSZone defaultZone =
 {
-  void *mem;
-
-  mem = malloc(size);
-  if (mem != NULL)
-    {
-      return mem;
-    }
-  [NSException raise: NSMallocException
-              format: @"Default zone has run out of memory"];
-  return 0;
-}
-
-static void*
-default_realloc (NSZone *zone, void *ptr, size_t size)
-{
-  void *mem;
-
-  mem = realloc(ptr, size);
-  if (mem != NULL)
-    {
-      return mem;
-    }
-  [NSException raise: NSMallocException
-              format: @"Default zone has run out of memory"];
-  return 0;
-}
-
-static void
-default_free (NSZone *zone, void *ptr)
-{
-  free(ptr);
-}
-
-static void
-default_recycle (NSZone *zone)
-{
-  /* Recycle the default zone?  Thou hast got to be kiddin'. */
-  [NSException raise: NSGenericException
-              format: @"Trying to recycle default zone"];
-}
-
-static BOOL
-default_check (NSZone *zone)
-{
-  /* We can't check memory managed by malloc(). */
-  [NSException raise: NSGenericException
-	      format: @"No checking for default zone"];
-  return NO;
-}
-
-static BOOL
-default_lookup (NSZone *zone, void *ptr)
-{
-  /* Assume all memory is in default zone. */
-  return YES;
-}
-
-static struct NSZoneStats
-default_stats (NSZone *zone)
-{
-  struct NSZoneStats dummy = {0,0,0,0,0};
-
-  /* We can't obtain statistics from the memory managed by malloc(). */
-  [NSException raise: NSGenericException
-	      format: @"No statistics for default zone"];
-  return dummy;
-}
-
-static NSZone default_zone =
-{
-  default_malloc, default_realloc, default_free, default_recycle,
-  default_check, default_lookup, default_stats, 0, @"default", 0
+  NULL, NULL, NULL, NULL,
+  NULL, NULL, NULL, 0, @"default", 0
 };
-
-/*
- * For backward compatibility.
- */
-NSZone	*__nszone_private_hidden_default_zone = &default_zone;
-
 
 
 GS_DECLARE void
-NSSetZoneName (NSZone *zone, NSString *name)
+NSSetZoneName(NSZone *zone, NSString *name)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  GS_MUTEX_LOCK(zoneLock);
+  if (NULL == zone)
+    {
+      zone = &defaultZone;
+    }
   name = [name copy];
-  if (zone->name != nil)
-    [zone->name release];
+  GS_MUTEX_LOCK(zoneLock);
+  DESTROY(zone->name);
   zone->name = name;
   GS_MUTEX_UNLOCK(zoneLock);
 }
 
 GS_DECLARE NSString*
-NSZoneName (NSZone *zone)
+NSZoneName(NSZone *zone)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return zone->name;
+  NSString	*name;
+
+  if (NULL == zone)
+    {
+      zone = &defaultZone;
+    }
+  GS_MUTEX_LOCK(zoneLock);
+  name = RETAIN(zone->name);
+  GS_MUTEX_UNLOCK(zoneLock);
+  return AUTORELEASE(name);
 }
 
 /* Alignment */
@@ -1644,8 +1565,8 @@ NSZoneFromPointer(void *ptr)
 {
   NSZone	*zone;
 
-  if (ptr == 0) return 0;
-  if (zone_list == 0) return &default_zone;
+  if (ptr == 0) return NULL;
+  if (zone_list == 0) return NSDefaultMallocZone();
 
   /*
    *	See if we can find the zone in our list of all zones.
@@ -1659,11 +1580,11 @@ NSZoneFromPointer(void *ptr)
 	}
     }
   GS_MUTEX_UNLOCK(zoneLock);
-  return (zone == 0) ? &default_zone : zone;
+  return zone ? zone : NSDefaultMallocZone();
 }
 
 GS_DECLARE NSZone*
-NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
+NSCreateZone(NSUInteger start, NSUInteger gran, BOOL canFree)
 {
   size_t i, startsize, granularity;
   NSZone *newZone;
@@ -1778,11 +1699,11 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 }
 
 GS_DECLARE void*
-NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
+NSZoneCalloc(NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
   void *mem;
 
-  if (0 == zone || NSDefaultMallocZone() == zone)
+  if (NULL == zone || &defaultZone == zone)
     {
       mem = calloc(elems, bytes);
       if (mem != NULL)
@@ -1798,72 +1719,113 @@ NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 GS_DECLARE void*
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
-  return NSZoneCalloc(NSDefaultMallocZone(), 1, size);
+  return NSZoneCalloc(NULL, 1, size);
 }
 
 GS_DECLARE void*
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 {
-  return NSZoneRealloc(0, ptr, size);
+  return NSZoneRealloc(NULL, ptr, size);
 }
 
 GS_DECLARE NSZone*
-NSDefaultMallocZone (void)
+NSDefaultMallocZone(void)
 {
-  return &default_zone;
+  return &defaultZone;
 }
 
 NSZone*
-GSAtomicMallocZone (void)
+GSAtomicMallocZone(void)
 {
-  return &default_zone;
+  return NULL;
 }
 
 GS_DECLARE void*
-NSZoneMalloc (NSZone *zone, NSUInteger size)
+NSZoneMalloc(NSZone *zone, NSUInteger size)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
+  if (NULL == zone || &defaultZone == zone)
+    {
+      void	*mem = malloc(size);
+
+      if (mem != NULL)
+	{
+	  return mem;
+	}
+      [NSException raise: NSMallocException
+		  format: @"Default zone has run out of memory"];
+      return 0;
+    }
   return (zone->malloc)(zone, size);
 }
 
 GS_DECLARE void*
-NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
+NSZoneRealloc(NSZone *zone, void *ptr, NSUInteger size)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
+  if (NULL == zone || &defaultZone == zone)
+    {
+      void	*mem = realloc(ptr, size);
+
+      if (mem != NULL)
+	{
+	  return mem;
+	}
+      [NSException raise: NSMallocException
+		  format: @"Default zone has run out of memory"];
+      return 0;
+    }
   return (zone->realloc)(zone, ptr, size);
 }
 
 GS_DECLARE void
-NSRecycleZone (NSZone *zone)
+NSRecycleZone(NSZone *zone)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
+  if (NULL == zone || &defaultZone == zone)
+    {
+      /* Recycle the default zone?  Thou hast got to be kiddin'. */
+      [NSException raise: NSGenericException
+		  format: @"Trying to recycle default zone"];
+    }
   (zone->recycle)(zone);
 }
 
 GS_DECLARE void
-NSZoneFree (NSZone *zone, void *ptr)
+NSZoneFree(NSZone *zone, void *ptr)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  (zone->free)(zone, ptr);
+  if (NULL == zone || &defaultZone == zone)
+    {
+      free(ptr);
+    }
+  else
+    {
+      (zone->free)(zone, ptr);
+    }
 }
 
 BOOL
-NSZoneCheck (NSZone *zone)
+NSZoneCheck(NSZone *zone)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
+  if (NULL == zone || &defaultZone == zone)
+    {
+      /* We can't check memory managed by malloc(). */
+      [NSException raise: NSGenericException
+		  format: @"No checking for default zone"];
+      return NO;
+    }
   return (zone->check)(zone);
 }
 
 struct NSZoneStats
-NSZoneStats (NSZone *zone)
+NSZoneStats(NSZone *zone)
 {
-  if (!zone)
-    zone = NSDefaultMallocZone();
+  if (NULL == zone || &defaultZone == zone)
+    {
+      struct NSZoneStats dummy = {0,0,0,0,0};
+
+      /* We can't obtain statistics from the memory managed by malloc(). */
+      [NSException raise: NSGenericException
+		  format: @"No statistics for default zone"];
+      return dummy;
+    }
   return (zone->stats)(zone);
 }
 

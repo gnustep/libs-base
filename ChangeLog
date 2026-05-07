@@ -1,3 +1,8 @@
+2026-05-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSZone.m: Tiny optimisation ... avoid a function call
+	overhead when using default malloc zone.
+
 2026-04-28 Hendrik Huebner <hendrik.huebner@algoriddim.com>
         
         * Source/NSOperation.m: Added libdispatch based NSOperationQueue
