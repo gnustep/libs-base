@@ -2,7 +2,10 @@
 
 	* Source/GSTLS.m: Enable strict host certificate verification by
 	default and use available server name for host name verification
-	if it is set.  This is a big deal as it alters the behavior of
+	if it is set.  Improve printing certificate and other debug.
+	Fix bug checking remote host name, and change to use system trust
+	list (if possible) in preference to the one in the gnustep bundle.
+	This is a big deal as it alters the behavior of
 	NSURL (and the NSURLHandle/NSURLConnection APIs) so that they will
 	now fail to send the HTTPS request if the remote host has a bad
 	certificate (not trusted or secure enough etc).  When the APIs were
@@ -16,6 +19,12 @@
 	is only activated by programattically setting TLS configuration for a
 	connection, so code which wants certificate verification should be
 	setting the option to get it anyway.
+	modified:   Source/GSTLS.m
+	* Tests/base/NSStream/socket.m:
+	* Tests/base/NSURL/test02.m:
+	* Tests/base/NSURLConnection/Helpers/NSURLConnectionTest.m:
+	* Tests/base/NSURLConnection/test02.m:
+	Update tests to disable hostname validation where we are using bad certs
 
 2026-05-07 Richard Frith-Macdonald <rfm@gnu.org>
 

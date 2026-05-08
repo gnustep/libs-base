@@ -109,13 +109,15 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSRunLoop *rl;
+  NSString *name;
   NSHost *host;
   Listener *li;
   NSDate *d;
 
   rl = [NSRunLoop currentRunLoop];
-  host = [NSHost hostWithName: @"www.google.com"];
-  //host = [NSHost hostWithName: @"localhost"];
+  name = @"www.google.com";
+  //name = @"localhost";
+  host = [NSHost hostWithName: name];
 
 #if 1
   li = [[Listener new] autorelease];
@@ -161,6 +163,8 @@ int main()
 		       forKey: NSStreamSocketSecurityLevelKey];
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
+
+    [defaultOutput setProperty: name forKey: GSTLSServerName];
     [defaultInput open];
     [defaultOutput open];
 

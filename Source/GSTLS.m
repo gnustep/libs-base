@@ -131,8 +131,9 @@ GSTLSLog(int level, const char *msg)
 
 /* The caFile variable holds the location of the file containing the default
  * certificate authorities to be used by our system.
- * The hard-coded value is a file in the GSTLS folder of the base library
- * resource bundle, but this can be overridden by the GS_TLS_CA_FILE
+ * The hard-coded value is the GNUTLS system default set, with a fallback to
+ * a file in the GSTLS folder of the base library resource bundle,
+ * but this can be overridden by the GS_TLS_CA_FILE
  * environment variable, which in turn will be overridden by the GSTLSCAFile
  * user default string.
  */
@@ -243,12 +244,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       if (nil == str)
         {
           str = [env objectForKey: @"SSL_CERT_FILE"];
-        }
-      if (nil == str)
-        {
-          str = [bundle pathForResource: @"ca-certificates"
-                                 ofType: @"crt"
-                            inDirectory: @"GSTLS"];
         }
     }
   str = standardizedPath(str);
@@ -608,98 +603,26 @@ static GSTLSDHParams            *paramsCurrent = nil;
 
 + (void) certInfo: (gnutls_x509_crt_t)cert to: (NSMutableString*)str
 {
-#if GNUTLS_VERSION_NUMBER >= 0x030507
-  gnutls_datum_t    dn;
-#else
-  char            dn[1024];
-  size_t          dn_size = sizeof(dn);
-#endif
-  char            serial[40];
-  size_t          serial_size = sizeof(serial);
-  time_t          expiret;
-  time_t          activet;
-  int             algo;
-  unsigned int    bits;
-  int             i;
+  gnutls_datum_t	dn = { 0, 0 };
+  int           	ret;
 
-  [str appendFormat: _(@"- Certificate version: #%d\n"),
-    gnutls_x509_crt_get_version(cert)];
-
-#if GNUTLS_VERSION_NUMBER >= 0x030507
-  if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_dn3(cert, &dn, 0))
+  ret = gnutls_x509_crt_print(cert, GNUTLS_CRT_PRINT_FULL, &dn);
+  if (0 == ret)
     {
-      [str appendFormat: @"- Certificate DN: %@\n",
-        [NSString stringWithUTF8String: (const char*)dn.data]];
-      gnutls_free(dn.data);
-    }
-  if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_issuer_dn3(cert, &dn, 0))
+      NSString	*tmp;
+
+      tmp = [[NSString alloc] initWithBytesNoCopy: dn.data
+					   length: dn.size
+					 encoding: NSUTF8StringEncoding
+				     freeWhenDone: YES];
+      [str appendString: tmp];
+      RELEASE(tmp);
+    } 
+  else 
     { 
-      [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
-        [NSString stringWithUTF8String: (const char*)dn.data]];
-      gnutls_free(dn.data);
-    }
-#else
-  dn_size = sizeof(dn) - 1;
-  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-  dn[dn_size] = '\0';
-  [str appendFormat: @"- Certificate DN: %@\n",
-    [NSString stringWithUTF8String: dn]];
-
-  dn_size = sizeof(dn) - 1;
-  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-  dn[dn_size] = '\0';
-  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
-    [NSString stringWithUTF8String: dn]];
-#endif
-
-  activet = gnutls_x509_crt_get_activation_time(cert);
-  [str appendFormat: _(@"- Certificate is valid since: %s"),
-    ctime(&activet)];
-
-  expiret = gnutls_x509_crt_get_expiration_time(cert);
-  [str appendFormat: _(@"- Certificate expires: %s"),
-    ctime (&expiret)];
-
-#if 0
-{
-  char        digest[20];
-  size_t      digest_size = sizeof(digest);
-  if (gnutls_x509_fingerprint(GNUTLS_DIG_MD5,
-    &cert_list[0], digest, &digest_size) >= 0)
-    {
-      [str appendString: _(@"- Certificate fingerprint: ")];
-      for (i = 0; i < digest_size; i++)
-        {
-          [str appendFormat: @"%.2x ", (unsigned char)digest[i]];
-        }
-      [str appendString: @"\n"];
-    }
-}
-#endif
-
-  if (gnutls_x509_crt_get_serial(cert, serial, &serial_size) >= 0)
-    {
-      [str appendString: _(@"- Certificate serial number: ")];
-      for (i = 0; i < serial_size; i++)
-        {
-          [str appendFormat: @"%.2x ", (unsigned char)serial[i]];
-        }
-      [str appendString: @"\n"];
-    }
-
-  [str appendString: _(@"- Certificate public key: ")];
-  algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
-  if (GNUTLS_PK_RSA == algo)
-    {
-      [str appendFormat: _(@"RSA - Modulus: %d bits\n"), bits];
-    }
-  else if (GNUTLS_PK_DSA == algo)
-    {
-      [str appendFormat: _(@"DSA - Exponent: %d bits\n"), bits];
-    }
-  else
-    {
-      [str appendString: _(@"UNKNOWN\n")];
+      [str appendString: @"Unknown"];
+      NSLog(@"-certInfo:to: failed with '%s'", gnutls_strerror(ret));
+      if (dn.data) free(dn.data);
     }
 }
  
@@ -1303,13 +1226,57 @@ static GSTLSDHParams            *paramsCurrent = nil;
                 {
                   c->trust = YES;   // Loaded at least one trusted CA
                 }
-              if (YES == debug)
+              if (debug)
                 {
                   NSLog(@"Default trusted authorities (from %@): %d",
                    dca, ret);
                 }
             }
         }
+      else
+	{
+          const char    *path;
+          int           ret;
+
+	  /* Try system sertificates, and if those fail, try base library ones.
+	   */
+	  ret = gnutls_certificate_set_x509_system_trust(c->certcred);
+	  if (ret < 0)
+	    {
+	      NSBundle	*bundle = [NSBundle bundleForClass: [NSObject class]];
+	      NSString	*str;
+
+	      str = [bundle pathForResource: @"ca-certificates"
+				     ofType: @"crt"
+				inDirectory: @"GSTLS"];
+	      str = standardizedPath(str);
+	      path = [str gnutlsFileSystemRepresentation];
+	      ret = gnutls_certificate_set_x509_trust_file(c->certcred,
+		path, GNUTLS_X509_FMT_PEM);
+	      if (ret >= 0)
+		{
+		  if (debug)
+		    {
+		      NSLog(@"Default trusted authorities (from base) %d", ret);
+		    }
+		  if (ret > 0)
+		    {
+		      c->trust = YES;   // Loaded at least one trusted CA
+		    }
+		}
+	    }
+	  else
+	    {
+              if (debug)
+                {
+                  NSLog(@"Default trusted authorities (from O/S) %d", ret);
+                }
+	      if (ret > 0)
+		{
+		  c->trust = YES;   // Loaded at least one trusted CA
+		}
+	    }
+	}
 
       /* Load any specified trusted authority certificates.
        */
@@ -2073,12 +2040,13 @@ retrieve_callback(gnutls_session_t session,
       ret = [self verify];
       if (ret < 0)
         {
-          if (globalDebug > 1 || (requireVerified && globalDebug > 0)
+          if (globalDebug > 1
+	    || (requireVerified && globalDebug > 0)
             || YES == [[opts objectForKey: GSTLSDebug] boolValue])
             {
               NSLog(@"%p unable to verify SSL connection - %s",
                 handle, gnutls_strerror(ret));
-              NSLog(@"%p %@", handle, [self sessionInfo]);
+              NSLog(@"%p failed verify:\n%@", handle, [self sessionInfo]);
             }
           if (requireVerified)
             {
@@ -2371,7 +2339,8 @@ retrieve_callback(gnutls_session_t session,
               gnutls_x509_crt_import(cert,
                 &cert_list[cert_num], GNUTLS_X509_FMT_DER);
 
-              [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
+              [str appendFormat: _(@"- Index %d of %d, "),
+		cert_num, cert_list_size];
 
               [GSTLSCertificateList certInfo: cert to: str];
 
@@ -2405,6 +2374,7 @@ retrieve_callback(gnutls_session_t session,
 {
   NSArray               *names;
   NSString              *str;
+  NSMutableString       *ci;
   unsigned int          status;
   const gnutls_datum_t  *cert_list;
   unsigned int          cert_list_size;
@@ -2521,6 +2491,9 @@ retrieve_callback(gnutls_session_t session,
 #endif
     }
 
+  ci = [NSMutableString stringWithCapacity: 2000];
+  [GSTLSCertificateList certInfo: cert to: ci];
+
   str = [opts objectForKey: GSTLSRemoteHosts];
   if (nil == str)
     {
@@ -2557,7 +2530,7 @@ retrieve_callback(gnutls_session_t session,
 
       while (nil != (name = [enumerator nextObject]))
         {
-          if (0 == gnutls_x509_crt_check_hostname(cert, [name UTF8String]))
+          if (gnutls_x509_crt_check_hostname(cert, [name UTF8String]))
             {
               found = YES;
               break;
@@ -2566,8 +2539,8 @@ retrieve_callback(gnutls_session_t session,
       if (NO == found)
         {
           str = [NSString stringWithFormat:
-            @"TLS verification: certificate's hostname does not match '%@'",
-            names];
+            @"TLS verification: hostname does not match '%@' in %@",
+            names, ci];
           ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
           if (YES == debug) NSLog(@"%p %@", handle, problem);
@@ -2575,17 +2548,16 @@ retrieve_callback(gnutls_session_t session,
         }
     }
 
-  gnutls_x509_crt_deinit(cert);
-
   names = [opts objectForKey: GSTLSIssuers];
   if ([names isKindOfClass: [NSArray class]])
     {
       if (nil == issuer || NO == [names containsObject: issuer])
         {
           str = [NSString stringWithFormat:
-            @"TLS verification: certificate's issuer does not match '%@'",
-            names];
+            @"TLS verification: issuer does not match '%@' in %@",
+            names, ci];
           ASSIGN(problem, str);
+	  gnutls_x509_crt_deinit(cert);
           if (YES == debug) NSLog(@"%p %@", handle, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
@@ -2597,14 +2569,16 @@ retrieve_callback(gnutls_session_t session,
       if (nil == owner || NO == [names containsObject: owner])
         {
           str = [NSString stringWithFormat:
-            @"TLS verification: certificate's owner does not match '%@'",
-            names];
+            @"TLS verification: owner does not match '%@' in %@",
+            names, ci];
           ASSIGN(problem, str);
+	  gnutls_x509_crt_deinit(cert);
           if (YES == debug) NSLog(@"%p %@", handle, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }
 
+  gnutls_x509_crt_deinit(cert);
   return 0;     // Verified
 }
 
