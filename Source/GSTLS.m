@@ -165,7 +165,7 @@ static BOOL     verifyClient = NO;
  * default string.
  * A GSTLSVerify option set for a specific session overrides this default
  */
-static BOOL     verifyServer = NO;
+static BOOL     verifyServer = YES;
 
 /* The globalDebug variable turns on gnutls debug.  The hard-code value is
  * overridden by GS_TLS_DEBUG, which in turn can be overridden by the
@@ -279,14 +279,20 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     {
       str = [env objectForKey: @"GS_TLS_VERIFY_C"];
     }
-  verifyClient = [str boolValue];
+  if (str)
+    {
+      verifyClient = [str boolValue];
+    }
 
   str = [defs stringForKey: @"GSTLSVerifyServer"];
   if (nil == str)
     { 
       str = [env objectForKey: @"GS_TLS_VERIFY_S"];
     }
-  verifyServer = [str boolValue];
+  if (str)
+    {
+      verifyServer = [str boolValue];
+    }
 
   str = [defs stringForKey: GSTLSDebug];
   if (nil == str)
@@ -2037,25 +2043,29 @@ retrieve_callback(gnutls_session_t session,
   else
     {
       NSString  *str;
-      BOOL      shouldVerify = NO;
+      BOOL      requireVerified;
 
       active = YES;     // The TLS session is now active.
       handshake = NO;   // Handshake is over.
 
       if (YES == outgoing)
         {
-          shouldVerify = verifyServer;  // Verify remote server certificate?
+          requireVerified = verifyServer;  // Verify remote server certificate?
         }
       else
         {
-          shouldVerify = verifyClient;  // Verify remote client certificate?
+          requireVerified = verifyClient;  // Verify remote client certificate?
         }
       str = [opts objectForKey: GSTLSVerify];
       if (nil != str)
         {
-          shouldVerify = [str boolValue];
+          requireVerified = [str boolValue];
         }
 
+      /* We always try verification (and can report failure).
+       * The requireVerified flag controls whether a verification failure
+       * results in disconnect.
+       */
       if (globalDebug > 1)
         {
           NSLog(@"%p trying verify:\n%@", handle, [self sessionInfo]);
@@ -2063,14 +2073,14 @@ retrieve_callback(gnutls_session_t session,
       ret = [self verify];
       if (ret < 0)
         {
-          if (globalDebug > 1 || (YES == shouldVerify && globalDebug > 0)
+          if (globalDebug > 1 || (requireVerified && globalDebug > 0)
             || YES == [[opts objectForKey: GSTLSDebug] boolValue])
             {
               NSLog(@"%p unable to verify SSL connection - %s",
                 handle, gnutls_strerror(ret));
               NSLog(@"%p %@", handle, [self sessionInfo]);
             }
-          if (YES == shouldVerify)
+          if (requireVerified)
             {
               [self disconnect: NO];
             }
@@ -2514,13 +2524,29 @@ retrieve_callback(gnutls_session_t session,
   str = [opts objectForKey: GSTLSRemoteHosts];
   if (nil == str)
     {
-      names = nil;
+      /* If nothing is specified, assume the connection host name
+       * (if any) should be used for verification.
+       */
+      str = [opts objectForKey: GSTLSServerName];
+      if ([str length] > 0)
+        {
+          names = [NSArray arrayWithObject: str];
+        }
+      else
+        {
+          names = nil;
+        }
     }
   else
     {
       /* The string is a comma separated list of permitted host names.
+       * If explicitly set to be empty, no host verification is done.
        */
       names = [str componentsSeparatedByString: @","];
+      if ([names count] == 0)
+        {
+          names = nil;
+        }
     }
 
   if (nil != names)

@@ -1,19 +1,38 @@
+2026-05-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: Enable strict host certificate verification by
+	default and use available server name for host name verification
+	if it is set.  This is a big deal as it alters the behavior of
+	NSURL (and the NSURLHandle/NSURLConnection APIs) so that they will
+	now fail to send the HTTPS request if the remote host has a bad
+	certificate (not trusted or secure enough etc).  When the APIs were
+	first developed that would have been a big issue because a lot of
+	servers would not have worked, but nowadays we can expect servers
+	to have good certificates issued by a trusted authority.
+	* Documentation/Base.gsdoc: document the user default and environment
+	variable settings available for process-wide control of TLS behavior.
+	* Source/NSSocketPort.m: Disable strict host certificate verification
+	by default for TLS used for inter-process communication. This feature
+	is only activated by programattically setting TLS configuration for a
+	connection, so code which wants certificate verification should be
+	setting the option to get it anyway.
+
 2026-05-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSZone.m: Tiny optimisation ... avoid a function call
 	overhead when using default malloc zone.
 
 2026-04-28 Hendrik Huebner <hendrik.huebner@algoriddim.com>
-        
-        * Source/NSOperation.m: Added libdispatch based NSOperationQueue
-        implementation (Enabled by default for platforms where libdispatch
-        is available).
-        * Headers/Foundation/NSOperation.h: Exposed underlyingQueue getter
-        and setter for platforms using libdispatch.
-        * Tests/base/NSOperation/queue_dispatch.m:
-        Added tests for underlying queue and dispatch implementation.
-        * Tests/base/NSOperation/GNUmakefile.preamble: Link libdispatch to
-        queue_dispatch.m.
+
+	* Source/NSOperation.m: Added libdispatch based NSOperationQueue
+	implementation (Enabled by default for platforms where libdispatch
+	is available).
+	* Headers/Foundation/NSOperation.h: Exposed underlyingQueue getter
+	and setter for platforms using libdispatch.
+	* Tests/base/NSOperation/queue_dispatch.m:
+	Added tests for underlying queue and dispatch implementation.
+	* Tests/base/NSOperation/GNUmakefile.preamble: Link libdispatch to
+	queue_dispatch.m.
 
 2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 

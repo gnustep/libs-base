@@ -8,7 +8,7 @@ notice and this notice are preserved.
 <gsdoc base="Base">
   <head>
     <title>GNUstep Base</title>
-    <copy>1993-2023 Free Software Foundation, Inc.</copy>
+    <copy>1993-2026 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
@@ -237,6 +237,74 @@ notice and this notice are preserved.
                 which means that the order of equal objects may be changed
                 by a sort.  Selecting these may break code which assumes that
 	        sorting is stable.
+	      </p>
+	    </desc>
+	    <term>GSTLSCAFile</term>
+	    <desc>
+	      <p>
+		This provides a process-wide setting of the path to the
+		certificate authority file used for TLS connections.<br />
+		This overrides the GS_TLS_CA_FILE environment variable,
+		which in turn overrides the SSL_CERT_FILE environment
+		variable (used by OPENSSL) and the default location.<br />
+		An option of this name set for an individual connection
+		takes precedence over this setting.
+	      </p>
+	    </desc>
+	    <term>GSTLSDebug</term>
+	    <desc>
+	      <p>
+		This sets a process-wide debug level for TLS connections.<br />
+		This overrides the GS_TLS_DEBUG environment variable.<br />
+		which in turn overrides the default of YES.<br />
+		A GSTLSDebug option set for an individual connection
+		takes precedence over this setting.
+	      </p>
+	    </desc>
+	    <term>GSTLSPriority</term>
+	    <desc>
+	      <p>
+		This sets a process-wide GNUTLS priority string.<br /> 
+		This overrides the GS_TLS_PRIORITY environment variable.<br />
+		A GSTLSPriority option set for an individual connection
+		takes precedence over this setting.<br />
+		See the documentation of the GNUTLS project for an
+	        explanation of the priority string.
+	      </p>
+	    </desc>
+	    <term>GSTLSRevokeFile</term>
+	    <desc>
+	      <p>
+		This provides a process-wide setting of the path to the
+		certificate revocation file used for TLS connections.<br />
+		This overrides the GS_TLS_REVOKE_FILE environment variable,
+		which in turn overrides the default location).<br />
+		An option of this name set for an individual connection
+		takes precedence over this setting.
+	      </p>
+	    </desc>
+	    <term>GSTLSVerifyClient</term>
+	    <desc>
+	      <p>
+		This provides a process-wide setting of a boolean controlling
+		whether client certificate verification failures cause the
+		connection to be dropped when a remote client connects.<br />
+		This overrides the GS_TLS_VERIFY_C environment variable,
+		which in turn overrides the default of NO.<br />
+		A GSTLSVerify option set for an individual connection
+		takes precedence over this setting.
+	      </p>
+	    </desc>
+	    <term>GSTLSVerifyServer</term>
+	    <desc>
+	      <p>
+		This provides a process-wide setting of a boolean controlling
+		whether certificate verification failures cause the connection
+		to be dropped when we are connecting to a remote server.<br />
+		This overrides the GS_TLS_VERIFY_S environment variable,
+		which in turn overrides the default of YES.<br />
+		A GSTLSVerify option set for an individual connection
+		takes precedence over this setting.
 	      </p>
 	    </desc>
 	    <term>Local Time Zone</term>
@@ -472,6 +540,26 @@ notice and this notice are preserved.
 	      logging (to stderr) of the GSObjCRuntime functions to
 	      add/override methods in a class using a list of methods
 	      from another class.
+	    </desc>
+	    <term>GS_TLS_CA_FILE</term>
+	    <desc>
+	      See the GSTLSCAFile default (takes precedence over this).
+	    </desc>
+	    <term>GS_TLS_DEBUG</term>
+	    <desc>
+	      See the GSTLSDebug default (takes precedence over this).
+	    </desc>
+	    <term>GS_TLS_REVOKE_FIL</term>
+	    <desc>
+	      See the GSTLSRevokeFile default (takes precedence over this).
+	    </desc>
+	    <term>GS_TLS_VERIFY_C</term>
+	    <desc>
+	      See the GSTLSVerifyClient default (takes precedence over this).
+	    </desc>
+	    <term>GS_TLS_VERIFY_S</term>
+	    <desc>
+	      See the GSTLSVerifyServer default (takes precedence over this).
 	    </desc>
 	    <term>HOMEDRIVE</term>
 	    <desc>
