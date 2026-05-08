@@ -2566,7 +2566,7 @@ retrieve_callback(gnutls_session_t session,
       if (NO == found)
         {
           str = [NSString stringWithFormat:
-            @"TLS verification: certificate's owner does not match '%@'",
+            @"TLS verification: certificate's hostname does not match '%@'",
             names];
           ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
