@@ -287,6 +287,12 @@ int main()
 
   PASS([mgr createDirectoryAtPath: @"subdir" attributes: nil],
        "NSFileManager can create a subdirectory");
+  PASS([mgr createDirectoryAtPath: @"Sample.app" attributes: nil],
+       "NSFileManager can create a package directory");
+  PASS([mgr createFileAtPath: @"Sample.app/Info.plist"
+		    contents: [@"{}" dataUsingEncoding: NSASCIIStringEncoding]
+		  attributes: nil],
+       "NSFileManager can create a package leaf");
   
   {
     NSURL			*u;
@@ -308,6 +314,31 @@ int main()
 	  found++;
       }
     PASS(2 == found, "URL enumerator finds expected file and subdirectory")
+  }
+
+  {
+    NSURL			*u;
+    NSDirectoryEnumerator	*e;
+    BOOL			foundPackage = NO;
+    BOOL			foundPackageLeaf = NO;
+
+    e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: @"."]
+  includingPropertiesForKeys: nil
+		     options: NSDirectoryEnumerationSkipsPackageDescendants
+		errorHandler: nil];
+
+    while (nil != (u = [e nextObject]))
+      {
+	NSString	*c = [[u path] lastPathComponent];
+
+	if ([c isEqualToString: @"Sample.app"])
+	  foundPackage = YES;
+	if ([c isEqualToString: @"Info.plist"])
+	  foundPackageLeaf = YES;
+      }
+    PASS(foundPackage, "URL enumerator lists package directory")
+    PASS(!foundPackageLeaf,
+      "URL enumerator skips package descendants when requested")
   }
 
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 

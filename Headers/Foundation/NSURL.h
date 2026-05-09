@@ -40,6 +40,8 @@ extern "C" {
 @class NSDictionary;
 @class NSArray;
 
+NS_ASSUME_NONNULL_BEGIN
+
 /**
  *  URL scheme constant for use with [NSURL-initWithScheme:host:path:].
  */
@@ -73,12 +75,17 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSURL)
 @private
   NSString	*_urlString;
-  NSURL		*_baseURL;
-  void		*_clients;
-  void		*_data;
+  NSURL		*_Nullable _baseURL;
+  void		*_Nullable _clients;
+  void		*_Nullable _data;
 #endif
 }
- 
+
+/**
+ * Initialize an empty URL object.
+ */
+- (nonnull instancetype) init;
+
 /**
  * Create and return a file URL with the supplied path.<br />
  * The value of aPath must be a valid filesystem path.<br />
@@ -100,12 +107,12 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
 + (instancetype) fileURLWithPath: (NSString *)aPath
 		     isDirectory: (BOOL)isDir
-		   relativeToURL: (NSURL *)baseURL;
+		   relativeToURL: (NSURL *_Nullable)baseURL;
 
 /** Create and return a file URL with the supplied path, relative to a base URL.
  */
 + (instancetype) fileURLWithPath: (NSString *)aPath
-		   relativeToURL: (NSURL *)baseURL;
+		   relativeToURL: (NSURL *_Nullable)baseURL;
 #endif
 
 /**
@@ -114,12 +121,12 @@ GS_EXPORT_CLASS
  * conforming to the description (in RFC2396) of an absolute URL.<br />
  * Calls -initWithString:
  */
-+ (instancetype) URLWithString: (NSString*)aUrlString;
++ (instancetype _Nullable) URLWithString: (NSString*)aUrlString;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-+ (instancetype) URLByResolvingAliasFileAtURL: (NSURL*)url
-                                      options: (NSURLBookmarkResolutionOptions)options
-                                        error: (NSError**)error;
++ (instancetype _Nullable) URLByResolvingAliasFileAtURL: (NSURL*)url
+                                                options: (NSURLBookmarkResolutionOptions)options
+                                                  error: (NSError**)error;
 #endif
 
 /**
@@ -128,8 +135,8 @@ GS_EXPORT_CLASS
  * conforming to the description (in RFC2396) of a relative URL.<br />
  * Calls -initWithString:relativeToURL:
  */
-+ (instancetype) URLWithString: (NSString*)aUrlString
-                 relativeToURL: (NSURL*)aBaseUrl;
++ (instancetype _Nullable) URLWithString: (NSString*)aUrlString
+                           relativeToURL: (NSURL *_Nullable)aBaseUrl;
 
 /**
  * Initialise as a file URL with the specified path (which must
@@ -167,7 +174,7 @@ GS_EXPORT_CLASS
  * Calls -initWithScheme:host:path:
  */
 - (instancetype) initFileURLWithPath: (NSString *)aPath
-		       relativeToURL: (NSURL *)baseURL;
+		       relativeToURL: (NSURL *_Nullable)baseURL;
 
 /**
  * Initialise as a file URL with the specified path (which must
@@ -180,7 +187,7 @@ GS_EXPORT_CLASS
  */
 - (instancetype) initFileURLWithPath: (NSString *)aPath
 			 isDirectory: (BOOL)isDir
-		       relativeToURL: (NSURL *)baseURL;
+		       relativeToURL: (NSURL *_Nullable)baseURL;
 #endif
 
 /**
@@ -194,15 +201,15 @@ GS_EXPORT_CLASS
  * Permits the 'aHost' part to contain 'username:password@host:port' or
  * 'host:port' in addition to a simple host name or address.
  */
-- (instancetype) initWithScheme: (NSString*)aScheme
-                           host: (NSString*)aHost
-                           path: (NSString*)aPath;
+- (instancetype _Nullable) initWithScheme: (NSString*)aScheme
+                                     host: (NSString *_Nullable)aHost
+                                     path: (NSString*)aPath;
 
 /**
  * Initialise as an absolute URL.<br />
  * Calls -initWithString:relativeToURL:
  */
-- (instancetype) initWithString: (NSString*)aUrlString;
+- (instancetype _Nullable) initWithString: (NSString*)aUrlString;
 
 /** <init />
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
@@ -212,8 +219,8 @@ GS_EXPORT_CLASS
  * Parses an empty string as an empty path.<br />
  * If the string cannot be parsed the method returns nil.
  */
-- (instancetype) initWithString: (NSString*)aUrlString
-                  relativeToURL: (NSURL*)aBaseUrl;
+- (instancetype _Nullable) initWithString: (NSString*)aUrlString
+                            relativeToURL: (NSURL *_Nullable)aBaseUrl;
 
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly, getter=isFileURL) BOOL fileURL;
@@ -236,14 +243,14 @@ GS_EXPORT_CLASS
  * If the receiver is a relative URL, returns its base URL.<br />
  * Otherwise, returns nil.
  */
-- (NSURL*) baseURL;
+- (NSURL *_Nullable) baseURL;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Attempts to load from the specified URL and provides an error
  * response if the data is unrachable.<br />
  * Returns YES on success, NO on failure.
  */
-- (BOOL) checkResourceIsReachableAndReturnError: (NSError **)error;
+- (BOOL) checkResourceIsReachableAndReturnError: (NSError *_Nullable *_Nullable)error;
 #endif
 
 /**
@@ -252,7 +259,7 @@ GS_EXPORT_CLASS
  * The fragment is everything in the original URL string after a '#'<br />
  * File URLs do not have fragments.
  */
-- (NSString*) fragment;
+- (NSString *_Nullable) fragment;
 
 /**
  * Returns the host portion of the receiver or nil if there is no
@@ -262,7 +269,7 @@ GS_EXPORT_CLASS
  * Returns IPv6 addresses <em>without</em> the enclosing square brackets
  * required (by RFC2732) in URL strings.
  */
-- (NSString*) host;
+- (NSString *_Nullable) host;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns the last (rightmost) path component of the receiver.
@@ -292,7 +299,7 @@ GS_EXPORT_CLASS
  *   background load operation to operate!
  * </p>
  */
-- (void) loadResourceDataNotifyingClient: (id)client
+- (void) loadResourceDataNotifyingClient: (id _Nullable)client
 			      usingCache: (BOOL)shouldUseCache;
 
 /**
@@ -302,7 +309,7 @@ GS_EXPORT_CLASS
  * but before the query.<br />
  * File URLs do not have parameters.
  */
-- (NSString*) parameterString;
+- (NSString *_Nullable) parameterString;
 
 /**
  * Returns the password portion of the receiver or nil if there is no
@@ -312,7 +319,7 @@ GS_EXPORT_CLASS
  * NB. because of its security implications it is recommended that you
  * do not use URLs with users and passwords unless necessary.
  */
-- (NSString*) password;
+- (NSString *_Nullable) password;
 
 /**
  * Returns the path portion of the receiver.<br />
@@ -346,13 +353,13 @@ GS_EXPORT_CLASS
  * Percent escape sequences in the user string are translated in GNUstep
  * but this appears to be broken in MacOS-X.
  */
-- (NSNumber*) port;
+- (NSNumber *_Nullable) port;
 
 /**
  * Asks a URL handle to return the property for the specified key and
  * returns the result.
  */
-- (id) propertyForKey: (NSString*)propertyKey;
+- (id _Nullable) propertyForKey: (NSString*)propertyKey;
 
 /**
  * Returns the query portion of the receiver or nil if there is no
@@ -361,14 +368,14 @@ GS_EXPORT_CLASS
  * but before the fragment.<br />
  * File URLs do not have queries.
  */
-- (NSString*) query;
+- (NSString *_Nullable) query;
 
 /**
  * Returns the path of the receiver, without taking any base URL into account.
  * If the receiver is an absolute URL, -relativePath is the same as -path.<br />
  * Returns nil if there is no path specified for the URL.
  */
-- (NSString*) relativePath;
+- (NSString *_Nullable) relativePath;
 
 /**
  * Returns the relative portion of the URL string.  If the receiver is not
@@ -382,7 +389,7 @@ GS_EXPORT_CLASS
  * an existing NSURLHandle can be used to provide the data, or if it should
  * be refetched.
  */
-- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache;
+- (NSData *_Nullable) resourceDataUsingCache: (BOOL)shouldUseCache;
 
 /**
  * Returns the resource specifier of the URL ... the part which lies
@@ -393,7 +400,7 @@ GS_EXPORT_CLASS
 /**
  * Returns the scheme of the receiver.
  */
-- (NSString*) scheme;
+- (NSString *_Nullable) scheme;
 
 /**
  * Calls [NSURLHandle-writeProperty:forKey:] to set the named property.
@@ -463,11 +470,11 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 - (BOOL) isFileReferenceURL;
 
-- (NSURL *) fileReferenceURL;
+- (NSURL *_Nullable) fileReferenceURL;
 
-- (NSURL *) filePathURL;
+- (NSURL *_Nullable) filePathURL;
 
-- (BOOL) getResourceValue: (id*)value 
+- (BOOL) getResourceValue: (id _Nullable * _Nullable)value
                    forKey: (NSString *)key 
                     error: (NSError**)error;
 #endif
@@ -487,7 +494,7 @@ GS_EXPORT_CLASS
  * NB. because of its security implications it is recommended that you
  * do not use URLs with users and passwords unless necessary.
  */
-- (NSString*) user;
+- (NSString *_Nullable) user;
 
 @end
 
@@ -517,6 +524,8 @@ GS_EXPORT_CLASS
 - (void) URL: (NSURL*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
+
+NS_ASSUME_NONNULL_END
 
 /** URL Resource Value Constants **/
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -792,7 +801,3 @@ GS_NSURLComponents_IVARS;
 #endif	/* GS_API_MACOSX */
 
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
-
-
-
-

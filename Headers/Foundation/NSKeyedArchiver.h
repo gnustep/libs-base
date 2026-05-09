@@ -98,7 +98,7 @@ GS_EXPORT_CLASS
  */
 + (NSData *) archivedDataWithRootObject: (id)anObject
                   requiringSecureCoding: (BOOL)requiresSecureCoding
-                                  error: (NSError **)error;
+                                  error: (NSError *_Nullable *_Nullable)error;
 #endif
 
 /**
@@ -315,11 +315,11 @@ GS_EXPORT_CLASS
 
 + (id) unarchivedObjectOfClass: (Class)cls
                       fromData: (NSData*)data
-                         error: (NSError**)error;
+                         error: (NSError *_Nullable *_Nullable)error;
 
 + (id) unarchivedObjectOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
                         fromData: (NSData*)data
-                           error: (NSError**)error;
+                           error: (NSError *_Nullable *_Nullable)error;
 
 #endif
 
@@ -327,21 +327,21 @@ GS_EXPORT_CLASS
 
 + (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
                                     fromData: (NSData*)data
-                                       error: (NSError**)error;
+                                       error: (NSError *_Nullable *_Nullable)error;
 
 + (NSArray*) unarchivedArrayOfObjectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
                                       fromData: (NSData*)data
-                                         error: (NSError**)error;
+                                         error: (NSError *_Nullable *_Nullable)error;
 
 + (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
                                        objectsOfClass: (Class)valueCls
                                              fromData: (NSData*)data
-                                                error: (NSError**)error;
+                                                error: (NSError *_Nullable *_Nullable)error;
 
 + (NSDictionary*) unarchivedDictionaryWithKeysOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)keyClasses
                                        objectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)valueClasses
                                                fromData: (NSData*)data
-                                                  error: (NSError**)error;
+                                                  error: (NSError *_Nullable *_Nullable)error;
 
 #endif
 
@@ -668,4 +668,3 @@ willReplaceObject: (id)anObject
 
 #endif	/* GS_API_MACOSX */
 #endif	/* __NSKeyedArchiver_h_GNUSTEP_BASE_INCLUDE */
-

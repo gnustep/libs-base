@@ -37,6 +37,8 @@ extern "C" {
 
 @class NSArray, NSDictionary, NSString;
 
+NS_ASSUME_NONNULL_BEGIN
+
 typedef NSString* NSErrorDomain;
 
 /**
@@ -135,7 +137,7 @@ GS_EXPORT_CLASS
 @private
   int		_code;
   NSString	*_domain;
-  NSDictionary	*_userInfo;
+  NSDictionary	*_Nullable _userInfo;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -154,7 +156,7 @@ GS_EXPORT_CLASS
  */
 + (instancetype) errorWithDomain: (NSErrorDomain)aDomain
                             code: (NSInteger)aCode
-                        userInfo: (NSDictionary*)aDictionary;
+                        userInfo: (NSDictionary *_Nullable)aDictionary;
 
 /**
  * Return the error code ... which is not globally unique, just unique for
@@ -173,7 +175,7 @@ GS_EXPORT_CLASS
  */
 - (instancetype) initWithDomain: (NSErrorDomain)aDomain
                            code: (NSInteger)aCode
-                       userInfo: (NSDictionary*)aDictionary;
+                       userInfo: (NSDictionary *_Nullable)aDictionary;
 
 /**
  * Return a human readable description for the error.<br />
@@ -191,7 +193,7 @@ GS_EXPORT_CLASS
  * The default implementation uses the value from the user info dictionary
  * if it is available, otherwise it returns nil.
  */
-- (NSString *) localizedFailureReason;
+- (NSString *_Nullable) localizedFailureReason;
 
 /**
  * Returns an array of strings to be used as titles of buttons in an
@@ -200,7 +202,7 @@ GS_EXPORT_CLASS
  * The default implementation uses the value from the user info dictionary
  * if it is available, otherwise it returns nil.
  */
-- (NSArray *) localizedRecoveryOptions;
+- (NSArray *_Nullable) localizedRecoveryOptions;
 
 /**
  * Returns a string used as the secondary text in an alert panel,
@@ -209,14 +211,14 @@ GS_EXPORT_CLASS
  * The default implementation uses the value from the user info dictionary
  * if it is available, otherwise it returns nil.
  */
-- (NSString *) localizedRecoverySuggestion;
+- (NSString *_Nullable) localizedRecoverySuggestion;
 
 /**
  * Not yet useful in GNUstep.<br />
  * The default implementation uses the value from the user info dictionary
  * if it is available, otherwise it returns nil.
  */
-- (id) recoveryAttempter;
+- (id _Nullable) recoveryAttempter;
 #endif
 
 /**
@@ -227,8 +229,10 @@ GS_EXPORT_CLASS
  * <code>NSError</code> instance if an error is available describing any
  * underlying problem.<br />
  */
-- (NSDictionary*) userInfo;
+- (NSDictionary *_Nullable) userInfo;
 @end
+
+NS_ASSUME_NONNULL_END
 
 #if	defined(__cplusplus)
 }
