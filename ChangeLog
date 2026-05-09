@@ -1,3 +1,17 @@
+2026-05-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+	* Source/NSURLProtocol.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStream.m:
+	* Tests/base/NSStream/socket.m:
+	Usability tweaks, including setting the host name requested for the
+	TLS connection automatically if not specified.  This is needed for
+	servers with multiple names which want to know which hostname a
+	request was intended for.
+
 2026-05-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Enable strict host certificate verification by

@@ -1524,8 +1524,7 @@ retrieve_callback(gnutls_session_t session,
       m = [NSMutableString stringWithCapacity: 2000];
       for (i = 0; i < count; i++)
         {
-          [GSTLSCertificateList certInfo: crts[i]
-                                      to: m];
+          [GSTLSCertificateList certInfo: crts[i] to: m];
         }
       if (0 == count)
         {
@@ -2319,19 +2318,31 @@ retrieve_callback(gnutls_session_t session,
     {
       unsigned int            cert_list_size = 0;
       const gnutls_datum_t    *cert_list;
-      gnutls_x509_crt_t       cert;
 
       cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
+      [str appendString: @"- "];
       if (0 == cert_list_size)
         {
-          [str appendString: _(@"- Peer provided no certificate.\n")];
+          [str appendString: _(@"Peer provided no certificate.")];
+          [str appendString: @"\n"];
         }
       else
         {
           int cert_num;
       
+          if (cert_list_size > 1)
+            {
+              [str appendString: _(@"Peer certificates")];
+            }
+          else
+            {
+              [str appendString: _(@"Peer certificate")];
+            }
+          [str appendString: @"\n"];
           for (cert_num = 0; cert_num < cert_list_size; cert_num++)
             {
+              gnutls_x509_crt_t cert;
+
               gnutls_x509_crt_init(&cert);
               /* NB. the list of peer certificate is in memory in native
                * format (DER) rather than the normal file format (PEM).
@@ -2373,6 +2384,7 @@ retrieve_callback(gnutls_session_t session,
 - (int) verify
 {
   NSArray               *names;
+  NSString              *nameList;
   NSString              *str;
   NSMutableString       *ci;
   unsigned int          status;
@@ -2494,16 +2506,16 @@ retrieve_callback(gnutls_session_t session,
   ci = [NSMutableString stringWithCapacity: 2000];
   [GSTLSCertificateList certInfo: cert to: ci];
 
-  str = [opts objectForKey: GSTLSRemoteHosts];
-  if (nil == str)
+  nameList = [opts objectForKey: GSTLSRemoteHosts];
+  if (nil == nameList)
     {
       /* If nothing is specified, assume the connection host name
        * (if any) should be used for verification.
        */
-      str = [opts objectForKey: GSTLSServerName];
-      if ([str length] > 0)
+      nameList = [opts objectForKey: GSTLSServerName];
+      if ([nameList length] > 0)
         {
-          names = [NSArray arrayWithObject: str];
+          names = [NSArray arrayWithObject: nameList];
         }
       else
         {
@@ -2515,7 +2527,7 @@ retrieve_callback(gnutls_session_t session,
       /* The string is a comma separated list of permitted host names.
        * If explicitly set to be empty, no host verification is done.
        */
-      names = [str componentsSeparatedByString: @","];
+      names = [nameList componentsSeparatedByString: @","];
       if ([names count] == 0)
         {
           names = nil;
@@ -2540,7 +2552,7 @@ retrieve_callback(gnutls_session_t session,
         {
           str = [NSString stringWithFormat:
             @"TLS verification: hostname does not match '%@' in %@",
-            names, ci];
+            nameList, ci];
           ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
           if (YES == debug) NSLog(@"%p %@", handle, problem);

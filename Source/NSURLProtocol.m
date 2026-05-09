@@ -987,6 +987,8 @@ typedef struct {
         {
           static NSArray        *keys;
           NSUInteger            count;
+	  NSString		*key;
+	  NSString		*val;
 
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                             forKey: NSStreamSocketSecurityLevelKey];
@@ -1009,21 +1011,11 @@ typedef struct {
                 GSTLSVerify,
                 nil];
             }
-          count = [keys count];
-          while (count-- > 0)
-            {
-              NSString      *key = [keys objectAtIndex: count];
-              NSString      *str = [this->request _propertyForKey: key];
-
-              if (nil != str)
-                {
-                  [this->output setProperty: str forKey: key];
-                }
-            }
           /* If there is no value set for the server name, and the host in the
            * URL is a domain name rather than an address, we use that.
            */
-          if (nil == [this->output propertyForKey: GSTLSServerName])
+	  key = GSTLSServerName;
+	  if (nil == (val = [this->request _propertyForKey: key]))
             {
               NSString  *host = [url host];
               unichar   c;
@@ -1031,7 +1023,22 @@ typedef struct {
               c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
               if (c != 0 && c != ':' && !isdigit(c))
                 {
-                  [this->output setProperty: host forKey: GSTLSServerName];
+                  [this->output setProperty: host forKey: key];
+                }
+            }
+	  else
+	    {
+	      [this->output setProperty: val forKey: key];
+	    }
+          count = [keys count];
+          while (count-- > 0)
+            {
+              key = [keys objectAtIndex: count];
+              val = [this->request _propertyForKey: key];
+
+              if (nil != val)
+                {
+                  [this->output setProperty: val forKey: key];
                 }
             }
           if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];

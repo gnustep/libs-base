@@ -1810,6 +1810,11 @@ setNonBlocking(SOCKET fd)
 	    {
 	      result = GSPrivateSockaddrHost((struct sockaddr*)&sin);
 	    }
+	  else
+	    {
+	      // Assume we are not yet connected.
+	      result = GSPrivateSockaddrHost((struct sockaddr*)&_address);
+	    }
 	}
       else if ([key isEqualToString: GSStreamRemotePortKey])
 	{

@@ -164,7 +164,11 @@ int main()
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
 
-    [defaultOutput setProperty: name forKey: GSTLSServerName];
+/* Our getStreamsToHost:port:inputStream:outputStream: does this using some
+ * randomly selected name fo the host.  To use a specific name we may want
+ * an override here.
+ * [defaultOutput setProperty: name forKey: GSTLSServerName];
+ */
     [defaultInput open];
     [defaultOutput open];
 
