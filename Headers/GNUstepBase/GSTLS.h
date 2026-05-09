@@ -58,6 +58,8 @@ GS_EXPORT NSString * const GSTLSVerify;
 
 /** Notification posted whenever a connection (handled by a [GSTLSSession]
  * instance) to a TLS server fails certificate or host name verification.
+ * This is only sent if the option to turn off strict verification was not
+ * set in the session options.
  */
 GS_EXPORT NSString* const GSTLSVerifyFailedNotification;
 

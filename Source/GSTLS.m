@@ -2059,16 +2059,24 @@ retrieve_callback(gnutls_session_t session,
                 handle, gnutls_strerror(ret));
               NSLog(@"%p failed verify:\n%@", handle, [self sessionInfo]);
             }
-	  if (outgoing)
-	    {
-              [[NSNotificationCenter defaultCenter]
-                postNotificationName: GSTLSVerifyFailedNotification
-                  object: self];
-	    }
           if (requireVerified)
             {
               [self disconnect: NO];
             }
+	  else if (outgoing && nil == [opts objectForKey: GSTLSVerify])
+	    {
+	      /* We notify about verification failure on outgoing connections
+	       * if the failure was ignored, unless it was specifically turned
+	       * off by the app (GSTLSVerify set to NO). That is to say, if
+	       * strict verification was turned off by environment variable
+	       * or user default.  This is intended to allow an application
+	       * to catch connection attempts which would have failed if the
+	       * default setting had been to use strict verification.
+	       */
+              [[NSNotificationCenter defaultCenter]
+                postNotificationName: GSTLSVerifyFailedNotification
+                  object: self];
+	    }
         }
       else
         {
