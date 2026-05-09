@@ -43,6 +43,9 @@
 
 #import "GSPrivate.h"
 
+NSString* const GSTLSVerifyFailedNotification
+  = @"GSTLSVerifyFailedNotification";
+
 @interface	NSString(gnutlsFileSystemRepresentation)
 - (const char*) gnutlsFileSystemRepresentation;
 @end
@@ -1648,6 +1651,15 @@ retrieve_callback(gnutls_session_t session,
   [super finalize];
 }
 
+- (NSString*) hostName
+{
+  if (outgoing)
+    {
+      return [opts objectForKey: GSTLSServerName];
+    }
+  return nil;
+}
+
 - (id) initWithOptions: (NSDictionary*)options
              direction: (BOOL)isOutgoing
              transport: (void*)ioHandle
@@ -2047,6 +2059,12 @@ retrieve_callback(gnutls_session_t session,
                 handle, gnutls_strerror(ret));
               NSLog(@"%p failed verify:\n%@", handle, [self sessionInfo]);
             }
+	  if (outgoing)
+	    {
+              [[NSNotificationCenter defaultCenter]
+                postNotificationName: GSTLSVerifyFailedNotification
+                  object: self];
+	    }
           if (requireVerified)
             {
               [self disconnect: NO];
@@ -2066,6 +2084,11 @@ retrieve_callback(gnutls_session_t session,
 - (NSString*) issuer
 {
   return issuer;
+}
+
+- (NSDictionary*) options
+{
+  return opts;
 }
 
 - (NSString*) owner

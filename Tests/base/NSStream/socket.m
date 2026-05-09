@@ -100,6 +100,7 @@ NSLog(@"%@", [defaultInput streamError]);
       {
         NSAssert1(1, @"Error! code is %ld",
           (long int)[[theStream streamError] code]);
+	done = YES;
         break;
       }  
     }
