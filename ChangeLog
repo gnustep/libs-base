@@ -106,7 +106,16 @@
 	exceptions or null pointer crashes in code which expects the
 	-UTF8String method to work for all strings.
 	Remove a few old testcases and add a load of new ones.
-	
+
+2026-04-22 Hendrik Huebner <hendrik.huebner@algoriddim.com>
+
+	* Headers/Foundation/NSString.h:
+	Declare -stringByFoldingWithOptions:locale:.
+	* Source/NSString.m:
+	Implement -stringByFoldingWithOptions:locale: using ICU transliteration.
+	* Tests/base/NSString/locale.m:
+	Add folding tests for case, diacritic, width and combined behavior.
+
 2026-04-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSFileManager.h:
