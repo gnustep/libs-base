@@ -464,11 +464,6 @@ void GSPrivateNotifyIdle(NSString *mode) GS_ATTRIB_PRIVATE;
  */
 BOOL GSPrivateNotifyMore(NSString *mode) GS_ATTRIB_PRIVATE;
 
-/* Function to return the range of a composed character sequence.
- */
-NSRange GSPrivateRangeOfComposed(const unichar *buf, NSUInteger length,
-  NSUInteger index) GS_ATTRIB_PRIVATE;
-
 /* Function to return the function for searching in a string for a range.
  */
 typedef NSRange (*GSRSFunc)(id, id, unsigned, NSRange);

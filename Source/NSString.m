@@ -120,7 +120,6 @@
 # include <icu.h>
 #endif
 
-
 /* Create local inline versions of key functions for case-insensitive operations
  */
 #import "Additions/unicode/caseconv.h"
@@ -138,107 +137,6 @@ uni_tolower(unichar ch)
 }
 
 #import "GNUstepBase/Unicode.h"
-
-NSRange GSPrivateRangeOfComposed(const unichar *buf, NSUInteger length, 
-  NSUInteger anIndex)
-{
-  /* ASCII characters are never counted as parts of a longer
-   * composed sequence.  This seems to match OSX behavior and is a
-   * reasonable optimisation.
-   */
-  if (buf[anIndex] < 128)
-    {
-      return NSMakeRange(anIndex, 1);
-    }
-  else
-    {
-#if GS_USE_ICU
-      UErrorCode 	status = U_ZERO_ERROR;
-      int32_t		len = (int32_t)length;
-      int32_t		index = (int32_t)anIndex;
-      int32_t 		start;
-      int32_t		end;
-      UBreakIterator 	*bi;
-
-      /* Create a grapheme-cluster (UBRK_CHARACTER) break iterator
-       * over the UTF16 buffer.
-       */
-      bi = ubrk_open(UBRK_CHARACTER, NULL /* default locale */,
-	(const UChar*)buf, len, &status);
-
-      if (U_FAILURE(status) || NULL == bi)
-	{
-	  return NSMakeRange(0, NSNotFound);
-	}
-
-      /* Find start, end of the grapheme cluster containing index.
-       *
-       * ubrk_isBoundary(bi, pos) returns true when pos is a cluster boundary
-       * AND leaves the iterator positioned at pos, ready for ubrk_next().
-       *
-       * Case A — index is itself a cluster-start boundary:
-       *   isBoundary returns true and positions the iterator there.
-       *   start = index, end = ubrk_next().
-       *
-       * Case B — index falls inside a cluster (e.g. trail surrogate, combining
-       *   mark, or non-first code unit of an emoji modifier sequence):
-       *   isBoundary returns false. ICU positions the iterator at the next
-       *   boundary strictly after index. We then call ubrk_preceding() to
-       *   step back to the cluster start, and ubrk_next() to return to the end.
-       *
-       * This avoids the pitfall of calling preceding(index+1) when index+1 is
-       * itself in the middle of a surrogate pair, which returns UBRK_DONE.
-       */
-      index = (int32_t)anIndex;
-      if (ubrk_isBoundary(bi, index))
-	{
-	  start = index;
-	  end   = ubrk_next(bi);
-	}
-      else
-	{
-	  int32_t	next;
-
-	  end   = ubrk_current(bi);
-	  start = ubrk_preceding(bi, end);
-	  next = ubrk_next(bi);
-	  if (next != UBRK_DONE)
-	    {
-	      end = next;
-	    }
-	}
-
-      ubrk_close(bi);
-
-      if (UBRK_DONE == start || UBRK_DONE == end)
-	{
-	  return NSMakeRange(0, NSNotFound);
-	}
-      return NSMakeRange((NSUInteger)start, (NSUInteger)(end - start));
-#else
-      unsigned	start;
-      unsigned	end;
-      unichar	ch;
-
-      for (start = anIndex; start > 0; start--)
-	{
-	  ch = buf[start];
-	  if (uni_isnonsp(ch) == NO)
-	    break;
-	}
-      for (end = start+1; end < length; end++)
-	{
-	  ch = buf[end];
-	  if (uni_isnonsp(ch) == NO)
-	    break;
-	}
-
-      return NSMakeRange(start, end-start);
-#endif
-    }
-}
-
-
 
 @interface	NSScanner (Double)
 + (BOOL) _scanDouble: (double*)value from: (NSString*)str;
@@ -3149,27 +3047,31 @@ register_printf_atsign ()
  */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
-  NSUInteger	length = [self length];
+  unsigned	start;
+  unsigned	end;
+  unsigned	length = [self length];
+  unichar	ch;
+  unichar	(*caiImp)(NSString*, SEL, NSUInteger);
 
   if (anIndex >= length)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
+    [self methodForSelector: caiSel];
+
+  for (start = anIndex; start > 0; start--)
     {
-      [NSException raise: NSRangeException format: @"Invalid location."];
+      ch = (*caiImp)(self, caiSel, start);
+      if (uni_isnonsp(ch) == NO)
+        break;
+    }
+  for (end = start+1; end < length; end++)
+    {
+      ch = (*caiImp)(self, caiSel, end);
+      if (uni_isnonsp(ch) == NO)
+        break;
     }
 
-  if (0 == length)
-    {
-      return NSMakeRange(0, NSNotFound);
-    }
-  else
-    {
-      NSRange	result;
-      GS_BEGINITEMBUF(buf, (length * sizeof(unichar)), unichar)
-
-      [self getCharacters: buf];
-      result = GSPrivateRangeOfComposed(buf, length, anIndex);
-      GS_ENDITEMBUF()
-      return result;
-    }
+  return NSMakeRange(start, end-start);
 }
 
 - (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range

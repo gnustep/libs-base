@@ -3217,7 +3217,7 @@ static inline NSRange
 rangeOfSequence_c(GSStr self, unsigned anIndex)
 {
   if (anIndex >= self->_count)
-    [NSException raise: NSRangeException format: @"Invalid location."];
+    [NSException raise: NSRangeException format:@"Invalid location."];
 
   return (NSRange){anIndex, 1};
 }
@@ -3225,14 +3225,20 @@ rangeOfSequence_c(GSStr self, unsigned anIndex)
 static inline NSRange
 rangeOfSequence_u(GSStr self, unsigned anIndex)
 {
-  NSRange	result;
+  unsigned	start;
+  unsigned	end;
 
   if (anIndex >= self->_count)
-    {
-      [NSException raise: NSRangeException format: @"Invalid location."];
-    }
-  result = GSPrivateRangeOfComposed(self->_contents.u, self->_count, anIndex);
-  return result;
+    [NSException raise: NSRangeException format:@"Invalid location."];
+
+  start = anIndex;
+  while (uni_isnonsp(self->_contents.u[start]) && start > 0)
+    start--;
+  end = start + 1;
+  if (end < self->_count)
+    while ((end < self->_count) && (uni_isnonsp(self->_contents.u[end])))
+      end++;
+  return (NSRange){start, end-start};
 }
 
 static inline NSRange
@@ -6083,12 +6089,6 @@ literalIsEqual(NXConstantString *self, id anObject)
 
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
-#if	GS_USE_ICU
-  /* NB.  A comprehensive implementation needs to work with UTF-16
-   * as done by the NSString code.
-   */
-  return [super rangeOfComposedCharacterSequenceAtIndex: anIndex];
-#else
   NSUInteger	start = 0;
   NSUInteger	pos = 0;
   unichar	n = 0;
@@ -6129,7 +6129,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   [NSException raise: NSInvalidArgumentException
     format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
   return NSMakeRange(NSNotFound, 0);
-#endif
 }
 #endif // GNUSTEP_NEW_STRING_ABI
 
