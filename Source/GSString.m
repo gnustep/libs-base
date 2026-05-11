@@ -3217,7 +3217,7 @@ static inline NSRange
 rangeOfSequence_c(GSStr self, unsigned anIndex)
 {
   if (anIndex >= self->_count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
 
   return (NSRange){anIndex, 1};
 }
@@ -3225,20 +3225,14 @@ rangeOfSequence_c(GSStr self, unsigned anIndex)
 static inline NSRange
 rangeOfSequence_u(GSStr self, unsigned anIndex)
 {
-  unsigned	start;
-  unsigned	end;
+  NSRange	result;
 
   if (anIndex >= self->_count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-
-  start = anIndex;
-  while (uni_isnonsp(self->_contents.u[start]) && start > 0)
-    start--;
-  end = start + 1;
-  if (end < self->_count)
-    while ((end < self->_count) && (uni_isnonsp(self->_contents.u[end])))
-      end++;
-  return (NSRange){start, end-start};
+    {
+      [NSException raise: NSRangeException format: @"Invalid location."];
+    }
+  result = GSPrivateRangeOfComposed(self->_contents.u, self->_count, anIndex);
+  return result;
 }
 
 static inline NSRange
