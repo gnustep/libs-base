@@ -142,94 +142,100 @@ uni_tolower(unichar ch)
 NSRange GSPrivateRangeOfComposed(const unichar *buf, NSUInteger length, 
   NSUInteger anIndex)
 {
-#if GS_USE_ICU  == 1
-  UErrorCode 		status = U_ZERO_ERROR;
-  int32_t		len = (int32_t)length;
-  int32_t		index = (int32_t)anIndex;
-  int32_t 		start;
-  int32_t		end;
-  UBreakIterator 	*bi;
-
-  /* Create a grapheme-cluster (UBRK_CHARACTER) break iterator
-   * over the UTF16 buffer.
+  /* ASCII characters are never counted as parts of a longer
+   * composed sequence.  This seems to match OSX behavior and is a
+   * reasonable optimisation.
    */
-  bi = ubrk_open(UBRK_CHARACTER, NULL /* default locale */,
-    (const UChar*)buf, len, &status);
-
-  if (U_FAILURE(status) || NULL == bi)
+  if (buf[anIndex] < 128)
     {
-      return NSMakeRange(0, NSNotFound);
-    }
-
-  /* Find start, end of the grapheme cluster containing index.
-   *
-   * ubrk_isBoundary(bi, pos) returns true when pos is a cluster boundary
-   * AND leaves the iterator positioned at pos, ready for ubrk_next().
-   *
-   * Case A — index is itself a cluster-start boundary:
-   *   isBoundary returns true and positions the iterator there.
-   *   start = index, end = ubrk_next().
-   *
-   * Case B — index falls inside a cluster (e.g. trail surrogate, combining
-   *   mark, or non-first code unit of an emoji modifier sequence):
-   *   isBoundary returns false. ICU positions the iterator at the next
-   *   boundary strictly after index. We then call ubrk_preceding() to
-   *   step back to the cluster start, and ubrk_next() to return to the end.
-   *
-   * This avoids the pitfall of calling preceding(index+1) when index+1 is
-   * itself in the middle of a surrogate pair, which returns UBRK_DONE.
-   */
-  index = (int32_t)anIndex;
-  if (ubrk_isBoundary(bi, index))
-    {
-      start = index;
-      end   = ubrk_next(bi);
+      return NSMakeRange(anIndex, 1);
     }
   else
     {
-      int32_t	next;
+#if GS_USE_ICU
+      UErrorCode 	status = U_ZERO_ERROR;
+      int32_t		len = (int32_t)length;
+      int32_t		index = (int32_t)anIndex;
+      int32_t 		start;
+      int32_t		end;
+      UBreakIterator 	*bi;
 
-      end   = ubrk_current(bi);
-      start = ubrk_preceding(bi, end);
-      next = ubrk_next(bi);
-      if (next != UBRK_DONE)
+      /* Create a grapheme-cluster (UBRK_CHARACTER) break iterator
+       * over the UTF16 buffer.
+       */
+      bi = ubrk_open(UBRK_CHARACTER, NULL /* default locale */,
+	(const UChar*)buf, len, &status);
+
+      if (U_FAILURE(status) || NULL == bi)
 	{
-	  end = next;
+	  return NSMakeRange(0, NSNotFound);
 	}
-    }
 
-  ubrk_close(bi);
+      /* Find start, end of the grapheme cluster containing index.
+       *
+       * ubrk_isBoundary(bi, pos) returns true when pos is a cluster boundary
+       * AND leaves the iterator positioned at pos, ready for ubrk_next().
+       *
+       * Case A — index is itself a cluster-start boundary:
+       *   isBoundary returns true and positions the iterator there.
+       *   start = index, end = ubrk_next().
+       *
+       * Case B — index falls inside a cluster (e.g. trail surrogate, combining
+       *   mark, or non-first code unit of an emoji modifier sequence):
+       *   isBoundary returns false. ICU positions the iterator at the next
+       *   boundary strictly after index. We then call ubrk_preceding() to
+       *   step back to the cluster start, and ubrk_next() to return to the end.
+       *
+       * This avoids the pitfall of calling preceding(index+1) when index+1 is
+       * itself in the middle of a surrogate pair, which returns UBRK_DONE.
+       */
+      index = (int32_t)anIndex;
+      if (ubrk_isBoundary(bi, index))
+	{
+	  start = index;
+	  end   = ubrk_next(bi);
+	}
+      else
+	{
+	  int32_t	next;
 
-  if (UBRK_DONE == start || UBRK_DONE == end)
-    {
-      return NSMakeRange(0, NSNotFound);
-    }
-  return NSMakeRange((NSUInteger)start, (NSUInteger)(end - start));
+	  end   = ubrk_current(bi);
+	  start = ubrk_preceding(bi, end);
+	  next = ubrk_next(bi);
+	  if (next != UBRK_DONE)
+	    {
+	      end = next;
+	    }
+	}
+
+      ubrk_close(bi);
+
+      if (UBRK_DONE == start || UBRK_DONE == end)
+	{
+	  return NSMakeRange(0, NSNotFound);
+	}
+      return NSMakeRange((NSUInteger)start, (NSUInteger)(end - start));
 #else
-  unsigned	start;
-  unsigned	end;
-  unsigned	length = [self length];
-  unichar	ch;
-  unichar	(*caiImp)(NSString*, SEL, NSUInteger);
+      unsigned	start;
+      unsigned	end;
+      unichar	ch;
 
-  caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
-    [self methodForSelector: caiSel];
+      for (start = anIndex; start > 0; start--)
+	{
+	  ch = buf[start];
+	  if (uni_isnonsp(ch) == NO)
+	    break;
+	}
+      for (end = start+1; end < length; end++)
+	{
+	  ch = buf[end];
+	  if (uni_isnonsp(ch) == NO)
+	    break;
+	}
 
-  for (start = anIndex; start > 0; start--)
-    {
-      ch = (*caiImp)(self, caiSel, start);
-      if (uni_isnonsp(ch) == NO)
-	break;
-    }
-  for (end = start+1; end < length; end++)
-    {
-      ch = (*caiImp)(self, caiSel, end);
-      if (uni_isnonsp(ch) == NO)
-	break;
-    }
-
-  return NSMakeRange(start, end-start);
+      return NSMakeRange(start, end-start);
 #endif
+    }
 }
 
 
