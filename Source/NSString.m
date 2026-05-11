@@ -250,7 +250,7 @@ uni_isnonsp(unichar u)
 	  return NO;	// if charset is missing (prerhaps during process exit)
 	}
     }
-  return (*nonBaseImp)(nonBase, cMemberSel, u);
+  return (*nonBaseImp)(nonBase, cMemberSel, u) ? YES : NO;
 }
 
 /*
