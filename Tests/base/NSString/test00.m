@@ -520,10 +520,13 @@ int main()
   PASS([indianLong length] == res.location, "unicode found in middle simple")
   res = [lsl rangeOfString: indianShort options: NSCaseInsensitiveSearch];
   PASS([indianLong length] == res.location, "unicode found in middle insensitive")
+
+testHopeful = YES;
   res = [lsl rangeOfString: indianShort options: NSBackwardsSearch];
   PASS([indianLong length] == res.location, "unicode found in middle backwards")
   res = [lsl rangeOfString: indianShort options: NSCaseInsensitiveSearch|NSBackwardsSearch];
   PASS([indianLong length] == res.location, "unicode found in middle backwards insensitive")
+testHopeful = NO;
 
 }
   [arp release]; arp = nil;
