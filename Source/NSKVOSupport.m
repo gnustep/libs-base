@@ -207,6 +207,8 @@ _NSKVOKeypathObserver ()
   [super dealloc];
 }
 
+// While exploring the observer graph, for dependencies, we use this to 
+// detect cycles to prevent infinite recursion. 
 - (void) beginDependencyExpansionScope
 {
   GS_MUTEX_LOCK(_lock);
@@ -219,6 +221,8 @@ _NSKVOKeypathObserver ()
   GS_MUTEX_UNLOCK(_lock);
 }
 
+/* Nodes (observable values) in the observer graph are uniquely identified
+ * using a combination of the object pointer and the name of the value */
 - (id) dependencyKeyForObject: (id)object key: (NSString *)key
 {
   return [NSArray arrayWithObjects:
@@ -227,7 +231,7 @@ _NSKVOKeypathObserver ()
                    nil];
 }
 
-- (void) pushAncestorForNode: (_NSKVOKeyObserver *)keyObserver
+- (void) pushObserverToCurrentAncestorStack: (_NSKVOKeyObserver *)keyObserver
 {
   id ancestorKey = [self dependencyKeyForObject: keyObserver.object
                                             key: keyObserver.key];
@@ -236,7 +240,7 @@ _NSKVOKeypathObserver ()
   GS_MUTEX_UNLOCK(_lock);
 }
 
-- (void) popAncestorForNode: (_NSKVOKeyObserver *)keyObserver
+- (void) popObserverFromCurrentAncestorStack: (_NSKVOKeyObserver *)keyObserver
 {
   id ancestorKey = [self dependencyKeyForObject: keyObserver.object
                                             key: keyObserver.key];
@@ -246,7 +250,7 @@ _NSKVOKeypathObserver ()
 }
 
 /// Mark keypath as visited in the current dependency-expansion scope.
-- (BOOL) markDependentKeypathVisited: (NSString *)keypath
+- (BOOL) checkDependencyForCycle: (NSString *)keypath
                              forNode: (_NSKVOKeyObserver *)keyObserver
 {
   NSString *dependentKey;
@@ -261,7 +265,7 @@ _NSKVOKeypathObserver ()
     {
       BOOL isCycle = [_dependencyAncestorKeys containsObject: visitToken];
       GS_MUTEX_UNLOCK(_lock);
-      // If it's on the active ancestor stack, treat as true cycle and dedup.
+      // If it's on the current ancestor stack, treat as cycle and dedup.
       // If it's already visited but not on stack, allow expansion to continue.
       return !isCycle;
     }
@@ -407,16 +411,17 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
           }
 
           [observationInfo beginDependencyExpansionScope];
-          [observationInfo pushAncestorForNode: keyObserver];
+          [observationInfo pushObserverToCurrentAncestorStack: keyObserver];
           /* Don't allow our own key to be recreated. */
-          [observationInfo markDependentKeypathVisited:keyObserver.key
+          [observationInfo checkDependencyForCycle:keyObserver.key
                                                forNode:keyObserver];
 
+          /* The observers, which affect us */
           dependentObservers =
             [NSMutableArray arrayWithCapacity:[valueInfluencingKeys count]];
           for (NSString *dependentKeypath in valueInfluencingKeys)
             {
-              if ([observationInfo markDependentKeypathVisited:dependentKeypath
+              if ([observationInfo checkDependencyForCycle:dependentKeypath
                                                        forNode:keyObserver])
                 {
                   _NSKVOKeyObserver *dependentObserver
@@ -428,13 +433,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
                       [dependentObservers addObject:dependentObserver];
                     }
                 }
-              else
-                {
-                }
             }
           keyObserver.dependentObservers = dependentObservers;
 
-          [observationInfo popAncestorForNode: keyObserver];
+          [observationInfo popObserverFromCurrentAncestorStack: keyObserver];
           [observationInfo endDependencyExpansionScope];
         }
     }

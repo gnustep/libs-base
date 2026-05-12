@@ -2,19 +2,29 @@
 #import "ObjectTesting.h"
 
 @interface BVSLeaf : NSObject
+{
+  NSInteger _value;
+  BOOL _flag;
+}
 @property (nonatomic, assign) NSInteger value;
 @property (nonatomic, assign) BOOL flag;
 @end
 
 @implementation BVSLeaf
+@synthesize value = _value;
+@synthesize flag = _flag;
 @end
 
 @interface BVSNode : NSObject
+{
+  BVSLeaf *_leaf;
+}
 @property (nonatomic, retain) BVSLeaf *leaf;
 @property (nonatomic, readonly) NSInteger score;
 @end
 
 @implementation BVSNode
+@synthesize leaf = _leaf;
 + (NSSet *) keyPathsForValuesAffectingScore
 {
   return [NSSet setWithObject: @"leaf.value"];
@@ -26,18 +36,26 @@
 @end
 
 @interface BVSHolder : NSObject
+{
+  BVSNode *_node;
+}
 @property (nonatomic, retain) BVSNode *node;
 @end
 @implementation BVSHolder
+@synthesize node = _node;
 @end
 
 @interface BVSRoot : NSObject
+{
+  BVSHolder *_holder;
+}
 @property (nonatomic, retain) BVSHolder *holder;
 @property (nonatomic, readonly) BVSNode *selected;
 @property (nonatomic, readonly) BOOL derived;
 @end
 
 @implementation BVSRoot
+@synthesize holder = _holder;
 + (NSSet *) keyPathsForValuesAffectingSelected
 {
   return [NSSet setWithObject: @"holder.node"];
@@ -97,7 +115,8 @@ int main(void)
             context: NULL];
 
   // Repeatedly rematerialize the shared dependency path.
-  for (NSUInteger i = 0; i < 25; i++)
+  NSUInteger i;
+  for (i = 0; i < 25; i++)
     {
       root.holder.node = nil;
       root.holder.node = node;

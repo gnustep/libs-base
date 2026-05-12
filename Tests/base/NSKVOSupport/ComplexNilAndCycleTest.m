@@ -6,12 +6,16 @@
 @interface CNode : NSObject
 {
   NSInteger _f;
+  NSObject *_d;
+  BNode *_b;
 }
 @property (nonatomic, retain) NSObject *d;
 @property (nonatomic, retain) BNode *b;
 @property (nonatomic, assign) NSInteger f;
 @end
 @implementation CNode
+@synthesize d = _d;
+@synthesize b = _b;
 - (NSInteger) f
 {
   return _f;
@@ -34,24 +38,40 @@
 @end
 
 @interface BNode : NSObject
+{
+  CNode *_c;
+  NSInteger _e;
+}
 @property (nonatomic, retain) CNode *c;
 @property (nonatomic, assign) NSInteger e;
 @end
 @implementation BNode
+@synthesize c = _c;
+@synthesize e = _e;
 @end
 
 @interface ANode : NSObject
+{
+  BNode *_b;
+  CNode *_c;
+}
 @property (nonatomic, retain) BNode *b;
 @property (nonatomic, retain) CNode *c;
 @end
 @implementation ANode
+@synthesize b = _b;
+@synthesize c = _c;
 @end
 
 @interface RootNode : NSObject
+{
+  ANode *_a;
+}
 @property (nonatomic, retain) ANode *a;
 @property (nonatomic, readonly) BOOL x;
 @end
 @implementation RootNode
+@synthesize a = _a;
 + (NSSet *) keyPathsForValuesAffectingX
 {
   return [NSSet setWithObjects: @"a.b.c.d", @"a.c.b.e", nil];

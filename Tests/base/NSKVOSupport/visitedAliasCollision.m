@@ -2,17 +2,27 @@
 #import "ObjectTesting.h"
 
 @interface VACLeaf : NSObject
+{
+  NSInteger _value;
+  BOOL _flag;
+}
 @property (nonatomic, assign) NSInteger value;
 @property (nonatomic, assign) BOOL flag;
 @end
 @implementation VACLeaf
+@synthesize value = _value;
+@synthesize flag = _flag;
 @end
 
 @interface VACNode : NSObject
+{
+  VACLeaf *_leaf;
+}
 @property (nonatomic, retain) VACLeaf *leaf;
 @property (nonatomic, readonly) NSInteger score;
 @end
 @implementation VACNode
+@synthesize leaf = _leaf;
 + (NSSet *) keyPathsForValuesAffectingScore
 {
   return [NSSet setWithObject: @"leaf.value"];
@@ -24,12 +34,19 @@
 @end
 
 @interface VACHolder : NSObject
+{
+  VACNode *_node;
+}
 @property (nonatomic, retain) VACNode *node;
 @end
 @implementation VACHolder
+@synthesize node = _node;
 @end
 
 @interface VACRoot : NSObject
+{
+  VACHolder *_holder;
+}
 @property (nonatomic, retain) VACHolder *holder;
 @property (nonatomic, readonly) VACNode *selectedA;
 @property (nonatomic, readonly) VACNode *selectedB;
@@ -37,6 +54,7 @@
 @end
 
 @implementation VACRoot
+@synthesize holder = _holder;
 + (NSSet *) keyPathsForValuesAffectingSelectedA
 {
   return [NSSet setWithObject: @"holder.node"];

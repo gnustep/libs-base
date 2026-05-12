@@ -23,6 +23,9 @@
 @end
 
 @interface CDODirectCycleRoot : NSObject
+{
+  NSInteger _leaf;
+}
 @property (nonatomic, assign) NSInteger leaf;
 @property (nonatomic, readonly) NSInteger a;
 @property (nonatomic, readonly) NSInteger b;
@@ -30,6 +33,7 @@
 @end
 
 @implementation CDODirectCycleRoot
+@synthesize leaf = _leaf;
 + (NSSet *) keyPathsForValuesAffectingA
 {
   return [NSSet setWithObject: @"b"];
@@ -57,6 +61,9 @@
 @end
 
 @interface CDOThreeCycleRoot : NSObject
+{
+  NSInteger _leaf;
+}
 @property (nonatomic, assign) NSInteger leaf;
 @property (nonatomic, readonly) NSInteger x;
 @property (nonatomic, readonly) NSInteger y;
@@ -65,6 +72,7 @@
 @end
 
 @implementation CDOThreeCycleRoot
+@synthesize leaf = _leaf;
 + (NSSet *) keyPathsForValuesAffectingX
 {
   return [NSSet setWithObject: @"y"];
