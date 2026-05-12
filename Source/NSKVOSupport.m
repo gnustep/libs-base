@@ -207,31 +207,70 @@ _NSKVOKeypathObserver ()
   [super dealloc];
 }
 
-- (void) pushDependencyStack
+- (void) beginDependencyExpansionScope
 {
   GS_MUTEX_LOCK(_lock);
   if (_dependencyDepth == 0)
     {
       _existingDependentKeys = [NSMutableSet new];
+      _dependencyAncestorKeys = [NSMutableSet new];
     }
   ++_dependencyDepth;
   GS_MUTEX_UNLOCK(_lock);
 }
 
-- (BOOL) lockDependentKeypath: (NSString *)keypath
+- (id) dependencyKeyForObject: (id)object key: (NSString *)key
 {
+  return [NSArray arrayWithObjects:
+                   (object ?: [NSNull null]),
+                   (key ?: @""),
+                   nil];
+}
+
+- (void) pushAncestorForNode: (_NSKVOKeyObserver *)keyObserver
+{
+  id ancestorKey = [self dependencyKeyForObject: keyObserver.object
+                                            key: keyObserver.key];
   GS_MUTEX_LOCK(_lock);
-  if ([_existingDependentKeys containsObject:keypath])
+  [_dependencyAncestorKeys addObject: ancestorKey];
+  GS_MUTEX_UNLOCK(_lock);
+}
+
+- (void) popAncestorForNode: (_NSKVOKeyObserver *)keyObserver
+{
+  id ancestorKey = [self dependencyKeyForObject: keyObserver.object
+                                            key: keyObserver.key];
+  GS_MUTEX_LOCK(_lock);
+  [_dependencyAncestorKeys removeObject: ancestorKey];
+  GS_MUTEX_UNLOCK(_lock);
+}
+
+/// Mark keypath as visited in the current dependency-expansion scope.
+- (BOOL) markDependentKeypathVisited: (NSString *)keypath
+                             forNode: (_NSKVOKeyObserver *)keyObserver
+{
+  NSString *dependentKey;
+  NSString *unusedRemainder;
+  id visitToken;
+
+  dependentKey = _NSKVCSplitKeypath(keypath, &unusedRemainder);
+  visitToken = [self dependencyKeyForObject: keyObserver.object
+                                        key: dependentKey];
+  GS_MUTEX_LOCK(_lock);
+  if ([_existingDependentKeys containsObject:visitToken])
     {
+      BOOL isCycle = [_dependencyAncestorKeys containsObject: visitToken];
       GS_MUTEX_UNLOCK(_lock);
-      return NO;
+      // If it's on the active ancestor stack, treat as true cycle and dedup.
+      // If it's already visited but not on stack, allow expansion to continue.
+      return !isCycle;
     }
-  [_existingDependentKeys addObject:keypath];
+  [_existingDependentKeys addObject:visitToken];
   GS_MUTEX_UNLOCK(_lock);
   return YES;
 }
 
-- (void) popDependencyStack
+- (void) endDependencyExpansionScope
 {
   GS_MUTEX_LOCK(_lock);
   --_dependencyDepth;
@@ -239,6 +278,8 @@ _NSKVOKeypathObserver ()
     {
       [_existingDependentKeys release];
       _existingDependentKeys = nil;
+      [_dependencyAncestorKeys release];
+      _dependencyAncestorKeys = nil;
     }
   GS_MUTEX_UNLOCK(_lock);
 }
@@ -344,28 +385,39 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
           NSArray 		*affectedKeyObservers;
           NSMutableArray 	*dependentObservers;
 
+          affectedKeyObservers = keyObserver.affectedObservers;
+
           /* affectedKeyObservers is the list of observers that must be notified
            * of changes. If we have descendants, we have to add ourselves to the
            * growing list of affected keys. If not, we must pass it along
            * unmodified. (This is a minor optimization: we don't need to signal
-           * for our own reconstruction
-           *  if we have no subpath observers.)
-	   */
-          affectedKeyObservers = (keyObserver.restOfKeypath
-	    ? ([keyObserver.affectedObservers arrayByAddingObject:keyObserver]
-	    ?: [NSArray arrayWithObject:keyObserver])
-	    : keyObserver.affectedObservers);
+           * for our own reconstruction if we have no subpath observers.)
+           */
+          if (keyObserver.restOfKeypath)
+          {
+            if (affectedKeyObservers)
+              {
+                affectedKeyObservers =
+                  [affectedKeyObservers arrayByAddingObject:keyObserver];
+              }
+            else
+              {
+                affectedKeyObservers = [NSArray arrayWithObject:keyObserver];
+              }
+          }
 
-          [observationInfo pushDependencyStack];
-          /* Don't allow our own key to be recreated.
-	   */
-          [observationInfo lockDependentKeypath:keyObserver.key];
+          [observationInfo beginDependencyExpansionScope];
+          [observationInfo pushAncestorForNode: keyObserver];
+          /* Don't allow our own key to be recreated. */
+          [observationInfo markDependentKeypathVisited:keyObserver.key
+                                               forNode:keyObserver];
 
           dependentObservers =
             [NSMutableArray arrayWithCapacity:[valueInfluencingKeys count]];
           for (NSString *dependentKeypath in valueInfluencingKeys)
             {
-              if ([observationInfo lockDependentKeypath:dependentKeypath])
+              if ([observationInfo markDependentKeypathVisited:dependentKeypath
+                                                       forNode:keyObserver])
                 {
                   _NSKVOKeyObserver *dependentObserver
                     = _addKeypathObserver(object, dependentKeypath,
@@ -376,10 +428,14 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
                       [dependentObservers addObject:dependentObserver];
                     }
                 }
+              else
+                {
+                }
             }
           keyObserver.dependentObservers = dependentObservers;
 
-          [observationInfo popDependencyStack];
+          [observationInfo popAncestorForNode: keyObserver];
+          [observationInfo endDependencyExpansionScope];
         }
     }
   else
@@ -458,6 +514,7 @@ _addKeypathObserver(id object, NSString *keypath,
     {
       _addNestedObserversAndOptionallyDependents(keyObserver, true);
       _addKeyObserver(keyObserver);
+    } else {
     }
 
   return keyObserver;
@@ -847,7 +904,8 @@ _dispatchWillChange(id notifyingObject, NSString *key,
 {
   _NSKVOObservationInfo *observationInfo
     = (__bridge _NSKVOObservationInfo *) [notifyingObject observationInfo];
-  for (_NSKVOKeyObserver *keyObserver in [observationInfo observersForKey:key])
+  NSArray<_NSKVOKeyObserver *> *observers = [observationInfo observersForKey:key];
+  for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
 
