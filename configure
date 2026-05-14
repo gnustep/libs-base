@@ -7392,7 +7392,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 int
 main (void)
 {
-int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;
+long int imax = INTPTR_MAX; long int imin = INTPTR_MIN; unsigned long umax = UINTPTR_MAX;
   ;
   return 0;
 }

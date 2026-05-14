@@ -1637,7 +1637,7 @@ AC_LANG_PUSH(C)
 AC_MSG_CHECKING([for working INTPTR_MAX, INTPTR_MIN, UINTPTR_MAX]);
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([[#include <inttypes.h>]],
-    [[int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;]])],
+    [[long int imax = INTPTR_MAX; long int imin = INTPTR_MIN; unsigned long umax = UINTPTR_MAX;]])],
   have_valid_ptr_limits=yes,
   have_valid_ptr_limits=no);
   if test "$have_valid_ptr_limits" = "yes"; then
