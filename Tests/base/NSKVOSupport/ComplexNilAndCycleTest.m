@@ -106,6 +106,11 @@ int main(void)
 {
   CREATE_AUTORELEASE_POOL(pool);
 
+#if !defined(clang)
+  testHopeful = YES;
+#endif
+
+// testcases here
   BNode *b = AUTORELEASE([BNode new]);
   b.e = 1;
 
@@ -164,6 +169,11 @@ int main(void)
   PASS(obs->calls == 1, "updating e should still notify");
 
   [root removeObserver: obs forKeyPath: @"x"];
+  
+#if !defined(clang)
+  testHopeful = NO;
+#endif
+
   DESTROY(pool);
   return 0;
 }

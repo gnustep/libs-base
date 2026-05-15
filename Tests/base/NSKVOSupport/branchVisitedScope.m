@@ -99,6 +99,10 @@ int main(void)
 {
   CREATE_AUTORELEASE_POOL(pool);
 
+#if !defined(clang)
+  testHopeful = YES;
+#endif
+
   BVSRoot *root = AUTORELEASE([BVSRoot new]);
   root.holder = AUTORELEASE([BVSHolder new]);
 
@@ -128,6 +132,11 @@ int main(void)
        "Single leaf mutation should emit one derived notification");
 
   [root removeObserver: observer forKeyPath: @"derived"];
+  
+#if !defined(clang)
+  testHopeful = NO;
+#endif
+
   DESTROY(pool);
   return 0;
 }

@@ -97,6 +97,12 @@ int main(void)
 {
   CREATE_AUTORELEASE_POOL(pool);
 
+#if !defined(clang)
+  testHopeful = YES;
+#endif
+
+// testcases here
+
   VACRoot *root = AUTORELEASE([VACRoot new]);
   root.holder = AUTORELEASE([VACHolder new]);
 
@@ -123,6 +129,11 @@ int main(void)
        "selectedA.leaf.flag branch should be wired (leaf.flag notifies derived)");
 
   [root removeObserver: obs forKeyPath: @"derived"];
+
+#if !defined(clang)
+  testHopeful = NO;
+#endif
+
   DESTROY(pool);
   return 0;
 }

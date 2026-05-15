@@ -111,6 +111,10 @@ int main(void)
 {
   CREATE_AUTORELEASE_POOL(pool);
 
+#if !defined(clang)
+  testHopeful = YES;
+#endif
+
   {
     CDODirectCycleRoot *root = AUTORELEASE([CDODirectCycleRoot new]);
     CDOObserver *observer = AUTORELEASE([CDOObserver new]);
@@ -140,6 +144,10 @@ int main(void)
 
     [root removeObserver: observer forKeyPath: @"derived"];
   }
+
+#if !defined(clang)
+  testHopeful = NO;
+#endif
 
   DESTROY(pool);
   return 0;
