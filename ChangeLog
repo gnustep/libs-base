@@ -1,3 +1,13 @@
+2026-05-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Hide any password in the -description method.
+	* Source/NSURLRequest.m: Hide URL password in our -description
+	* Tests/base/NSURL/basic.m: Test password hiding.
+	Security changes; if a URL contains username/password information
+	(which is generally deprecated), we hide it in the string returned
+	by the -description method.  This minimises the chance of accidental
+	leakage of secure information into logs etc.
+
 2026-05-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m:

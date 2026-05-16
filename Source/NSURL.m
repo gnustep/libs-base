@@ -1442,11 +1442,42 @@ static NSUInteger	urlAlign;
 
 - (NSString*) description
 {
-  NSString	*dscr = _urlString;
+  NSString	*dscr;
 
-  if (_baseURL != nil)
+  if ([[self password] length] > 0)
     {
-      dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
+      NSRange	r0;
+      NSRange	r1;
+      NSRange	rp;
+
+      /* Debug logs should not contain sensiive information like passwords,
+       * so the -description metod for a URL needs to produce output which
+       * hides the password content.  If someone really needs to see the
+       * password they can call the -password method directly.
+       */
+      dscr = [self absoluteString];
+
+      /* Find the range from the username on.
+       */
+      r0 = [dscr rangeOfString: @"://"];
+      r0 = NSMakeRange(NSMaxRange(r0), [dscr length] - NSMaxRange(r0));
+      /* The next colon marks the end of the username
+       */
+      r0 = [dscr rangeOfString: @":" options: 0 range: r0];
+      /* The first '@' marks the end of the password (and start of the host)
+       */
+      r1 = [dscr rangeOfString: @"@"];
+      rp = NSMakeRange(NSMaxRange(r0), r1.location - NSMaxRange(r0));
+      dscr = [dscr stringByReplacingCharactersInRange: rp
+					   withString: @"HIDDEN-PASSWORD"];
+    }
+  else
+    {
+      dscr = _urlString;
+      if (_baseURL != nil)
+	{
+	  dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
+	}
     }
   return dscr;
 }

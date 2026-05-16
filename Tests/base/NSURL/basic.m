@@ -59,7 +59,10 @@ int main()
 	  fragment: nil];
   PASS_EQUAL([url absoluteString],
     @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/",
-    "Full -initWithScheme... works");
+    "Full -initWithScheme... works")
+  PASS_EQUAL([url description],
+    @"http://testing%40free.fr:HIDDEN-PASSWORD@127.0.0.1/dav.php/short/",
+    "-description hides the password")
   DESTROY(url);
 #endif
 
