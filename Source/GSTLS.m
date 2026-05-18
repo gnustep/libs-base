@@ -2241,12 +2241,12 @@ retrieve_callback(gnutls_session_t session,
 
   if (outgoing)
     {
-      [str appendFormat: @"outgoing session %p to '%@'\n",
+      [str appendFormat: @"- Outgoing session: %p to '%@'\n",
 	self, [self hostName]];
     }
   else
     {
-      [str appendFormat: @"incoming session %p\n", self];
+      [str appendFormat: @"- Oncoming session: %p\n", self];
     }
 
   /* get the key exchange's algorithm name
