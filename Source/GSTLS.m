@@ -1192,7 +1192,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
   if (nil != c)
     {
       [c retain];
-      if (YES == debug)
+      if (debug)
         {
           NSLog(@"Re-used credentials %p for '%@'", c, k);
         }
@@ -1306,7 +1306,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
                 {
                   NSLog(@"No certificates processed from %@", ca);
                 }
-              if (YES == debug)
+              if (debug)
                 {
                   NSLog(@"Trusted authorities (from %@): %d", ca, ret);
                 }
@@ -1330,7 +1330,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
             }
           else
             {
-              if (YES == debug)
+              if (debug)
                 {
                   NSLog(@"Default revocations (from %@): %d", drv, ret);
                 }
@@ -1358,7 +1358,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
                 {
                   NSLog(@"No revocations processed from %@", rv);
                 }
-              if (YES == debug)
+              if (debug)
                 {
                   NSLog(@"Revocations (from %@): %d", rv, ret);
                 }
@@ -1418,7 +1418,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
 */
         }
 
-      if (YES == debug)
+      if (debug)
         {
           NSLog(@"%@ created credentials %p for '%@'", self, c, k);
         }
@@ -1725,7 +1725,7 @@ retrieve_callback(gnutls_session_t session,
               int               ret;
 
               ret = gnutls_server_name_set(session, GNUTLS_NAME_DNS, ptr, len);
-              if (YES == debug)
+              if (debug)
                 {
                   if (ret < 0)
                     {
@@ -1739,7 +1739,7 @@ retrieve_callback(gnutls_session_t session,
                     }
                 }
             }
-          else if (YES == debug)
+          else if (debug)
             {
               NSLog(@"%p %@: not set", handle, GSTLSServerName);
             }
@@ -1922,7 +1922,7 @@ retrieve_callback(gnutls_session_t session,
         [credentials credentials]);
 
 #if GNUTLS_VERSION_NUMBER >= 0x020C00
-      if (YES == outgoing && YES == debug)
+      if (YES == outgoing && debug)
         {
           /* Set a callback to log handling of a request (from the server)
            * for the client certificate.  The callback always returns the
@@ -2000,7 +2000,7 @@ retrieve_callback(gnutls_session_t session,
 		  p = [p stringByAppendingFormat: @"\n%@", extra];
 		}
               ASSIGN(problem, p);
-              if (YES == debug)
+              if (debug)
                 {
                   NSLog(@"%p in handshake: %@", handle, p);
                 }
@@ -2134,7 +2134,7 @@ retrieve_callback(gnutls_session_t session,
         {
           p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
           ASSIGN(problem, p);
-          if (YES == debug)
+          if (debug)
             {
               NSLog(@"%p in tls read: %@", handle, p);
             }
@@ -2147,7 +2147,7 @@ retrieve_callback(gnutls_session_t session,
         {
           if (GNUTLS_E_WARNING_ALERT_RECEIVED == result)
             {
-              if (YES == debug)
+              if (debug)
                 {
                   p = [NSString stringWithFormat: @"%s",
                     gnutls_alert_get_name(gnutls_alert_get(session))];
@@ -2192,7 +2192,7 @@ retrieve_callback(gnutls_session_t session,
 
           p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
           ASSIGN(problem, p);
-          if (YES == debug)
+          if (debug)
             {
               NSLog(@"%p in tls write: %@", handle, p);
             }
@@ -2238,6 +2238,16 @@ retrieve_callback(gnutls_session_t session,
 #endif
 
   str = [NSMutableString stringWithCapacity: 2000];
+
+  if (outgoing)
+    {
+      [str appendFormat: @"outgoing session %p to '%@'\n",
+	self, [self hostName]];
+    }
+  else
+    {
+      [str appendFormat: @"incoming session %p\n", self];
+    }
 
   /* get the key exchange's algorithm name
    */
@@ -2433,35 +2443,44 @@ retrieve_callback(gnutls_session_t session,
       str = [NSString stringWithFormat:
         @"TLS verification: error %s", gnutls_strerror(ret)];
       ASSIGN(problem, str);
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
-  if (YES == debug)
-    {
-      if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-        NSLog(@"%p TLS verification: certificate hasn't got a known issuer.",
-          handle);
+  str = @"";
+  if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
+    str = [str stringByAppendingString:
+      @", certificate hasn't got a known issuer"];
 
-      if (status & GNUTLS_CERT_REVOKED)
-        NSLog(@"%p TLS verification: certificate has been revoked.", handle);
+  if (status & GNUTLS_CERT_REVOKED)
+    str = [str stringByAppendingString:
+      @", certificate has been revoked"];
 
 #if     defined(GNUTLS_CERT_EXPIRED)
-      if (status & GNUTLS_CERT_EXPIRED)
-        NSLog(@"%p TLS verification: certificate has expired", handle);
+  if (status & GNUTLS_CERT_EXPIRED)
+    str = [str stringByAppendingString:
+      @", certificate has expired"];
 #endif
 
 #if     defined(GNUTLS_CERT_NOT_ACTIVATED)
-      if (status & GNUTLS_CERT_NOT_ACTIVATED)
-        NSLog(@"%p TLS verification: certificate is not yet activated", handle);
+  if (status & GNUTLS_CERT_NOT_ACTIVATED)
+    str = [str stringByAppendingString:
+      @", certificate is not yet activated"];
 #endif
-    }
 
   if (status & GNUTLS_CERT_INVALID)
     {
-      ASSIGN(problem,
-        @"TLS verification: remote certificate is not trusted.");
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if ([str length])
+	{
+          str = [NSString stringWithFormat:
+	    @"TLS verification: remote certificate is not trusted%@.", str];
+	}
+      else
+	{
+	  str = @"TLS verification: remote certificate is not trusted.";
+	}
+      ASSIGN(problem, str);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -2473,7 +2492,7 @@ retrieve_callback(gnutls_session_t session,
     {
       ASSIGN(problem,
         @"TLS verification: remote certificate not of the X509 type.");
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -2481,7 +2500,7 @@ retrieve_callback(gnutls_session_t session,
     {
       ASSIGN(problem, @"TLS verification: error in certificate initialization");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -2490,7 +2509,7 @@ retrieve_callback(gnutls_session_t session,
     {
       ASSIGN(problem, @"TLS verification: no certificate from remote end!");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -2498,7 +2517,7 @@ retrieve_callback(gnutls_session_t session,
     {
       ASSIGN(problem, @"TLS verification: error parsing certificate");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%p %@", handle, problem);
+      if (debug) NSLog(@"%p %@", handle, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
   else
@@ -2586,7 +2605,7 @@ retrieve_callback(gnutls_session_t session,
             nameList, ci];
           ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
-          if (YES == debug) NSLog(@"%p %@", handle, problem);
+          if (debug) NSLog(@"%p %@", handle, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }
@@ -2601,7 +2620,7 @@ retrieve_callback(gnutls_session_t session,
             names, ci];
           ASSIGN(problem, str);
 	  gnutls_x509_crt_deinit(cert);
-          if (YES == debug) NSLog(@"%p %@", handle, problem);
+          if (debug) NSLog(@"%p %@", handle, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }
@@ -2616,7 +2635,7 @@ retrieve_callback(gnutls_session_t session,
             names, ci];
           ASSIGN(problem, str);
 	  gnutls_x509_crt_deinit(cert);
-          if (YES == debug) NSLog(@"%p %@", handle, problem);
+          if (debug) NSLog(@"%p %@", handle, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }
