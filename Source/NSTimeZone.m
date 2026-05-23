@@ -384,6 +384,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
     {
       zone = RETAIN(localTimeZone);
       DESTROY(self);
+      /* The following strance cast, where we should be returning (id),
+       * is to work around a bug/feature in at least one version of clang.
+       */
       return (GSPlaceholderTimeZone*)zone;
     }
 
@@ -510,6 +513,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   DESTROY(self);
+		  /* The following strance cast, where we should be returning (id),
+		   * is to work around a bug/feature in at least one version of clang.
+		   */
                   return (GSPlaceholderTimeZone*)zone;
                 }
 #else
@@ -527,6 +533,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	}
     }
   DESTROY(self);
+  /* The following strance cast, where we should be returning (id),
+   * is to work around a bug/feature in at least one version of clang.
+   */
   return (GSPlaceholderTimeZone*)zone;
 }
 
@@ -1487,7 +1496,7 @@ static int		uninitialisedOffset = 100000;
           tzName = tz.StandardName;
 #endif
 
-        localZoneSource = @"function: 'GetTimeZoneInformation()'";
+        localZoneSource = @"function: 'GetDynamicTimeZoneInformation()'";
 
 #if defined(_MSC_VER) && defined(UCAL_H)
         // Convert Windows timezone name to IANA identifier
