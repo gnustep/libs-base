@@ -2465,6 +2465,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
  * Common locations for timezone info on unix systems.
  */
 static NSString *zoneDirs[] = {
+  nil,		// Populate from TZDIR environment variable
 #ifdef TZDIR
   @TZDIR,
 #endif
@@ -2494,13 +2495,20 @@ static NSString *zoneDirs[] = {
 	  NSString	*zonedir = nil;
 	  unsigned	i;
 
+	  if (nil == zoneDirs[0])
+	    {
+	      zoneDirs[0] = RETAIN([[[NSProcessInfo processInfo] environment]
+		objectForKey: @"TZDIR"]);
+	    }
 	  for (i = 0; i < sizeof(zoneDirs)/sizeof(zoneDirs[0]); i++)
 	    {
 	      BOOL	isDir;
 
 	      zonedir
 		= [zoneDirs[i] stringByAppendingPathComponent: POSIX_TZONES];
-	      if ([mgr fileExistsAtPath: zonedir isDirectory: &isDir] && isDir)
+	      if (zonedir
+		&& [mgr fileExistsAtPath: zonedir isDirectory: &isDir]
+		&& isDir)
 		{
 		  tzdir = RETAIN(zonedir);
 		  break;  // use first one

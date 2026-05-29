@@ -1,3 +1,8 @@
+2026-05-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Allow TZDIR environment variable to define
+	where we look for time zone information.  Issue #615
+
 2026-05-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Hide any password in the -description method.
