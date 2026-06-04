@@ -207,11 +207,13 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 	}
       /* Deallocate the children in the list.
        */
-      while (pool != self)
+      do
 	{
 	  pool = pool->_parent;
 	  [pool->_child dealloc];
+	  pool->_child = nil;
 	}
+      while (pool != self);
     }
 }
 
