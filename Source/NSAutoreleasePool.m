@@ -197,23 +197,26 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
    */
   if (nil != _child)
     {
-      NSAutoreleasePool	*pool = _child;
+      // First, collect all child pools by following _child links.
+      // This gives us order from nearest child to deepest child.
+      NSAutoreleasePool **childList = NULL;
+      NSUInteger count = 0;
+      NSAutoreleasePool *pool = _child;
+      while (nil != pool)
+        {
+          childList = realloc(childList, (count + 1) * sizeof(NSAutoreleasePool *));
+          childList[count] = pool;
+          count++;
+          pool = pool->_child;
+        }
 
-      /* Find other end of linked list ... oldest child.
-       */
-      while (nil != pool->_child)
-	{
-	  pool = pool->_child;
-	}
-      /* Deallocate the children in the list.
-       */
-      do
-	{
-	  pool = pool->_parent;
-	  [pool->_child dealloc];
-	  pool->_child = nil;
-	}
-      while (pool != self);
+      // Deallocate children in reverse order (deepest first, i.e. oldest first).
+      // This matches the original behaviour and avoids stack overflow.
+      for (NSUInteger i = count; i > 0; i--)
+        {
+          [childList[i-1] dealloc];
+        }
+      free(childList);
     }
 }
 
