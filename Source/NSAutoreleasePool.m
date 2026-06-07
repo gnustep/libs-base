@@ -147,7 +147,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
       p = pop_pool_from_cache(tv);
 
       /* When we cache a 'deallocated' pool, we set its _released_count to
-       * UINT_MAX, so when we rtrieve it fromm the cache we must increment
+       * UINT_MAX, so when we rtrieve it from the cache we must increment
        * it to start with a count of zero.
        */
       if (++(p->_released_count) != 0)
@@ -606,6 +606,10 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
     }
 
   [self emptyPool];
+  if (UINT_MAX == _released_count)
+    {
+      return;	// Re-entrant call during -emptyPool already deallocated us.
+    }
   NSAssert(0 == _released_count, NSInternalInconsistencyException);
 
   /* Remove self from the linked list of pools in use.
@@ -626,7 +630,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
   /* Mark pool as cached so that any attempt to add an object to use it
    * or to deallocate it again will raise an exception.
-   * We reset to zero when we get i out of the cache as a new allocation.
+   * We reset to zero when we get it out of the cache as a new allocation.
    */
   _released_count = UINT_MAX;
 
