@@ -284,8 +284,14 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
   /* Popping the pool releases its contents, and the deallocation of those
    * objects may create new child pools, so we may need to empty children
-   * after the pop.
+   * after the pop.  Wea always empty children before the pop so that we
+   * know there are no children to cause re-entrancy issues during the
+   * deallocation of objects in popped pools.
    */
+  if (nil != _child)
+    {
+      [self _emptyChild];
+    }
   objc_autoreleasePoolPop(_released);
   if (nil != _child)
     {
