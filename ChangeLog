@@ -3,7 +3,11 @@
 	* Source/NSAutoreleasePool.m: libobjc2 integration fix; empty chldren
 	after popping pool.  Also fix error in linking pool from cache into
 	list (problem exposed by the integration issue) and make emptying
-	cildren more robust in the case of re-entrancy.
+	children more robust in the case of re-entrancy. Finally, fix a few
+	bugs and make gcc behavior match libobjc2 behavior.
+	* Tests/base/NSAutoreleasePool/order.m:
+	* Tests/base/NSAutoreleasePool/reentrant.m:
+	Add some tests for pool behavior with reentrancy.
 
 2026-05-29 Richard Frith-Macdonald <rfm@gnu.org>
 
