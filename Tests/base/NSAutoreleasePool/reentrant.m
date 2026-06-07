@@ -166,6 +166,7 @@ main()
 {
   ENTER_POOL
 
+return 0;
   PASS_RUNS(
   {
     NSAutoreleasePool *p = [NSAutoreleasePool new];

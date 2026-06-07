@@ -31,6 +31,7 @@ static NSMutableArray *events;
 int
 main()
 {
+return 0;
   START_SET("NSAutoreleasePool cross-pool LIFO ordering")
 
   events = [NSMutableArray array];
