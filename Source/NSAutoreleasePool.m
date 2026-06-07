@@ -186,32 +186,28 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
 - (void) _emptyChild
 {
-  /* If there are NSAutoreleasePool below us in the list of
-   * NSAutoreleasePools, then deallocate them also.
-   * The (only) way we could get in this situation (in correctly
-   * written programs, that don't release NSAutoreleasePools in
-   * weird ways), is if an exception threw us up the stack.
-   * However, if a program has leaked pools we may be deallocating
-   * a pool with LOTS of children. To avoid stack overflow we
-   * therefore deallocate children starting with the oldest first.
+  /* If there are NSAutoreleasePool instances below us in the list,
+   * then we must deallocate them when deallocating this instance.
+   *
+   * The way we get in this situation is if an exception threw us up the
+   * stack or some method which creates a pool returned without destroying
+   * it because the programmer made a mistake.
+   * If a program has leaked a lot of pools we may be deallocating many
+   * children; to avoid stack overflow (mutual recursion with -dealloc)
+   * we deallocate children starting with the oldest first (since that
+   * does not have any children to deallocate).
    */
-  if (nil != _child)
+  while (_child)
     {
       NSAutoreleasePool	*pool = _child;
 
       /* Find other end of linked list ... oldest child.
        */
-      while (nil != pool->_child)
+      while (pool->_child)
 	{
 	  pool = pool->_child;
 	}
-      /* Deallocate the children in the list.
-       */
-      while (pool != self)
-	{
-	  pool = pool->_parent;
-	  [pool->_child dealloc];
-	}
+      [pool dealloc];
     }
 }
 
@@ -229,13 +225,16 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
       {
 	NSAutoreleasePool	*pool = _parent;
 
-	_child = _parent->_child;
+	if ((_child = _parent->_child) != nil)
+	  {
+	    _child->_parent = self;
+	  }
+        _parent->_child = self;
 	while (nil != pool)
 	  {
 	    level++;
 	    pool = pool->_parent;
 	  }
-        _parent->_child = self;
       }
     tv->current_pool = self;
     if (level > pool_number_warning_threshold)
@@ -283,11 +282,15 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
 
+  /* Popping the pool releases its contents, and the deallocation of those
+   * objects may create new child pools, so we may need to empty children
+   * after the pop.
+   */
+  objc_autoreleasePoolPop(_released);
   if (nil != _child)
     {
       [self _emptyChild];
     }
-  objc_autoreleasePoolPop(_released);
   tv->current_pool = self;
 }
 /**
@@ -335,13 +338,16 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
       {
 	NSAutoreleasePool	*pool = _parent;
 
-	_child = _parent->_child;
+	if ((_child = _parent->_child) != nil)
+	  {
+	    _child->_parent = self;
+	  }
+        _parent->_child = self;
 	while (nil != pool)
 	  {
 	    level++;
 	    pool = pool->_parent;
 	  }
-        _parent->_child = self;
       }
     tv->current_pool = self;
     if (level > pool_number_warning_threshold)
