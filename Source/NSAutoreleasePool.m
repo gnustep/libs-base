@@ -147,7 +147,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
       p = pop_pool_from_cache(tv);
 
       /* When we cache a 'deallocated' pool, we set its _released_count to
-       * UINT_MAX, so when we rtrieve it from the cache we must increment
+       * UINT_MAX, so when we retrieve it from the cache we must increment
        * it to start with a count of zero.
        */
       if (++(p->_released_count) != 0)
@@ -506,7 +506,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
    * any object to the current autorelease pool, we may need to release it
    * again.
    */
-  while (_child != nil || _released_count > 0)
+  while (_child != nil || (_released_count > 0 && _released_count != UINT_MAX))
     {
       volatile struct autorelease_array_list *released;
 
@@ -524,14 +524,15 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 	{
 	  id	*objects = (id*)(released->objects);
 
-	  for (i = 0; i < released->count; i++)
+	  while (released->count > 0)
 	    {
 	      id	anObject;
 	      Class	c;
 	      unsigned	hash;
 
-	      anObject = objects[i];
-	      objects[i] = nil;
+	      anObject = objects[--released->count];
+	      _released_count--;
+	      objects[released->count] = nil;
               if (anObject == nil)
                 {
                   fprintf(stderr,
@@ -561,8 +562,6 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 		}
 	      (imps[hash])(anObject, @selector(release));
 	    }
-	  _released_count -= released->count;
-	  released->count = 0;
 	  released = released->next;
 	}
     }
