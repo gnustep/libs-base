@@ -71,24 +71,26 @@ main()
 
 
   {
-    NSAutoreleasePool *p1 = [NSAutoreleasePool new];
-    NSAutoreleasePool *p2 = [NSAutoreleasePool new];
-    NSAutoreleasePool *p3 = [NSAutoreleasePool new];
+    NSAutoreleasePool *p1;
+    NSAutoreleasePool *p2;
+    NSAutoreleasePool *p3;
 
     [events removeAllObjects];
 
-    [[[PoolOrderObject alloc] initWithName: @"p3-a"] autorelease];
-    [[[PoolOrderObject alloc] initWithName: @"p3-b"] autorelease];
-
-    [[[PoolOrderObject alloc] initWithName: @"p2-a"] autorelease];
-    [[[PoolOrderObject alloc] initWithName: @"p2-b"] autorelease];
-
+    p1 = [NSAutoreleasePool new];
     [[[PoolOrderObject alloc] initWithName: @"p1-a"] autorelease];
     [[[PoolOrderObject alloc] initWithName: @"p1-b"] autorelease];
 
+    p2 = [NSAutoreleasePool new];
+    [[[PoolOrderObject alloc] initWithName: @"p2-a"] autorelease];
+    [[[PoolOrderObject alloc] initWithName: @"p2-b"] autorelease];
+
+    p3 = [NSAutoreleasePool new];
+    [[[PoolOrderObject alloc] initWithName: @"p3-a"] autorelease];
+    [[[PoolOrderObject alloc] initWithName: @"p3-b"] autorelease];
+
     [p1 drain];
 
-/* Order not guaranteed
     PASS_EQUAL(events,
       ([NSArray arrayWithObjects:
 	@"p3-b",
@@ -99,7 +101,7 @@ main()
 	@"p1-a",
 	nil]),
       "objects released in LIFO order within each pool")
-*/
+
     PASS([events count] == 6, "all objects released with parent pool")
   }
 

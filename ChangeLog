@@ -1,3 +1,11 @@
+2026-06-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tests/base/NSAutoreleasePool/order.m:
+	* Source/NSAutoreleasePool.m: updates to (hopefully) make code easier
+	to understnad and to (in the absence of re-entrancy) make pool contents
+	be released in a predictable (LIFO) order.  There is no guarantee of
+	this in the API, but it mis simpler to describe and test.
+
 2026-06-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: libobjc2 integration fix; empty chldren
