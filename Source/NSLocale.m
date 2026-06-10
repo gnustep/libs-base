@@ -746,9 +746,12 @@ static NSRecursiveLock *classLock = nil;
   newLocale = [allLocales objectForKey: localeId];
   if (nil == newLocale)
     {
-      _localeId = [localeId copy];
-      _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
-      [allLocales setObject: self forKey: localeId];
+      if (nil != (self = [super init]))
+	{
+	  _localeId = [localeId copy];
+	  _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
+	  [allLocales setObject: self forKey: localeId];
+	}
     }
   else
     {

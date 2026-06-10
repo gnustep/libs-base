@@ -918,6 +918,10 @@ static NSUInteger	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	name, NSStringFromSelector(_cmd)];
     }
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
 
@@ -3352,7 +3356,7 @@ NSLog(@"%@", err);
       /* Record start of authority
        */
       [urlString appendString: @"//"];
-      location += len + 2;
+      location += 2;
     }
 
   if (internal->_user != nil) 

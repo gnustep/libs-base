@@ -5989,8 +5989,8 @@ static NSFileManager *fm = nil;
 	    }
 	  else
 	    {
-	      charsSelf = malloc(sizeSelf);
-	      charsOther = malloc(sizeOther);
+	      charsSelf = malloc(sizeSelf ? sizeSelf : 1);
+	      charsOther = malloc(sizeOther ? sizeOther : 1);
 	    }
 
 	  // Copy to buffer

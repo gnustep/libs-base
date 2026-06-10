@@ -324,6 +324,11 @@ static BOOL useSmallDate;
 
 // NSDate initialization
 
+- (instancetype) init
+{
+  return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
+}
+
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   if (isnan(secs))
@@ -345,7 +350,10 @@ static BOOL useSmallDate;
 #endif
 
 #if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secs;
+  if (nil != (self = [super init]))
+    {
+      _seconds_since_ref = secs;
+    }
   return self;
 #else
   return CREATE_SMALL_DATE(secs);
@@ -367,7 +375,10 @@ static BOOL useSmallDate;
     }
 
 #if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secondsSinceRef;
+  if (nil != (self = [super init]))
+    {
+      _seconds_since_ref = secondsSinceRef;
+    }
   return self;
 #else
   return CREATE_SMALL_DATE(secondsSinceRef);
@@ -622,6 +633,10 @@ static BOOL useSmallDate;
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
+  if (nil != (self = [super init]))
+    {
+      _seconds_since_ref = secs;
+    }
   return self;
 }
 
@@ -642,7 +657,10 @@ static BOOL useSmallDate;
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  SET_INTERVAL(self, DISTANT_PAST);
+  if (nil != (self = [super init]))
+    {
+      _seconds_since_ref = DISTANT_PAST;
+    }
   return self;
 }
 
@@ -664,7 +682,10 @@ static BOOL useSmallDate;
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  SET_INTERVAL(self, DISTANT_FUTURE);
+  if (nil != (self = [super init]))
+    {
+      _seconds_since_ref = DISTANT_PAST;
+    }
   return self;
 }
 
@@ -1713,9 +1734,11 @@ otherTime(NSDate* other)
   return o;
 }
 
+/* Subclasses override this to do current date/time.
+ */
 - (instancetype) init
 {
-  return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
+  return [super init];
 }
 
 - (instancetype) initWithString: (NSString*)description
@@ -1766,7 +1789,7 @@ otherTime(NSDate* other)
 - (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   [self subclassResponsibility: _cmd];
-  return self;
+  return [super init];
 }
 
 - (BOOL) isEqual: (id)other

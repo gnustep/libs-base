@@ -864,7 +864,6 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     {
       fmt = [NSString stringWithCharacters: format length: formatLen];
     }
-  ASSIGN(_calendar_format, fmt);
 
   //
   // WARNING:
@@ -1471,6 +1470,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       if (self != nil)
 	{
 	  _seconds_since_ref += ((NSTimeInterval)milliseconds) / 1000.0;
+	  ASSIGN(_calendar_format, fmt);
 	}
     }
 
@@ -1543,6 +1543,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   NSTimeInterval	oldOffset;
   NSTimeInterval	newOffset;
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   if (month < 1 || month > 12)
     {
       NSWarnMLog(@"invalid month given - %"PRIuPTR, month);

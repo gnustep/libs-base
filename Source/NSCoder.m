@@ -494,39 +494,45 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 }
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  id		o;
-  void		*address;
-  unsigned	i;
-
-  _c = [aCoder decodeIntForKey: @"NS.count"];
-  _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
-  _t[1] = '\0';
-
-  /*
-   * We decode the size from the remote end, but discard it as we
-   * are probably safer to use the local size of the datatype involved.
-   */
-  _s = [aCoder decodeIntForKey: @"NS.size"];
-  _s = objc_sizeof_type(_t);
-
-  _d = o = [[NSMutableData alloc] initWithLength: _c * _s];
-  _a = address = [o mutableBytes];
-  for (i = 0; i < _c; i++)
+  if (nil != (self = [super init]))
     {
-      [aCoder decodeValueOfObjCType: _t at: address];
-      address += _s;
+      id		o;
+      void		*address;
+      unsigned	i;
+
+      _c = [aCoder decodeIntForKey: @"NS.count"];
+      _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
+      _t[1] = '\0';
+
+      /*
+       * We decode the size from the remote end, but discard it as we
+       * are probably safer to use the local size of the datatype involved.
+       */
+      _s = [aCoder decodeIntForKey: @"NS.size"];
+      _s = objc_sizeof_type(_t);
+
+      _d = o = [[NSMutableData alloc] initWithLength: _c * _s];
+      _a = address = [o mutableBytes];
+      for (i = 0; i < _c; i++)
+	{
+	  [aCoder decodeValueOfObjCType: _t at: address];
+	  address += _s;
+	}
     }
   return self;
 }
 
 - (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
 {
-  t = GSSkipTypeQualifierAndLayoutInfo(t);
-  _t[0] = *t;
-  _t[1] = '\0';
-  _s = objc_sizeof_type(_t);
-  _c = c;
-  _a = a;
+  if (nil != (self = [super init]))
+    {
+      t = GSSkipTypeQualifierAndLayoutInfo(t);
+      _t[0] = *t;
+      _t[1] = '\0';
+      _s = objc_sizeof_type(_t);
+      _c = c;
+      _a = a;
+    }
   return self;
 }
 

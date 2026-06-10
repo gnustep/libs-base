@@ -721,6 +721,12 @@ static int		uninitialisedOffset = 100000;
       GS_MUTEX_UNLOCK(zone_mutex);
       return z;
     }
+
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
+
   if (aName == nil)
     {
       if (anOffset % 60 == 0)
@@ -2127,7 +2133,11 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 
 - (id) init
 {
-  return [self initWithName: @"NSLocalTimeZone" data: nil];
+  if ([self class] == NSTimeZoneClass)
+    {
+      return [self initWithName: @"NSLocalTimeZone" data: nil];
+    }
+  return [super init];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
@@ -3075,10 +3085,25 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
   union local_storage	*lsp;
   const char      	*zoneName;
 
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
+
   /* The placeholder class should have dealt with loading the data
    */
-  NSAssert([data isKindOfClass: [NSData class]], NSInvalidArgumentException);
-  NSAssert([name isKindOfClass: [NSString class]], NSInvalidArgumentException);
+  if (NO == [data isKindOfClass: [NSData class]])
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad/missing time zone data"];
+    }
+  if (NO == [name isKindOfClass: [NSString class]])
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad/missing time zone name"];
+    }
 
   timeZoneName = [name copy];
   timeZoneData = [data copy];

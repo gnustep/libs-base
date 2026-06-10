@@ -723,43 +723,45 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (id) init
 {
-  id	o;
-  int idx;
-  
-  GS_CREATE_INTERNAL(NSNumberFormatter)
-  
-  _allowsFloats = YES;
-  _decimalSeparator = '.';
-  _thousandSeparator = ',';
-  _hasThousandSeparators = YES;
-  o = [[NSAttributedString alloc] initWithString: @""];
-  [self setAttributedStringForNil: o];
-  RELEASE(o);
-  o = [[NSAttributedString alloc] initWithString: @"NaN"];
-  [self setAttributedStringForNotANumber: o];
-  RELEASE(o);
-  
-  internal->_behavior = _defaultBehavior;
-  internal->_locale = RETAIN([NSLocale currentLocale]);
-  internal->_style = NSNumberFormatterNoStyle;
-
-  /* Set all attributes to -1 before resetting the formatter.  When
-   * resetting them only values < 0 will be skipped.
-   */
-  for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
-    internal->_attributes[idx] = -1;
-  
-  [self _resetUNumberFormat];
-#if GS_USE_ICU == 1
-  if (internal->_formatter == NULL)
+  if (nil != (self = [super init]))
     {
-      RELEASE(self);
-      return nil;
-    }
+      id	o;
+      int 	idx;
+      
+      GS_CREATE_INTERNAL(NSNumberFormatter)
+      
+      _allowsFloats = YES;
+      _decimalSeparator = '.';
+      _thousandSeparator = ',';
+      _hasThousandSeparators = YES;
+      o = [[NSAttributedString alloc] initWithString: @""];
+      [self setAttributedStringForNil: o];
+      RELEASE(o);
+      o = [[NSAttributedString alloc] initWithString: @"NaN"];
+      [self setAttributedStringForNotANumber: o];
+      RELEASE(o);
+      
+      internal->_behavior = _defaultBehavior;
+      internal->_locale = RETAIN([NSLocale currentLocale]);
+      internal->_style = NSNumberFormatterNoStyle;
+
+      /* Set all attributes to -1 before resetting the formatter.  When
+       * resetting them only values < 0 will be skipped.
+       */
+      for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
+	internal->_attributes[idx] = -1;
+      
+      [self _resetUNumberFormat];
+#if GS_USE_ICU == 1
+      if (internal->_formatter == NULL)
+	{
+	  RELEASE(self);
+	  return nil;
+	}
 #endif
-  
-  [self setMaximumFractionDigits: 0];
-  
+      
+      [self setMaximumFractionDigits: 0];
+    }  
   return self;
 }
 

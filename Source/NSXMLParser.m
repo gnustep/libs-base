@@ -2278,31 +2278,40 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 - (id) initWithContentsOfURL: (NSURL*)anURL
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                  withContentsOfURL: anURL];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+				      withContentsOfURL: anURL];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 
 - (id) initWithData: (NSData*)data
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                           withData: data];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+					       withData: data];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 
 - (id) initWithStream: (NSInputStream*)stream
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                    withInputStream: stream];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+					withInputStream: stream];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 

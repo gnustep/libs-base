@@ -7,6 +7,28 @@
 	* Tests/base/NSMeasurement/conversion.m:
 	Various memory leak fixes
 	* Source/NSData.m: fix range check and check for presence of bytes
+	* Source/Additions/GSXML.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSCoder.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSDate.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSFileWrapper.m:
+	* Source/NSLocale.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSPointerArray.m:
+	* Source/NSPointerFunctions.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSXMLDTD.m:
+	* Source/NSXMLParser.m:
+	* Tools/AGSIndex.m:
+	* Tools/HTMLLinker.m:
+	* Tools/gdnc.m:
+	Make sure classes call superclass initialiser (to ensure that code in
+	-[NSObject init] is executed, for object creation/descruption info).
 
 2026-06-08 Richard Frith-Macdonald <rfm@gnu.org>
 

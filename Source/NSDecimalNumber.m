@@ -428,7 +428,10 @@ static NSDecimalNumber *one;
 
 - (id) initWithDecimal: (NSDecimal)decimal
 {
-  NSDecimalCopy(&data, &decimal);
+  if (nil != (self = [super init]))
+    {
+      NSDecimalCopy(&data, &decimal);
+    }
   return self;
 }
 

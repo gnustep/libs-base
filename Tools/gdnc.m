@@ -316,7 +316,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  queue = [[NSMutableArray alloc] initWithCapacity: 1];
+  if (nil != (self = [super init]))
+    {
+      queue = [[NSMutableArray alloc] initWithCapacity: 1];
+    }
   return self;
 }
 @end
@@ -432,6 +435,10 @@ ihandler(int sig)
   NSPortNameServer	*ns;
   NSUserDefaults	*defs;
 
+  if (nil != (self = [super init]))
+    {
+      return self;
+    }
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
