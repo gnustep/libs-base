@@ -57,7 +57,6 @@
 - (void) dealloc
 {
   self.c = nil;
-  self.e = nil;
   [super dealloc];
 }
 @end
