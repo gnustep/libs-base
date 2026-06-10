@@ -633,10 +633,7 @@ static BOOL useSmallDate;
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  if (nil != (self = [super init]))
-    {
-      _seconds_since_ref = secs;
-    }
+  _seconds_since_ref = secs;
   return self;
 }
 
@@ -650,17 +647,15 @@ static BOOL useSmallDate;
     {
       id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
 
-      _distantPast = [obj init];
+      _distantPast
+	= [obj initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
     }
   return _distantPast;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  if (nil != (self = [super init]))
-    {
-      _seconds_since_ref = DISTANT_PAST;
-    }
+  _seconds_since_ref = DISTANT_PAST;
   return self;
 }
 
@@ -675,17 +670,15 @@ static BOOL useSmallDate;
     {
       id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
 
-      _distantFuture = [obj init];
+      _distantFuture
+	= [obj initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
     }
   return _distantFuture;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  if (nil != (self = [super init]))
-    {
-      _seconds_since_ref = DISTANT_PAST;
-    }
+  _seconds_since_ref = DISTANT_FUTURE;
   return self;
 }
 
