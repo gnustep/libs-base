@@ -2954,10 +2954,15 @@ failure:
   NSUInteger	need = size + shift;
   void		*buf;
 
-  if (aRange.location > size)
+  if (end > size)
     {
       [NSException raise: NSRangeException
-                  format: @"location bad in %@", NSStringFromSelector(_cmd)];
+        format: @"range beyond data in %@", NSStringFromSelector(_cmd)];
+    }
+  if (0 == bytes && length > 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
     }
   if (0 == length && 0 == shift)
     {
@@ -2968,7 +2973,7 @@ failure:
       [self setLength: need];
     }
   buf = [self mutableBytes];
-  if (0 == buf && length > 0)
+  if (0 == buf)
     {
       [NSException raise: NSInternalInconsistencyException
                   format: @"missing bytes in %@", NSStringFromSelector(_cmd)];

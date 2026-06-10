@@ -6,6 +6,7 @@
 	* Tests/base/NSKVOSupport/ComplexNilAndCycleTest.m:
 	* Tests/base/NSMeasurement/conversion.m:
 	Various memory leak fixes
+	* Source/NSData.m: fix range check and check for presence of bytes
 
 2026-06-08 Richard Frith-Macdonald <rfm@gnu.org>
 
