@@ -50,6 +50,7 @@ int main(int argc,char **argv)
   NSLog(@"Upper case string: %@, fake upper case string: %@", upperCaseString, fakeUpperCaseString);
   PASS_EQUAL(upperCaseString, fakeUpperCaseString, "uppercaseString selector is forwarded from the fake string to the actual NSString object");
 
+  RELEASE(fakeString);
   END_SET("GSFFIInvocation")
   return 0;
 }
