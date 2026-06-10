@@ -1,3 +1,12 @@
+2026-06-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMethodSignature.m:
+	* Source/NSOperation.m:
+	* Source/NSPropertyList.m:
+	* Tests/base/NSKVOSupport/ComplexNilAndCycleTest.m:
+	* Tests/base/NSMeasurement/conversion.m:
+	Various memory leak fixes
+
 2026-06-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tests/base/NSAutoreleasePool/order.m:

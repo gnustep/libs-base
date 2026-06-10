@@ -16,6 +16,12 @@
 @implementation CNode
 @synthesize d = _d;
 @synthesize b = _b;
+- (void) dealloc
+{
+  self.b = nil;
+  self.d = nil;
+  [super dealloc];
+}
 - (NSInteger) f
 {
   return _f;
@@ -48,6 +54,12 @@
 @implementation BNode
 @synthesize c = _c;
 @synthesize e = _e;
+- (void) dealloc
+{
+  self.c = nil;
+  self.e = nil;
+  [super dealloc];
+}
 @end
 
 @interface ANode : NSObject
@@ -61,6 +73,12 @@
 @implementation ANode
 @synthesize b = _b;
 @synthesize c = _c;
+- (void) dealloc
+{
+  self.b = nil;
+  self.c = nil;
+  [super dealloc];
+}
 @end
 
 @interface RootNode : NSObject
@@ -79,6 +97,11 @@
 - (BOOL) x
 {
   return (self.a.b.c.d != nil) || (self.a.c.b.e > 0);
+}
+- (void) dealloc
+{
+  self.a = nil;
+  [super dealloc];
 }
 @end
 

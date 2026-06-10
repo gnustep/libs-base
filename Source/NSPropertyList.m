@@ -2897,8 +2897,7 @@ checkPL(id aPropertyList, NSPropertyListFormat aFormat)
                 GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
             
 		p = [p initWithData: data mutability: anOption];
-		result = AUTORELEASE(RETAIN([p rootObject]));
-		RELEASE(p);
+		result = AUTORELEASE(RETAIN([AUTORELEASE(p) rootObject]));
 	      }
 	    NS_HANDLER
 	      {

@@ -909,6 +909,7 @@ dispatchQueueExecuteOperation(void *context)
 
 - (void) addOperation: (NSOperation *)op
 {
+  ENTER_POOL
   if (op == nil || NO == [op isKindOfClass: [NSOperation class]])
     {
       [NSException raise: NSInvalidArgumentException
@@ -937,6 +938,7 @@ dispatchQueueExecuteOperation(void *context)
 	}
     }
   [internal->lock unlock];
+  LEAVE_POOL
 }
 
 - (void) addOperationWithBlock: (GSBlockOperationBlock)block

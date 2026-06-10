@@ -533,6 +533,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
        */
       if (blen > 4096)
 	{
+	  RELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Method signature type encoding is too long"];
 	}
