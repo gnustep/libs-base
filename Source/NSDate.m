@@ -350,7 +350,7 @@ static BOOL useSmallDate;
 #endif
 
 #if    USE_SMALL_DATE == 0
-  if (nil != (self = [super init]))
+  if (nil != (self = [super initWithTimeIntervalSinceReferenceDate: secs]))
     {
       _seconds_since_ref = secs;
     }
@@ -375,7 +375,8 @@ static BOOL useSmallDate;
     }
 
 #if    USE_SMALL_DATE == 0
-  if (nil != (self = [super init]))
+  if (nil != (self = [super
+    initWithTimeIntervalSinceReferenceDate: secondsSinceRef]))
     {
       _seconds_since_ref = secondsSinceRef;
     }
@@ -1731,7 +1732,7 @@ otherTime(NSDate* other)
  */
 - (instancetype) init
 {
-  return [super init];
+  return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
 }
 
 - (instancetype) initWithString: (NSString*)description
@@ -1781,7 +1782,6 @@ otherTime(NSDate* other)
 
 - (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  [self subclassResponsibility: _cmd];
   return [super init];
 }
 

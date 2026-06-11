@@ -280,7 +280,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  observers = [NSMutableArray new];
+  if (nil != (self = [super init]))
+    {
+      observers = [NSMutableArray new];
+    }
   return self;
 }
 @end
@@ -435,7 +438,7 @@ ihandler(int sig)
   NSPortNameServer	*ns;
   NSUserDefaults	*defs;
 
-  if (nil != (self = [super init]))
+  if (nil == (self = [super init]))
     {
       return self;
     }

@@ -635,13 +635,10 @@ static NSMapTable	*attrNames = 0;
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [super init]))
-    {
-      lib = data;
-      _ownsLib = f;
-      ((xmlNodePtr)(lib))->_private = self;
-      ASSIGN(_parent, p);
-    }
+  lib = data;
+  _ownsLib = f;
+  ((xmlNodePtr)(lib))->_private = self;
+  ASSIGN(_parent, p);
   return self;
 }
 @end
@@ -1700,11 +1697,8 @@ static NSMapTable	*nodeNames = 0;
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [super init]))
-    {
-      lib = data;
-      ASSIGN(_parent, p);
-    }
+  lib = data;
+  ASSIGN(_parent, p);
   return self;
 }
 - (void) _setOwnsLib: (BOOL)f
@@ -2088,28 +2082,25 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
-  if (nil != (self = [super init]))
+  if (handler == nil)
     {
-      if (handler == nil)
-	{
-	  saxHandler = [GSTreeSAXHandler new];
-	}
-      else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
-	{
-	  saxHandler = RETAIN(handler);
-	}
-      else
-	{
-	  NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
-	  DESTROY(self);
-	  return nil;
-	}
-      [saxHandler _setParser: self];
-      if ([self _initLibXML] == NO)
-	{
-	  DESTROY(self);
-	  return nil;
-	}
+      saxHandler = [GSTreeSAXHandler new];
+    }
+  else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
+    {
+      saxHandler = RETAIN(handler);
+    }
+  else
+    {
+      NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
+      DESTROY(self);
+      return nil;
+    }
+  [saxHandler _setParser: self];
+  if ([self _initLibXML] == NO)
+    {
+      DESTROY(self);
+      return nil;
     }
   return self;
 }
@@ -2134,10 +2125,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [self initWithSAXHandler: handler]))
-    {
-      src = [path copy];
-    }
+  src = [path copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -2161,10 +2150,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [self initWithSAXHandler: handler]))
-    {
-      src = [url copy];
-    }
+  src = [url copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -2194,10 +2181,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [self initWithSAXHandler: handler]))
-    {
-      src = [data copy];
-    }
+  src = [data copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -2221,10 +2206,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  if (nil != (self = [self initWithSAXHandler: handler]))
-    {
-      src = RETAIN(stream);
-    }
+  src = RETAIN(stream);
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -3993,14 +3976,11 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (id) _initWithNativePointer: (xmlXPathObject *)lib
 		      context: (GSXPathContext *)context
 {
-  if (nil != (self = [super init]))
-    {
-      _lib = lib;
-      /* We RETAIN our context because we might be holding references to nodes
-       * which belong to the document, and we must make sure the document is
-       * not freed before we are.  */
-      ASSIGN (_context, context);
-    }
+  _lib = lib;
+  /* We RETAIN our context because we might be holding references to nodes
+   * which belong to the document, and we must make sure the document is
+   * not freed before we are.  */
+  ASSIGN (_context, context);
   return self;
 }
 
@@ -4185,12 +4165,10 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (id) initWithDocument: (GSXMLDocument *)d
 {
-  if (nil != (self = [super init]))
-    {
-      ASSIGN (_document, d);
-      _lib = xmlXPathNewContext ([_document lib]);
-      ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
-    }
+  ASSIGN (_document, d);
+  _lib = xmlXPathNewContext ([_document lib]);
+  ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
+
   return self;
 }
 
