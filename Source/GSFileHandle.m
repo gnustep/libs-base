@@ -172,7 +172,12 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 	}
       else
 #endif
-      if (isSocket)
+      if (descriptor < 1)
+	{
+	  result = -1;
+	  errno = EBADF;
+	}
+      else if (isSocket)
 	{
 	  result = recv(descriptor, buf, len, 0);
 	}
@@ -2198,10 +2203,18 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (operation == NSFileHandleConnectionAcceptedNotification)
     {
       struct sockaddr	buf;
-      int			desc;
-      unsigned int		blen = sizeof(buf);
+      int		desc;
+      unsigned int	blen = sizeof(buf);
 
-      desc = accept(descriptor, &buf, &blen);
+      if (descriptor < 0)
+	{
+	  errno = EBADF;
+	  desc = -1;
+	}
+      else
+	{
+          desc = accept(descriptor, &buf, &blen);
+	}
       if (desc == -1)
 	{
 	  NSString	*s;
@@ -2348,7 +2361,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
           written = [self write: (char*)ptr+writePos
                          length: length-writePos];
-          if (written <= 0)
+          if (written < 0)
             {
 	      if (errno != EAGAIN && errno != EINTR)
 	        {
