@@ -1961,9 +1961,11 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-          char		buf[strlen(myData->path) + 1];
+	  unsigned	len = strlen(myData->path);
+          char		buf[len + 1];
 
-          strcpy(buf, myData->path);
+          strncpy(buf, myData->path, len);
+	  buf[len] = '\0';
           unescape(buf, buf);
 	  path = [NSString stringWithUTF8String: buf];
 	}
@@ -3060,20 +3062,17 @@ parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
 	      push(&input, c);
 	      c = scanComponent(&input, authLegal, ":/?#", &one, md);
 	    } 
-	  markOne = input.mark;
 	  input.mark = 0;
 
 	  if (':' == c)
 	    {
 	      [md appendBytes: ":" length: 1];
 	      c = scanComponent(&input, authLegal, "/?#", &two, md);
-	      markTwo = input.mark;
 	      input.mark = 0;
 	    }
 	  else
 	    {
 	      two = NSMakeRange(NSNotFound, 0);
-	      markTwo = 0;
 	    }
 	}
 
@@ -3197,7 +3196,7 @@ parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
        * a hash (unless percent encoded of course).
        */
       [md appendBytes: "#" length: 1];
-      c = scanComponent(&input, queryLegal, "", &r->fragment, md);
+      scanComponent(&input, queryLegal, "", &r->fragment, md);
       if (input.mark && NO == encodingInvalidCharacters)
 	{
 	  ERR(@"Bad Fragment component - illegal character");
