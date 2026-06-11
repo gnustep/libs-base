@@ -1,3 +1,10 @@
+2026-06-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m:
+	* Source/NSMessagePortNameServer.m:
+	Avoid issues if stdio fails to read from file or file is modified
+	while we are reading.
+
 2026-06-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMethodSignature.m:

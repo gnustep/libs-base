@@ -354,8 +354,14 @@ static NSMapTable *portToNamesMap;
       return NO;
     }
 
-  fgets(socket_path, sizeof(socket_path), f);
-  len = strlen(socket_path);
+  if (NULL == fgets(socket_path, sizeof(socket_path), f))
+    {
+      len = 0;
+    }
+  else
+    {
+      len = strlen(socket_path);
+    }
   if (len == 0 || socket_path[len - 1] != '\n')
     {
       fclose(f);
@@ -617,7 +623,10 @@ static NSMapTable *portToNamesMap;
       [dl unlock];
       return YES;
     }
-  fgets(socket_path, sizeof(socket_path), f);
+  if (NULL == fgets(socket_path, sizeof(socket_path), f))
+    {
+      socket_path[0] = '\0';
+    }
   if (strlen(socket_path) > 0)
     {
       socket_path[strlen(socket_path) - 1] = 0;

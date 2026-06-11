@@ -452,6 +452,10 @@ getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
 		}
 	      memcpy(tmp + fileLength, buf, c);
 	      fileLength += c;
+	      if (c < BUFSIZ)
+		{
+		  break;	// End of file or error
+		}
 	    }
 	}
       else
@@ -472,10 +476,16 @@ getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
 	      goto failure;
 	    }
 
-	  while (offset < fileLength
-	    && (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
+	  while (offset < fileLength)
 	    {
+	      size_t	want = fileLength - offset;	
+
+	      c = fread(tmp + offset, 1, want, theFile);
 	      offset += c;
+	      if (c < want)
+		{
+		  break;	// short file for some reason
+		}
 	    }
 	  if (offset < fileLength)
 	    {
