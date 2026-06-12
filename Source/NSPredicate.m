@@ -3121,12 +3121,10 @@ do { \
   
   while (YES)
     {
-      NSExpression *right;
-
       if ([self scanString: @":=" intoString: NULL])	// assignment
         {
           // check left to be a variable?
-          right = [self parseAdditionExpression];
+          [self parseAdditionExpression];
           // FIXME
         }
       else
