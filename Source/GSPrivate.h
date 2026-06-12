@@ -107,35 +107,37 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
   if (NULL != *b) free(*b);
 }
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-  T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
+  unsigned _ilen = (S) > 0 ? (S) : 1; \
+  T _ibuf[_ilen <= GS_MAX_OBJECTS_FROM_STACK ? _ilen : 1]; \
   T *P = _ibuf;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
-  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen > GS_MAX_OBJECTS_FROM_STACK)\
     {\
-      _base = malloc((S) * sizeof(T));\
+      _base = malloc(_ilen * sizeof(T));\
       P = _base;\
     }
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
-  T _ibuf2[GS_MAX_OBJECTS_FROM_STACK];\
+  unsigned _ilen2 = (S) > 0 ? (S) : 1; \
+  T _ibuf2[_ilen2 <= GS_MAX_OBJECTS_FROM_STACK ? _ilen2 : 1]; \
   T *P = _ibuf2;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base2 = 0;\
-  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen2 > GS_MAX_OBJECTS_FROM_STACK)\
     {\
-      _base2 = malloc((S) * sizeof(T));\
+      _base2 = malloc(_ilen2 * sizeof(T));\
       P = _base2;\
     }
 #else
-/* Make minimum size of _ibuf 1 to avoid compiler warnings.
- */
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-  T _ibuf[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
-  T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
-    : (T*)malloc((S) * sizeof(T)); \
+  unsigned _ilen = (S) > 0 ? (S) : 1; \
+  T _ibuf[_ilen <= GS_MAX_OBJECTS_FROM_STACK ? _ilen : 1]; \
+  T *_base = (_ilen <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
+    : (T*)malloc(_ilen * sizeof(T)); \
   T *(P) = _base;
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
-  T _ibuf2[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
-  T *_base2 = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
-    : (T*)malloc((S) * sizeof(T)); \
+  unsigned _ilen2 = (S) > 0 ? (S) : 1; \
+  T _ibuf2[_ilen2 <= GS_MAX_OBJECTS_FROM_STACK ? _ilen2 : 1]; \
+  T *_base2 = (_ilen2 <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
+    : (T*)malloc(_ilen2 * sizeof(T)); \
   T *(P) = _base2;
 #endif
 

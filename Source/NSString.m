@@ -5974,37 +5974,18 @@ static NSFileManager *fm = nil;
 	{
 	  NSUInteger		countSelf = compareRange.length;
 	  NSUInteger		countOther = [string length];       
-	  unichar		*charsSelf;
-	  unichar		*charsOther;
 	  UCollationResult	result;
-	  NSUInteger 		sizeSelf = countSelf * sizeof(unichar);
-	  NSUInteger 		sizeOther = countOther * sizeof(unichar);
-	  BOOL			useStack = (sizeSelf + sizeOther) < 128;
-
-	  if (useStack)
-	    {
-	      charsSelf = alloca(sizeSelf ? sizeSelf : 1);
-	      charsOther = alloca(sizeOther ? sizeOther : 1);
-	    }
-	  else
-	    {
-	      charsSelf = malloc(sizeSelf ? sizeSelf : 1);
-	      charsOther = malloc(sizeOther ? sizeOther : 1);
-	    }
+          GS_BEGINITEMBUF(chars, countOther + countSelf, unichar)
 
 	  // Copy to buffer
-	  [self getCharacters: charsSelf range: compareRange];
-	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
+	  [self getCharacters: chars range: compareRange];
+	  [string getCharacters: chars + countSelf
+			  range: NSMakeRange(0, countOther)];
 	  
 	  result = ucol_strcoll(coll,
-	    charsSelf, countSelf, charsOther, countOther);
+	    chars, countSelf, chars + countSelf, countOther);
+          GS_ENDITEMBUF()
 
-	  if (!useStack)
-	    {
-	      free(charsSelf);
-	      free(charsOther);	  
-	    }
-	  
 	  /* UCollationResult enums are stable and match
 	   * NSComparisonResult enums
 	   */
