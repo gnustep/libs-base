@@ -752,6 +752,10 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
     }
   for (i = 0; i < map_used; i++)
     {
+      if (NULL == map[i])
+	{
+	  break;
+	}
       if (compare(map[i]->name, map[i]->size, m->name, m->size) > 0)
 	{
 	  int	j;
@@ -3382,22 +3386,15 @@ handle_send()
 
       r = sendto(udp_desc, (const char *)&entry->dat[entry->pos],
       entry->len - entry->pos, 0, (void*)&entry->addr, sizeof(entry->addr));
-      /*
-       *	'r' is the number of bytes sent. This should be the number
-       *	of bytes we asked to send, or -1 to indicate failure.
+      /* 'r' is the number of bytes sent. This should be the number
+       * of bytes we asked to send, or -1 to indicate failure.
        */
-      if (r > 0)
+      if (r < 0)
 	{
-	  entry->pos += r;
-	}
-
-      /*
-       *	If we haven't written all the data, it should have been
-       *	because we blocked.  Anything else is a major problem
-       *	so we remove the message from the queue.
-       */
-      if (entry->pos != entry->len)
-	{
+	  /* If we haven't written any data, it should have been
+	   * because we blocked.  Anything else is a major problem
+	   * so we remove the message from the queue.
+	   */
 #if	defined(__MINGW__)
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
@@ -3416,17 +3413,17 @@ handle_send()
 	}
       else
 	{
+	  entry->pos += r;
 	  udp_sent++;
 	  if (debug > 1)
 	    {
-	      snprintf(ebuf, sizeof(ebuf), "performed sendto for %s",
-		inet_ntoa(entry->addr.sin_addr));
+	      snprintf(ebuf, sizeof(ebuf), "performed sendto (%d bytes) for %s",
+		r, inet_ntoa(entry->addr.sin_addr));
 	      gdomap_log(LOG_DEBUG);
 	    }
-	  /*
-	   *	If we have sent the entire message - remove it from queue.
+	  /* If we have sent the entire message - remove it from queue.
 	   */
-	  if (entry->pos == entry->len)
+	  if (entry->pos >= entry->len)
 	    {
 	      queue_pop();
 	    }
@@ -3897,7 +3894,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       int	len = port * sizeof(struct in_addr);
       uptr	b;
 
-      b = (uptr)malloc(len);
+      b = (uptr)calloc(len, 1);
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
@@ -3926,7 +3923,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       uptr	ptr;
       uptr	b;
 
-      b = (uptr)malloc(len);
+      b = (uptr)calloc(len, 1);
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
