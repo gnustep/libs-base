@@ -477,13 +477,13 @@ static SEL	remSel;
 - (instancetype) initWithOrderedSet: (NSOrderedSet *)other
                           copyItems: (BOOL)flag
 {
-  unsigned	c = [other count];
-  id		o, e = [other objectEnumerator];
-  unsigned	i = 0;
+  NSUInteger	c = [other count];
+  NSUInteger	i = 0;
   GS_BEGINIDBUF(os, c);
 
-  while ((o = [e nextObject]))
+  GS_FOR_IN(id, o, other)
     {
+      if (i >= c) break;
       if (flag)
         {
           os[i] = [o copy];
@@ -494,6 +494,8 @@ static SEL	remSel;
         }
       i++;
     }
+  GS_END_FOR(other)
+
   self = [self initWithObjects: os count: c];
   if (flag)
     {

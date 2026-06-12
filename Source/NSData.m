@@ -2284,7 +2284,7 @@ failure:
     {
       int	desc;
       int	mask;
-      int	length;
+      size_t	length;
 
       length = strlen(theRealPath);
       if (length > sizeof(thePath) - 7)
@@ -4010,8 +4010,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (nil == self)
     {
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-      readOptionsMask &= ~NSDataReadingMappedIfSafe;
-      readOptionsMask &= ~NSDataReadingMappedAlways;
+      readOptionsMask &= (NSDataReadingOptions)
+	~(NSDataReadingMappedIfSafe | NSDataReadingMappedAlways);
       self = [self initWithContentsOfFile: path 
 				  options: readOptionsMask 
 				    error: errorPtr];
@@ -4420,8 +4420,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	  if (!*(void**)data)
 	    {
-	      ni = -1;
-	      ni = GSSwapHostI32ToBig(ni);
+	      ni = -1;	// all bits set ... no byte swapping needed.
 	      [self appendBytes: (void*)&len length: sizeof(len)];
 	      return;
 	    }
