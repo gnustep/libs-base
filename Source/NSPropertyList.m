@@ -1596,7 +1596,7 @@ PString(NSString *obj, NSMutableData *output)
       unsigned char	*ptr;
       int		base = [output length];
       int		len = 0;
-      GS_BEGINITEMBUF(ustring, (length * sizeof(unichar)), unichar)
+      GS_BEGINITEMBUF(ustring, length, unichar)
 
       end = &ustring[length];
       [obj getCharacters: ustring];

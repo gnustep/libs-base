@@ -2669,8 +2669,7 @@ register_printf_atsign ()
 
               /* Range to search is bigger than string to look for.
                */
-              GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
-                unichar)
+              GS_BEGINITEMBUF2(charsSelf, searchRange.length, unichar)
               [self getCharacters: charsSelf range: searchRange];
               end = searchRange.length;
               if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
@@ -2763,7 +2762,7 @@ register_printf_atsign ()
         }
       else
         {
-          GS_BEGINITEMBUF(charsOther, (countOther*sizeof(unichar)), unichar)
+          GS_BEGINITEMBUF(charsOther, countOther, unichar)
 
           [aString getCharacters: charsOther range: NSMakeRange(0, countOther)];
           if (YES == insensitive)
@@ -2782,7 +2781,7 @@ register_printf_atsign ()
             {
               /* Range to search is same size as string to look for.
                */
-              GS_BEGINITEMBUF2(charsSelf, (countOther*sizeof(unichar)), unichar)
+              GS_BEGINITEMBUF2(charsSelf, countOther, unichar)
               if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
                 {
                   searchRange.location = NSMaxRange(searchRange) - countOther;
@@ -2843,8 +2842,7 @@ register_printf_atsign ()
                 }
               /* Range to search is bigger than string to look for.
                */
-              GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
-                unichar)
+              GS_BEGINITEMBUF2(charsSelf, searchRange.length, unichar)
               [self getCharacters: charsSelf range: searchRange];
 
               if (YES == insensitive)
@@ -2955,8 +2953,8 @@ register_printf_atsign ()
 	  UErrorCode    status = U_ZERO_ERROR; 
 	  NSUInteger    countSelf = searchRange.length;
 	  UStringSearch *search = NULL;
-          GS_BEGINITEMBUF(charsSelf, (countSelf * sizeof(unichar)), unichar)
-          GS_BEGINITEMBUF2(charsOther, (countOther * sizeof(unichar)), unichar)
+          GS_BEGINITEMBUF(charsSelf, countSelf, unichar)
+          GS_BEGINITEMBUF2(charsOther, countOther, unichar)
 
 	  // Copy to buffer
       
@@ -4875,7 +4873,8 @@ static NSFileManager *fm = nil;
       unichar	*to;
       unsigned	o;
       unsigned	lastComponent = root;
-      GS_BEGINITEMBUF(from, (end * 2 * sizeof(unichar)), unichar)
+      unsigned	space = end * 2;		// from and to in same buffer
+      GS_BEGINITEMBUF(from, space, unichar)
 
       to = from + end;
       [self getCharacters: from range: NSMakeRange(0, end)];

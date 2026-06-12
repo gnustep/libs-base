@@ -1457,7 +1457,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       UErrorCode 	err = U_ZERO_ERROR;
       int64_t 		intNum;
       double 		doubleNum;
-      GS_BEGINITEMBUF(ustring, length * sizeof(unichar), unichar)
+      GS_BEGINITEMBUF(ustring, length, unichar)
   
       [string getCharacters: ustring range: NSMakeRange(0, length)];
   

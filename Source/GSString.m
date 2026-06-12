@@ -5207,7 +5207,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	   */
 	  if (_flags.wide)
 	    {
-	      GS_BEGINITEMBUF(buf, (length * sizeof(unichar)), unichar);
+	      GS_BEGINITEMBUF(buf, length, unichar);
 
 	      [aString getCharacters: buf];
 	      if (offset < 0)
@@ -5224,7 +5224,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	    }
 	  else
 	    {
-	      GS_BEGINITEMBUF(buf, ((length+1) * sizeof(char)), char);
+	      GS_BEGINITEMBUF(buf, (length+1), char);
 
 	      [aString getCString: buf
 			maxLength: length+1

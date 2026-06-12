@@ -96,6 +96,10 @@ typedef struct objc_category* Category;
  * the array and GS_ENDITEMBUF() to end it.  The idea is to ensure that small
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
+ * The first argument is the name to be used for a pointer to the buffer.
+ * The second argument is the number of items in the buffer.
+ * The third argument is the type of the items in the buffer.
+ * The minimum size of the buffer produced is sufficient to hold one item.
  */
 #if __GNUC__ > 3 && !defined(__clang__)
 __attribute__((unused)) static void GSFreeTempBuffer(void **b)
