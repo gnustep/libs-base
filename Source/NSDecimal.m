@@ -111,7 +111,10 @@ static NSDecimal one = {0, NO, YES, 1, {1}};
 GS_DECLARE void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source)
 {
-  memcpy(destination, source, sizeof(NSDecimal));
+  if (destination != source)
+    {
+      memcpy(destination, source, sizeof(NSDecimal));
+    }
 }
 
 static void
@@ -1566,7 +1569,7 @@ GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r, NSRoundingMode m
 	  else
 	    carry = 0;
 	  // This is one off to allow final carry
-	  n.cMantissa[j+1] = e;
+	  if (j < l->length-1) n.cMantissa[j+1] = e;
 	}
       n.cMantissa[0] = carry;
       NSDecimalCompact(&n);
@@ -1654,7 +1657,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
       error1 = NSDecimalSubtract(&n1, &n1, r, mode);
       if (NSCalculationNoError != error1)
 	error = error1;
-      result->cMantissa[k-1]++;
+      if (k > 0) result->cMantissa[k-1]++;
     }
 
   return error;
