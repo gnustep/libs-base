@@ -4964,7 +4964,7 @@ static NSFileManager *fm = nil;
 {
   NSString	*homedir;
   NSRange	firstSlashRange;
-  unsigned	length;
+  NSUInteger	length;
 
   if ((length = [self length]) == 0)
     {
@@ -5004,8 +5004,8 @@ static NSFileManager *fm = nil;
   if (firstSlashRange.location != 1)
     {
       /* It is of the form `~username/blah/...' or '~username' */
-      int	userNameLen;
-      NSString	*uname;
+      NSUInteger	userNameLen;
+      NSString		*uname;
 
       if (firstSlashRange.length != 0)
 	{
@@ -5014,8 +5014,8 @@ static NSFileManager *fm = nil;
       else
 	{
 	  /* It is actually of the form `~username' */
-	  userNameLen = [self length] - 1;
-	  firstSlashRange.location = [self length];
+	  userNameLen = length - 1;
+	  firstSlashRange.location = length;
 	}
       uname = [self substringWithRange: ((NSRange){1, userNameLen})];
       homedir = NSHomeDirectoryForUser(uname);
