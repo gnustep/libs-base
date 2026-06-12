@@ -1569,7 +1569,7 @@ GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r, NSRoundingMode m
 	  else
 	    carry = 0;
 	  // This is one off to allow final carry
-	  if (j < l->length-1) n.cMantissa[j+1] = e;
+	  n.cMantissa[j+1] = e;
 	}
       n.cMantissa[0] = carry;
       NSDecimalCompact(&n);
@@ -1657,7 +1657,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
       error1 = NSDecimalSubtract(&n1, &n1, r, mode);
       if (NSCalculationNoError != error1)
 	error = error1;
-      if (k > 0) result->cMantissa[k-1]++;
+      result->cMantissa[k-1]++;
     }
 
   return error;

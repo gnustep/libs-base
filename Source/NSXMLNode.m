@@ -85,20 +85,20 @@ static void
 setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
 {
   xmlDocPtr	oldDoc;
-  BOOL 		adoptStr;
+  int 		adoptStr;
 
   if (node == NULL || node->doc == doc)
     return;
   
   oldDoc = node->doc;
-  adoptStr = NO;
+  adoptStr = 0;
   
   /* Only adopt strings if both docs exist and have different dicts */
   if (oldDoc != NULL && doc != NULL
     && oldDoc->dict != NULL && doc->dict != NULL
     && oldDoc->dict != doc->dict)
     {
-      adoptStr = YES;
+      adoptStr = 1;
     }
   /* If new doc has no dict but old doc has dict, need to copy strings out */
   else if (oldDoc != NULL && oldDoc->dict != NULL
