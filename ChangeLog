@@ -1,3 +1,11 @@
+2026-06-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	Define a larger size for on-stack memory allocation of buffers, to
+	reduce the performance overhead of using the heap.  Add check for
+	malloc failure when we do have to allocate buffer space on heap.
+
 2026-06-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m:
