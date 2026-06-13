@@ -5,6 +5,11 @@
 	Define a larger size for on-stack memory allocation of buffers, to
 	reduce the performance overhead of using the heap.  Add check for
 	malloc failure when we do have to allocate buffer space on heap.
+	* Source/GSICUString.h:
+	* Source/GSICUString.m:
+	* Source/NSPropertyList.m:
+	* Source/NSRegularExpression.m:
+	Remove duplicate macro usage
 
 2026-06-11 Richard Frith-Macdonald <rfm@gnu.org>
 

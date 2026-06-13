@@ -269,7 +269,6 @@ blockCallback(
   uint32_t	flags = NSRegularExpressionOptionsToURegexpFlags(opts);
   UParseError	pe = {0};
   UErrorCode	s = 0;
-  TEMP_BUFFER(buffer, length);
 
 #if !__has_feature(blocks)
   GSOnceMLog(@"Warning: this implementation of NSRegularExpression uses"
@@ -291,6 +290,8 @@ blockCallback(
       [exp raise];
     }
 
+  options = opts;
+  GS_BEGINITEMBUF(buffer, length, unichar)
   [aPattern getCharacters: buffer range: NSMakeRange(0, length)];
   regex = uregex_open(buffer, length, flags, &pe, &s);
   if (U_FAILURE(s))
@@ -320,9 +321,8 @@ blockCallback(
         }
 
       DESTROY(self);
-      return self;
     }
-  options = opts;
+  GS_ENDITEMBUF()
   return self;
 }
 
@@ -657,53 +657,53 @@ prepareResult(NSRegularExpression *regex,
   NSUInteger	        groups = [self numberOfCaptureGroups] + 1;
   NSRange	        ranges[groups];
   GSRegexContext	ctx = { handler, context };
-  TEMP_BUFFER(buffer, length);
+  GS_BEGINITEMBUF(buffer, length, unichar)
 
   r = setupRegex(regex, string, buffer, length, opts, range, &ctx);
 
   // Should this throw some kind of exception?
-  if (NULL == r)
+  if (r != NULL)
     {
-      return;
-    }
-  if (opts & NSMatchingAnchored)
-    {
-      if (uregex_lookingAt(r, -1, &s) && (0 == s))
+      if (opts & NSMatchingAnchored)
 	{
-	  // FIXME: Factor all of this out into prepareResult()
-	  uint32_t		flags;
-	  NSTextCheckingResult *result;
+	  if (uregex_lookingAt(r, -1, &s) && (0 == s))
+	    {
+	      // FIXME: Factor all of this out into prepareResult()
+	      uint32_t		flags;
+	      NSTextCheckingResult *result;
 
-	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = (flags & NSMatchingInternalError) ? nil
-            : [NSTextCheckingResult
-	    regularExpressionCheckingResultWithRanges: ranges
-						count: groups
-				    regularExpression: self];
-	  (*handler)(context, result, flags, &stop);
+	      flags = prepareResult(self, r, ranges, groups, &s);
+	      result = (flags & NSMatchingInternalError) ? nil
+		: [NSTextCheckingResult
+		regularExpressionCheckingResultWithRanges: ranges
+						    count: groups
+					regularExpression: self];
+	      (*handler)(context, result, flags, &stop);
+	    }
 	}
-    }
-  else
-    {
-      while (!stop && uregex_findNext(r, &s) && (0 == s))
+      else
 	{
-	  uint32_t		flags;
-	  NSTextCheckingResult	*result;
+	  while (!stop && uregex_findNext(r, &s) && (0 == s))
+	    {
+	      uint32_t		flags;
+	      NSTextCheckingResult	*result;
 
-	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = (flags & NSMatchingInternalError) ? nil
-            : [NSTextCheckingResult
-	    regularExpressionCheckingResultWithRanges: ranges
-						count: groups
-				    regularExpression: self];
-	  (*handler)(context, result, flags, &stop);
+	      flags = prepareResult(self, r, ranges, groups, &s);
+	      result = (flags & NSMatchingInternalError) ? nil
+		: [NSTextCheckingResult
+		regularExpressionCheckingResultWithRanges: ranges
+						    count: groups
+					regularExpression: self];
+	      (*handler)(context, result, flags, &stop);
+	    }
 	}
+      if (opts & NSMatchingCompleted)
+	{
+	  (*handler)(context, nil, NSMatchingCompleted, &stop);
+	}
+      uregex_close(r);
     }
-  if (opts & NSMatchingCompleted)
-    {
-      (*handler)(context, nil, NSMatchingCompleted, &stop);
-    }
-  uregex_close(r);
+  GS_ENDITEMBUF()
 }
 #endif
 
@@ -953,7 +953,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
       unichar		replacement[replLength];
       int32_t		outLength;
       URegularExpression *r;
-      TEMP_BUFFER(buffer, length);
+      GS_BEGINITEMBUF(buffer, length, unichar)
 
       r = setupRegex(regex, string, buffer, length, opts, range, 0);
       [template getCharacters: replacement range: NSMakeRange(0, replLength)];
@@ -989,6 +989,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
 	  results = 0;
 	}
       uregex_close(r);
+      GS_ENDITEMBUF()
     }
   return results;
 }
@@ -1005,7 +1006,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
   unichar	replacement[replLength];
   int32_t	outLength;
   NSString	*result = nil;
-  TEMP_BUFFER(buffer, length);
+  GS_BEGINITEMBUF(buffer, length, unichar)
 
   r = setupRegex(regex, string, buffer, length, opts, range, 0);
   [template getCharacters: replacement range: NSMakeRange(0, replLength)];
@@ -1033,6 +1034,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
     }
 
   uregex_close(r);
+  GS_ENDITEMBUF()
   return result;
 }
 
@@ -1048,7 +1050,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
   unichar	replacement[replLength];
   int32_t	outLength;
   NSString	*str = nil;
-  TEMP_BUFFER(buffer, range.length);
+  GS_BEGINITEMBUF(buffer, range.length, unichar)
 
   r = setupRegex(regex,
 		 [string substringWithRange: range],
@@ -1081,6 +1083,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
 	}
     }
   uregex_close(r);
+  GS_ENDITEMBUF()
   return str;
 }
 #endif

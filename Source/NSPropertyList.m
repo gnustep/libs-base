@@ -3870,13 +3870,13 @@ isEqualFunc(const void *item1, const void *item2,
     }
   else if (index_size == 3)
     {
-      unsigned char buffer[index_size];
-      int i;
-      unsigned num = index;
+      uint8_t	buffer[index_size];
+      unsigned	num = index;
+      int 	i;
 
-      for (i = index_size - 1; i >= 0; i--)
+      for (i = 2; i >= 0; i--)
         {
-	  buffer[i] = num & 0xFF;
+	  buffer[i] = (uint8_t)(num & 0xFF);
           num >>= 8;
 	}
       [dest appendBytes: buffer length: index_size];

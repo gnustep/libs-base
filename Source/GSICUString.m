@@ -488,11 +488,13 @@ UTextInitWithNSString(UText *txt, NSString *str)
 {
   NSUInteger	length = [aString length];
   UErrorCode	status = 0;
+  GS_BEGINITEMBUF(buffer, length, unichar)
 
-  TEMP_BUFFER(buffer, length);
   [aString getCharacters: buffer range: NSMakeRange(0, length)];
 
-  utext_replace(&txt, r.location, r.location + r.length, buffer, length, &status);
+  utext_replace(&txt, r.location, r.location + r.length,
+    buffer, length, &status);
+  GS_ENDITEMBUF()
 }
 
 - (void) dealloc

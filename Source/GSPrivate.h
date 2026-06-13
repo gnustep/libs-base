@@ -90,6 +90,12 @@ typedef struct objc_category* Category;
 
 #import "Foundation/NSString.h"
 
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#define	GS_UNREACHABLE() __builtin_unreachable()
+#else
+#define	GS_UNREACHABLE() abort()
+#endif
+
 /** Macro to call malloc() to allocate memory from the heap for N items of
  * type T.  If the call to malloc() fails, this raises an exception reporting
  * the number and size of the items requested.
@@ -98,7 +104,7 @@ typedef struct objc_category* Category;
 ((T*)malloc((N) * sizeof(T)) ?: (\
 [NSException raise: NSInternalInconsistencyException\
 	    format: @"Failed to create buffer for %lu items of size %u",\
-  (unsigned long)(N), (unsigned)sizeof(T)], __builtin_unreachable(), (T*)0))
+  (unsigned long)(N), (unsigned)sizeof(T)], GS_UNREACHABLE(), (T*)0))
 
 /**
  * Macro to manage memory for chunks of code that need to work with
