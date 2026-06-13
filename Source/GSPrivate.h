@@ -90,6 +90,16 @@ typedef struct objc_category* Category;
 
 #import "Foundation/NSString.h"
 
+/** Macro to call malloc() to allocate memory from the heap for N items of
+ * type T.  If the call to malloc() fails, this raises an exception reporting
+ * the number and size of the items requested.
+ */
+#define	GS_MALLOC(N, T) \
+((T*)malloc((N) * sizeof(T)) ?: (\
+[NSException raise: NSInternalInconsistencyException\
+	    format: @"Failed to create buffer for %lu items of size %u",\
+  (unsigned long)(N), (unsigned)sizeof(T)], __builtin_unreachable(), (T*)0))
+
 /**
  * Macro to manage memory for chunks of code that need to work with
  * arrays of items.  Use this to start the block of code using
@@ -108,36 +118,36 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
 }
 #  define	GS_BEGINITEMBUF(P, S, T) { \
   unsigned _ilen = (S) > 0 ? (S) : 1; \
-  T _ibuf[_ilen <= GS_MAX_OBJECTS_FROM_STACK ? _ilen : 1]; \
+  T _ibuf[_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen : 1]; \
   T *P = _ibuf;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
-  if (_ilen > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen > GS_MAX_BYTES_FROM_STACK/sizeof(T))\
     {\
-      _base = malloc(_ilen * sizeof(T));\
+      _base = GS_MALLOC(_ilen, T);\
       P = _base;\
     }
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
   unsigned _ilen2 = (S) > 0 ? (S) : 1; \
-  T _ibuf2[_ilen2 <= GS_MAX_OBJECTS_FROM_STACK ? _ilen2 : 1]; \
+  T _ibuf2[_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen2 : 1]; \
   T *P = _ibuf2;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base2 = 0;\
-  if (_ilen2 > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen2 > GS_MAX_BYTES_FROM_STACK/sizeof(T))\
     {\
-      _base2 = malloc(_ilen2 * sizeof(T));\
+      _base2 = GS_MALLOC(_ilen2, T);\
       P = _base2;\
     }
 #else
 #  define	GS_BEGINITEMBUF(P, S, T) { \
   unsigned _ilen = (S) > 0 ? (S) : 1; \
-  T _ibuf[_ilen <= GS_MAX_OBJECTS_FROM_STACK ? _ilen : 1]; \
-  T *_base = (_ilen <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
-    : (T*)malloc(_ilen * sizeof(T)); \
+  T _ibuf[_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen : 1]; \
+  T *_base = (_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T)) ? _ibuf \
+    : GS_MALLOC(_ilen, T); \
   T *(P) = _base;
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
   unsigned _ilen2 = (S) > 0 ? (S) : 1; \
-  T _ibuf2[_ilen2 <= GS_MAX_OBJECTS_FROM_STACK ? _ilen2 : 1]; \
-  T *_base2 = (_ilen2 <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
-    : (T*)malloc(_ilen2 * sizeof(T)); \
+  T _ibuf2[_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen2 : 1]; \
+  T *_base2 = (_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T)) ? _ibuf2 \
+    : GS_MALLOC(_ilen2, T); \
   T *(P) = _base2;
 #endif
 
