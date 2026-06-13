@@ -90,12 +90,6 @@ typedef struct objc_category* Category;
 
 #import "Foundation/NSString.h"
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-#define	GS_UNREACHABLE() __builtin_unreachable()
-#else
-#define	GS_UNREACHABLE() abort()
-#endif
-
 /** Macro to call malloc() to allocate memory from the heap for N items of
  * type T.  If the call to malloc() fails, this raises an exception reporting
  * the number and size of the items requested.
