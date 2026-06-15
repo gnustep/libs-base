@@ -147,11 +147,13 @@ GS_EXPORT_CLASS
  * the executable is an application (executable and associated resources
  * treated as a single unit), this is the main application bundle
  * (the xxx.app directory); if the executable is a tool, this is a
- * bundle 'naturally' associated with the tool: if the tool
- * executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control then the
- * tool's main bundle directory is xxx/Tools/Resources/Control in the
- * standard GNUstep file system layout (for alternative file system
- * layouts see the gnustep-make documentation).
+ * bundle 'naturally' associated with the tool: if the tool executable is
+ * xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control (xxx/Tools/Control when
+ * using a 'flattened' layout) then the tool's main bundle directory is
+ * installed as $GNUSTEP_LOCAL_LIBRARY/Tools/Resources/Control in
+ * the standard GNUstep file system layout (for alternative file system
+ * layouts see the gnustep-make documentation). Of course the resources
+ * may also be in the SYSTEM, NETWORK or USER areas of the filesystem.
  * </p>
  * <p>NB: traditionally tools didn't have a main bundle -- this is a
  * GNUstep extension, but it's quite nice and it's here to stay.
@@ -429,7 +431,10 @@ GS_EXPORT_CLASS
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName;
 
-/** Returns the info property list associated with the bundle. */
+/** Returns the info property list associated with the bundle.<br />
+ * This is read from the 'Info-gnustep.plist' file (or 'Info.plist' if that
+ * does not exist) in this bundle, otherwise it is an empty dictionary.
+ */
 - (NSDictionary*) infoDictionary;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 
