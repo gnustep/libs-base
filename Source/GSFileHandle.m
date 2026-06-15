@@ -172,7 +172,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 	}
       else
 #endif
-      if (descriptor < 1)
+      if (descriptor < 0)
 	{
 	  result = -1;
 	  errno = EBADF;
