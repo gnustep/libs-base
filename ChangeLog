@@ -1,3 +1,9 @@
+2026-06-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Fix race condition in lock setup reported by
+	DTW-Thalion.  Set up cached methods for lock before setting the
+	variable itself.
+
 2026-06-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSObjCRuntime.h:
