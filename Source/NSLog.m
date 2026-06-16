@@ -87,8 +87,6 @@ extern NSThread	*GSCurrentThread();
 int _NSLogDescriptor = 2;
 
 static NSRecursiveLock	*myLock = nil;
-static IMP              lockImp = 0;
-static IMP              unlockImp = 0;
 
 /**
  * Returns the lock used to protect the GNUstep NSLogv() implementation.
@@ -107,8 +105,6 @@ GSLogLock()
       if (myLock == nil)
 	{
 	  myLock = [NSRecursiveLock new];
-          lockImp = [myLock methodForSelector: @selector(lock)];
-          unlockImp = [myLock methodForSelector: @selector(unlock)];
 	}
       GS_MUTEX_UNLOCK(setupLock);
     }
@@ -335,6 +331,7 @@ NSLogv(NSString* format, va_list args)
 {
   NSMutableString	*prefix;
   NSString              *message;
+  NSRecursiveLock       *lock;
   NSString              *threadName = nil;
   NSThread              *t = nil;
   /* NB. On systems like Android where there is no operating system thread
@@ -432,16 +429,17 @@ NSLogv(NSString* format, va_list args)
       [prefix appendString: @"\n"];
     }
 
-  if (nil == myLock)
-    {
-      GSLogLock();
-    }
-
-  (*lockImp)(myLock, @selector(lock));
+  /* GSLogLock() returns a fully initialised lock; use it directly rather
+   * than file-scope lock/unlock IMPs that were published after 'myLock'.
+   * A second thread taking the lock-free 'nil == myLock' fast path could
+   * otherwise observe 'myLock' set but call through a still-NULL lockImp.
+   */
+  lock = GSLogLock();
+  [lock lock];
 
   _NSLog_printf_handler(prefix);
 
-  (*unlockImp)(myLock, @selector(unlock));
+  [lock unlock];
 
   [prefix release];
 }

@@ -1,3 +1,14 @@
+2026-06-16 Todd White <todd.white@thalion.global>
+
+	* Source/NSLog.m:
+	Fix a startup data race in NSLogv().  GSLogLock() published the
+	global 'myLock' before caching the separate lock/unlock IMPs, but
+	NSLogv() took an unlocked 'nil == myLock' fast path and then called
+	through 'lockImp'.  Two threads logging for the first time
+	concurrently could observe 'myLock' set while 'lockImp' was still
+	NULL and crash.  Use the recursive lock returned by GSLogLock()
+	directly and drop the cached IMP globals.
+
 2026-06-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSObjCRuntime.h:
