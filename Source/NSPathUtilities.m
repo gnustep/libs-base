@@ -397,8 +397,23 @@ getPathConfig(NSDictionary *dict, NSString *key)
   path = [dict objectForKey: key];
   if (path != nil)
     {
+      NSString	*orig = path;
+
       path = getPath(path);
-      if ([path isAbsolutePath] == NO)
+      if ([path isAbsolutePath])
+	{
+	  if (GSDebugSet(debugKey))
+	    {
+	      fprintf(stderr, "Configured path for '%s' is '%s'.\n",
+		[key UTF8String], [orig UTF8String]);
+	      if (path != orig)
+		{
+		  fprintf(stderr, "  Resolved relative to '%s' as '%s'.\n",
+		    [gnustepConfigPath UTF8String], [path UTF8String]);
+		}
+	    }
+	}
+      else
 	{
 	  fprintf(stderr, "GNUstep configuration file entry '%s' ('%s') is not "
 	    "an absolute path.\nPlease fix your configuration file.\n",
