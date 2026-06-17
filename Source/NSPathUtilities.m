@@ -79,6 +79,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+static NSString	*debugKey = @"NSPathUtilities";
+
 NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
 
 void GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
@@ -954,14 +956,38 @@ GNUstepConfig(NSDictionary *newConfig)
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
 	      /* Now we source the configuration file if it exists */
-#if	!OPTION_NO_ENVIRONMENT
 	      file = [[[NSProcessInfo processInfo] environment]
 		objectForKey: @"GNUSTEP_CONFIG_FILE"];
+	      if (file)
+		{
+#if	OPTION_NO_ENVIRONMENT
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Ignored '%s' (from GNUSTEP_CONFIG_FILE"
+			" environment variable) because gnustep-base was"
+			" configured/built with OPTION_NO_ENVIRONMENT.\n",
+			[file UTF8String]);
+		    }
+		  file = nil;
+#else
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Using '%s' (from GNUSTEP_CONFIG_FILE"
+			" environment variable) as configuration file.\n",
+			[file UTF8String]);
+		    }
 #endif
+		}
 	      if (file == nil)
 		{
 		  fromEnvironment = NO;
 		  file = @GNUSTEP_TARGET_CONFIG_FILE;
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Using '%s' (configure/build time default"
+			" for gnustep-base) as configuration file.\n",
+			[file UTF8String]);
+		    }
 		}
 
 	      /*
@@ -986,6 +1012,13 @@ GNUstepConfig(NSDictionary *newConfig)
 		  path = GSPrivateSymbolPath(c);
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config file location is relative."
+			" Forming absolute path from gnustep-base library"
+			" location '%s' with '%s'.\n",
+			[path UTF8String], [file UTF8String]);
+		    }
                   if ([file hasPrefix: @"./"] == YES)
                     {
                       file = [file substringFromIndex: 2];
@@ -1030,17 +1063,34 @@ GNUstepConfig(NSDictionary *newConfig)
 #endif
 		}
 
-	      if (bareDirectory == YES)
+	      if (bareDirectory)
 		{
 		  /* Set the directory name, but don't try to read file.
 		   */
 		  gnustepConfigPath = RETAIN(file);
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config base path '%s' with no config"
+			" file to read.\n", [file UTF8String]);
+		    }
 		}
 	      else
 		{
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
-		  ParseConfigurationFile(file, conf, nil);
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config base path '%s' with master"
+			" config file '%s' to read.\n",
+			[gnustepConfigPath UTF8String],
+			[[file lastPathComponent] UTF8String]);
+		    }
+		  if (ParseConfigurationFile(file, conf, nil)
+		    && GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Configuration contained '%s'\n",
+			[[conf descriptionInStringsFileFormat] UTF8String]);
+		    }
 		}
 
 	      /* Merge in any values from property lists in the
@@ -1072,10 +1122,23 @@ GNUstepConfig(NSDictionary *newConfig)
 	   * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
 	   * If they simply don't define it at all, we assign a default.
 	   */
-	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
+	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"])
+	    {
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "Using GNUSTEP_USER_CONFIG_FILE"
+		    " from master config file.\n");
+		}
+	    }
+	  else
 	    {
 	      [conf setObject: @GNUSTEP_TARGET_USER_CONFIG_FILE
 		       forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "Using GNUSTEP_USER_CONFIG_FILE"
+		    " (configure/build time default for gnustep-base)\n");
+		}
 	    }
 	  if (config != nil)
 	    {
@@ -1130,23 +1193,37 @@ GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 
   if (userName != nil)
     {
-      NSString		*file;
-      NSString		*home;
-      NSString		*path;
+      NSString			*file;
+      NSString			*home;
+      NSString			*path;
+      NSMutableDictionary	*dict;
 
-      file = RETAIN([config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
+      file = [config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
       if ([file length] > 0)
 	{
 	  home = NSHomeDirectoryForUser(userName);
 	  path = [home stringByAppendingPathComponent: file];
-	  ParseConfigurationFile(path, config, userName);
+	  if (GSDebugSet(debugKey))
+	    {
+	      fprintf(stderr, "Trying user config from '%s' in '%s'\n",
+		[file UTF8String], [home UTF8String]);
+	    }
+	  dict = [NSMutableDictionary new];
+	  if (ParseConfigurationFile(path, dict, userName))
+	    {
+	      /* Don't let the user file override the GNUSTEP_USER_CONFIG_FILE
+	       * variable ... that would be silly/pointless.
+	       */
+	      [dict removeObjectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	      [config addEntriesFromDictionary: dict];
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "User configuration contained '%s'\n",
+		    [[dict descriptionInStringsFileFormat] UTF8String]);
+		}
+	    }
+	  RELEASE(dict);
 	}
-      /*
-       * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
-       * variable ... that would be silly/pointless.
-       */
-      [config setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
-      RELEASE(file);
     }
 }
 
@@ -1347,6 +1424,10 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
+      if (GSDebugSet(debugKey))
+	{
+	  fprintf(stderr, "No readable file at '%s'\n", [fileName UTF8String]);
+	}
       return NO;
     }
 

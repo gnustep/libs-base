@@ -1,3 +1,10 @@
+2026-06-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add some debug showing the progress of
+	reading GNUstep configuration files to get the standard paths.
+	If the --GNU-Debug=NSPathUtilities argument is specifeld the extra
+	information is written to stderr.
+
 2026-06-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: Fix race condition in lock setup reported by
