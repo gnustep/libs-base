@@ -1,3 +1,14 @@
+2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc: minor tidy
+	* Headers/Foundation/NSBundle.h: extend -mainBundle documentation
+	* Source/NSBundle.m: Make tool bundle lookup try to get the bundle from
+	the same domain as the executable if possible (relevant of two tools
+	with the same name are installed in different domains).
+	Log to stderr (when --GNU-Debug=NSBundle option is used) the path
+	used for the main bundle and the type of that bundle.
+	Remove old gnustep-make version 1 compatibility code.  Tidy a little.
+
 2026-06-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Add some debug showing the progress of

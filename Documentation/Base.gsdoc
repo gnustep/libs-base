@@ -796,7 +796,7 @@ notice and this notice are preserved.
 	    same names except for replacing 'SYSTEM' with 'LOCAL', 'NETWORK',
 	    or 'USER'.<br />
 	    All these paths must be absolute, except for the USER domain
-	    paths which, if not absolute, are considered to be with the
+	    paths which, if not absolute, are considered to be within the
 	    user's home directory.<br />
 	    NB. as a special case a path may begin with './' or '../' when
 	    it is to be resolved to an absolute path relative to the
@@ -930,7 +930,8 @@ notice and this notice are preserved.
 	    the GNUSTEP_CONFIG_FILE environment variable unless that option
 	    was disabled when the base library was configured)
 	    begins with a dot-slash (./) or dot-dot-slash (../) then the path
-            used for that file is made relative to the base library.<br />
+            used for that file is made relative to the directory containing
+	    the base library.<br />
 	    The base library contains code to determine its own location,
 	    so this allows it to locate the configuration file, and by
 	    reading the configuration file it determines where all other
