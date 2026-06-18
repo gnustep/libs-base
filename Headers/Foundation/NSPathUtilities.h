@@ -73,7 +73,12 @@ GSSetUserName(NSString *aName);
  * to be read earlier.<br />
  * If you want to prevent the user specific config file from being
  * read, you must set the GNUSTEP_USER_CONFIG_FILE value in the
- * dictionary to be an empty string.
+ * dictionary to be an empty string.<br />
+ * Paths with a leading ./ or ../ in the config are interpreted
+ * relative to the config file location:  if you are supplying a
+ * dictionary to be used instead of the config file (so there is
+ * no path to the config file), you must either use absolute paths,
+ * or expect them to be relative to the program being executed.
  */
 GS_EXPORT NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig);

@@ -959,10 +959,11 @@ GNUstepConfig(NSDictionary *newConfig)
     {
       NS_DURING
 	{
+	  NSString	*path;
+
 	  if (newConfig == nil)
 	    {
 	      NSString		*file = nil;
-	      NSString		*path;
 	      NSEnumerator	*e;
 	      NSString      	*defs;
 	      BOOL		fromEnvironment = YES;
@@ -1022,9 +1023,7 @@ GNUstepConfig(NSDictionary *newConfig)
 	      if ([file hasPrefix: @"./"] == YES
 	        || [file hasPrefix: @"../"] == YES)
 		{
-		  Class		c = [NSProcessInfo class];
-
-		  path = GSPrivateSymbolPath(c);
+		  path = GSPrivateSymbolPath([NSProcessInfo class]);
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
 		  if (GSDebugSet(debugKey))
@@ -1132,7 +1131,15 @@ GNUstepConfig(NSDictionary *newConfig)
 	  else
 	    {
 	      conf = [newConfig mutableCopy];
+
+	      /* As config came from the program rather than a file
+	       * we use the path to the executable as config path.
+	       */
+	      path = GSPrivateExecutablePath();
+	      path = [path stringByDeletingLastPathComponent];
+	      ASSIGN(gnustepConfigPath, path);
 	    }
+
 	  /* System admins may force the user and defaults paths by
 	   * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
 	   * If they simply don't define it at all, we assign a default.
