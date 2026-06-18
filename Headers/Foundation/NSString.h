@@ -513,6 +513,8 @@ DEFINE_BLOCK_TYPE(GSNSStringLineEnumerationBlock, void, NSString *line, BOOL *st
  * </p>
  */
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
@@ -520,51 +522,51 @@ GS_EXPORT_CLASS
 + (instancetype) stringWithCharacters: (const unichar*)chars
                                length: (NSUInteger)length;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
-+ (instancetype) stringWithCString: (const char*)byteString
-                          encoding: (NSStringEncoding)encoding;
++ (instancetype _Nullable) stringWithCString: (const char*)byteString
+                                    encoding: (NSStringEncoding)encoding;
 #endif
-+ (instancetype) stringWithCString: (const char*)byteString
-                            length: (NSUInteger)length;
-+ (instancetype) stringWithCString: (const char*)byteString;
++ (instancetype _Nullable) stringWithCString: (const char*)byteString
+                                      length: (NSUInteger)length;
++ (instancetype _Nullable) stringWithCString: (const char*)byteString;
 + (instancetype) stringWithFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
-+ (instancetype) stringWithContentsOfFile: (NSString *)path;
++ (instancetype _Nullable) stringWithContentsOfFile: (NSString *)path;
 
 // Initializing Newly Allocated Strings
 - (instancetype) init;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
-- (instancetype) initWithBytes: (const void*)bytes
-                        length: (NSUInteger)length
-                      encoding: (NSStringEncoding)encoding;
-- (instancetype) initWithBytesNoCopy: (void*)bytes
-                              length: (NSUInteger)length
-                            encoding: (NSStringEncoding)encoding
-                        freeWhenDone: (BOOL)flag;
+- (instancetype _Nullable) initWithBytes: (const void*)bytes
+                                  length: (NSUInteger)length
+                                encoding: (NSStringEncoding)encoding;
+- (instancetype _Nullable) initWithBytesNoCopy: (void*)bytes
+                                        length: (NSUInteger)length
+                                      encoding: (NSStringEncoding)encoding
+                                  freeWhenDone: (BOOL)flag;
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
-+ (instancetype) stringWithContentsOfFile: (NSString*)path
-                             usedEncoding: (NSStringEncoding*)enc
-                                    error: (NSError**)error;
-- (instancetype) initWithContentsOfFile: (NSString*)path
-                           usedEncoding: (NSStringEncoding*)enc
-                                  error: (NSError**)error;
-+ (instancetype) stringWithContentsOfFile: (NSString*)path
-                                 encoding: (NSStringEncoding)enc
-                                    error: (NSError**)error;
-- (instancetype) initWithContentsOfFile: (NSString*)path
-                               encoding: (NSStringEncoding)enc
-                                  error: (NSError**)error;
-+ (instancetype) stringWithContentsOfURL: (NSURL*)url
-                            usedEncoding: (NSStringEncoding*)enc
-                                   error: (NSError**)error;
-- (instancetype) initWithContentsOfURL: (NSURL*)url
-                          usedEncoding: (NSStringEncoding*)enc
-                                 error: (NSError**)error;
-+ (instancetype) stringWithContentsOfURL: (NSURL*)url
-                                encoding: (NSStringEncoding)enc
-                                   error: (NSError**)error;
-- (instancetype) initWithContentsOfURL: (NSURL*)url
-                              encoding: (NSStringEncoding)enc
-                                 error: (NSError**)error;
++ (instancetype _Nullable) stringWithContentsOfFile: (NSString*)path
+                                       usedEncoding: (NSStringEncoding *_Nullable)enc
+                                              error: (NSError**)error;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path
+                                     usedEncoding: (NSStringEncoding *_Nullable)enc
+                                            error: (NSError**)error;
++ (instancetype _Nullable) stringWithContentsOfFile: (NSString*)path
+                                           encoding: (NSStringEncoding)enc
+                                              error: (NSError**)error;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path
+                                         encoding: (NSStringEncoding)enc
+                                            error: (NSError**)error;
++ (instancetype _Nullable) stringWithContentsOfURL: (NSURL*)url
+                                      usedEncoding: (NSStringEncoding *_Nullable)enc
+                                             error: (NSError**)error;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url
+                                    usedEncoding: (NSStringEncoding *_Nullable)enc
+                                           error: (NSError**)error;
++ (instancetype _Nullable) stringWithContentsOfURL: (NSURL*)url
+                                          encoding: (NSStringEncoding)enc
+                                             error: (NSError**)error;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url
+                                        encoding: (NSStringEncoding)enc
+                                           error: (NSError**)error;
 - (BOOL) writeToFile: (NSString*)path
 	  atomically: (BOOL)atomically
 	    encoding: (NSStringEncoding)enc
@@ -592,16 +594,16 @@ GS_EXPORT_CLASS
 - (instancetype) initWithCStringNoCopy: (char*)byteString
                                 length: (NSUInteger)length
                           freeWhenDone: (BOOL)flag;
-- (instancetype) initWithCString: (const char*)byteString
-                          length: (NSUInteger)length;
-- (instancetype) initWithCString: (const char*)byteString;
+- (instancetype _Nullable) initWithCString: (const char*)byteString
+                                    length: (NSUInteger)length;
+- (instancetype _Nullable) initWithCString: (const char*)byteString;
 - (instancetype) initWithString: (NSString*)string;
 - (instancetype) initWithFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
 - (instancetype) initWithFormat: (NSString*)format
                       arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
-- (instancetype) initWithData: (NSData*)data
-                     encoding: (NSStringEncoding)encoding;
-- (instancetype) initWithContentsOfFile: (NSString*)path;
+- (instancetype _Nullable) initWithData: (NSData*)data
+                               encoding: (NSStringEncoding)encoding;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
 
 // Getting a String's Length
 - (NSUInteger) length;
@@ -658,8 +660,8 @@ GS_EXPORT_CLASS
 #endif
 
 // Converting String Contents into a Property List
-- (id) propertyList;
-- (NSDictionary*) propertyListFromStringsFileFormat;
+- (id _Nullable) propertyList;
+- (NSDictionary *_Nullable) propertyListFromStringsFileFormat;
 
 // Identifying and Comparing Strings
 - (NSComparisonResult) compare: (NSString*)aString;
@@ -670,7 +672,7 @@ GS_EXPORT_CLASS
 			 range: (NSRange)aRange;
 - (BOOL) hasPrefix: (NSString*)aString;
 - (BOOL) hasSuffix: (NSString*)aString;
-- (BOOL) isEqual: (id)anObject;
+- (BOOL) isEqual: (id _Nullable)anObject;
 - (BOOL) isEqualToString: (NSString*)aString;
 - (NSUInteger) hash;
 
@@ -692,8 +694,8 @@ GS_EXPORT_CLASS
 - (BOOL) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
 	   encoding: (NSStringEncoding)encoding;
-- (instancetype) initWithCString: (const char*)byteString
-                        encoding: (NSStringEncoding)encoding;
+- (instancetype _Nullable) initWithCString: (const char*)byteString
+                                   encoding: (NSStringEncoding)encoding;
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
 - (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
 #endif
@@ -714,13 +716,13 @@ GS_EXPORT_CLASS
 
 // Working With Encodings
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding;
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding;
+- (NSData *_Nullable) dataUsingEncoding: (NSStringEncoding)encoding;
 /** Conversion to an encoding where byte order matters but is not specified
  * (NSUnicodeStringEncoding, NSUTF16StringEncoding, NSUTF32StringEncoding)
  * produces data with a Byte Order Marker (BOM) at the start of the data.
  */
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag;
+- (NSData *_Nullable) dataUsingEncoding: (NSStringEncoding)encoding
+		   allowLossyConversion: (BOOL)flag;
 + (NSStringEncoding) defaultCStringEncoding;
 - (NSString*) description;
 - (NSStringEncoding) fastestEncoding;
@@ -736,9 +738,9 @@ GS_EXPORT_CLASS
  * completions.  Returns 0 if no match found, else a positive number that is
  * only accurate if outputArray was non-nil.
  */
-- (NSUInteger) completePathIntoString: (NSString**)outputName
+- (NSUInteger) completePathIntoString: (NSString * _Nullable * _Nonnull)outputName
 			caseSensitive: (BOOL)flag
-		     matchesIntoArray: (NSArray**)outputArray
+		     matchesIntoArray: (NSArray * _Nullable * _Nullable)outputArray
 			  filterTypes: (NSArray*)filterTypes;
 
 /**
@@ -752,7 +754,7 @@ GS_EXPORT_CLASS
  * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
  * perform the conversion.
  */
-- (const GSNativeChar*) fileSystemRepresentation;
+- (const GSNativeChar *_Nullable) fileSystemRepresentation;
 
 /**
  * Converts the receiver to a C string path using the character encoding
@@ -1003,15 +1005,15 @@ GS_EXPORT_CLASS
   NS_FORMAT_FUNCTION(1,2);
 
 + (instancetype) stringWithString: (NSString*)aString;
-+ (instancetype) stringWithContentsOfURL: (NSURL*)url;
-+ (instancetype) stringWithUTF8String: (const char*)bytes;
++ (instancetype _Nullable) stringWithContentsOfURL: (NSURL*)url;
++ (instancetype _Nullable) stringWithUTF8String: (const char*)bytes;
 - (instancetype) initWithFormat: (NSString*)format
                          locale: (NSDictionary*)locale, ... NS_FORMAT_FUNCTION(1,3);
 - (instancetype) initWithFormat: (NSString*)format
                          locale: (NSDictionary*)locale
                       arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
-- (instancetype) initWithUTF8String: (const char *)bytes;
-- (instancetype) initWithContentsOfURL: (NSURL*)url;
+- (instancetype _Nullable) initWithUTF8String: (const char *)bytes;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (NSComparisonResult) compare: (NSString*)string 
@@ -1033,18 +1035,18 @@ GS_EXPORT_CLASS
              forRange: (NSRange)aRange;
 - (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
-- (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e;
+- (NSString *_Nullable) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByPaddingToLength: (NSUInteger)newLength
 			   withString: (NSString*)padString
 		      startingAtIndex: (NSUInteger)padIndex;
-- (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
+- (NSString *_Nullable) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (NSString *) stringByAddingPercentEncodingWithAllowedCharacters: (NSCharacterSet *)aSet;
-- (NSString *) stringByRemovingPercentEncoding;
+- (NSString *_Nullable) stringByRemovingPercentEncoding;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_3,GS_API_LATEST) 
@@ -1111,11 +1113,11 @@ GS_EXPORT_CLASS
 + (instancetype) string;
 + (instancetype) stringWithCharacters: (const unichar*)characters
                                length: (NSUInteger)length;
-+ (instancetype) stringWithCString: (const char*)byteString
-                            length: (NSUInteger)length;
-+ (instancetype) stringWithCString: (const char*)byteString;
++ (instancetype _Nullable) stringWithCString: (const char*)byteString
+                                      length: (NSUInteger)length;
++ (instancetype _Nullable) stringWithCString: (const char*)byteString;
 + (instancetype) stringWithFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
-+ (instancetype) stringWithContentsOfFile: (NSString*)path;
++ (instancetype _Nullable) stringWithContentsOfFile: (NSString*)path;
 + (NSMutableString*) stringWithCapacity: (NSUInteger)capacity;
 
 // Initializing Newly Allocated Strings
@@ -1135,6 +1137,8 @@ GS_EXPORT_CLASS
 - (void) setString: (NSString*)aString;
 
 @end
+
+NS_ASSUME_NONNULL_END
 
 #ifdef __OBJC_GNUSTEP_RUNTIME_ABI__
 #  if __OBJC_GNUSTEP_RUNTIME_ABI__ >= 20
