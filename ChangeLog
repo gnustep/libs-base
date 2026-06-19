@@ -1,3 +1,13 @@
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSDecimal.m (GSDecimalFromString): the digit-copying loops wrote
+	into the fixed-size cMantissa[] array of a stack decimal without bounding
+	the destination index, so a numeric string with more digits than the
+	mantissa can hold overran the buffer.  Stop filling the mantissa at its
+	capacity (sizeof cMantissa): excess integer digits raise the exponent to
+	preserve magnitude and excess fractional digits are dropped.
+	* Tests/base/NSDecimalNumber/string.m: new regression test.
+
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc: minor tidy
