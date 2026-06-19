@@ -569,6 +569,18 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       [task _setCookiesFromHeaders: headerFields];
       [task _setResponse: response];
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+      if ([task isKindOfClass: [NSURLSessionWebSocketTask class]]
+          && statusCode == 101)
+        {
+          NSString *protocol;
+
+          protocol = [headerFields objectForKey: @"Sec-WebSocket-Protocol"];
+          [(NSURLSessionWebSocketTask *)task
+            _notifyDidOpenWithProtocol: protocol];
+        }
+#endif
+
       /* Assume this response is final; the redirection handling below sets
        * this again if the handle is going to be re-added for a new location. */
       [task _setRedirectInProgress: NO];
