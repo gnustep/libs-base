@@ -1372,9 +1372,17 @@ static NSMutableSet	*textNodes = nil;
 	      [self incIndent];
 
               [buf appendString: indent];
-	      [buf appendFormat:
-		@"<div class=\"content-bar-top-body-title\">%@</div><br />\n",
-		project];
+	      [buf appendString: @"<div class=\"content-bar-top-body-title\">"];
+	      if (upFile != nil)
+		{
+		  [buf appendFormat: @"<a href=\"%@\">%@</a>", upFile, project];
+		}
+	      else
+		{
+		  [buf appendString: project];
+		}
+	      [buf appendString: @"</div><br />\n"];
+
 	      if ([self needsNavSection: @"class"])
 		{
 		  [buf appendString: indent];
