@@ -271,7 +271,7 @@ equalTypes(NSArray *t1, NSArray *t2)
   NSString		*chap;
   NSString		*toolName;
   NSString		*secHeading;
-  BOOL			createSec = NO;
+  BOOL			createSec;
   NSMutableString	*m;
   NSRange		r;
 
@@ -282,6 +282,10 @@ equalTypes(NSArray *t1, NSArray *t2)
       createSec = NO;
       m = [NSMutableString stringWithFormat:
         @"<chapter id=\"_main\"><heading>%@</heading></chapter>", toolName];
+    }
+  else if ([chap rangeOfString: @"<chapter id=\"_main\">"].length > 0)
+    {
+      createSec = NO; 	// already present
     }
   else
     {
@@ -2544,24 +2548,26 @@ fail:
 			      }
 			  }
 		      }
+		  }
 
-		    /* A main function is not documented as a function,
-		     * but as a special case its comments are added to
-		     * the 'front' section of the documentation.
-		     * We may also need to patch up the initial chapter
-		     * and section to indicate that this is a tool.
-		     */
-		    if ([name isEqual: @"main"])
+		/* A main function is not documented as a function,
+		 * but as a special case its comments are added to
+		 * the 'front' section of the documentation.
+		 * We may also need to patch up the initial chapter
+		 * and section to indicate that this is a tool.
+		 */
+		if ([name isEqual: @"main"])
+		  {
+		    NSString	*c;
+
+		    dict = [info objectForKey: kind];
+		    dict = [dict objectForKey: name];
+		    if (nil == (c = [dict objectForKey: @"Comment"]))
 		      {
-			NSString	*c;
-
-			if (nil == (c = [oDecl objectForKey: @"Comment"]))
-			  {
-			    c = @"";
-			  }
-			[self addMain: c];
-			[dict removeObjectForKey: name];
+			c = @"";
 		      }
+		    [self addMain: c];
+		    [dict removeObjectForKey: name];
 		  }
 	      }
 	    break;
