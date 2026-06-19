@@ -283,7 +283,7 @@ copy an existing makefile and change it to suit your own project.
 The make utility will be used to build the Objective-C examples shown in this
 manual, and when an example can be compiled then the makefile will also be
 shown.  For a full description of the make utility see its
-@uref{../../Make/Manual/make_toc.html, documentation}.
+@uref{../../Make/Manual/gnustep-make/index.html, documentation}.
 
 @subsection A Word on the Graphical Environment
 @cindex graphical programming
@@ -291,7 +291,7 @@ shown.  For a full description of the make utility see its
 @cindex GUI
 
 The GNUstep @b{GUI} component is discussed
-@uref{../../Gui/ProgrammingManual/manual_toc.html, elsewhere}, but a brief
+@uref{../../Gui/ProgrammingManual/AppKit/index.html, elsewhere}, but a brief
 overview is useful here.  GNUstep GUI provides a collection of classes for
 developing graphical applications, including windows, controls (also known as
 widgets, and back-end components for event handling and other functions. 
@@ -328,7 +328,7 @@ libraries, etc., analogously to @code{/usr/local} on a Unix system.
 @i{Network} mounts shared files in a networked environment.  @i{Users} usually
 exists as @code{$HOME/GNUstep} and holds preferences files and personal
 application data.  There is further
-@uref{../../../User/GNUstep/filesystem_toc.html, documentation} available on
+@uref{../../../User/GNUstep/gnustep-filesystem/index.html, documentation} available on
 the complete directory layout.
 
 Usually, on a Unix-type system, the GNUstep installation will be found under
@@ -441,7 +441,7 @@ Bourne shell:@*
 @code{. <GNUstep root>/System/Library/Makefiles/GNUstep.sh}
 
 On most Unix systems, GNUstep is installed in @code{/usr/lib/GNUstep}.
-(@uref{../../../User/GNUstep/filesystem_toc.html, Directory layout
+(@uref{../../../User/GNUstep/gnustep-filesystem/index.html, Directory layout
 documentation}.)
 
 @item
