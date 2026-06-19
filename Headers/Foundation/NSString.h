@@ -657,6 +657,14 @@ GS_EXPORT_CLASS
 - (NSString *) precomposedStringWithCanonicalMapping;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+/** Returns a copy of the receiver suitable for comparison with the supplied
+ * options and locale.
+ */
+- (NSString *) stringByFoldingWithOptions: (NSStringCompareOptions)options
+				    locale: (NSLocale *)locale;
+#endif
+
 // Converting String Contents into a Property List
 - (id) propertyList;
 - (NSDictionary*) propertyListFromStringsFileFormat;
