@@ -63,7 +63,7 @@ nextSessionIdentifier()
 /* CURLMOPT_TIMERFUNCTION: Callback to receive timer requests from libcurl */
 static int
 timer_callback(CURLM * multi,      /* multi handle */
-               long timeout_ms,   /* timeout in number of ms */
+               long timeout_ms,    /* timeout in number of ms */
                void * clientp)     /* private callback pointer */
 {
   NSURLSession * session = (NSURLSession *)clientp;
@@ -95,7 +95,7 @@ socket_callback(CURL * easy,           /* easy handle */
                 curl_socket_t s,       /* socket */
                 int what,              /* describes the socket */
                 void * clientp,        /* private callback pointer */
-                void * socketp)                /* private socket pointer */
+                void * socketp)        /* private socket pointer */
 {
   NSURLSession * session = clientp;
   const char * whatstr[] = { "none", "IN", "OUT", "INOUT", "REMOVE" };
@@ -887,6 +887,45 @@ socket_callback(CURL * easy,           /* easy handle */
 - (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData
 {
   return [self notImplemented: _cmd];
+}
+
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
+{
+  NSURLRequest * request;
+
+  request = [NSURLRequest requestWithURL: url];
+  return [self webSocketTaskWithRequest: request];
+}
+
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
+                                          protocols: (NSArray<NSString *> *)protocols
+{
+  NSURLRequest * request;
+
+  // TODO(WS): Advertise the requested websocket subprotocols in the handshake.
+  (void)protocols;
+
+  request = [NSURLRequest requestWithURL: url];
+  return [self webSocketTaskWithRequest: request];
+}
+
+- (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request
+{
+  NSURLSessionWebSocketTask * task;
+  NSInteger identifier;
+
+  identifier = [self _nextTaskIdentifier];
+  task = [[NSURLSessionWebSocketTask alloc] initWithSession: self
+                                                    request: request
+                                             taskIdentifier: identifier];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
+  [task _setProperties: GSURLSessionUpdatesDelegate];
+  
+  // TODO(WS): Configure websocket-specific handshake and framing state.
+
+  [self _didCreateTask: task];
+
+  return AUTORELEASE(task);
 }
 
 - (void) getTasksWithCompletionHandler:

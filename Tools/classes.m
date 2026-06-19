@@ -202,6 +202,7 @@ publicClasses()
 	"NSURLSessionDataTask",
 	"NSURLSessionDownloadTask",
 	"NSURLSessionStreamTask",
+	"NSURLSessionWebSocketTask",
 	"NSURLSessionTask",
 	"NSURLSessionUploadTask",
 	"NSUUID",
