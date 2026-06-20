@@ -1,3 +1,13 @@
+2026-06-20 Todd White <todd.white@thalion.global>
+
+	* Source/NSValue.m (-[NSValue initWithCoder:]): in the version >= 2 decode
+	path, when the unpacked type size was <= 64 the serialized bytes were placed
+	in a stack VLA whose length came straight from the (untrusted) archive, so a
+	large size overran the stack.  Heap-allocate the serialized buffer, as the
+	> 64 case already does.
+	* Tests/base/NSValue/TestInfo: add the marker so the directory is run.
+	* Tests/base/NSValue/codervla.m: new regression test.
+
 2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Foundation/NSDecimalNumber.h:
