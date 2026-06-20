@@ -1,5 +1,11 @@
 2026-06-19 Todd White <todd.white@thalion.global>
 
+	* Source/NSData.m (-[NSData deserializeInts:count:atCursor:],
+	-[NSData deserializeInts:count:atIndex:]): both passed &intBuffer (the
+	address of the local pointer parameter) to -deserializeBytes:length:
+	atCursor: instead of intBuffer, so the decoded bytes were written over the
+	pointer on the stack rather than into the caller's buffer.  Pass intBuffer.
+	* Tests/base/NSData/deserializeints.m: new regression test.
 	* Source/NSCoder.m (-[_NSKeyedCoderOldStyleArray initWithCoder:]): the
 	destination buffer was allocated with -[NSMutableData initWithLength:
 	_c * _s] where _c (the decoded NS.count) and _s are both unsigned, so the

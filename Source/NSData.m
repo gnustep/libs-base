@@ -1865,7 +1865,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(unsigned)
 		atCursor: cursor];
   for (i = 0; i < numInts; i++)
@@ -1883,7 +1883,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(int)
 		atCursor: &index];
   for (i = 0; i < numInts; i++)
