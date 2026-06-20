@@ -1,5 +1,12 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the four
+	string object cases (short and long UTF-8 and UTF-16, markers 0x50-0x5F and
+	0x60-0x6F) read len bytes from the object body without checking that the
+	body stayed within the data, unlike the sibling data cases, so a string
+	object declaring a length past the end read out of bounds.  Validate the
+	length against the remaining data before reading.
+	* Tests/base/NSPropertyList/bplist-string-bounds.m: new regression test.
 	* Source/NSAttributedString.m (-[NSAttributedString initWithCoder:],
 	-[NSMutableAttributedString initWithCoder:]): the variable-length integer
 	decode loops for NSAttributeInfo (`while (*p & 0x80)' and the trailing
