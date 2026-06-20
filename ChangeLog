@@ -1,3 +1,14 @@
+2026-06-20 Todd White <todd.white@thalion.global>
+
+	* Source/GSString.m (-[GSCString substringFromRange:],
+	-[GSCString substringWithRange:]): both ran the tiny-string fast path
+	- createTinyString((char*)_contents.c + aRange.location,
+	aRange.length) - before validating aRange against the receiver length.
+	createTinyString reads up to 9 bytes from that pointer, so an
+	out-of-range range read past the end of the character buffer.  Perform
+	GS_RANGE_CHECK first, as the GSMutableString implementations do.
+	* Tests/base/NSString/substring-bounds.m: new regression test.
+
 2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Foundation/NSDecimalNumber.h:
