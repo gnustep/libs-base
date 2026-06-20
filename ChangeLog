@@ -1,5 +1,13 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/GSString.m (-[GSCString substringFromRange:],
+	-[GSCString substringWithRange:]): both ran the tiny-string fast path
+	- createTinyString((char*)_contents.c + aRange.location,
+	aRange.length) - before validating aRange against the receiver length.
+	createTinyString reads up to 9 bytes from that pointer, so an
+	out-of-range range read past the end of the character buffer.  Perform
+	GS_RANGE_CHECK first, as the GSMutableString implementations do.
+	* Tests/base/NSString/substring-bounds.m: new regression test.
 	* Source/NSValue.m (-[NSValue initWithCoder:]): the object-type
 	string length was decoded from the archive and, when <= 64, that many
 	bytes were copied into a 64-byte stack buffer; a length of exactly 64

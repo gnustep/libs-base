@@ -3880,6 +3880,8 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+
   if (!_flags.wide)
     {
       id tinyString;
@@ -3893,7 +3895,6 @@ agree, create a new GSCInlineString otherwise.
     }
   if (_flags.owned)
     {
-      GS_RANGE_CHECK(aRange, _count);
       return substring_c((GSStr)self, aRange);
     }
   return [super substringWithRange: aRange];
@@ -3901,9 +3902,10 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+
   if (_flags.owned)
     {
-      GS_RANGE_CHECK(aRange, _count);
       return substring_c((GSStr)self, aRange);
     }
   if (!_flags.wide)
