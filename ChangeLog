@@ -1,3 +1,12 @@
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSCharacterSet.m (-[NSCharacterSet initWithCoder:]): the abstract
+	class decoded an int from the archive and used it directly as an index into
+	the fixed-size cache_set[] array of standard sets with no bounds check, so a
+	crafted archive could read and -retain an out-of-bounds slot.  Range-check
+	the index.
+	* Tests/base/NSCharacterSet/coderindex.m: new regression test.
+
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc: minor tidy
