@@ -34,6 +34,7 @@
 #define	EXPOSE_NSCoder_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSSerialization.h"
 #import "Foundation/NSUserDefaults.h"
@@ -477,6 +478,16 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 
 #import	"GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+
+/* Private hook implemented by NSKeyedUnarchiver, letting -initWithCoder: below
+ * check an attacker-controllable element count against the sequential
+ * ("$<index>") keys actually present in the archive.  Unlike
+ * -containsValueForKey:, it does not escape a leading '$'.
+ */
+@interface NSKeyedUnarchiver (GSCoderArrayCount)
+- (BOOL) _containsRawKey: (NSString*)aKey;
+@end
 
 @implementation	_NSKeyedCoderOldStyleArray
 - (const void*) bytes
@@ -511,7 +522,22 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
       _s = [aCoder decodeIntForKey: @"NS.size"];
       _s = objc_sizeof_type(_t);
 
-      _d = o = [[NSMutableData alloc] initWithLength: _c * _s];
+      /* _c is decoded from the (possibly untrusted) archive.  Each element is
+       * stored under the sequential key "$<index>", so the last one
+       * ("$<_c-1>") must be present; if it is not, _c is larger than the data
+       * actually encoded.  Reject such a count rather than letting the _c * _s
+       * allocation (whose bare 'unsigned' product can also wrap) and the fill
+       * loop below be driven by an arbitrary attacker-supplied value.
+       */
+      if (_c > 0
+	&& [aCoder respondsToSelector: @selector(_containsRawKey:)]
+	&& NO == [(NSKeyedUnarchiver*)aCoder _containsRawKey:
+	  [NSString stringWithFormat: @"$%u", _c - 1]])
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"invalid array count (%u) in archive", _c];
+	}
+      _d = o = [[NSMutableData alloc] initWithLength: (NSUInteger)_c * _s];
       _a = address = [o mutableBytes];
       for (i = 0; i < _c; i++)
 	{
