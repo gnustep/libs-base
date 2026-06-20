@@ -747,7 +747,11 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
 
 	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
 	  {
-	    unsigned char	serialized[size];
+	    /* size is decoded from the (untrusted) archive, so the serialized
+	     * buffer is heap allocated, as in the tsize > 64 case below, rather
+	     * than placed in a stack VLA that an arbitrary size could overflow. */
+	    unsigned char	*serialized
+	      = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), size);
 
 	    [coder decodeArrayOfObjCType: @encode(unsigned char)
 				   count: size
@@ -759,6 +763,7 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
 		      ofObjCType: objctype
 			atCursor: &cursor
 			 context: nil];
+	    NSZoneFree(NSDefaultMallocZone(), serialized);
 	  }
 	  o = [o initWithBytes: data objCType: objctype];
 	}
