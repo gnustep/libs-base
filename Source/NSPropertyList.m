@@ -3486,6 +3486,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       id	*objects;
 
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / index_size)
+	{
+	  [NSException raise: NSGenericException
+		format: @"Invalid binary property list array size %lu", len];
+	}
       objects = NSAllocateCollectable(sizeof(id) * len, NSScannedOption);
       PUSH_OBJ(index);
       for (i = 0; i < len; i++)
@@ -3551,6 +3556,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       id	*values;
 
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / (2 * index_size))
+	{
+	  [NSException raise: NSGenericException
+		format: @"Invalid binary property list dictionary size %lu", len];
+	}
       keys = NSAllocateCollectable(sizeof(id) * len * 2, NSScannedOption);
       values = keys + len;
       PUSH_OBJ(index);

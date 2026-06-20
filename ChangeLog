@@ -1,5 +1,17 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the
+	0xAF "big array" and 0xDF "big dictionary" cases read an element
+	count straight from the (untrusted) data and used it both to size the
+	NSAllocateCollectable() buffer and to bound the loop that reads that
+	many object-index entries, with no check that the data could hold
+	them.  A crafted marker declaring billions of elements over a few
+	bytes made the loop read object indices far past the end of the
+	buffer (and on 32-bit wrapped the sizeof(id)*count product to an
+	undersized allocation).  Reject a count that cannot fit in the bytes
+	remaining for the index entries before allocating or reading.
+	* Tests/base/NSPropertyList/bplist-bigcontainer-bounds.m: new
+	regression test.
 	* Source/NSCalendarDate.m (Grow): the helper that enlarges the date
 	formatting buffer always grew by a fixed 512 unichars, so a format field
 	longer than that increment (e.g. a long month or weekday name supplied
