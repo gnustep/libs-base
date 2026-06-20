@@ -3353,6 +3353,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = next - 0x50;
+      if (counter > _length || len > _length - counter)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len
                   encoding: NSUTF8StringEncoding];
@@ -3372,6 +3377,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = [self readCountAt: &counter];
+      if (counter > _length || len > _length - counter)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len
                   encoding: NSUTF8StringEncoding];
@@ -3391,6 +3401,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = next - 0x60;
+      if (counter > _length || len > (_length - counter) / sizeof(unichar))
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len * sizeof(unichar)
                   encoding: NSUTF16BigEndianStringEncoding];
@@ -3410,6 +3425,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / sizeof(unichar))
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len * sizeof(unichar)
                   encoding: NSUTF16BigEndianStringEncoding];
