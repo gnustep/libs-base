@@ -550,6 +550,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  char		*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+	  /* A serialised C string always stores its length as the byte count
+	   * including the nul terminator, so size is at least 1.  A zero here
+	   * means corrupt data; reject it rather than letting 'size - 1' below
+	   * underflow to a huge length. */
+	  if (size == 0)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"invalid (zero) C string length in"
+	      @" serialized property list"];
+	    }
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b
