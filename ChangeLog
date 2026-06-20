@@ -1,5 +1,12 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSAttributedString.m (-[NSAttributedString initWithCoder:],
+	-[NSMutableAttributedString initWithCoder:]): the variable-length integer
+	decode loops for NSAttributeInfo (`while (*p & 0x80)' and the trailing
+	`*p++') had no `p < end' bound, so an NSAttributeInfo value ending in a
+	continuation byte read past the end of the buffer.  Bound both loops (and
+	the trailing byte) by end.
+	* Tests/base/NSAttributedString/coderinfo.m: new regression test.
 	* Source/NSValue.m (-[NSValue initWithCoder:]): in the version >= 2 decode
 	path, when the unpacked type size was <= 64 the serialized bytes were placed
 	in a stack VLA whose length came straight from the (untrusted) archive, so a
