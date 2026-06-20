@@ -1,3 +1,13 @@
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSData.m (-[NSDataStatic
+	deserializeTypeTag:andCrossRef:atCursor:]): the 32-bit cross-reference
+	read was guarded with `*cursor >= length-3', but length is an unsigned
+	NSUInteger, so a buffer shorter than 3 bytes made length-3 underflow and
+	defeated the guard, reading past the end of the buffer.  Reject a
+	too-short buffer before the subtraction.
+	* Tests/base/NSData/typetag.m: new regression test.
+
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc: minor tidy
