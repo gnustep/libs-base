@@ -1,5 +1,10 @@
 2026-06-19 Todd White <todd.white@thalion.global>
 
+	* Source/NSSerializer.m (deserializeFromInfo): the ST_CSTRING case read a
+	byte count from the (untrusted) data and built the string with length
+	size-1; a crafted count of 0 made size-1 underflow to a huge length over a
+	zero-byte buffer (an out-of-bounds read).  Reject a zero C-string length.
+	* Tests/base/NSSerializer/cstring.m: new regression test.
 	* Source/NSData.m (-[NSDataStatic
 	deserializeTypeTag:andCrossRef:atCursor:]): the 32-bit cross-reference
 	read was guarded with `*cursor >= length-3', but length is an unsigned
