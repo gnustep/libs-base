@@ -12,6 +12,33 @@
 	remaining for the index entries before allocating or reading.
 	* Tests/base/NSPropertyList/bplist-bigcontainer-bounds.m: new
 	regression test.
+	* Source/NSCalendarDate.m (Grow): the helper that enlarges the date
+	formatting buffer always grew by a fixed 512 unichars, so a format field
+	longer than that increment (e.g. a long month or weekday name supplied
+	through the locale) left the buffer too small and the following
+	-getCharacters: wrote past its end.  Grow by at least the requested size.
+	* Tests/base/NSCalendarDate/growname.m: new regression test.
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the four
+	string object cases (short and long UTF-8 and UTF-16, markers 0x50-0x5F and
+	0x60-0x6F) read len bytes from the object body without checking that the
+	body stayed within the data, unlike the sibling data cases, so a string
+	object declaring a length past the end read out of bounds.  Validate the
+	length against the remaining data before reading.
+	* Tests/base/NSPropertyList/bplist-string-bounds.m: new regression test.
+	* Source/NSAttributedString.m (-[NSAttributedString initWithCoder:],
+	-[NSMutableAttributedString initWithCoder:]): the variable-length integer
+	decode loops for NSAttributeInfo (`while (*p & 0x80)' and the trailing
+	`*p++') had no `p < end' bound, so an NSAttributeInfo value ending in a
+	continuation byte read past the end of the buffer.  Bound both loops (and
+	the trailing byte) by end.
+	* Tests/base/NSAttributedString/coderinfo.m: new regression test.
+	* Source/NSValue.m (-[NSValue initWithCoder:]): in the version >= 2 decode
+	path, when the unpacked type size was <= 64 the serialized bytes were placed
+	in a stack VLA whose length came straight from the (untrusted) archive, so a
+	large size overran the stack.  Heap-allocate the serialized buffer, as the
+	> 64 case already does.
+	* Tests/base/NSValue/TestInfo: add the marker so the directory is run.
+	* Tests/base/NSValue/codervla.m: new regression test.
 
 2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
 
