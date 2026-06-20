@@ -286,6 +286,7 @@ equalTypes(NSArray *t1, NSArray *t2)
   else if ([chap rangeOfString: @"<chapter id=\"_main\">"].length > 0)
     {
       createSec = NO; 	// already present
+      m = nil;
     }
   else
     {
