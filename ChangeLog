@@ -1,5 +1,11 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSCalendarDate.m (Grow): the helper that enlarges the date
+	formatting buffer always grew by a fixed 512 unichars, so a format field
+	longer than that increment (e.g. a long month or weekday name supplied
+	through the locale) left the buffer too small and the following
+	-getCharacters: wrote past its end.  Grow by at least the requested size.
+	* Tests/base/NSCalendarDate/growname.m: new regression test.
 	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the four
 	string object cases (short and long UTF-8 and UTF-16, markers 0x50-0x5F and
 	0x60-0x6F) read len bytes from the object body without checking that the
