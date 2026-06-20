@@ -35,7 +35,6 @@
 #import "Foundation/NSDictionary.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 

@@ -26,7 +26,7 @@ int main(int argc, char **argv, char **env)
   bundle = [NSBundle bundleWithPath: helperPath];
   loaded = [bundle load];
 
-  if(loaded)
+  if (loaded)
     {
       NSDictionary *d;
       Class testClass;

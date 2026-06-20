@@ -90,12 +90,26 @@ typedef struct objc_category* Category;
 
 #import "Foundation/NSString.h"
 
+/** Macro to call malloc() to allocate memory from the heap for N items of
+ * type T.  If the call to malloc() fails, this raises an exception reporting
+ * the number and size of the items requested.
+ */
+#define	GS_MALLOC(N, T) \
+((T*)malloc((N) * sizeof(T)) ?: (\
+[NSException raise: NSInternalInconsistencyException\
+	    format: @"Failed to create buffer for %lu items of size %u",\
+  (unsigned long)(N), (unsigned)sizeof(T)], GS_UNREACHABLE(), (T*)0))
+
 /**
  * Macro to manage memory for chunks of code that need to work with
  * arrays of items.  Use this to start the block of code using
  * the array and GS_ENDITEMBUF() to end it.  The idea is to ensure that small
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
+ * The first argument is the name to be used for a pointer to the buffer.
+ * The second argument is the number of items in the buffer.
+ * The third argument is the type of the items in the buffer.
+ * The minimum size of the buffer produced is sufficient to hold one item.
  */
 #if __GNUC__ > 3 && !defined(__clang__)
 __attribute__((unused)) static void GSFreeTempBuffer(void **b)
@@ -103,35 +117,37 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
   if (NULL != *b) free(*b);
 }
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-  T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
+  unsigned _ilen = (S) > 0 ? (S) : 1; \
+  T _ibuf[_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen : 1]; \
   T *P = _ibuf;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
-  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen > GS_MAX_BYTES_FROM_STACK/sizeof(T))\
     {\
-      _base = malloc((S) * sizeof(T));\
+      _base = GS_MALLOC(_ilen, T);\
       P = _base;\
     }
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
-  T _ibuf2[GS_MAX_OBJECTS_FROM_STACK];\
+  unsigned _ilen2 = (S) > 0 ? (S) : 1; \
+  T _ibuf2[_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen2 : 1]; \
   T *P = _ibuf2;\
   __attribute__((cleanup(GSFreeTempBuffer))) void *_base2 = 0;\
-  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+  if (_ilen2 > GS_MAX_BYTES_FROM_STACK/sizeof(T))\
     {\
-      _base2 = malloc((S) * sizeof(T));\
+      _base2 = GS_MALLOC(_ilen2, T);\
       P = _base2;\
     }
 #else
-/* Make minimum size of _ibuf 1 to avoid compiler warnings.
- */
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-  T _ibuf[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
-  T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
-    : (T*)malloc((S) * sizeof(T)); \
+  unsigned _ilen = (S) > 0 ? (S) : 1; \
+  T _ibuf[_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen : 1]; \
+  T *_base = (_ilen <= GS_MAX_BYTES_FROM_STACK/sizeof(T)) ? _ibuf \
+    : GS_MALLOC(_ilen, T); \
   T *(P) = _base;
 #  define	GS_BEGINITEMBUF2(P, S, T) { \
-  T _ibuf2[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
-  T *_base2 = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
-    : (T*)malloc((S) * sizeof(T)); \
+  unsigned _ilen2 = (S) > 0 ? (S) : 1; \
+  T _ibuf2[_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T) ? _ilen2 : 1]; \
+  T *_base2 = (_ilen2 <= GS_MAX_BYTES_FROM_STACK/sizeof(T)) ? _ibuf2 \
+    : GS_MALLOC(_ilen2, T); \
   T *(P) = _base2;
 #endif
 
@@ -253,6 +269,11 @@ typedef union {
 @end
 
 typedef	GSMutableString *GSStr;
+
+/** Method to get a strings mappings (key/value pairs of strings) from file.
+ */
+id
+GSPropertyListFromStringsFormat(NSData *data) GS_ATTRIB_PRIVATE;;
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -379,9 +400,10 @@ GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
 NSDictionary *
 GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
 
-/* Get one of several standard values.
+/* Get one of several standard values.  An integer value which is normally
+ * a flag (where a value of zero is false, anything else is true).
  */
-BOOL
+int
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
 
 /* get the name of a string encoding as an NSString.
@@ -488,6 +510,12 @@ GSPrivateResourcePath(NSString *name, NSString *extension, NSString *rootPath,
  */
 void
 GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
+  GS_ATTRIB_PRIVATE;
+
+/* Replace bad UTF16 codepoints with the replacement character (0xFFFD)
+ */
+void
+GSPrivateCleanUnichars(unichar *u, unsigned l)
   GS_ATTRIB_PRIVATE;
 
 /* Make the content of this string into unicode if it is not in
@@ -641,7 +669,8 @@ GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
 /* When we don't have a runtime with ARC to support weak references, we
  * use our own version.
  */
-BOOL GSPrivateMarkedWeak(id obj, BOOL  mark) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateMarkedAssociations(id obj, BOOL mark) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateMarkedWeak(id obj, BOOL mark) GS_ATTRIB_PRIVATE;
 void GSWeakInit() GS_ATTRIB_PRIVATE;
 BOOL objc_delete_weak_refs(id obj);
 #endif

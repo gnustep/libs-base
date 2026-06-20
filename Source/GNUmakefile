@@ -131,6 +131,7 @@ GSFunctions.h \
 GSLocale.h \
 GSMime.h \
 GSTLS.h \
+GSURITemplate.h \
 GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
@@ -144,7 +145,6 @@ NSMutableString+GNUstepBase.h \
 NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
-NSOperationQueue+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
 NSStream+GNUstepBase.h \
 NSString+GNUstepBase.h \
@@ -608,7 +608,7 @@ HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
 	$(FOUNDATION_HEADERS) \
-  $(COREFOUNDATION_HEADERS)
+	$(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \
@@ -640,7 +640,7 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 RESOURCE_SET_NAME = libbase-resources
 
 # This is for gnustep-make >= 14-02-2007
-libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
+libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(MAJOR_VERSION).$(MINOR_VERSION)/Resources
 # This is kept temporarily for gnustep-make < 14-02-2007
 libbase-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
 

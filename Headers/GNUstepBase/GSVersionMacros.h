@@ -24,6 +24,8 @@
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 
+#include	"GNUstepBase/GSConfig.h"
+
 /* By default we defined NO_GNUSTEP to 0 so that we will include extensions.
  */
 #if	!defined(NO_GNUSTEP)
@@ -217,7 +219,7 @@
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-
+#if !defined(GS_GCC_MINREQ)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
 #  define GS_GCC_MINREQ(maj, min) \
   ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -231,6 +233,7 @@
 #else
 #  define GS_CLANG_MINREQ(maj, min) 0
 #endif
+#endif /* GS_GCC_MINREQ */
 
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.
@@ -241,19 +244,38 @@
  * depending on where the attribute can be applied.
  */
 
+/* This macro is placed immediately before the name of a method or function
+ * to mark it as deprecated (ie it should not be used and is likely to be
+ * removed in a later release).
+ * Please do not use the older GS_DEPRECATED_FUNC macro, it's deprecated ;-)
+ */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_DEPRECATED_FUNC __attribute__((deprecated))
+#  define GS_DEPRECATED __attribute__((deprecated))
 #else
-#  define GS_DEPRECATED_FUNC
+#  define GS_DEPRECATED
 #endif
+#define GS_DEPRECATED_FUNC
 
-/* This attribute is placed immediately before the name of a method
- * or function to mark it as unimplemented.
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as unimplemented, though likley to become available in a later
+ * release.
  */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
 #  define GS_UNIMPLEMENTED __attribute__((deprecated("*** not implemented - please contribute an implementation before using this feature ***")))
 #else
 #  define GS_UNIMPLEMENTED
+#endif
+
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as non-portable... a feature which does not work on all platforms
+ * and should not be used unless you are specifically intending to write
+ * non portable code which will only ever be used on a platform known to
+ * support the feature.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_NON_PORTABLE __attribute__((deprecated("*** not portable - please do not use this feature ***")))
+#else
+#  define GS_NON_PORTABLE
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))
@@ -289,11 +311,13 @@
 #  if	!GS_NONFRAGILE
 #    if	defined(GNUSTEP_BASE_INTERNAL)
 #      error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #    endif
 #  endif
 #else
 #  if	GS_NONFRAGILE
 #    error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #  endif
 #endif
 
@@ -336,6 +360,16 @@
 #    define NS_CONSUMES_SELF __attribute__((ns_consumes_self))
 #  else
 #    define NS_CONSUMES_SELF
+#  endif
+#endif
+
+#ifndef NS_REPLACES_RECEIVER
+#  if __has_feature(attribute_ns_consumes_self) \
+     && __has_feature(attribute_ns_returns_retained)
+#    define NS_REPLACES_RECEIVER __attribute__((ns_consumes_self)) \
+       __attribute__((ns_returns_retained))
+#  else
+#    define NS_REPLACES_RECEIVER
 #  endif
 #endif
 

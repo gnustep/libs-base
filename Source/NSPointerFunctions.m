@@ -61,7 +61,7 @@ static Class	concreteClass = Nil;
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
   [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (void* (*)(const void *item,

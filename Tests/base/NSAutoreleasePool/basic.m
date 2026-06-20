@@ -33,16 +33,16 @@ int main()
   printf("Final count %u\n", i);
   NSCAssert(arp == [NSAutoreleasePool currentPool],
     NSInternalInconsistencyException);
-  PASS(1000 == i - c, "Autorelease count is correct");
+  PASS(1000 == i - c, "Autorelease count is correct")
   PASS([arp autoreleaseCountForObject: o] == 1000,
-       "Autorelease count for object is correct");
+       "Autorelease count for object is correct")
   PASS([NSAutoreleasePool autoreleaseCountForObject: o] == 1000,
-       "Autorelease count for object is correct");
-  PASS(freed == NO, "Object not prematurely freed");
+       "Autorelease count for object is correct")
+  PASS(freed == NO, "Object not prematurely freed")
   [arp release]; 
   arp = [NSAutoreleasePool new];
   [o release];
-  PASS(freed == NO, "Object freed by autoreleasing");
+  PASS(freed == NO, "Object freed by autoreleasing")
   [arp release]; 
   return 0;
 }

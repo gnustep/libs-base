@@ -24,13 +24,19 @@
 
 MAKEFILE_NAME = DocMakefile
 
+include ../Version
+
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
-Base_DOC_INSTALL_DIR = Developer
-BaseAdditions_DOC_INSTALL_DIR = Developer
+Base_AGSDOC_LOCAL_DIR = ../Documentation/Base
+Base_AGSDOC_INSTALL_BUNDLE = Reference
+Base_DOC_INSTALL_DIR = Developer/Base
+BaseAdditions_AGSDOC_LOCAL_DIR = ../Documentation/BaseAdditions
+BaseAdditions_AGSDOC_INSTALL_BUNDLE = Reference
+BaseAdditions_DOC_INSTALL_DIR = Developer/BaseAdditions
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
@@ -217,6 +223,7 @@ GSLocale.h \
 GSFunctions.h \
 GSMime.h \
 GSTLS.h \
+GSURITemplate.h \
 GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
@@ -245,7 +252,6 @@ GCObject.h \
 Base_AGSDOC_FLAGS = \
 	-MakeFrames NO \
 	-IndexFile Base \
-	-DocumentationDirectory ../Documentation/Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
@@ -261,7 +267,6 @@ Base_AGSDOC_FLAGS = \
 BaseAdditions_AGSDOC_FLAGS = \
 	-MakeFrames NO \
 	-IndexFile BaseAdditions \
-	-DocumentationDirectory ../Documentation/BaseAdditions \
 	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \

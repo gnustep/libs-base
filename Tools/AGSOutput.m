@@ -25,6 +25,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSBundle.h"
+#import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -76,12 +77,11 @@ static BOOL snuggleStart(NSString *t)
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
 
-/**
+/** 
  * <unit>
  *  <heading>The AGSOutput class</heading>
  *  <p>This is a really great class ... but it's not really reusable since it's
  *  far too special purpose.</p>
- *  <unit />
  *  <p>Here is the afterword for the class.</p>
  *  <p> And here is some automated cross referencing ...
  *  A method in a protocol: [(NSCopying)-copyWithZone:], a class:
@@ -89,6 +89,7 @@ static BOOL snuggleStart(NSString *t)
  *  category: [NSRunLoop(GNUstepExtensions)].
  *  </p>
  * </unit>
+ * Some text before the unit is included.
  * And finally, here is the actual class description ... outside the chapter.
  * This is the class description for <code>AGSOutput</code>, including some
  * sample uses of GSDoc, such as cross-references (see [NSString]).
@@ -148,33 +149,27 @@ static BOOL snuggleStart(NSString *t)
 
   if (empty != nil && [empty boolValue] == YES)
     {
-#if 0
       static NSString	*today = nil;
+      NSString		*saved = comment;
 
-      if (today == nil)
+      NSLog(@"Warning - No implementation for [%@ %@]",
+	unit, [d objectForKey: @"Name"]);
+
+      if (nil == today)
 	{
 	  NSCalendarDate	*d = [NSCalendarDate date];
 
-	  today
-	    = RETAIN([d descriptionWithCalendarFormat: @"%d-%m-%Y"]);
+	  today = RETAIN([d descriptionWithCalendarFormat: @"%Y-%m-%d"]);
 	}
-      if (hadComment == NO)
-	{
-	  comment = @"";
-	}
+
       comment = [NSString stringWithFormat:
 	@"<em>Not implemented (as of %@).</em><br />"
 	@"Please help us by producing an implementation of this "
-	@"and donating it to the GNUstep project.<br />"
-	@"You can check the task manager at "
-	@"https://savannah.gnu.org/projects/gnustep "
-	@"to see if anyone is already working on it.<br />",
-	today, comment];
-#else
-      NSString	*name = [d objectForKey: @"Name"];
-
-      NSLog(@"Warning - No implementation for [%@ %@]", unit, name);
-#endif
+	@"and donating it to the GNUstep project.", today];
+      if (hadComment)
+	{
+	  comment = [saved stringByAppendingFormat: @"<br />%@", comment];
+	}
     }
 
   return comment;
@@ -302,7 +297,6 @@ static BOOL snuggleStart(NSString *t)
  */
 - (NSArray*) output: (NSMutableDictionary*)d
 {
-  NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
   NSDictionary		*categories;
@@ -314,7 +308,6 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*macros;
   NSMutableArray	*files;
   NSArray		*authors;
-  NSString		*style = @"default-styles.css";
   NSString		*base;
   NSString		*tmp;
   NSString		*file;
@@ -333,23 +326,10 @@ static BOOL snuggleStart(NSString *t)
   dest = [info objectForKey: @"directory"];
   if ([dest length] > 0)
     {
-      style = [dest stringByAppendingPathComponent: style];
       if ([file isAbsolutePath] == NO)
 	{
 	  file = [dest stringByAppendingPathComponent: file];
 	}
-    }
-
-  /* When there is no local default stylesheet present, we copy the
-   * stylesheet from the main bundle.
-   */
-  if ([mgr isReadableFileAtPath: style] == NO)
-    {
-      NSBundle	*bundle = [NSBundle mainBundle];
-      NSString	*path;
-
-      path = [bundle pathForResource: @"default-styles" ofType: @"css"];
-      [mgr copyPath: path toPath: style handler: nil];
     }
 
   classes = [info objectForKey: @"Classes"];
@@ -1029,10 +1009,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<init />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<init/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<init>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1047,10 +1023,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-subclass />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-subclass/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-subclass>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1070,10 +1042,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-dummy />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-dummy/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-dummy>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1093,10 +1061,6 @@ static BOOL snuggleStart(NSString *t)
       do
 	{
 	  r = [comment rangeOfString: @"<override-never />"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-never/>"];
-	  if (r.length == 0)
-	    r = [comment rangeOfString: @"<override-never>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
@@ -1276,10 +1240,6 @@ static BOOL snuggleStart(NSString *t)
   r = [unit rangeOfString: @"<unit />"];
   if (r.length == 0)
     {
-      r = [unit rangeOfString: @"<unit/>"];
-    }
-  if (r.length == 0)
-    {
       r = [unit rangeOfString: @"</chapter>"];
       r.length = 0;
     }
@@ -1379,6 +1339,8 @@ static BOOL snuggleStart(NSString *t)
 	      to: str];
 }
 
+static NSString	*padding[100];
+
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf
@@ -1387,7 +1349,19 @@ static BOOL snuggleStart(NSString *t)
   unsigned	l = [str length];
   NSRange	r = [str rangeOfString: @"<example"];
   unsigned	i = 0;
+  unsigned	c;
   NSArray	*a;
+
+  if (nil == padding[0])
+    {
+      int	p;
+
+      padding[0] = @" ";
+      for (p = 1; p < sizeof(padding)/sizeof(*padding); p++)
+	{
+	  padding[p] = [[padding[p-1] stringByAppendingString: @" "] copy];
+	}
+    }
 
   /*
    * Split out <example>...</example> sequences and output them literally.
@@ -1442,12 +1416,13 @@ static BOOL snuggleStart(NSString *t)
     }
 
   /*
-   * Split the string up into parts separated by newlines.
+   * Split the string up into parts separated by whitespace.
    */
   a = [self split: str];
-  for (i = 0; i < [a count]; i++)
+  c = [a count];
+  for (i = 0; i < c; i++)
     {
-      unsigned int	j;
+      unsigned int	j = 0;
 
       str = [a objectAtIndex: i];
 
@@ -1460,9 +1435,14 @@ static BOOL snuggleStart(NSString *t)
 	       */
 	      ind -= 2;
 	    }
-	  for (j = 0; j < ind; j++)
+	  while (j < ind)
 	    {
-	      [buf appendString: @" "];
+	      unsigned	size = ind - j;
+
+	      if (size > sizeof(padding)/sizeof(*padding))
+		size = sizeof(padding)/sizeof(*padding);
+	      [buf appendString: padding[size - 1]];
+	      j += size;
 	    }
 	  [buf appendString: str];
 	  [buf appendString: @"\n"];
@@ -1472,9 +1452,13 @@ static BOOL snuggleStart(NSString *t)
 	  unsigned	size = 70 - ind - [str length];
 	  unsigned	end;
 
-	  for (j = 0; j < ind; j++)
+	  if (j < ind)
 	    {
-	      [buf appendString: @" "];
+	      unsigned	size = ind - j;
+
+	      if (size > sizeof(padding)/sizeof(*padding))
+		size = sizeof(padding)/sizeof(*padding);
+	      [buf appendString: padding[size - 1]];
 	    }
 	  end = [self fitWords: a
 			  from: i
@@ -1608,7 +1592,7 @@ static BOOL snuggleStart(NSString *t)
 		  *optr++ = *ptr++;
 		}
 	    }
-	  if (*ptr == '>')
+	  if (ptr < end && *ptr == '>')
 	    {
 	      /*
 	       * remove space immediately before closing bracket.

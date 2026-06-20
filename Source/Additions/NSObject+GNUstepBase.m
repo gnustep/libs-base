@@ -240,6 +240,12 @@ handleExit()
     }
   else
     {
+      /* The clang analyzer will report the dealloc because it doesn't realise
+       * that this exiting thread is the only thing that can access the pool.
+       */
+#ifdef  __clang_analyzer__
+      [[clang::suppress]]
+#endif
       [[NSAutoreleasePool currentPool] dealloc];
       [NSAutoreleasePool _endThread: GSCurrentThread()];
     }
@@ -737,7 +743,7 @@ makeLinkForClass(Class c)
   Class			c = self;
   struct trackLink	*l;
 
-  NSAssert(NO == class_isMetaClass(object_getClass(self)),
+  NSAssert(class_isMetaClass(object_getClass(c)),
     NSInternalInconsistencyException);
 
   GS_MUTEX_LOCK(trackLock);
@@ -766,7 +772,7 @@ makeLinkForClass(Class c)
   struct trackLink	*lc;
   struct trackLink	*li;
 
-  NSAssert(NO == class_isMetaClass(c), NSInternalInconsistencyException);
+  NSAssert(!class_isMetaClass(c), NSInternalInconsistencyException);
 
   /* If we are tracking allocation and deallocation, we want to log
    * the existence of tracked instances at exit so we need to have
@@ -780,7 +786,7 @@ makeLinkForClass(Class c)
     }
 
   GS_MUTEX_LOCK(trackLock);
-  if ((l = find(self)) != 0)
+  if (find(self) != 0)
     {
       /* Instance already tracked.
        */

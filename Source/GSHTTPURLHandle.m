@@ -53,10 +53,10 @@
 #  include <sys/file.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #ifdef	HAVE_SYS_SOCKET_H
@@ -443,10 +443,13 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMutableString	*s;
   NSString              *key;
   NSString		*val;
+  NSString		*query;
   NSMutableData		*buf;
   NSMutableData		*masked = nil;
   NSString		*version;
+  NSString		*method;
   NSMapEnumerator       enumerator;
+  NSUInteger		cl;
 
   RETAIN(self);
   if (debug)
@@ -457,9 +460,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   s = [basic mutableCopy];
-  if ([[u query] length] > 0)
+  query = [u query];
+  if ([query length] > 0)
     {
-      [s appendFormat: @"?%@", [u query]];
+      [s appendFormat: @"?%@", query];
     }
 
   version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -499,15 +503,48 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  /* Ensure we set the correct content length (may be zero)
+  cl = [wData length];
+
+  /* Use default method if none is set.
+   */
+  method = [request objectForKey: GSHTTPPropertyMethodKey];
+  if (method == nil)
+    {
+      if (cl > 0)
+	{
+	  method = @"POST";
+	}
+      else
+	{
+	  method = @"GET";
+	}
+    }
+  else if ([method isEqualToString: @"TRACE"])
+    {
+      /* A TRACE must not have a body
+       */
+      DESTROY(wData);
+      cl = 0;
+      NSMapRemove(wProperties, (void*)@"Content-Length");
+    }
+
+
+  /* When we have a non-empty body or a method which requires
+   * a body, we must specify the content length.
    */
   if ((id)NSMapGet(wProperties, (void*)@"Content-Length") == nil)
     {
-      NSMapInsert(wProperties, (void*)@"Content-Length",
-        (void*)[NSString stringWithFormat: @"%"PRIuPTR, [wData length]]);
+      if (cl > 0
+	|| [method isEqualToString: @"POST"]
+	|| [method isEqualToString: @"PUT"]
+	|| [method isEqualToString: @"PATCH"])
+	{
+	  NSMapInsert(wProperties, (void*)@"Content-Length",
+	    (void*)[NSString stringWithFormat: @"%"PRIuPTR, cl]);
+	}
     }
 
-  if ([wData length] > 0)
+  if (cl > 0)
     {
       /*
        * Assume content type if not specified.
@@ -534,7 +571,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSString		*auth;
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
-	  NSString		*method;
+	  NSString		*path;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -559,22 +596,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      RELEASE(cred);
 	    }
 
-	  method = [request objectForKey: GSHTTPPropertyMethodKey];
-	  if (method == nil)
-	    {
-	      if ([wData length] > 0)
-		{
-		  method = @"POST";
-		}
-	      else
-		{
-		  method = @"GET";
-		}
-	    }
+	  path = [u _requestPath: [[request
+	    objectForKey: GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
 
 	  auth = [authentication authorizationForAuthentication: nil
-							 method: method
-							   path: [u fullPath]];
+	    method: method
+	    path: path];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -837,6 +864,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*ac;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
+		  NSString		*path;
 		  NSString		*auth;
 
 		  ac = [ah value];
@@ -891,9 +919,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
+		  path = [u _requestPath: [[request objectForKey:
+		    GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
+
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url fullPath]];
+		    path: path];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -1101,12 +1132,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-  if ([path length] == 0)
-    {
-      path = @"/";
-    }
+  path = [u _requestPath: YES];
 
   method = [request objectForKey: GSHTTPPropertyMethodKey];
   if (method == nil)
@@ -1581,8 +1607,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) _tryLoadInBackground: (NSURL*)fromURL
 {
   NSNotificationCenter	*nc;
-  NSString		*host = nil;
-  NSString		*port = nil;
+  NSString		*host;
+  NSString		*port;
   NSString		*s;
 
   /*
@@ -1619,20 +1645,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   host = [u host];
-  port = (id)[u port];
-  if (port != nil)
+  if ([u port])
     {
-      port = [NSString stringWithFormat: @"%u", [port intValue]];
+      port = [NSString stringWithFormat: @"%u", (unsigned)[[u port] intValue]];
     }
-  else
-    {
-      port = [u scheme];
-    }
-  if ([port isEqualToString: @"https"])
+  else if ([[u scheme] isEqualToString: @"https"])
     {
       port = @"443";
     }
-  else if ([port isEqualToString: @"http"])
+  else
     {
       port = @"80";
     }
@@ -1923,12 +1944,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[[u fullPath] stringByTrimmingSpaces]
-        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-      if ([path length] == 0)
-	{
-	  path = @"/";
-	}
+      path = [u _requestPath: YES];
       basic = [NSString stringWithFormat: @"%@ %@", method, path];
       [self bgdApply: basic];
     }

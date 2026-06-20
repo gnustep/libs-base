@@ -24,12 +24,11 @@
 #import "common.h"
 #define	EXPOSE_NSError_IVARS	1
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
 #import	"Foundation/NSArray.h"
-
-#import	"GSFastEnumeration.h"
 
 @implementation	NSError
 
@@ -44,9 +43,10 @@
   NSMutableDictionary	*m;
 
   e = [e initWithDomain: NSCocoaErrorDomain code: aCode userInfo: nil];
-  m = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
-  e->_userInfo = [m initWithCapacity: 3];
+  m = [[NSMutableDictionary allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: 3];
   [m setObject: description forKey: NSLocalizedDescriptionKey];
+  e->_userInfo = m;
   return AUTORELEASE(e);
 }
 
@@ -112,7 +112,7 @@
 
       keys = [keys sortedArrayUsingSelector: @selector(compare:)];
       [m appendString: @" UserInfo={"];
-      FOR_IN(NSString*, k, keys)
+      GS_FOR_IN(NSString*, k, keys)
 	{
 	  id	o = [_userInfo objectForKey: k];
 
@@ -140,7 +140,7 @@
 	      [m appendString: [o description]];
 	    }
 	}
-      END_FOR_IN(keys)
+      GS_END_FOR(keys)
 
       [m appendString: @"}"];
     }

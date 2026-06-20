@@ -65,7 +65,7 @@
 @class	GSMutableDictionary;
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end
-static Class	dictionaryClass = 0;
+static Class	dictionaryClass = Nil;
 
 static SEL	eqSel;
 static SEL	setSel;
@@ -391,9 +391,15 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  */
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes
 {
-  //This is the designated initializer
-  [self subclassResponsibility: _cmd];/* Primitive method! */
-  return nil;
+  Class	c = [self class];
+
+  if (NSAttributedStringClass == c || NSMutableAttributedStringClass == c)
+    {
+      // This is the designated initializer
+      [self subclassResponsibility: _cmd];/* Primitive method! */
+      return nil;
+    }
+  return [super init];	// Call NSObect initialiser for subclass instance
 }
 
 - (NSString*) description

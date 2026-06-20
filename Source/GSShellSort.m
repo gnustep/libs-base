@@ -29,7 +29,7 @@
 #import "Foundation/NSObjCRuntime.h"
 #import "GSSorting.h"
 
-void
+static void
 _GSShellSort(id *objects,
   NSRange sortRange,
   id comparisonEntity,
@@ -121,4 +121,4 @@ _GSShellSort(id *objects,
   _GSSortUnstable = _GSShellSort;
 }
 @end
-
+ 

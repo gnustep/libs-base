@@ -980,7 +980,7 @@ tzloadbody1(char const *name, struct state *sp, BOOL doextend,
 	    if (! (j < charcnt)) {
 	      size_t tsabbrlen = strlen(tsabbr);
 	      if (j + tsabbrlen < TZ_MAX_CHARS) {
-		strcpy(sp->chars + j, tsabbr);
+		memcpy(sp->chars + j, tsabbr, tsabbrlen + 1);
 		charcnt = (int_fast32_t)(j + tsabbrlen + 1);
 		ts->ttis[i].tt_desigidx = j;
 		gotabbr++;
@@ -1134,7 +1134,7 @@ tzloadbody(char const *name, struct state *sp, BOOL doextend,
 		   would pull in stdio (and would fail if the
 		   resulting string length exceeded INT_MAX!).  */
 		memcpy(lsp->fullname, tzdirslash, sizeof tzdirslash);
-		strcpy(lsp->fullname + sizeof tzdirslash, name);
+		memcpy(lsp->fullname + sizeof tzdirslash, name, namelen + 1);
 
 		/* Set doaccess if NAME contains a ".." file name
 		   component, as such a name could read a file outside

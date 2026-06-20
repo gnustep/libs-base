@@ -667,8 +667,10 @@ HAVE_NEWKVO
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
-ICU_LIBS
-ICU_CFLAGS
+ICU_UC_LIBS
+ICU_UC_CFLAGS
+ICU_I18N_LIBS
+ICU_I18N_CFLAGS
 HAVE_AVAHI
 HAVE_MDNS
 HAVE_GNUTLS
@@ -709,6 +711,8 @@ GREP
 GS_NONFRAGILE
 HAVE_BLOCKS
 OBJC2RUNTIME
+OBJCFASTENUMERATION
+OBJCSETFASTENUMERATION
 OBJCSYNC
 NX_CONST_STRING_CLASS
 NX_CONST_STRING_OBJCFLAGS
@@ -847,9 +851,9 @@ enable_invocations
 with_ffi_include
 with_ffi_library
 enable_iconv
-with_libiconv_library
 with_libiconv_include
-enable_stricticonv
+with_libiconv_library
+enable_limitediconv
 enable_xml
 with_xml_prefix
 enable_xmltest
@@ -887,8 +891,10 @@ XML_CFLAGS
 XML_LIBS
 XSLT_CFLAGS
 XSLT_LIBS
-ICU_CFLAGS
-ICU_LIBS
+ICU_I18N_CFLAGS
+ICU_I18N_LIBS
+ICU_UC_CFLAGS
+ICU_UC_LIBS
 DOT'
 
 
@@ -1512,132 +1518,128 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by windows apps).
-				Normally this should be left at its default
-				setting.
+                          Disables the use of the GNUSTEP_CONFIG_FILE
+                          environment variable to specify/override the
+                          location of the GNUstep config file at runtime. This
+                          option is occasionally useful to disable the
+                          environment variable for sites which wish to 'lock
+                          down' users to always work with a specific
+                          system-wide configuration. On unix-like systems the
+                          default is for this option to be enabled. It is
+                          disabled by default on windows systems so that the
+                          base library will not use a config file intended for
+                          the gnustep-make system (and containing unix-style
+                          paths which cannot be used by windows apps).
+                          Normally this should be left at its default setting.
   --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.
+                          Disable importing of an existing GNUstep config file
+                          and use inbuilt defaults instead.
   --disable-largefile     omit support for large files
   --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.
-  --enable-bfd
-	Enables the use of libbfd to provide symbolic stack traces.
-	Enabling this option provides support for symbolic stack traces
-	on platforms where the backtrace_symbols() function is not
-	available or does not work properly.
-	Enabling this option also has the effect of changing the license
-	of gnustep-base from LGPL to GPL since libbfd uses the GPL license
-  --enable-procfs               Use /proc filesystem (default)
-  --enable-procfs-psinfo         Use /proc/%pid% to get info
-  --enable-pass-arguments	Force user main call to NSProcessInfo initialize
-  --enable-fake-main  		Force redefine of user main function
-  --disable-libffi  		Disable use of libffi library
-  --enable-ffcall  		Enable use of the deprecated ffcall library
-  --disable-invocations		Build even if invocation-dependencies are not met
-  --disable-iconv		Build even if iconv is not available
-  --enable-stricticonv		Build even if iconv is strict
-  --disable-xml			Build even if XML-dependencies are not met
-  --disable-xmltest		Do not try to compile and run a test XML program
-  --disable-xslt		Build even if XSLT-dependency is not met
-  --disable-tls			Disable use of GNUTLS
-  --disable-tlstest		Do not try to compile and run a test TLS program
-  --disable-zeroconf		Disable NSNetServices support
-  --disable-icu			Disable International Components for Unicode
-  --disable-libdispatch		Disable dispatching blocks via libdispatch
-  --disable-newkvo		Disable new KVO implementation
-  --disable-nsurlsession  		Disable support for NSURLSession
-
-  --enable-setuid-gdomap        Enable installing gdomap as a setuid
-                                executable.  By default, it is installed
-                                as a normal program intended to be started
-				by root at system boot time, but it can
-                                also be started up automatically
-                                by any user at any time.  Use this
-                                option if you are happy having the program
-                                started automatically on demand.
-
+                          Enables the use of the NXConstantString class for
+                          old compilers.
+  --enable-bfd            Enables the use of libbfd to provide symbolic stack
+                          traces. Enabling this option provides support for
+                          symbolic stack traces on platforms where the
+                          backtrace_symbols() function is not available or
+                          does not work properly. Enabling this option also
+                          has the effect of changing the license of
+                          gnustep-base from LGPL to GPL since libbfd uses the
+                          GPL license
+  --enable-procfs         Use /proc filesystem (default)
+  --enable-procfs-psinfo  Use /proc/%pid% to get info
+  --enable-pass-arguments Force user main call to NSProcessInfo initialize
+  --enable-fake-main      Force redefine of user main function
+  --disable-libffi        Disable use of libffi library
+  --enable-ffcall         Enable use of the deprecated ffcall library
+  --disable-invocations   Build even if invocation-dependencies are not met
+  --disable-iconv         Build even if iconv is not available
+  --enable-limitediconv   Build even if iconv does not support lossy
+                          conversion
+  --disable-xm            Build even if XML-dependencies are not met
+  --disable-xmltest       Do not try to compile and run a test XML program
+  --disable-xslt          Build even if XSLT-dependency is not met
+  --disable-tls           Disable use of GNUTLS
+  --disable-tlstest       Do not try to compile and run a test TLS program
+  --disable-zeroconf      Disable NSNetServices support
+  --disable-icu           Disable International Components for Unicode
+  --disable-libdispatch   Disable dispatching blocks via libdispatch
+  --disable-newkvo        Disable new KVO implementation
+  --disable-nsurlsession  Disable support for NSURLSession
+  --enable-setuid-gdomap  Enable installing gdomap as a setuid executable. By
+                          default, it is installed as a normal program
+                          intended to be started by root at system boot time,
+                          but it can also be started up automatically by any
+                          user at any time. Use this option if you are happy
+                          having the program started automatically on demand.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-cross-compilation-info=PATH
-				Specify path to the configuration file that
-				contains information for the configure script in
-				case of cross compilation. This information
-				replaces those obtained from running programmes
-				during the configuration phase.
-  --with-config-file=PATH       Specify path to the GNUstep config file.
-				This is the location to be used by the base
-				library to locate path information at
-				application or tool runtime.
-				This file might not even exist now; it is
-				not read at configure time.  The base library
-				will only read it at runtime.
-				If unspecified, this uses the same value as
-				the GNUstep make package on unix-like systems,
-				but uses ./GNUstep.conf on mingw so that
-				it is relative to the location of the
-				base library DLL.
-				If a leading './' is specified, the path
-				is taken to be relative to the base library
-				linked runtime, not all operating systems
-				can support this, so on some platforms you
-				may need to specify the location of the
-				config file using the GNUSTEP_CONFIG_FILE
-				environment variable at runtime.
-				If a trailing '/' is specified, the path is
-				used for locating domains but no GNUstep
-				config file is read at runtime.
-  --with-default-config=PATH   Specify path to a GNUstep config file to be
-				imported at configure time (now) and used to
-				provide default values for the base library
-				to use at runtime if no GNUstep config file
-				is found at runtime.  If this is not specified
-				then the path from the gnustep-make package
-				is used.
+                          Specify path to the configuration file that contains
+                          information for the configure script in case of
+                          cross compilation. This information replaces those
+                          obtained from running programmes during the
+                          configuration phase.
+  --with-config-file=PATH Specify path to the GNUstep config file. This is the
+                          location to be used by the base library to locate
+                          path information at application or tool runtime.
+                          This file might not even exist now; it is not read
+                          at configure time. The base library will only read
+                          it at runtime. If unspecified, this uses the same
+                          value as the GNUstep make package on unix-like
+                          systems, but uses ./GNUstep.conf on mingw so that it
+                          is relative to the location of the base library DLL.
+                          If a leading './' is specified, the path is taken to
+                          be relative to the base library linked runtime, not
+                          all operating systems can support this, so on some
+                          platforms you may need to specify the location of
+                          the config file using the GNUSTEP_CONFIG_FILE
+                          environment variable at runtime. If a trailing '/'
+                          is specified, the path is used for locating domains
+                          but no GNUstep config file is read at runtime.
+  --with-default-config=PATH
+                          Specify path to a GNUstep config file to be imported
+                          at configure time (now) and used to provide default
+                          values for the base library to use at runtime if no
+                          GNUstep config file is found at runtime. If this is
+                          not specified then the path from the gnustep-make
+                          package is used.
   --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.
+                          Specify the domain (SYSTEM, LOCAL, NETWORK or USER)
+                          into which gnustep-base will be installed. Whenever
+                          relative paths are hardcoded into gnustep-base (at
+                          the moment, this happens only on MinGW) this option
+                          must be used and must match the domain where you
+                          will be installing gnustep-base. If this is not
+                          specified, the output of gnustep-config
+                          --installation-domain-for=gnustep-base (which should
+                          normally be LOCAL) is used.
   --without-unwind        Ignore unwind if found and disable it
-  --with-include-flags=FLAGS    Specify all include flags at once
-  --with-library-flags=FLAGS    Specify all library flags at once
-  --with-ffi-include=PATH       Include path for ffi headers
-  --with-ffi-library=PATH       Library path for ffi libs
-  --with-libiconv-library=PATH  Library path for libiconv libraries
-  --with-libiconv-include=PATH  Include path for libiconv header
-  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
-  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
-  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
-  --with-dispatch-include=PATH       Include path for dispatch header
-  --with-dispatch-library=PATH       Library path for dispatch lib
+  --with-include-flags=FLAGS
+                          Specify all include flags at once
+  --with-library-flags=FLAGS
+                          Specify all library flags at once
+  --with-ffi-include=PATH Include path for ffi headers
+  --with-ffi-library=PATH Library path for ffi libs
+  --with-libiconv-include=PATH
+                          Include path for libiconv header
+  --with-libiconv-library=PATH
+                          Library path for libiconv libraries
+  --with-libiconv-library=PATH
+                          Library path for libiconv libraries
+  --with-xml-prefix=PFX   Prefix where libxml is installed (optional)
+  --with-tls-prefix=PFX   Prefix where libgnutls is installed (optional)
+  --with-zeroconf-api=API force use of a specific zeroconf API (mdns or avahi)
+  --with-dispatch-include=PATH
+                          Include path for dispatch header
+  --with-dispatch-library=PATH
+                          Library path for dispatch lib
   --with-curl=<DIR>       use curl installed in directory <DIR>
-  --with-gmp-include=PATH  include path for gmp headers
-  --with-gmp-library=PATH  library path for gmp libraries
-  --with-gdomap-port=PORT  alternative port for gdomap
+  --with-gmp-include=PATH include path for gmp headers
+  --with-gmp-library=PATH library path for gmp libraries
+  --with-gdomap-port=PORT alternative port for gdomap
 
 Some influential environment variables:
   CC          C compiler command
@@ -1657,8 +1659,13 @@ Some influential environment variables:
   XML_LIBS    linker flags for XML, overriding pkg-config
   XSLT_CFLAGS C compiler flags for XSLT, overriding pkg-config
   XSLT_LIBS   linker flags for XSLT, overriding pkg-config
-  ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
-  ICU_LIBS    linker flags for ICU, overriding pkg-config
+  ICU_I18N_CFLAGS
+              C compiler flags for ICU_I18N, overriding pkg-config
+  ICU_I18N_LIBS
+              linker flags for ICU_I18N, overriding pkg-config
+  ICU_UC_CFLAGS
+              C compiler flags for ICU_UC, overriding pkg-config
+  ICU_UC_LIBS linker flags for ICU_UC, overriding pkg-config
   DOT         The name or full path of the graphviz dot command.
 
 Use these variables to override the choices made by `configure' or to help
@@ -2250,6 +2257,58 @@ printf "%s\n" "$ac_res" >&6; }
 
 } # ac_fn_c_check_func
 
+# ac_fn_check_decl LINENO SYMBOL VAR INCLUDES EXTRA-OPTIONS FLAG-VAR
+# ------------------------------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly. Pass EXTRA-OPTIONS to the compiler, using FLAG-VAR.
+ac_fn_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+printf %s "checking whether $as_decl_name is declared... " >&6; }
+if eval test \${$3+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  eval ac_save_FLAGS=\$$6
+  as_fn_append $6 " $5"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main (void)
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  eval "$3=yes"
+else $as_nop
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  eval $6=\$ac_save_FLAGS
+
+fi
+eval ac_res=\$$3
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_check_decl
+
 # ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
 # ----------------------------------------------------
 # Tries to find if the field MEMBER exists in type AGGR, after including
@@ -2309,58 +2368,6 @@ printf "%s\n" "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_member
-
-# ac_fn_check_decl LINENO SYMBOL VAR INCLUDES EXTRA-OPTIONS FLAG-VAR
-# ------------------------------------------------------------------
-# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
-# accordingly. Pass EXTRA-OPTIONS to the compiler, using FLAG-VAR.
-ac_fn_check_decl ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  as_decl_name=`echo $2|sed 's/ *(.*//'`
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
-printf %s "checking whether $as_decl_name is declared... " >&6; }
-if eval test \${$3+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
-  eval ac_save_FLAGS=\$$6
-  as_fn_append $6 " $5"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main (void)
-{
-#ifndef $as_decl_name
-#ifdef __cplusplus
-  (void) $as_decl_use;
-#else
-  (void) $as_decl_name;
-#endif
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  eval "$3=yes"
-else $as_nop
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  eval $6=\$ac_save_FLAGS
-
-fi
-eval ac_res=\$$3
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_check_decl
 ac_configure_args_raw=
 for ac_arg
 do
@@ -3614,6 +3621,7 @@ if test x"$GNUSTEP_SYSTEM_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTE
 if test x"$GNUSTEP_SYSTEM_ADMIN_TOOLS" = x""; then GNUSTEP_SYSTEM_ADMIN_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARY" = x""; then GNUSTEP_SYSTEM_LIBRARY=$GNUSTEP_SYSTEM_ROOT/Library; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then GNUSTEP_SYSTEM_LIBRARIES=$GNUSTEP_SYSTEM_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_SYSTEM_SERVICES" = x""; then GNUSTEP_SYSTEM_SERVICES=$GNUSTEP_SYSTEM_LIBRARY/Services; fi
 if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then GNUSTEP_SYSTEM_HEADERS=$GNUSTEP_SYSTEM_LIBRARY/Headers; fi
 if test x"$GNUSTEP_SYSTEM_DOC" = x""; then GNUSTEP_SYSTEM_DOC=$GNUSTEP_SYSTEM_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_SYSTEM_DOC_MAN" = x""; then GNUSTEP_SYSTEM_DOC_MAN=$GNUSTEP_SYSTEM_LIBRARY/Documentation/man; fi
@@ -3626,6 +3634,7 @@ if test x"$GNUSTEP_NETWORK_TOOLS" = x""; then GNUSTEP_NETWORK_TOOLS=$GNUSTEP_NET
 if test x"$GNUSTEP_NETWORK_ADMIN_TOOLS" = x""; then GNUSTEP_NETWORK_ADMIN_TOOLS=$GNUSTEP_NETWORK_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_NETWORK_LIBRARY" = x""; then GNUSTEP_NETWORK_LIBRARY=$GNUSTEP_NETWORK_ROOT/Library; fi
 if test x"$GNUSTEP_NETWORK_LIBRARIES" = x""; then GNUSTEP_NETWORK_LIBRARIES=$GNUSTEP_NETWORK_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_NETWORK_SERVICES" = x""; then GNUSTEP_NETWORK_SERVICES=$GNUSTEP_NETWORK_LIBRARY/Services; fi
 if test x"$GNUSTEP_NETWORK_HEADERS" = x""; then GNUSTEP_NETWORK_HEADERS=$GNUSTEP_NETWORK_LIBRARY/Headers; fi
 if test x"$GNUSTEP_NETWORK_DOC" = x""; then GNUSTEP_NETWORK_DOC=$GNUSTEP_NETWORK_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_NETWORK_DOC_MAN" = x""; then GNUSTEP_NETWORK_DOC_MAN=$GNUSTEP_NETWORK_LIBRARY/Documentation/man; fi
@@ -3638,6 +3647,7 @@ if test x"$GNUSTEP_LOCAL_TOOLS" = x""; then GNUSTEP_LOCAL_TOOLS=$GNUSTEP_LOCAL_R
 if test x"$GNUSTEP_LOCAL_ADMIN_TOOLS" = x""; then GNUSTEP_LOCAL_ADMIN_TOOLS=$GNUSTEP_LOCAL_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_LOCAL_LIBRARY" = x""; then GNUSTEP_LOCAL_LIBRARY=$GNUSTEP_LOCAL_ROOT/Library; fi
 if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then GNUSTEP_LOCAL_LIBRARIES=$GNUSTEP_LOCAL_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_LOCAL_SERVICES" = x""; then GNUSTEP_LOCAL_SERVICES=$GNUSTEP_LOCAL_LIBRARY/Services; fi
 if test x"$GNUSTEP_LOCAL_HEADERS" = x""; then GNUSTEP_LOCAL_HEADERS=$GNUSTEP_LOCAL_LIBRARY/Headers; fi
 if test x"$GNUSTEP_LOCAL_DOC" = x""; then GNUSTEP_LOCAL_DOC=$GNUSTEP_LOCAL_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_LOCAL_DOC_MAN" = x""; then GNUSTEP_LOCAL_DOC_MAN=$GNUSTEP_LOCAL_LIBRARY/Documentation/man; fi
@@ -3650,6 +3660,7 @@ if test x"$GNUSTEP_USER_DIR_TOOLS" = x""; then GNUSTEP_USER_DIR_TOOLS=$GNUSTEP_U
 if test x"$GNUSTEP_USER_DIR_ADMIN_TOOLS" = x""; then GNUSTEP_USER_DIR_ADMIN_TOOLS=$GNUSTEP_USER_DIR/Tools/Admin; fi
 if test x"$GNUSTEP_USER_DIR_LIBRARY" = x""; then GNUSTEP_USER_DIR_LIBRARY=$GNUSTEP_USER_DIR/Library; fi
 if test x"$GNUSTEP_USER_DIR_LIBRARIES" = x""; then GNUSTEP_USER_DIR_LIBRARIES=$GNUSTEP_USER_DIR/Libraries; fi
+if test x"$GNUSTEP_USER_DIR_SERVICES" = x""; then GNUSTEP_USER_DIR_SERVICES=$GNUSTEP_USER_DIR/Services; fi
 if test x"$GNUSTEP_USER_DIR_HEADERS" = x""; then GNUSTEP_USER_DIR_HEADERS=$GNUSTEP_USER_DIR/Headers; fi
 if test x"$GNUSTEP_USER_DIR_DOC" = x""; then GNUSTEP_USER_DIR_DOC=$GNUSTEP_USER_DIR/Documentation; fi
 if test x"$GNUSTEP_USER_DIR_DOC_MAN" = x""; then GNUSTEP_USER_DIR_DOC_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
@@ -3734,6 +3745,7 @@ case "$target_os" in
     GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS short`
     GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY short`
     GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES short`
+    GNUSTEP_SYSTEM_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_SERVICES short`
     GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS short`
     GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC short`
     GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN short`
@@ -3746,6 +3758,7 @@ case "$target_os" in
     GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS short`
     GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY short`
     GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES short`
+    GNUSTEP_NETWORK_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_SERVICES short`
     GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS short`
     GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC short`
     GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN short`
@@ -3758,6 +3771,7 @@ case "$target_os" in
     GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS short`
     GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY short`
     GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES short`
+    GNUSTEP_LOCAL_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_SERVICES short`
     GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS short`
     GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC short`
     GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN short`
@@ -3771,17 +3785,23 @@ GNUSTEP_BASE_RELATIVE_PATHS=no
 
 # Now, check if any of the paths is a relative path.
 for path in \
- "$GNUSTEP_SYSTEM_APPS" "$GNUSTEP_SYSTEM_ADMIN_APPS" "$GNUSTEP_SYSTEM_WEB_APPS" \
+ "$GNUSTEP_SYSTEM_APPS" \ "$GNUSTEP_SYSTEM_ADMIN_APPS" \
+ "$GNUSTEP_SYSTEM_WEB_APPS" \
  "$GNUSTEP_SYSTEM_TOOLS" "$GNUSTEP_SYSTEM_ADMIN_TOOLS" \
- "$GNUSTEP_SYSTEM_LIBRARY" "$GNUSTEP_SYSTEM_LIBRARIES" "$GNUSTEP_SYSTEM_HEADERS" \
+ "$GNUSTEP_SYSTEM_LIBRARY" "$GNUSTEP_SYSTEM_LIBRARIES" \
+ "$GNUSTEP_SYSTEM_SERVICES" "$GNUSTEP_SYSTEM_HEADERS" \
  "$GNUSTEP_SYSTEM_DOC" "$GNUSTEP_SYSTEM_DOC_MAN" "$GNUSTEP_SYSTEM_DOC_INFO" \
- "$GNUSTEP_NETWORK_APPS" "$GNUSTEP_NETWORK_ADMIN_APPS" "$GNUSTEP_NETWORK_WEB_APPS" \
+ "$GNUSTEP_NETWORK_APPS" "$GNUSTEP_NETWORK_ADMIN_APPS" \
+ "$GNUSTEP_NETWORK_WEB_APPS" \
  "$GNUSTEP_NETWORK_TOOLS" "$GNUSTEP_NETWORK_ADMIN_TOOLS" \
- "$GNUSTEP_NETWORK_LIBRARY" "$GNUSTEP_NETWORK_LIBRARIES" "$GNUSTEP_NETWORK_HEADERS" \
+ "$GNUSTEP_NETWORK_LIBRARY" "$GNUSTEP_NETWORK_LIBRARIES" \
+ "$GNUSTEP_NETWORK_SERVICES" "$GNUSTEP_NETWORK_HEADERS" \
  "$GNUSTEP_NETWORK_DOC" "$GNUSTEP_NETWORK_DOC_MAN" "$GNUSTEP_NETWORK_DOC_INFO" \
- "$GNUSTEP_LOCAL_APPS" "$GNUSTEP_LOCAL_ADMIN_APPS" "$GNUSTEP_LOCAL_WEB_APPS" \
+ "$GNUSTEP_LOCAL_APPS" "$GNUSTEP_LOCAL_ADMIN_APPS" \
+ "$GNUSTEP_LOCAL_WEB_APPS" \
  "$GNUSTEP_LOCAL_TOOLS" "$GNUSTEP_LOCAL_ADMIN_TOOLS" \
- "$GNUSTEP_LOCAL_LIBRARY" "$GNUSTEP_LOCAL_LIBRARIES" "$GNUSTEP_LOCAL_HEADERS" \
+ "$GNUSTEP_LOCAL_LIBRARY" "$GNUSTEP_LOCAL_LIBRARIES" \
+ "$GNUSTEP_LOCAL_SERVICES" "$GNUSTEP_LOCAL_HEADERS" \
  "$GNUSTEP_LOCAL_DOC" "$GNUSTEP_LOCAL_DOC_MAN" "$GNUSTEP_LOCAL_DOC_INFO"; do
 case "$path" in
   ./*)  GNUSTEP_BASE_RELATIVE_PATHS=yes ;;
@@ -3843,6 +3863,10 @@ printf "%s\n" "$GNUSTEP_SYSTEM_LIBRARY" >&6; }
 printf %s "checking for System Libraries directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_SYSTEM_LIBRARIES" >&5
 printf "%s\n" "$GNUSTEP_SYSTEM_LIBRARIES" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for System Services directory" >&5
+printf %s "checking for System Services directory... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_SYSTEM_SERVICES" >&5
+printf "%s\n" "$GNUSTEP_SYSTEM_SERVICES" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for System Headers directory" >&5
 printf %s "checking for System Headers directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_SYSTEM_HEADERS" >&5
@@ -3888,6 +3912,10 @@ printf "%s\n" "$GNUSTEP_NETWORK_LIBRARY" >&6; }
 printf %s "checking for Network Libraries directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_NETWORK_LIBRARIES" >&5
 printf "%s\n" "$GNUSTEP_NETWORK_LIBRARIES" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Network Services directory" >&5
+printf %s "checking for Network Services directory... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_NETWORK_SERVICES" >&5
+printf "%s\n" "$GNUSTEP_NETWORK_SERVICES" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Network Headers directory" >&5
 printf %s "checking for Network Headers directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_NETWORK_HEADERS" >&5
@@ -3933,6 +3961,10 @@ printf "%s\n" "$GNUSTEP_LOCAL_LIBRARY" >&6; }
 printf %s "checking for Local Libraries directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_LOCAL_LIBRARIES" >&5
 printf "%s\n" "$GNUSTEP_LOCAL_LIBRARIES" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Local Services directory" >&5
+printf %s "checking for Local Services directory... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_LOCAL_SERVICES" >&5
+printf "%s\n" "$GNUSTEP_LOCAL_SERVICES" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Local Headers directory" >&5
 printf %s "checking for Local Headers directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_LOCAL_HEADERS" >&5
@@ -3978,6 +4010,10 @@ printf "%s\n" "$GNUSTEP_USER_DIR_LIBRARY" >&6; }
 printf %s "checking for User Libraries directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_USER_DIR_LIBRARIES" >&5
 printf "%s\n" "$GNUSTEP_USER_DIR_LIBRARIES" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for User Services directory" >&5
+printf %s "checking for User Services directory... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_USER_DIR_SERVICES" >&5
+printf "%s\n" "$GNUSTEP_USER_DIR_SERVICES" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for User Headers directory" >&5
 printf %s "checking for User Headers directory... " >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GNUSTEP_USER_DIR_HEADERS" >&5
@@ -4067,6 +4103,11 @@ GNUSTEP_SYSTEM_LIBRARIES=`echo $GNUSTEP_SYSTEM_LIBRARIES|sed -e 's/\\\\/\\\\\\\\
 printf "%s\n" "#define GNUSTEP_TARGET_SYSTEM_LIBRARIES \"$GNUSTEP_SYSTEM_LIBRARIES\"" >>confdefs.h
 
 
+GNUSTEP_SYSTEM_SERVICES=`echo $GNUSTEP_SYSTEM_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+printf "%s\n" "#define GNUSTEP_TARGET_SYSTEM_SERVICES \"$GNUSTEP_SYSTEM_SERVICES\"" >>confdefs.h
+
+
 GNUSTEP_SYSTEM_HEADERS=`echo $GNUSTEP_SYSTEM_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 
 printf "%s\n" "#define GNUSTEP_TARGET_SYSTEM_HEADERS \"$GNUSTEP_SYSTEM_HEADERS\"" >>confdefs.h
@@ -4123,6 +4164,11 @@ printf "%s\n" "#define GNUSTEP_TARGET_NETWORK_LIBRARY \"$GNUSTEP_NETWORK_LIBRARY
 GNUSTEP_NETWORK_LIBRARIES=`echo $GNUSTEP_NETWORK_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
 
 printf "%s\n" "#define GNUSTEP_TARGET_NETWORK_LIBRARIES \"$GNUSTEP_NETWORK_LIBRARIES\"" >>confdefs.h
+
+
+GNUSTEP_NETWORK_SERVICES=`echo $GNUSTEP_NETWORK_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+printf "%s\n" "#define GNUSTEP_TARGET_NETWORK_SERVICES \"$GNUSTEP_NETWORK_SERVICES\"" >>confdefs.h
 
 
 GNUSTEP_NETWORK_HEADERS=`echo $GNUSTEP_NETWORK_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
@@ -4183,6 +4229,11 @@ GNUSTEP_LOCAL_LIBRARIES=`echo $GNUSTEP_LOCAL_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g
 printf "%s\n" "#define GNUSTEP_TARGET_LOCAL_LIBRARIES \"$GNUSTEP_LOCAL_LIBRARIES\"" >>confdefs.h
 
 
+GNUSTEP_LOCAL_SERVICES=`echo $GNUSTEP_LOCAL_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+printf "%s\n" "#define GNUSTEP_TARGET_LOCAL_SERVICES \"$GNUSTEP_LOCAL_SERVICES\"" >>confdefs.h
+
+
 GNUSTEP_LOCAL_HEADERS=`echo $GNUSTEP_LOCAL_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 
 printf "%s\n" "#define GNUSTEP_TARGET_LOCAL_HEADERS \"$GNUSTEP_LOCAL_HEADERS\"" >>confdefs.h
@@ -4241,6 +4292,11 @@ GNUSTEP_USER_DIR_LIBRARIES=`echo $GNUSTEP_USER_DIR_LIBRARIES|sed -e 's/\\\\/\\\\
 printf "%s\n" "#define GNUSTEP_TARGET_USER_DIR_LIBRARIES \"$GNUSTEP_USER_DIR_LIBRARIES\"" >>confdefs.h
 
 
+GNUSTEP_USER_DIR_SERVICES=`echo $GNUSTEP_USER_DIR_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+printf "%s\n" "#define GNUSTEP_TARGET_USER_DIR_SERVICES \"$GNUSTEP_USER_DIR_SERVICES\"" >>confdefs.h
+
+
 GNUSTEP_USER_DIR_HEADERS=`echo $GNUSTEP_USER_DIR_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 
 printf "%s\n" "#define GNUSTEP_TARGET_USER_DIR_HEADERS \"$GNUSTEP_USER_DIR_HEADERS\"" >>confdefs.h
@@ -4295,6 +4351,9 @@ GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+# We do not want address/memory sanitisation to confuse later testcases,
+# so we ensure that the environment variable doesn't turn it on.
+unset GNUSTEP_WITH_ASAN
 
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
 # GNUSTEP_SYSTEM_ROOT if not set yet.
@@ -6381,6 +6440,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
+  solaris*)
+                LDFLAGS="$LDFLAGS -lsocket -lnsl";;
   linux-android* )
 		# link against libandroid for native application APIs
 		LIBS="$LIBS -landroid";;
@@ -7331,7 +7392,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 int
 main (void)
 {
-int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;
+long int imax = INTPTR_MAX; long int imin = INTPTR_MIN; unsigned long umax = UINTPTR_MAX;
   ;
   return 0;
 }
@@ -7381,6 +7442,47 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+
+#--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+# The cast to long int works around a bug in the HP C Compiler,
+# see AC_CHECK_SIZEOF for more information.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking alignment of objc_object" >&5
+printf %s "checking alignment of objc_object... " >&6; }
+if test ${ac_cv_alignof_objc_object+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if ac_fn_c_compute_int "$LINENO" "(long int) offsetof (ac__type_alignof_, y)" "ac_cv_alignof_objc_object"        "$ac_includes_default
+  typedef struct { void *isa; } objc_object;
+
+typedef struct { char x; objc_object y; } ac__type_alignof_;"
+then :
+
+else $as_nop
+  if test "$ac_cv_type_objc_object" = yes; then
+     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute alignment of objc_object
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_alignof_objc_object=0
+   fi
+fi
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_alignof_objc_object" >&5
+printf "%s\n" "$ac_cv_alignof_objc_object" >&6; }
+
+
+
+printf "%s\n" "#define ALIGNOF_OBJC_OBJECT $ac_cv_alignof_objc_object" >>confdefs.h
+
+
+if test $ac_cv_alignof_objc_object = 0 ; then
+  as_fn_error $? "Unable to find align of object (required)." "$LINENO" 5
+fi
 
 #--------------------------------------------------------------------
 # Setup dynamic linking
@@ -7557,16 +7659,210 @@ then :
 fi
 
 
-ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
+# NetBSD libc ships with an internal-only incompatible symbol gethostbyname_r
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CC options needed to detect all undeclared functions" >&5
+printf %s "checking for $CC options needed to detect all undeclared functions... " >&6; }
+if test ${ac_cv_c_undeclared_builtin_options+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_save_CFLAGS=$CFLAGS
+   ac_cv_c_undeclared_builtin_options='cannot detect'
+   for ac_arg in '' -fno-builtin; do
+     CFLAGS="$ac_save_CFLAGS $ac_arg"
+     # This test program should *not* compile successfully.
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+(void) strchr;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+else $as_nop
+  # This test program should compile successfully.
+        # No library function is consistently available on
+        # freestanding implementations, so test against a dummy
+        # declaration.  Include always-available headers on the
+        # off chance that they somehow elicit warnings.
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <float.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stddef.h>
+extern void ac_decl (int, char *);
+
+int
+main (void)
+{
+(void) ac_decl (0, (char *) 0);
+  (void) ac_decl;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  if test x"$ac_arg" = x
+then :
+  ac_cv_c_undeclared_builtin_options='none needed'
+else $as_nop
+  ac_cv_c_undeclared_builtin_options=$ac_arg
+fi
+          break
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+    done
+    CFLAGS=$ac_save_CFLAGS
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_undeclared_builtin_options" >&5
+printf "%s\n" "$ac_cv_c_undeclared_builtin_options" >&6; }
+  case $ac_cv_c_undeclared_builtin_options in #(
+  'cannot detect') :
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot make $CC report undeclared builtins
+See \`config.log' for more details" "$LINENO" 5; } ;; #(
+  'none needed') :
+    ac_c_undeclared_builtin_options='' ;; #(
+  *) :
+    ac_c_undeclared_builtin_options=$ac_cv_c_undeclared_builtin_options ;;
+esac
+
+ac_fn_check_decl "$LINENO" "gethostbyname_r" "ac_cv_have_decl_gethostbyname_r" "#include <stdlib.h>
+         #include <netdb.h>
+
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_gethostbyname_r" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_GETHOSTBYNAME_R $ac_have_decl" >>confdefs.h
+if test $ac_have_decl = 1
+then :
+  have_gethostbyname_r_public_declaration=yes
+else $as_nop
+  have_gethostbyname_r_public_declaration=no
+fi
+
+
+if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
+  # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing gethostbyname_r" >&5
+printf %s "checking for library containing gethostbyname_r... " >&6; }
+if test ${ac_cv_search_gethostbyname_r+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char gethostbyname_r ();
+int
+main (void)
+{
+return gethostbyname_r ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' socket nsl
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_search_gethostbyname_r=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_gethostbyname_r+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_gethostbyname_r+y}
+then :
+
+else $as_nop
+  ac_cv_search_gethostbyname_r=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_gethostbyname_r" >&5
+printf "%s\n" "$ac_cv_search_gethostbyname_r" >&6; }
+ac_res=$ac_cv_search_gethostbyname_r
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+
+  #we check for 6 argument version, 5 argument version exists in the wild but we don't support it
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname_r with 6 arguments" >&5
+printf %s "checking for gethostbyname_r with 6 arguments... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+                          #include <netdb.h>
+int
+main (void)
+{
+int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define HAVE_GETHOSTBYNAME_R 1" >>confdefs.h
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+
+if test "x$ac_cv_func_gethostbyname_r" = "xno"; then
+  ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
 if test "x$ac_cv_func_gethostbyname" = xyes
 then :
   printf "%s\n" "#define HAVE_GETHOSTBYNAME 1" >>confdefs.h
 
 fi
 
-if test "$ac_cv_func_gethostbyname" = "no"; then
-  # QNX has gethostbyname and friends in libsocket
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lsocket" >&5
+  if test "x$ac_cv_func_gethostbyname" = "xno"; then
+    # QNX has gethostbyname and friends in libsocket
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lsocket" >&5
 printf %s "checking for gethostbyname in -lsocket... " >&6; }
 if test ${ac_cv_lib_socket_gethostbyname+y}
 then :
@@ -7609,6 +7905,7 @@ then :
 
 fi
 
+  fi
 fi
 
 ac_fn_c_check_func "$LINENO" "getaddrinfo" "ac_cv_func_getaddrinfo"
@@ -7618,6 +7915,71 @@ then :
 
 fi
 
+
+ac_fn_c_check_header_compile "$LINENO" "resolv.h" "ac_cv_header_resolv_h" "$ac_includes_default"
+if test "x$ac_cv_header_resolv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_RESOLV_H 1" >>confdefs.h
+
+fi
+
+if test $ac_cv_header_resolv_h = yes; then
+  saveLIBS="$LIBS"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv" >&5
+printf %s "checking for res_query in -lresolv... " >&6; }
+if test ${ac_cv_lib_resolv_res_query+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lresolv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char res_query ();
+int
+main (void)
+{
+return res_query ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_resolv_res_query=yes
+else $as_nop
+  ac_cv_lib_resolv_res_query=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_query" >&5
+printf "%s\n" "$ac_cv_lib_resolv_res_query" >&6; }
+if test "x$ac_cv_lib_resolv_res_query" = xyes
+then :
+  resolv_ok=yes
+else $as_nop
+  resolv_ok=no
+fi
+
+  if test "$resolv_ok" = yes; then
+    LIBS="$saveLIBS -lresolv";
+    ac_fn_c_check_func "$LINENO" "res_nquery" "ac_cv_func_res_nquery"
+if test "x$ac_cv_func_res_nquery" = xyes
+then :
+  printf "%s\n" "#define HAVE_RES_NQUERY 1" >>confdefs.h
+
+fi
+
+  else
+    LIBS="$saveLIBS"
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Windows: check if we have native threading APIs and SRW locks
@@ -8791,6 +9153,48 @@ fi
 fi
 
 
+#--------------------------------------------------------------------
+# Check for fast enumeration support in runtime
+#--------------------------------------------------------------------
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: assuming objc_enumerationMutation() on Windows MSVC" >&5
+printf "%s\n" "$as_me: assuming objc_enumerationMutation() on Windows MSVC" >&6;}
+  OBJCSETFASTENUMERATION=0
+  OBJCFASTENUMERATION=1
+else
+  ac_fn_c_check_func "$LINENO" "objc_enumerationMutation" "ac_cv_func_objc_enumerationMutation"
+if test "x$ac_cv_func_objc_enumerationMutation" = xyes
+then :
+  printf "%s\n" "#define HAVE_OBJC_ENUMERATIONMUTATION 1" >>confdefs.h
+
+fi
+
+  if test $ac_cv_func_objc_enumerationMutation = yes; then
+    ac_fn_c_check_func "$LINENO" "objc_setEnumerationMutationHandler" "ac_cv_func_objc_setEnumerationMutationHandler"
+if test "x$ac_cv_func_objc_setEnumerationMutationHandler" = xyes
+then :
+  printf "%s\n" "#define HAVE_OBJC_SETENUMERATIONMUTATIONHANDLER 1" >>confdefs.h
+
+fi
+
+    if test $ac_cv_func_objc_setEnumerationMutationHandler = yes; then
+      OBJCSETFASTENUMERATION=1
+    else
+      OBJCSETFASTENUMERATION=0
+    fi
+    OBJCFASTENUMERATION=1
+  else
+    OBJCSETFASTENUMERATION=0
+    OBJCFASTENUMERATION=0
+  fi
+fi
+
+
+
+
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
@@ -9865,13 +10269,22 @@ printf "%s\n" "#define USE_BFD 1" >>confdefs.h
 printf "%s\n" "$as_me: WARNING: You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL." >&2;}
 fi
 
-ac_fn_c_check_header_compile "$LINENO" "bfd.h" "ac_cv_header_bfd_h" "$ac_includes_default"
+       for ac_header in bfd.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "bfd.h" "ac_cv_header_bfd_h" "$ac_includes_default"
 if test "x$ac_cv_header_bfd_h" = xyes
 then :
   printf "%s\n" "#define HAVE_BFD_H 1" >>confdefs.h
 
+else $as_nop
+
+if test $enable_bfd = yes ; then
+  as_fn_error $? "bfd.h not found, this is required for libbfd symbolic stack traces. You may need to install this package" "$LINENO" 5
 fi
 
+fi
+
+done
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libintl_fprintf in -lintl" >&5
 printf %s "checking for libintl_fprintf in -lintl... " >&6; }
 if test ${ac_cv_lib_intl_libintl_fprintf+y}
@@ -9998,6 +10411,12 @@ then :
   printf "%s\n" "#define HAVE_LIBIBERTY 1" >>confdefs.h
 
   LIBS="-liberty $LIBS"
+
+else $as_nop
+
+if test $enable_bfd = yes ; then
+  as_fn_error $? "libiberty not found, this is required for libbfd symbolic stack traces. You may need to install this package" "$LINENO" 5
+fi
 
 fi
 
@@ -10143,6 +10562,12 @@ then :
   printf "%s\n" "#define HAVE_LIBBFD 1" >>confdefs.h
 
   LIBS="-lbfd $LIBS"
+
+else $as_nop
+
+if test $enable_bfd = yes ; then
+  as_fn_error $? "libbfd not found, this is required for libbfd symbolic stack traces. You may need to install this package" "$LINENO" 5
+fi
 
 fi
 
@@ -11218,86 +11643,6 @@ then :
 
 fi
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CC options needed to detect all undeclared functions" >&5
-printf %s "checking for $CC options needed to detect all undeclared functions... " >&6; }
-if test ${ac_cv_c_undeclared_builtin_options+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_save_CFLAGS=$CFLAGS
-   ac_cv_c_undeclared_builtin_options='cannot detect'
-   for ac_arg in '' -fno-builtin; do
-     CFLAGS="$ac_save_CFLAGS $ac_arg"
-     # This test program should *not* compile successfully.
-     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-(void) strchr;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-else $as_nop
-  # This test program should compile successfully.
-        # No library function is consistently available on
-        # freestanding implementations, so test against a dummy
-        # declaration.  Include always-available headers on the
-        # off chance that they somehow elicit warnings.
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <float.h>
-#include <limits.h>
-#include <stdarg.h>
-#include <stddef.h>
-extern void ac_decl (int, char *);
-
-int
-main (void)
-{
-(void) ac_decl (0, (char *) 0);
-  (void) ac_decl;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  if test x"$ac_arg" = x
-then :
-  ac_cv_c_undeclared_builtin_options='none needed'
-else $as_nop
-  ac_cv_c_undeclared_builtin_options=$ac_arg
-fi
-          break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-    done
-    CFLAGS=$ac_save_CFLAGS
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_undeclared_builtin_options" >&5
-printf "%s\n" "$ac_cv_c_undeclared_builtin_options" >&6; }
-  case $ac_cv_c_undeclared_builtin_options in #(
-  'cannot detect') :
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot make $CC report undeclared builtins
-See \`config.log' for more details" "$LINENO" 5; } ;; #(
-  'none needed') :
-    ac_c_undeclared_builtin_options='' ;; #(
-  *) :
-    ac_c_undeclared_builtin_options=$ac_cv_c_undeclared_builtin_options ;;
-esac
-
 ac_fn_check_decl "$LINENO" "strerror_r" "ac_cv_have_decl_strerror_r" "$ac_includes_default" "$ac_c_undeclared_builtin_options" "CFLAGS"
 if test "x$ac_cv_have_decl_strerror_r" = xyes
 then :
@@ -11596,7 +11941,7 @@ then :
 
 fi
 
- # Check whether --enable-procfs was given.
+# Check whether --enable-procfs was given.
 if test ${enable_procfs+y}
 then :
   enableval=$enable_procfs; enable_procfs="$enableval"
@@ -11648,7 +11993,7 @@ printf "%s\n" "#define HAVE_PROCFS 1" >>confdefs.h
   fi
 
 
- # Check whether --enable-procfs-psinfo was given.
+# Check whether --enable-procfs-psinfo was given.
 if test ${enable_procfs_psinfo+y}
 then :
   enableval=$enable_procfs_psinfo; enable_procfs_psinfo="$enableval"
@@ -12164,7 +12509,7 @@ printf "%s\n" "#define USE_LIBFFI 1" >>confdefs.h
 
   WITH_FFI=libffi
   if test "$pkg_config_libffi" = "yes"; then
-    ffi_LIBS=`pkg-config --libs libffi`
+    ffi_LIBS=`$PKG_CONFIG --libs libffi`
   else
     ffi_LIBS=-lffi
   fi
@@ -12332,6 +12677,62 @@ fi
 if test $enable_iconv = yes; then
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking iconv support" >&5
 printf %s "checking iconv support... " >&6; }
+
+# If the header is in a subdirectory, adjust the default loc
+liidef=no
+       for ac_header in gnu-libiconv/iconv.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "gnu-libiconv/iconv.h" "ac_cv_header_gnu_libiconv_iconv_h" "$ac_includes_default"
+if test "x$ac_cv_header_gnu_libiconv_iconv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_GNU_LIBICONV_ICONV_H 1" >>confdefs.h
+ iconv_subdir=yes
+else $as_nop
+  iconv_subdir=no
+fi
+
+done
+if test "${iconv_subdir}" != "no"; then
+  liidef=/usr/include/gnu-libiconv
+fi
+
+
+# Check whether --with-libiconv-include was given.
+if test ${with_libiconv_include+y}
+then :
+  withval=$with_libiconv_include; libiconv_incdir="$withval"
+else $as_nop
+  libiconv_incdir="$liidef"
+fi
+
+if test ${libiconv_incdir} != "no"; then
+  CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
+fi
+
+
+# Check whether --with-libiconv-library was given.
+if test ${with_libiconv_library+y}
+then :
+  withval=$with_libiconv_library; libiconv_libdir="$withval"
+else $as_nop
+  libiconv_libdir="no"
+fi
+
+
+if test "$libiconv_libdir" != "no"; then
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
+esac
+
+fi
+
 if test "$cross_compiling" = yes
 then :
   found_iconv="$cross_found_iconv_libc";
@@ -12348,7 +12749,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12372,43 +12773,7 @@ fi
 
 if test $found_iconv = no ; then
   # libc doesn't have a working iconv with translit.
-  # Try adding -liconv and any user supplied directory.
-
-# Check whether --with-libiconv-library was given.
-if test ${with_libiconv_library+y}
-then :
-  withval=$with_libiconv_library; libiconv_libdir="$withval"
-else $as_nop
-  libiconv_libdir="no"
-fi
-
-
-  if test "$libiconv_libdir" != "no"; then
-
-case "$target_os" in
-	netbsd*)
-		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
-	*)
-		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
-esac
-
-  fi
-
-
-# Check whether --with-libiconv-include was given.
-if test ${with_libiconv_include+y}
-then :
-  withval=$with_libiconv_include; libiconv_incdir="$withval"
-else $as_nop
-  libiconv_incdir="no"
-fi
-
-  if test ${libiconv_incdir} != "no"; then
-      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
-  fi
+  # Try adding -liconv
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
@@ -12430,7 +12795,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12480,7 +12845,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12506,17 +12871,17 @@ fi
 
 fi
 
-# Check whether --enable-stricticonv was given.
-if test ${enable_stricticonv+y}
+# Check whether --enable-limitediconv was given.
+if test ${enable_limitediconv+y}
 then :
-  enableval=$enable_stricticonv;
+  enableval=$enable_limitediconv;
 else $as_nop
-  enable_stricticonv=no
+  enable_limitediconv=no
 fi
 
-if test $enable_stricticonv = yes; then
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking non-lossy iconv support" >&5
-printf %s "checking non-lossy iconv support... " >&6; }
+if test $enable_limitediconv = yes; then
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking iconv without lossy conversion support" >&5
+printf %s "checking iconv without lossy conversion support... " >&6; }
 if test "$cross_compiling" = yes
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -12528,7 +12893,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12662,7 +13027,12 @@ printf "%s\n" "no" >&6; }
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
   as_fn_error $? "Missing support for character conversion functionality." "$LINENO" 5
 fi
@@ -13635,7 +14005,7 @@ if test $enable_tls = yes; then
   saved_CFLAGS="$CFLAGS"
 
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists gnutls; then
+    if $PKG_CONFIG --exists gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking gnutls support" >&5
 printf %s "checking gnutls support... " >&6; }
       HAVE_GNUTLS=1
@@ -13882,7 +14252,7 @@ printf "%s\n" "no" >&6; }
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    if ! pkg-config --atleast-version=2.12 gnutls; then
+    if ! $PKG_CONFIG --atleast-version=2.12 gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gcry_control in -lgcrypt" >&5
 printf %s "checking for gcry_control in -lgcrypt... " >&6; }
 if test ${ac_cv_lib_gcrypt_gcry_control+y}
@@ -14206,13 +14576,14 @@ printf "%s\n" "$as_me: Using system-provided ICU DLL (requires Windows 10 versio
     ;;
   esac
   if test $HAVE_ICU = 0; then
+    HAVE_ICU_I18N=0
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ICU" >&5
-printf %s "checking for ICU... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ICU_I18N" >&5
+printf %s "checking for ICU_I18N... " >&6; }
 
-if test -n "$ICU_CFLAGS"; then
-    pkg_cv_ICU_CFLAGS="$ICU_CFLAGS"
+if test -n "$ICU_I18N_CFLAGS"; then
+    pkg_cv_ICU_I18N_CFLAGS="$ICU_I18N_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 49.0\""; } >&5
@@ -14220,7 +14591,7 @@ if test -n "$ICU_CFLAGS"; then
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_ICU_CFLAGS=`$PKG_CONFIG --cflags "icu-i18n > 49.0" 2>/dev/null`
+  pkg_cv_ICU_I18N_CFLAGS=`$PKG_CONFIG --cflags "icu-i18n > 49.0" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -14228,8 +14599,8 @@ fi
  else
     pkg_failed=untried
 fi
-if test -n "$ICU_LIBS"; then
-    pkg_cv_ICU_LIBS="$ICU_LIBS"
+if test -n "$ICU_I18N_LIBS"; then
+    pkg_cv_ICU_I18N_LIBS="$ICU_I18N_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 49.0\""; } >&5
@@ -14237,7 +14608,7 @@ if test -n "$ICU_LIBS"; then
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_ICU_LIBS=`$PKG_CONFIG --libs "icu-i18n > 49.0" 2>/dev/null`
+  pkg_cv_ICU_I18N_LIBS=`$PKG_CONFIG --libs "icu-i18n > 49.0" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -14258,25 +14629,25 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        ICU_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
+	        ICU_I18N_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
         else
-	        ICU_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
+	        ICU_I18N_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
-	echo "$ICU_PKG_ERRORS" >&5
+	echo "$ICU_I18N_PKG_ERRORS" >&5
 
-	HAVE_ICU=0
+	HAVE_ICU_I81N=0
 elif test $pkg_failed = untried; then
      	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	HAVE_ICU=0
+	HAVE_ICU_I81N=0
 else
-	ICU_CFLAGS=$pkg_cv_ICU_CFLAGS
-	ICU_LIBS=$pkg_cv_ICU_LIBS
+	ICU_I18N_CFLAGS=$pkg_cv_ICU_I18N_CFLAGS
+	ICU_I18N_LIBS=$pkg_cv_ICU_I18N_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-             for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h unicode/ubrk.h unicode/utypes.h
+             for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/ubrk.h unicode/utypes.h
 do :
   as_ac_Header=`printf "%s\n" "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -14285,11 +14656,96 @@ then :
   cat >>confdefs.h <<_ACEOF
 #define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
- HAVE_ICU=1
+ HAVE_ICU_I18N=1
 fi
 
 done
 fi
+
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ICU_UC" >&5
+printf %s "checking for ICU_UC... " >&6; }
+
+if test -n "$ICU_UC_CFLAGS"; then
+    pkg_cv_ICU_UC_CFLAGS="$ICU_UC_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-uc > 49.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-uc > 49.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_UC_CFLAGS=`$PKG_CONFIG --cflags "icu-uc > 49.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$ICU_UC_LIBS"; then
+    pkg_cv_ICU_UC_LIBS="$ICU_UC_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-uc > 49.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-uc > 49.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_UC_LIBS=`$PKG_CONFIG --libs "icu-uc > 49.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        ICU_UC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "icu-uc > 49.0" 2>&1`
+        else
+	        ICU_UC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "icu-uc > 49.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$ICU_UC_PKG_ERRORS" >&5
+
+	HAVE_ICU_UC=0
+elif test $pkg_failed = untried; then
+     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	HAVE_ICU_UC=0
+else
+	ICU_UC_CFLAGS=$pkg_cv_ICU_UC_CFLAGS
+	ICU_UC_LIBS=$pkg_cv_ICU_UC_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+             for ac_header in unicode/utext.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "unicode/utext.h" "ac_cv_header_unicode_utext_h" "$ac_includes_default"
+if test "x$ac_cv_header_unicode_utext_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_UNICODE_UTEXT_H 1" >>confdefs.h
+ HAVE_ICU_UC=1
+fi
+
+done
+fi
+    if test $HAVE_ICU_I18N = 1; then
+      ICU_LIBS="$ICU_I18N_LIBS $ICU_UC_LIBS"
+      HAVE_ICU=1
+    fi
   fi
   if test $HAVE_ICU = 0; then
     as_fn_error $? "No useable ICU installation found" "$LINENO" 5
@@ -14583,13 +15039,13 @@ esac
 # and a different (MSVC) curl library might interfere and produce an incorrect configuration.
 #
 # Skip the curl-config check on Windows.
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" == "0"; then
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" = "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 66 \); then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 61 \); then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version $curl_ver too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version $curl_ver too old to use, need at least 7.61)" >&6; }
   else
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
 printf "%s\n" "yes ... version $curl_ver" >&6; }
@@ -14616,10 +15072,10 @@ done
   fi
 else
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists libcurl; then
+    if $PKG_CONFIG --exists libcurl; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... via pkg-config" >&5
 printf "%s\n" "yes ... via pkg-config" >&6; }
-      if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
+      if $PKG_CONFIG --atleast-version 7.61.0 libcurl; then
                for ac_header in curl/curl.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
@@ -14641,8 +15097,8 @@ done
           curl_all=yes
         fi
         else
-          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version too old to use, need at least 7.61)" >&6; }
           curl_all=no
       fi
     else
@@ -14654,10 +15110,6 @@ printf "%s\n" "FAILED (libcurl not found via pkg-config)" >&6; }
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config and pkg-config not found)" >&5
 printf "%s\n" "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
-fi
-
-if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
-as_fn_error $? "libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain" "$LINENO" 5
 fi
 
 

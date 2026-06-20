@@ -1251,52 +1251,55 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   static NSConcretePointerFunctions	*defaultFunctions = nil;
 
-  if (defaultFunctions == nil)
+  if (nil != (self = [super init]))
     {
-      defaultFunctions
-	= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
-    }
-  legacy = NO;
+      if (defaultFunctions == nil)
+	{
+	  defaultFunctions
+	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	}
+      legacy = NO;
 
-  if (![keyFunctions isKindOfClass: [NSConcretePointerFunctions class]])
-    {
-      keyFunctions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
-    sizeof(self->cb.pf.k));
+      if (![keyFunctions isKindOfClass: [NSConcretePointerFunctions class]])
+	{
+	  keyFunctions = defaultFunctions;
+	}
+      memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
+	sizeof(self->cb.pf.k));
 
-  if (![valueFunctions isKindOfClass: [NSConcretePointerFunctions class]])
-    {
-      valueFunctions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
-    sizeof(self->cb.pf.v));
+      if (![valueFunctions isKindOfClass: [NSConcretePointerFunctions class]])
+	{
+	  valueFunctions = defaultFunctions;
+	}
+      memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
+	sizeof(self->cb.pf.v));
 
 #if	GC_WITH_GC
-  if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
-    {
-      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+      if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
 	{
-	  zone = (NSZone*)nodeWW;
+	  if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+	    {
+	      zone = (NSZone*)nodeWW;
+	    }
+	  else
+	    {
+	      zone = (NSZone*)nodeWS;
+	    }
 	}
       else
 	{
-	  zone = (NSZone*)nodeWS;
+	  if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+	    {
+	      zone = (NSZone*)nodeSW;
+	    }
+	  else
+	    {
+	      zone = (NSZone*)nodeSS;
+	    }
 	}
-    }
-  else
-    {
-      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
-	{
-	  zone = (NSZone*)nodeSW;
-	}
-      else
-	{
-	  zone = (NSZone*)nodeSS;
-	}
-    }
 #endif
-  GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+      GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+    }
   return self;
 }
 

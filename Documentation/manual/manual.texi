@@ -1,7 +1,7 @@
 \input texinfo              @c -*-texinfo-*-
 
 @c %**start of header
-@setfilename gs-base.info
+@setfilename ProgrammingManual.info
 @settitle Objective-C GNUstep Base Programming Manual
 @c %**end of header
 

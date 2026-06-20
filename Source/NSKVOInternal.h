@@ -106,7 +106,8 @@
   NSMutableDictionary<NSString *, NSMutableArray<_NSKVOKeyObserver *> *>
                            *_keyObserverMap;
   NSInteger                 _dependencyDepth;
-  NSMutableSet<NSString *> *_existingDependentKeys;
+  NSMutableSet<id>         *_existingDependentKeys;
+  NSMutableSet<id>         *_dependencyAncestorKeys;
   gs_mutex_t                _lock;
 }
 - (instancetype)init;

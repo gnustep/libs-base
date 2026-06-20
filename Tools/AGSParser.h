@@ -39,6 +39,8 @@
 @class	NSMutableDictionary;
 @class	NSString;
 
+@class	AGSValidator;
+
 @interface	AGSParser : NSObject
 {
   /*
@@ -74,6 +76,7 @@
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
 
   NSString		*comment;	/** Documentation accumulator. */
+  unsigned              commentEndPos;  /** Cursor at last accumulation. */
   NSMutableDictionary	*info;		/** All information parsed. */
   NSMutableDictionary   *orderedSymbolDeclsByUnit;
   NSMutableArray	*source;	/** Names of source files. */
@@ -81,12 +84,15 @@
   NSCharacterSet	*identStart;	/** Legit initial char of identifier */
   NSCharacterSet	*spaces;	/** All blank characters */
   NSCharacterSet	*spacenl;	/** Blanks excluding newline */
+
+  AGSValidator		*validator;	/** Validates comment content */
 }
 
 - (BOOL) debug;
+- (NSString*) fileName;
 - (NSMutableDictionary*) info;
 - (NSDictionary *) orderedSymbolDeclarationsByUnit;
-- (id) init;	/** <init> Simple initialiser */
+- (id) init;	/** <init /> Simple initialiser */
 - (NSMutableArray*) outputs;
 - (unsigned) parseComment;
 - (NSMutableArray*) parseDeclarations;

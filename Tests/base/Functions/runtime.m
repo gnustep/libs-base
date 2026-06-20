@@ -97,6 +97,74 @@ main(int argc, char *argv[])
   const char    *n;
   unsigned	u;
   int		i;
+  NSObject	*assoc1 = AUTORELEASE([NSObject new]);
+  NSObject	*assoc2 = AUTORELEASE([NSObject new]);
+  NSObject	*o = [NSObject new];
+  NSObject	*values[100];
+
+#pragma clang diagnostic ignored "-Wnonnull"
+  u = [assoc1 retainCount];
+  objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_ASSIGN);
+  PASS(u == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_ASSIGN does not retain")
+  PASS(objc_getAssociatedObject(o, (void*)1) == assoc1,
+    "can get and set an associated object")
+  objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_RETAIN);
+  PASS(u + 1 == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_RETAIN does retain")
+
+// atomic association apparently does not work in gnustep runtime
+testHopeful = YES;
+  ENTER_POOL
+  PASS(objc_getAssociatedObject(o, (void*)1) == assoc1,
+    "can get retained associated object")
+  PASS(u + 2 == [assoc1 retainCount], "getting retains associated value")
+  LEAVE_POOL
+testHopeful = NO;
+
+  ENTER_POOL
+  objc_setAssociatedObject(o, (void*)1, assoc2, OBJC_ASSOCIATION_RETAIN);
+  LEAVE_POOL
+  ENTER_POOL
+  PASS(u == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_RETAIN replace releases old value")
+  u = [assoc2 retainCount];
+  DESTROY(o);
+  LEAVE_POOL
+
+// retained values are apparently leaked in gnustep runtime
+testHopeful = YES;
+  PASS(u - 1 == [assoc2 retainCount],
+    "OBJC_ASSOCIATION_RETAIN value released when object is deallocated")
+testHopeful = NO;
+
+  ENTER_POOL
+  o = [NSObject new];
+  a = 0;
+  for (i = 0; i < sizeof(values)/sizeof(NSObject*); i++)
+    {
+      values[i] = [NSObject new];
+      objc_setAssociatedObject(o, (void*)i, values[i], OBJC_ASSOCIATION_RETAIN);
+      if ([values[i] retainCount] == 2) a++;
+    }
+  PASS(a == sizeof(values)/sizeof(NSObject*),
+    "many values were associated with a single object");
+  DESTROY(o);
+  LEAVE_POOL
+  a = 0;
+  for (i = 0; i < sizeof(values)/sizeof(NSObject*); i++)
+    {
+      if ([values[i] retainCount] == 1)
+	{
+	  a++;
+	}
+      DESTROY(values[i]);
+    }
+// retained values are apparently leaked in gnustep runtime
+testHopeful = YES;
+  PASS(a == sizeof(values)/sizeof(NSObject*),
+    "many values were released when object was deallocated");
+testHopeful = NO;
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);
@@ -315,7 +383,7 @@ main(int argc, char *argv[])
   PASS(ref == nil, "nil is stored unchanged")
 
   objc_storeWeak(&ref, @"hello");
-  PASS(ref == @"hello", "literal string is stored unchanged")
+  PASS(ref == (id)@"hello", "literal string is stored unchanged")
 
   objc_storeWeak(&ref, (id)c);
   PASS(ref == (id)c, "a class is stored unchanged")
@@ -324,12 +392,15 @@ main(int argc, char *argv[])
   objc_storeWeak(&ref, obj);
   PASS(ref != obj, "object is stored as weak reference")
   rc = [obj retainCount];
-  got = objc_loadWeakRetained(&ref);
+  ENTER_POOL
+  got = objc_loadWeak(&ref);
   PASS(got == obj && [obj retainCount] == rc + 1,
-    "objc_loadWeakRetained() returns original retained")
-  RELEASE(got);
+    "objc_loadWeak() returns original retained + 1")
+  LEAVE_POOL
+  PASS([obj retainCount] == rc, "objc_loadWeak() retained obj was autoreleased")
+
   RELEASE(obj);
-  got = objc_loadWeakRetained(&ref);
+  got = objc_loadWeak(&ref);
   PASS(got == nil, "load of deallocated object returns nil")
 
   END_SET("weakref")

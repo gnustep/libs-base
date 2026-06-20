@@ -887,28 +887,28 @@ wordData(NSString *word, BOOL *encoded)
 
 + (void) initialize
 {
-      NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
+  NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
 
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@".()<>@,;:[]\"\\"]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet controlCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet illegalCharacterSet]];
-      rfc822Specials = [m copy];
-      [[NSObject leakAt: &rfc822Specials] release];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@"/?="]];
-      [m removeCharactersInString: @"."];
-      rfc2045Specials = [m copy];
-      [[NSObject leakAt: &rfc2045Specials] release];
-      [m release];
-      whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
-      [[NSObject leakAt: &whitespace] release];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet characterSetWithCharactersInString:
+    @".()<>@,;:[]\"\\"]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet controlCharacterSet]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet illegalCharacterSet]];
+  rfc822Specials = [m copy];
+  [[NSObject leakAt: &rfc822Specials] release];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet characterSetWithCharactersInString:
+    @"/?="]];
+  [m removeCharactersInString: @"."];
+  rfc2045Specials = [m copy];
+  [[NSObject leakAt: &rfc2045Specials] release];
+  [m release];
+  whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
+  [[NSObject leakAt: &whitespace] release];
 
   if (NSArrayClass == 0)
     {
@@ -2760,15 +2760,25 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		{
 		  pos--;
 		}
-	      /* Since we know the child can't modify it, and we know
-	       * that we aren't going to change the buffer while the
-	       * child is using it, we can safely pass a data object
-	       * which simply references the memory in our own buffer.
-	       */
-	      childBody = [[NSData alloc]
-		initWithBytesNoCopy: (void*)(buf + sectionStart)
-			     length: pos - sectionStart
-		       freeWhenDone: NO];
+	      if (pos > sectionStart)
+		{
+		  /* Since we know the child can't modify it, and we know
+		   * that we aren't going to change the buffer while the
+		   * child is using it, we can safely pass a data object
+		   * which simply references the memory in our own buffer.
+		   */
+		  childBody = [[NSData alloc]
+		    initWithBytesNoCopy: (void*)(buf + sectionStart)
+				 length: pos - sectionStart
+			   freeWhenDone: NO];
+		}
+	      else
+		{
+		  /* If we have a corrupt multipart document a part of it
+		   * might be completely empty ... allow for that.
+		   */
+		  childBody = [NSData new];
+		}
 	      if ([child parse: childBody] == YES)
 		{
 		  /*
@@ -2807,7 +2817,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      if (endedFinalPart == YES)
+	      if (endedFinalPart)
 		{
 		  if (eol < len)
 		    {
@@ -3389,6 +3399,8 @@ static NSCharacterSet	*tokenSet = nil;
 
 + (void) initialize
 {
+  [GSMimeParser class];	// Force initialisation of some stuff we need
+
   if (nonToken == nil)
     {
       NSMutableCharacterSet	*ms;
@@ -3401,18 +3413,6 @@ static NSCharacterSet	*tokenSet = nil;
       RELEASE(ms);
       nonToken = RETAIN([tokenSet invertedSet]);
       [[NSObject leakAt: &nonToken] release];
-      if (NSArrayClass == 0)
-	{
-	  NSArrayClass = [NSArray class];
-	}
-      if (NSStringClass == 0)
-	{
-	  NSStringClass = [NSString class];
-	}
-      if (documentClass == 0)
-	{
-	  documentClass = [GSMimeDocument class];
-	}
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_defaultsChanged:)
         name: NSUserDefaultsDidChangeNotification
@@ -4787,20 +4787,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Determine encoding using byte-order-mark if present
        */
-      if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
-        || (ptr[0] == 0xFF && ptr[1] == 0xFE))
+      if (ptr[0] == 0xFE && ptr[1] == 0xFF)
+	{
+          return @"utf-16be";
+	}
+      if (ptr[0] == 0xFF && ptr[1] == 0xFE)
         {
-          return @"utf-16";
+          return @"utf-16le";
         }
       if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
         {
           return @"utf-8";
         }
-      if ((ptr[0] == 0x00 && ptr[1] == 0x00)
-        && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
-          || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
+      if (ptr[0] == 0x00 && ptr[1] == 0x00 && ptr[2] == 0xFE && ptr[3] == 0xFF)
+	{
+          return @"utf-32be";
+	}
+      if (ptr[0] == 0xFF && ptr[1] == 0xFE && ptr[2] == 0x00 && ptr[3] == 0x00)
         {
-          return @"ucs-4";
+          return @"utf-32le";
         }
 
       /*
@@ -4858,7 +4863,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             }
           else
             {
-              return @"ucs-4";
+              return @"utf-32";
             }
         }
       ptr += size * 5;	// Step past '<?xml' prefix
@@ -5199,6 +5204,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return r;
 }
 
++ (NSStringEncoding) encodingForXml: (id)xml
+{
+  NSString	*charset = [self charsetForXml: xml];
+
+  if (nil == charset)
+    {
+      return GSUndefinedEncoding;
+    }
+  return [self encodingFromCharset: charset];
+}
+
 /**
  * Return the string encoding corresponding to the specified MIME
  * characterset name.<br />
@@ -5228,21 +5244,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 + (void) initialize
 {
+  [GSMimeParser class];	// Force initialisation of some stuff we need
+
   if (self == [GSMimeDocument class])
     {
-      if (documentClass == 0)
-	{
-	  documentClass = [GSMimeDocument class];
-	}
-
-      if (NSArrayClass == 0)
-	{
-	  NSArrayClass = [NSArray class];
-	}
-      if (NSStringClass == 0)
-	{
-	  NSStringClass = [NSString class];
-	}
       if (0 == charsets)
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
@@ -5404,13 +5409,33 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	  NSMapInsert(charsets, (void*)@"NSUTF16BigEndianStringEncoding",
 	    (void*)NSUTF16BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16be",
+	    (void*)NSUTF16BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16be",
+	    (void*)NSUTF16BigEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF16LittleEndianStringEncoding",
+	    (void*)NSUTF16LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16le",
+	    (void*)NSUTF16LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16le",
 	    (void*)NSUTF16LittleEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32StringEncoding",
 	    (void*)NSUTF32StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32",
+	    (void*)NSUTF32StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32",
+	    (void*)NSUTF32StringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32BigEndianStringEncoding",
 	    (void*)NSUTF32BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32be",
+	    (void*)NSUTF32BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32be",
+	    (void*)NSUTF32BigEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32LittleEndianStringEncoding",
+	    (void*)NSUTF32LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32le",
+	    (void*)NSUTF32LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32le",
 	    (void*)NSUTF32LittleEndianStringEncoding);
 
 #if     !defined(NeXT_Foundation_LIBRARY)
@@ -5712,6 +5737,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"shift_JIS");
 	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
 	    (void*)@"utf-8");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"utf-16");
+	  NSMapInsert(encodings, (void*)NSUTF16BigEndianStringEncoding,
+	    (void*)@"utf-16be");
+	  NSMapInsert(encodings, (void*)NSUTF16LittleEndianStringEncoding,
+	    (void*)@"utf-16le");
+	  NSMapInsert(encodings, (void*)NSUTF32StringEncoding,
+	    (void*)@"utf-32");
+	  NSMapInsert(encodings, (void*)NSUTF32BigEndianStringEncoding,
+	    (void*)@"utf-32be");
+	  NSMapInsert(encodings, (void*)NSUTF32LittleEndianStringEncoding,
+	    (void*)@"utf-32le");
 	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
 	    (void*)@"apple-roman");
 #if     !defined(NeXT_Foundation_LIBRARY)
@@ -8285,7 +8322,7 @@ typedef	enum	{
   SMTPE_DSN,		// delivery status notification extension
 } SMTPE;
 
-NSString *
+static NSString *
 eventText(NSStreamEvent e)
 {
   if (e == NSStreamEventNone)
@@ -8303,7 +8340,7 @@ eventText(NSStreamEvent e)
   return @"unknown event";
 }
 
-NSString *
+static NSString *
 statusText(NSStreamStatus s)
 {
   if (s == NSStreamStatusNotOpen) return @"NSStreamStatusNotOpen";

@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 /** This enumeration is a bitmask specifying input and output options
- * for nnode.
+ * for node.
  * <deflist>
  * <term>NSXMLNodeIsCDATA</term>
  * <desc>Indicates that a text node is CDATA</desc>
@@ -80,6 +80,7 @@ extern "C" {
  * <desc>Output this node in a readable format</desc>
  * <term>NSXMLDocumentIncludeContentTypeDeclaration</term>
  * <desc>Include a content type declaration for HTML or XHTML</desc>
+ * </deflist>
  */
 
 enum {

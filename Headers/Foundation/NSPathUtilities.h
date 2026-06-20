@@ -73,7 +73,12 @@ GSSetUserName(NSString *aName);
  * to be read earlier.<br />
  * If you want to prevent the user specific config file from being
  * read, you must set the GNUSTEP_USER_CONFIG_FILE value in the
- * dictionary to be an empty string.
+ * dictionary to be an empty string.<br />
+ * Paths with a leading ./ or ../ in the config are interpreted
+ * relative to the config file location:  if you are supplying a
+ * dictionary to be used instead of the config file (so there is
+ * no path to the config file), you must either use absolute paths,
+ * or expect them to be relative to the program being executed.
  */
 GS_EXPORT NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig);
@@ -100,8 +105,23 @@ GS_EXPORT void
 GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
 
 #endif
+
+/** Returns the name of the user who owns the current process.
+ */
 GS_EXPORT NSString *NSUserName(void);
+
+/** Returns the home directory of the user who owns the current process.<br />
+ * Calls NSHomeDirectoryForUser() passing it the result of NSUserName().
+ */
 GS_EXPORT NSString *NSHomeDirectory(void);
+
+/** Returns the home directory of the user specified.<br />
+ * This is obtained from the operating system (though the GNUSTEP_HOME
+ * environment variable overrides that for the current user) and is
+ * usually the same as the HOME environment variable.<br />
+ * On ms-windows, the HOMEPATH environment variable is usually used unless
+ * it is the root directory, in which case USERPROFILE is used.
+ */
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -130,11 +150,19 @@ enum
   NSDownloadsDirectory = 15,	        /** location of downloaded files */
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  NSInputMethodsDirectory = 16,	        /** location of Library/Input methods */
   NSMoviesDirectory = 17,	        /** location of video/movie files */
   NSMusicDirectory = 18,	        /** location of music files */
   NSPicturesDirectory = 19,	        /** location of picture/images files */
+  NSPrinterDescriptionDirectory = 20,	/** location of system/PPDs */
+  NSSharedPublicDirectory = 21,		/** location of users public sharing */
+  NSPreferencePanesDirectory = 22,	/** location of preference panes */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+  NSApplicationScriptsDirectory = 23,	/** location of user scripts */
+#endif
   NSItemReplacementDirectory = 99,      /** pass to URLFirDirectory:inDomain:
-                                            appropriateForURL:create:error to create a temporary directory */
+                                            appropriateForURL:create:error to
+					    create a temporary directory */
 #endif  
 
   NSAllApplicationsDirectory = 100,	/** all app directories */
@@ -206,7 +234,7 @@ enum
 typedef NSUInteger NSSearchPathDomainMask;
 
 /**
- * Returns an array of search paths to look at for resources.<br/ >
+ * Returns an array of search paths to look at for resources.<br />
  * The paths are returned in domain order:
  * USER, LOCAL, NETWORK then SYSTEM.<br />
  * The presence of a path in this list does <em>not</em> mean that the
@@ -227,14 +255,14 @@ GS_EXPORT NSString *NSFullUserName(void);
 
 /**
  * Returns the standard paths in which applications are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br />
  * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 GS_EXPORT NSArray *NSStandardApplicationPaths(void);
 
 /**
  * Returns the standard paths in which resources are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br />
  * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 GS_EXPORT NSArray *NSStandardLibraryPaths(void);

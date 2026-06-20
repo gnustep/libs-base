@@ -1,7 +1,7 @@
 /** Implementation of NSBundle class
    Copyright (C) 1993-2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: May 1993
 
    Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
@@ -54,6 +54,9 @@
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #import "GSPrivate.h"
+#import "GSPThread.h"
+
+static NSString	*debugKey = @"NSBundle";
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
@@ -76,6 +79,7 @@ manager()
 
 static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
+static gs_mutex_t       _localizationsLock = GS_MUTEX_INIT_STATIC;
 
 /* Map a language name to any alternative versions.   This function should
  * return an array of alternative language/localisation directory names in
@@ -124,27 +128,32 @@ altLang(NSString *full)
             }
         }
 
-      if ((r = [canon rangeOfString: @"-"]).length > 1)
+      if ((r = [full rangeOfString: @"-"]).length > 1)
         {
-          dialect = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          dialect = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
           if ((r = [dialect rangeOfString: @"_"]).length > 1)
             {
               region = [dialect substringFromIndex: NSMaxRange(r)];
               dialect = [dialect substringToIndex: r.location];
             }
         }
-      else if ((r = [canon rangeOfString: @"_"]).length > 1)
+      else if ((r = [full rangeOfString: @"_"]).length > 1)
         {
-          region = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          region = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
         }
       else
         {
-          lang = canon;
+          lang = full;
         }
 
       a = [NSMutableArray arrayWithCapacity: 5];
+      /* We now that the canonical language does not have a variant or region
+       * extension
+       */
+      [a addObject: canon];
+
       if (nil != dialect && nil != region)
         {
           [a addObject: [NSString stringWithFormat: @"%@-%@_%@",
@@ -165,6 +174,7 @@ altLang(NSString *full)
         {
           [a addObject: alias];
         }
+      NSDebugLog(@"Alt ALngs: %@ canon=%@ alias=%@", a, canon, alias);
     }
   return a;
 }
@@ -451,29 +461,24 @@ GSPrivateExecutablePath()
 }
 
 /* Try to locate resources for tool name (which is this tool) in
- * standard places like xxx/Library/Tools/Resources/name */
-/* This could be converted into a public +bundleForTool:
- * method.  At the moment it's only used privately
- * to locate the main bundle for this tool.
+ * standard places like xxx/Library/Tools/Resources/name
+ * The toolPath must be the absolute path to the tool, excluding any
+ * library combo or target directory.
+ * The toolName must be the name of the tool, excluding any path prefix
+ * or file extensions.
  */
 static inline NSString *
-_find_main_bundle_for_tool(NSString *toolName)
+_find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
 {
   NSArray 	*paths;
   NSEnumerator 	*enumerator;
+  NSString 	*best = nil;
   NSString 	*path;
   NSString 	*tail;
   NSFileManager *fm = manager();
+  BOOL 		isDir;
 
-  /*
-   * Eliminate any base path or extensions.
-   */
-  toolName = [toolName lastPathComponent];
-  do
-    {
-      toolName = [toolName stringByDeletingPathExtension];
-    }
-  while ([[toolName pathExtension] length] > 0);
+  if (found) *found = NO;
 
   if ([toolName length] == 0)
     {
@@ -483,22 +488,96 @@ _find_main_bundle_for_tool(NSString *toolName)
   tail = [@"Tools" stringByAppendingPathComponent:
     [@"Resources" stringByAppendingPathComponent: toolName]];
 
-  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-    NSAllDomainsMask, YES);
 
-  enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
+  /* We try to infer the domain that the tool is installed in from the
+   * path to the tool, and if there is a resource bundle in that domain
+   * we use it.
+   */
+  if ([[NSSearchPathForDirectoriesInDomains(GSToolsDirectory,
+    NSUserDomainMask, YES) lastObject] isEqual: toolPath]
+    || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
+    NSUserDomainMask, YES) lastObject] isEqual: toolPath])
     {
-      BOOL isDir;
-      path = [path stringByAppendingPathComponent: tail];
-
+      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSUserDomainMask, YES) firstObject]
+	stringByAppendingPathComponent: tail];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
+	  if (found) *found = YES;
+	  return path;
+	}
+      if (nil == best) best = path;
+    }
+
+  if ([[NSSearchPathForDirectoriesInDomains(GSToolsDirectory,
+    NSLocalDomainMask, YES) lastObject] isEqual: toolPath]
+    || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
+    NSLocalDomainMask, YES) lastObject] isEqual: toolPath])
+    {
+      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSLocalDomainMask, YES) firstObject]
+	stringByAppendingPathComponent: tail];
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  if (found) *found = YES;
+	  return path;
+	}
+      if (nil == best) best = path;
+    }
+
+  if ([[NSSearchPathForDirectoriesInDomains(GSToolsDirectory,
+    NSNetworkDomainMask, YES) lastObject] isEqual: toolPath]
+    || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
+    NSNetworkDomainMask, YES) lastObject] isEqual: toolPath])
+    {
+      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSNetworkDomainMask, YES) firstObject]
+	stringByAppendingPathComponent: tail];
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  if (found) *found = YES;
+	  return path;
+	}
+      if (nil == best) best = path;
+    }
+
+  if ([[NSSearchPathForDirectoriesInDomains(GSToolsDirectory,
+    NSSystemDomainMask, YES) lastObject] isEqual: toolPath]
+    || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
+    NSSystemDomainMask, YES) lastObject] isEqual: toolPath])
+    {
+      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSSystemDomainMask, YES) firstObject]
+	stringByAppendingPathComponent: tail];
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  if (found) *found = YES;
 	  return path;
 	}
     }
 
-  return nil;
+  /* No exact match for resource bundle found, so check all domains to see
+   * if we can find the resource bundle.
+   */
+  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+    NSAllDomainsMask, YES);
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      path = [path stringByAppendingPathComponent: tail];
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  if (found) *found = YES;
+	  return path;
+	}
+    }
+
+  /* No bundle found: return the path is *should* be located in.
+   * NB. this could be nil if the tool was not installed in any domain;
+   * a tool installed outside the GNUstep filesystem hierarchy has no
+   * resource bundle.
+   */
+  return best;
 }
 
 static NSString *
@@ -513,67 +592,94 @@ _find_main_bundle_path()
       /* We don't know at the beginning if it's a tool or an application.  */
       BOOL isApplication = YES;
 
-      /* Sometimes we detect that this is a non-installed tool.  That is
-       * special because we want to lookup local resources before installed
-       * ones.  Keep track of this special case in this variable.
-       */
-      BOOL isNonInstalledTool = NO;
-
       /* If it's a tool, we will need the tool name.  Since we don't
          know yet if it's a tool or an application, we always store
          the executable name here - just in case it turns out it's a
          tool.  */
       NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
+      NSString *toolPath;
 
 #if defined(_WIN32) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
       /* Strip off the name of the executable */
-      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
+      toolPath = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target directory if they exist.  The executable
 	 and this library should match so that is why we can use the
 	 compiled-in settings. */
       /* library combo */
-      s = [path lastPathComponent];
+      s = [toolPath lastPathComponent];
       if ([s isEqual: library_combo])
 	{
-	  path = [path stringByDeletingLastPathComponent];
+	  toolPath = [toolPath stringByDeletingLastPathComponent];
 	}
       /* target dir */
-      s = [path lastPathComponent];
+      s = [toolPath lastPathComponent];
       if ([s isEqual: gnustep_target_dir])
 	{
-	  path = [path stringByDeletingLastPathComponent];
+	  toolPath = [toolPath stringByDeletingLastPathComponent];
 	}
+
+      path = toolPath;
+
       /* object dir */
       s = [path lastPathComponent];
+
       if ([s hasSuffix: @"obj"])
 	{
 	  path = [path stringByDeletingLastPathComponent];
-	  /* if it has an object dir it can only be a
-             non-yet-installed tool.  */
-	  isApplication = NO;
-	  isNonInstalledTool = YES;
+	  /* If it has an object dir it can only be a
+           * non-yet-installed tool.
+	   * We're pretty confident about this case.  'path' is
+	   * obtained by {tool location on disk} and walking up
+	   * until we got out of the obj directory.  So we're
+	   * now in GNUSTEP_BUILD_DIR.  Resources will be in
+	   * Resources/{toolName}.
+	   */
+	  path = [path stringByAppendingPathComponent: @"Resources"];
+	  path = [path stringByAppendingPathComponent: toolName];
+
+	  /* PS: We could check here if we found the resources,
+	   * and if not, keep going with the other attempts at
+	   * locating them.  But if we know that this is an
+	   * uninstalled tool, really we don't want to use
+	   * installed resources - we prefer resource lookup to
+	   * fail so the developer will fix whatever issue they
+	   * have with their building.
+	   */
+	  ASSIGN(_mainBundlePath, path);
+          if (GSDebugSet(debugKey))
+	    {
+	      fprintf(stderr, "Uninstalled tool main bundle: '%s'.\n",
+		[path UTF8String]);
+	    }
+	  return _mainBundlePath;
 	}
 
 #ifndef __ANDROID__ /* don't check suffix on Android's fake executable path */
       if (isApplication == YES)
 	{
-	  s = [path lastPathComponent];
+	  NSString	*ext;
+	  NSString	*name;
+	  NSDictionary	*kind = [NSDictionary dictionaryWithObjectsAndKeys:
+	      @"Application", @"app",
+	      @"Debug application", @"debug",
+	      @"Profiled application", @"profile",
+	      @"GSWeb application", @"gswa",
+	      @"Web Objects application", @"woa",
+	      nil ];
 
-	  if ([s hasSuffix: @".app"] == NO
-	    && [s hasSuffix: @".debug"] == NO
-	    && [s hasSuffix: @".profile"] == NO
-	    && [s hasSuffix: @".gswa"] == NO	// GNUstep Web
-	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
-	    )
+	  ext = [[path lastPathComponent] pathExtension];
+	  name = [kind objectForKey: ext];
+	  if (nil == name)
 	    {
 	      NSFileManager	*mgr = manager();
 	      BOOL		f;
 
+	      name = @"Unknown kind of application";
 	      /* Not one of the common extensions, but
 	       * might be an app wrapper with another extension...
 	       * Look for Info-gnustep.plist or Info.plist in a
@@ -599,57 +705,57 @@ _find_main_bundle_path()
 		    }
 		}
 	    }
+	  if (isApplication && GSDebugSet(debugKey))
+	    {
+	      if (0 == [ext length])
+		{
+		  fprintf(stderr, "%s (no extension), main bundle: '%s'.\n",
+		    [name UTF8String], [path UTF8String]);
+		}
+	      else
+		{
+		  fprintf(stderr, "%s (.%s), main bundle: '%s'.\n",
+		    [name UTF8String], [ext UTF8String], [path UTF8String]);
+		}
+	    }
 	}
 #endif /* !__ANDROID__ */
 
       if (isApplication == NO)
 	{
-	  NSString *maybePath = nil;
+	  BOOL	found;
 
-	  if (isNonInstalledTool)
+	  /* This is for gnustep-make version 2, where tool resources
+	   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
+	   * gnustep-make version 1 is no logner supported.
+	   */
+	  path = _find_main_bundle_for_tool(toolPath, toolName, &found);
+	  if (nil == path)
 	    {
-	      /* We're pretty confident about this case.  'path' is
-	       * obtained by {tool location on disk} and walking up
-	       * until we got out of the obj directory.  So we're
-	       * now in GNUSTEP_BUILD_DIR.  Resources will be in
-	       * Resources/{toolName}.
+	      /* If we could neither find a bundle  nor find the path the
+	       * bundle should be installed in, we must return a dummy
+	       * value to allow the main bundle to be created.
+	       * This might happen if the tool is installed outside the
+	       * GNUstep filesystem hierarchy. ie somewhere not matching
+	       * GSToolsDirectory or GSAdminToolsDirectory in any domain.
 	       */
-	      path = [path stringByAppendingPathComponent: @"Resources"];
-	      maybePath = [path stringByAppendingPathComponent: toolName];
-
-	      /* PS: We could check here if we found the resources,
-	       * and if not, keep going with the other attempts at
-	       * locating them.  But if we know that this is an
-	       * uninstalled tool, really we don't want to use
-	       * installed resources - we prefer resource lookup to
-	       * fail so the developer will fix whatever issue they
-	       * have with their building.
-	       */
+	      path = [NSString stringWithFormat: @"/no-bundle-for-%@",
+		toolName];
 	    }
-	  else
+          if (GSDebugSet(debugKey))
 	    {
-	      if (maybePath == nil)
+	      if (found)
 		{
-		  /* This is for gnustep-make version 2, where tool resources
-		   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
-		   */
-		  maybePath = _find_main_bundle_for_tool(toolName);
+		  fprintf(stderr, "Installed tool main bundle: '%s'.\n",
+		    [path UTF8String]);
 		}
-
-	      /* If that didn't work, maybe the tool was created with
-	       * gnustep-make version 1.  So we try {tool location on
-	       * disk after walking up the non-flattened
-	       * dirs}/Resources/{toolName}, which is where
-	       * gnustep-make version 1 would put resources.
-	       */
-	      if (maybePath == nil)
+	      else
 		{
-		  path = [path stringByAppendingPathComponent: @"Resources"];
-		  maybePath = [path stringByAppendingPathComponent: toolName];
+		  fprintf(stderr, "Installed tool has no main bundle"
+		    " (it would probably have been at '%s').\n",
+		    [path UTF8String]);
 		}
 	    }
-
-	  path = maybePath;
 	}
 
       ASSIGN(_mainBundlePath, path);
@@ -1479,7 +1585,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     [NSValue valueWithPointer: (void*)theClass]];
 }
 
-/* Look up a resource in a bundle, outpinally with a sub-path and with
+/* Look up a resource in a bundle, optionally with a sub-path and with
  * a specific language preference.
  * If the path of the bundle is nil, search the main bundle.
  */
@@ -1790,9 +1896,13 @@ GSPrivateInfoDictionary(NSString *rootPath)
   NSBundle		*bundle;
 
   [load_lock lock];
-  if (!_mainBundle)
+
+  /* Check main bundle specially in case a subclass overrode the method
+   * leaving it out of the _bundles map.
+   */
+  if (nil != (bundle = [self mainBundle]))
     {
-      [self mainBundle];
+      [array addObject: bundle];
     }
 
   enumerate = NSEnumerateMapTable(_bundles);
@@ -1883,7 +1993,7 @@ GSPrivateInfoDictionary(NSString *rootPath)
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
       if (firstTime)
 	{
-	  NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n",
+	  NSDebugMLLog(debugKey, @"Main bundle path is %@\n",
 	    [_mainBundle bundlePath]);
 	}
     }
@@ -1996,7 +2106,7 @@ GSPrivateInfoDictionary(NSString *rootPath)
 	      bundle = [NSBundle bundleForLibrary: libraryName
 					  version: ver];
 	    }
-	  NSDebugLLog(@"NSBundle",
+	  NSDebugLLog(debugKey,
 	    @"NSBundle bundleForClass: looking up %@ in bundle %@",
 	    NSStringFromClass(aClass), bundle);
 	  if (nil == bundle && [[self _addFrameworks] count] > 0)
@@ -2150,22 +2260,38 @@ IF_NO_ARC(
     }
   [load_lock unlock];
 
-  if (bundle_directory_readable(path) == nil)
+  if (self == _mainBundle)
     {
-      NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
-      // if this is not the main bundle ... deallocate and return.
-      if (self != _mainBundle)
+      /* Make the path available so the code in bundle_directory_readable()
+       * can use [[NSBundle mainBundle] resourcePath].
+       */
+      _path = [path copy];
+      if (bundle_directory_readable(path) == nil)
 	{
+	  NSDebugMLLog(debugKey,
+	    @"Could not access path %@ for main bundle", path);
+	}
+    }
+  else
+    {
+      if (bundle_directory_readable(path) == nil)
+	{
+	  NSDebugMLLog(debugKey,
+	    @"Could not access path %@ for bundle", path);
 	  [self dealloc];
 	  return nil;
 	}
+      /* It is now safe to set the path because we will not be deallocated
+       * until after we have set up the things -dealloc expects to clean up
+       * if it finds a path set.
+       */
+      _path = [path copy];
     }
 
   /* OK ... this is a new bundle ... need to insert it in the global map
    * to be found by this path so that a leter call to -bundleIdentifier
    * can work.
    */
-  _path = [path copy];
   [load_lock lock];
   NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
@@ -2836,17 +2962,22 @@ IF_NO_ARC(
 {
   NSDictionary	*table;
   NSString	*newString = nil;
+  NSString	*tablePath = nil;
+  NSDictionary	*parsedTable = nil;
+  BOOL		shouldLoad = NO;
 
+  // Lazily create and populate the per-bundle localization cache.
+  GS_MUTEX_LOCK(_localizationsLock);
   if (_localizations == nil)
     _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
 
   if (tableName == nil || [tableName isEqualToString: @""] == YES)
     {
       tableName = @"Localizable";
-      table = [_localizations objectForKey: tableName];
     }
-  else if ((table = [_localizations objectForKey: tableName]) == nil
-    && [@"strings" isEqual: [tableName pathExtension]] == YES)
+
+  table = [_localizations objectForKey: tableName];
+  if (table == nil && [@"strings" isEqual: [tableName pathExtension]] == YES)
     {
       tableName = [tableName stringByDeletingPathExtension];
       table = [_localizations objectForKey: tableName];
@@ -2854,96 +2985,67 @@ IF_NO_ARC(
 
   if (table == nil)
     {
-      NSString	*tablePath;
-
       /*
        * Make sure we have an empty table in place in case anything
        * we do somehow causes recursion.  The recursive call will look
        * up the string in the empty table.
        */
       [_localizations setObject: _emptyTable forKey: tableName];
+      shouldLoad = YES;
+    }
+  GS_MUTEX_UNLOCK(_localizationsLock);
 
+  if (shouldLoad == YES)
+    {
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
-        {
-          NSStringEncoding	encoding;
-          NSString		*tableContent;
-          NSData		*tableData;
-          const unsigned char	*bytes;
-          unsigned		length;
+	{
+	  NSData	*tableData;
 
-          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
-          bytes = [tableData bytes];
-          length = [tableData length];
-          /*
-           * A localisation file can be:
-           * - UTF-16 with a leading BOM,
-           * - UTF-8,
-           * - or ASCII with \U escapes.
-           */
-          if (length > 2
-              && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
-                  || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
-            {
-              encoding = NSUnicodeStringEncoding;
-            }
-          else
-            {
-              encoding = NSUTF8StringEncoding;
-            }
-          tableContent = [[NSString alloc] initWithData: tableData
-                                           encoding: encoding];
-          if (tableContent == nil && encoding == NSUTF8StringEncoding)
-            {
-              encoding = [NSString defaultCStringEncoding];
-              tableContent = [[NSString alloc] initWithData: tableData
-                                               encoding: encoding];
-              if (tableContent != nil)
-                {
-                  NSWarnMLog (@"Localisation file %@ not in portable encoding,"
-                    @" so I'm using the default encoding for the current"
-                    @" system, which may not display messages correctly.\n"
-                    @"The file should be UTF-8, UTF-16 with a leading"
-                    @" byte-order-marker, or ASCII (using \\U escapes for"
-                    @" unicode characters.\n", tablePath);
-                }
-            }
-          if (tableContent == nil)
-            {
-              NSWarnMLog(@"Failed to load strings file %@ - bad character"
-                         @" encoding", tablePath);
-            }
-          else
-            {
-              NS_DURING
-                {
-                  table = [tableContent propertyListFromStringsFileFormat];
-                }
-              NS_HANDLER
-                {
-                  NSWarnMLog(@"Failed to parse strings file %@ - %@",
-                             tablePath, localException);
-                }
-              NS_ENDHANDLER
-            }
-          RELEASE(tableData);
-          RELEASE(tableContent);
-        }
+	  tableData = [NSData dataWithContentsOfFile: tablePath];
+	  NS_DURING
+	    {
+	      parsedTable = GSPropertyListFromStringsFormat(tableData);
+	    }
+	  NS_HANDLER
+	    {
+	      NSWarnMLog (@"Failed to parse Localisation file %@ - %@"
+		@"The file should be UTF-8, UTF-16 with a leading"
+		@" byte-order-marker, or ASCII (using \\U escapes for"
+		@" unicode characters.\n", tablePath, localException);
+	    }
+	  NS_ENDHANDLER
+	}
       else
-        {
-          NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
-                       tableName);
-        }
-      /*
-       * If we couldn't found and parsed the strings table, we put it in
-       * the cache of strings tables in this bundle, otherwise we will just
-       * be keeping the empty table in the cache so we don't keep retrying.
-       */
-      if (table != nil)
-        [_localizations setObject: table forKey: tableName];
+	{
+	  NSDebugMLLog(debugKey, @"Failed to locate strings file %@",
+	    tableName);
+	}
     }
 
-  if (key == nil || (newString = [table objectForKey: key]) == nil)
+  GS_MUTEX_LOCK(_localizationsLock);
+  if (shouldLoad == YES && parsedTable != nil)
+    {
+      /*
+       * If we found and parsed the strings table, we put it in the cache
+       * of strings tables in this bundle, otherwise we will just be
+       * keeping the empty table in the cache so we don't keep retrying.
+       */
+      [_localizations setObject: parsedTable forKey: tableName];
+      table = parsedTable;
+    }
+  else
+    {
+      table = [_localizations objectForKey: tableName];
+      if (table == nil)
+	table = _emptyTable;
+    }
+
+  if (key != nil)
+    newString = [table objectForKey: key];
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  if (key == nil || newString == nil)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]
                             objectForKey: NSShowNonLocalizedStrings];
@@ -2989,11 +3091,7 @@ IF_NO_ARC(
 {
   NSString *object, *path;
 
-  if (!_mainBundle)
-    {
-      [NSBundle mainBundle];
-    }
-  if (self == _mainBundle)
+  if (self == [NSBundle mainBundle])
     {
       return GSPrivateExecutablePath();
     }

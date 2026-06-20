@@ -2057,14 +2057,8 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 }
 
 #if     defined(GNUSTEP_BASE_LIBRARY)
-
-# ifndef	NDEBUG
-#   define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#   define	AREM(c, o) GSDebugAllocationRemove(c, o)
-# else
-#   define	AADD(c, o) 
-#   define	AREM(c, o) 
-# endif
+# define	AADD(c, o) GSDebugAllocationAdd(c, o)
+# define	AREM(c, o) GSDebugAllocationRemove(c, o)
 #else
 # define	AADD(c, o) 
 # define	AREM(c, o) 

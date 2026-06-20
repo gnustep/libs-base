@@ -23,16 +23,16 @@
 */
 #import "common.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/NSHashTable+GNUstepBase.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 
 @implementation NSHashTable (GNUstepBase)
 
-- (void)addObjectsFromArray: (NSArray*)array
+- (void) addObjectsFromArray: (NSArray*)array
 {
-  FOR_IN(id, obj, array)
+  GS_FOR_IN(id, obj, array)
     NSHashInsert(self,obj);
-  END_FOR_IN(array)
+  GS_END_FOR(array)
 }
 @end

@@ -99,6 +99,9 @@
 #include <sys/stropts.h>
 #endif
 #endif
+
+#define	SOCKET	int
+
 #endif /* !__MINGW__ */
 
 
@@ -192,7 +195,7 @@ static char	*local_hostname = 0;
  */
 static void	dump_stats();
 #ifndef __MINGW__
-static void	dump_tables();
+static void	dump_tables(int);
 #endif
 static void	handle_accept();
 static void	handle_io();
@@ -460,11 +463,7 @@ static fd_set	write_fds;	/* Descriptors which are writable.	*/
    Bjoern Giesler <Bjoern.Giesler@gmx.de> to work on Win32. */
 
 typedef struct {
-#if	defined(__MINGW__)
   SOCKET s;
-#else
-  int s;
-#endif /* __MINGW__ */
   struct sockaddr_in	addr;	/* Address of process making request.	*/
   socklen_t		pos;	/* Position reading data.		*/
   union {
@@ -474,11 +473,7 @@ typedef struct {
 } RInfo;		/* State of reading each request.	*/
 
 typedef struct {
-#if	defined(__MINGW__)
   SOCKET s;
-#else
-  int s;
-#endif /* __MINGW__ */
   int	len;		/* Length of data to be written.	*/
   int	pos;		/* Amount of data already written.	*/
   char*	buf;		/* Buffer for data.			*/
@@ -492,11 +487,7 @@ static unsigned _wInfoCapacity = 0;
 static unsigned _wInfoCount = 0;
 
 static void
-#if	defined(__MINGW__)
 delRInfo(SOCKET s)
-#else
-delRInfo(int s)
-#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -524,11 +515,7 @@ delRInfo(int s)
 
 
 static RInfo *
-#if	defined(__MINGW__)
 getRInfo(SOCKET s, int make)
-#else
-getRInfo(int s, int make)
-#endif
 {
   unsigned int	i;
 
@@ -566,11 +553,7 @@ getRInfo(int s, int make)
 }
 
 static void
-#if	defined(__MINGW__)
 delWInfo(SOCKET s)
-#else
-delWInfo(int s)
-#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -598,11 +581,7 @@ delWInfo(int s)
 
 
 static WInfo *
-#if	defined(__MINGW__)
 getWInfo(SOCKET s, int make)
-#else
-getWInfo(int s, int make)
-#endif
 {
   unsigned int	i;
 
@@ -773,6 +752,10 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
     }
   for (i = 0; i < map_used; i++)
     {
+      if (NULL == map[i])
+	{
+	  break;
+	}
       if (compare(map[i]->name, map[i]->size, m->name, m->size) > 0)
 	{
 	  int	j;
@@ -1135,7 +1118,7 @@ dump_stats()
 
 #ifndef __MINGW__
 static void
-dump_tables()
+dump_tables(int sig)
 {
   FILE	*fptr;
 
@@ -1143,7 +1126,7 @@ dump_tables()
   if (access(".", W_OK) != 0)
     {
       snprintf(ebuf, sizeof(ebuf),
-	"Failed to access gdomap.dump file for output\n");
+	"Failed to access gdomap.dump file for output (sig %d)\n", sig);
       gdomap_log(LOG_ERR);
       return;
     }
@@ -1174,7 +1157,7 @@ dump_tables()
   else
     {
       snprintf(ebuf, sizeof(ebuf),
-	"Failed to open gdomap.dump file for output\n");
+	"Failed to open gdomap.dump file for output (sig %d)\n", sig);
       gdomap_log(LOG_ERR);
     }
 }
@@ -2026,7 +2009,7 @@ init_ports()
   /*
    *	Enable table dumping to /tmp/gdomap.dump
    */
-  signal(SIGUSR1, dump_tables);
+  signal(SIGUSR1, (void(*)(int))dump_tables);
 #endif /* !__MINGW__  */
 }
 
@@ -3403,22 +3386,15 @@ handle_send()
 
       r = sendto(udp_desc, (const char *)&entry->dat[entry->pos],
       entry->len - entry->pos, 0, (void*)&entry->addr, sizeof(entry->addr));
-      /*
-       *	'r' is the number of bytes sent. This should be the number
-       *	of bytes we asked to send, or -1 to indicate failure.
+      /* 'r' is the number of bytes sent. This should be the number
+       * of bytes we asked to send, or -1 to indicate failure.
        */
-      if (r > 0)
+      if (r < 0)
 	{
-	  entry->pos += r;
-	}
-
-      /*
-       *	If we haven't written all the data, it should have been
-       *	because we blocked.  Anything else is a major problem
-       *	so we remove the message from the queue.
-       */
-      if (entry->pos != entry->len)
-	{
+	  /* If we haven't written any data, it should have been
+	   * because we blocked.  Anything else is a major problem
+	   * so we remove the message from the queue.
+	   */
 #if	defined(__MINGW__)
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
@@ -3437,17 +3413,17 @@ handle_send()
 	}
       else
 	{
+	  entry->pos += r;
 	  udp_sent++;
 	  if (debug > 1)
 	    {
-	      snprintf(ebuf, sizeof(ebuf), "performed sendto for %s",
-		inet_ntoa(entry->addr.sin_addr));
+	      snprintf(ebuf, sizeof(ebuf), "performed sendto (%d bytes) for %s",
+		r, inet_ntoa(entry->addr.sin_addr));
 	      gdomap_log(LOG_DEBUG);
 	    }
-	  /*
-	   *	If we have sent the entire message - remove it from queue.
+	  /* If we have sent the entire message - remove it from queue.
 	   */
-	  if (entry->pos == entry->len)
+	  if (entry->pos >= entry->len)
 	    {
 	      queue_pop();
 	    }
@@ -3704,7 +3680,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 #if	defined(__MINGW__) /* FIXME: Is this correct? */
 	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
-	  void	(*ifun)();
+	  void	(*ifun)(int);
 
 	  /*
 	   *	Should be able to write this short a message immediately, but
@@ -3918,7 +3894,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       int	len = port * sizeof(struct in_addr);
       uptr	b;
 
-      b = (uptr)malloc(len);
+      b = (uptr)calloc(len, 1);
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
@@ -3947,7 +3923,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       uptr	ptr;
       uptr	b;
 
-      b = (uptr)malloc(len);
+      b = (uptr)calloc(len, 1);
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);

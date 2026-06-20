@@ -170,10 +170,13 @@ GS_EXPORT_CLASS
  */
 - (id) init;
 
-/** Initialises the receiver to send the message aSelector to the object aTarget
- * with the argument anArgument (which may be nil).<br />
+/** Initialises the receiver to send the message aSelector to the object
+ * aTarget with the argument anArgument (which may be nil).<br />
  * The arguments aTarget and aSelector are retained while the thread is
- * running.
+ * running.<br />
+ * The method implementation of aSelector is responsible for creating and
+ * destroying an autorelease pool if it uses (either directly or indirectly)
+ * any code with autoreleases.
  */
 - (id) initWithTarget: (id)aTarget
              selector: (SEL)aSelector
@@ -199,7 +202,9 @@ GS_EXPORT_CLASS
  */
 - (BOOL) isMainThread;
 
-/** FIXME ... what does this do?
+/** Do not call this directly.  This method is called to send the message
+ * that the receiver was initialised with at the point when the thread 
+ * starts executing.
  */
 - (void) main;
 
@@ -353,8 +358,8 @@ GS_EXPORT_CLASS
  *
  * If you use them, make sure you initialize the NSThread class inside
  * (what you consider to be your) main thread, before registering any
- * other thread.  To initialize NSThread, simply call GSCurrentThread
- * ().  The main thread will not need to be registered.  
+ * other thread.  To initialize NSThread, simply call GSCurrentThread().
+ * The main thread will not need to be registered.  
  */
 
 /*
@@ -400,11 +405,10 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
 
 #endif
 
-/**
- * This category contains convenience
- * initialisers and methods for executing
- * blocks in different threads and creating
- * NSThread objects with a block as entry point.
+/** This category contains convenience initialisers and methods for executing
+ * blocks in different threads and creating NSThread objects with a block as
+ * entry point.
+ * The use of these methods is not portable between compilers!
  */
 @interface NSThread (BlockAdditions)
 
@@ -414,9 +418,7 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
  */
 + (void) detachNewThreadWithBlock: (GSThreadBlock)block;
 
-/**
- * Initialises a NSThread object with block as the
- * entry point.
+/** Initialises a NSThread object with block as the entry point.
  */
 - (instancetype) initWithBlock: (GSThreadBlock)block;
 #endif // OS_API_VERSION

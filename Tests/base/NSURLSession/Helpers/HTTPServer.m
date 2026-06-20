@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 #import <winsock2.h>
+#import <WS2tcpip.h>
 
 #define close(x) closesocket(x)
 #else

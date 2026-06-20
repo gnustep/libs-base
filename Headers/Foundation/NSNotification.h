@@ -48,16 +48,20 @@ GS_EXPORT_CLASS
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 
 /* Creating a Notification Object */
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object;
 
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info;
 
+- (instancetype) initWithName: (NSNotificationName)name
+		       object: (id)object
+		     userInfo: (NSDictionary*)userInfo;
+
 /* Querying a Notification Object */
 
-- (NSString*) name;
+- (NSNotificationName) name;
 - (id) object;
 - (NSDictionary*) userInfo;
 

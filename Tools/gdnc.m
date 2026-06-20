@@ -49,20 +49,20 @@
 #endif
 
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #ifndef NSIG
@@ -280,7 +280,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  observers = [NSMutableArray new];
+  if (nil != (self = [super init]))
+    {
+      observers = [NSMutableArray new];
+    }
   return self;
 }
 @end
@@ -316,7 +319,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  queue = [[NSMutableArray alloc] initWithCapacity: 1];
+  if (nil != (self = [super init]))
+    {
+      queue = [[NSMutableArray alloc] initWithCapacity: 1];
+    }
   return self;
 }
 @end
@@ -432,6 +438,10 @@ ihandler(int sig)
   NSPortNameServer	*ns;
   NSUserDefaults	*defs;
 
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);

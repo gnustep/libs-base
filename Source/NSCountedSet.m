@@ -249,14 +249,14 @@ static Class NSCountedSet_concrete_class;
   id	o = [self member: anObject];
 
   [self addObject: anObject];
-  if (o == nil)
+  if (nil == o)
     {
       o = anObject;
     }
-  if (o != anObject)
+  else
     {
-      [anObject release];
-      [o retain];
+      RELEASE(anObject);
+      RETAIN(o);
     }
   return o;
 }

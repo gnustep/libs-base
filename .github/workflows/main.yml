@@ -67,7 +67,7 @@ env:
 
   # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
   # https://github.com/gnustep/tools-windows-msvc/releases
-  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20231228
+  TOOLS_WINDOWS_MSVC_RELEASE_TAG: latest
 
 jobs:
   ########### Linux ###########
@@ -83,24 +83,32 @@ jobs:
       matrix:
         include:
           - name: Ubuntu x64 GCC
-            container: ubuntu:22.04
+            container: ubuntu:24.04
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
             libdir: lib
 
-          - name: Ubuntu x64 Clang gnustep-2.0
-            container: ubuntu:22.04
+          - name: Ubuntu x64 Clang gnustep-2.2
+            container: ubuntu:24.04
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang++
             libdir: lib
 
-          - name: Rocky Linux x64 Clang gnustep-2.0
+          - name: Rocky Linux 8 x64 Clang gnustep-2.2
+            container: rockylinux:8
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.2
+            CC: clang
+            CXX: clang++
+            libdir: lib64
+
+          - name: Rocky Linux 9 x64 Clang gnustep-2.2
             container: rockylinux:9
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang++
             libdir: lib64
@@ -127,10 +135,11 @@ jobs:
       - name: Install apt packages
         run: |
           apt-get -q -y update
+
           apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
 
-          # gnustep-2.0 runtime requires ld.gold or lld
-          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+          # gnustep-2.2 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.2" ]; then
             update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
           fi
         if: ${{ startsWith(matrix.container, 'ubuntu') }}
@@ -139,8 +148,8 @@ jobs:
         run: |
           yum install -y $RPM_PACKAGES
 
-          # gnustep-2.0 runtime requires ld.gold or lld
-          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+          # gnustep-2.2 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.2" ]; then
             update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/lld" 10
           fi
         if: ${{ startsWith(matrix.container, 'rockylinux') }}
@@ -173,7 +182,7 @@ jobs:
   ########### Windows ###########
   windows:
     name: ${{ matrix.name }}
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -182,29 +191,43 @@ jobs:
       matrix:
         include:
           - name: Windows x64 MinGW GCC
+            os: windows-2025
             arch: x86_64
             msystem: MINGW64
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Windows x64 MinGW Clang gnustep-2.0
+          - name: Windows x64 MinGW Clang gnustep-2.2
+            os: windows-2025
             arch: x86_64
             msystem: MINGW64
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
 
-          - name: Windows x64 MSVC Clang gnustep-2.0
+          - name: Windows x64 MSVC Clang gnustep-2.2
+            os: windows-2025
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             configure-opts: --disable-tls
             CC: clang -m64
             CXX: clang++ -m64
+            LDFLAGS: -fuse-ld=lld
+
+          - name: Windows arm64 MSVC Clang gnustep-2.2
+            os: windows-11-arm
+            arch: arm64
+            host: aarch64-pc-windows
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.2
+            configure-opts: --disable-tls
+            CC: clang
+            CXX: clang++
             LDFLAGS: -fuse-ld=lld
 
     env:
@@ -262,23 +285,18 @@ jobs:
             mingw-w64-${{matrix.arch}}-icu
 
       - name: Set up MSYS2 (gcc)
-        uses: msys2/setup-msys2@v2
         if: env.CC == 'gcc'
-        with:
-          msystem: ${{ matrix.msystem }}
-          update: true
-          install: >
-            mingw-w64-${{matrix.arch}}-gcc-objc
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm mingw-w64-${{matrix.arch}}-gcc-objc
 
       - name: Set up MSYS2 (clang)
-        uses: msys2/setup-msys2@v2
-        if: env.CC == 'clang'
-        with:
-          msystem: ${{ matrix.msystem }}
-          update: true
-          install: >
-            mingw-w64-${{matrix.arch}}-libobjc2
-            mingw-w64-${{matrix.arch}}-clang
+        if: (env.CC == 'clang') && (env.MSYSTEM == 'MINGW64')
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm \
+            mingw-w64-${{matrix.arch}}-libobjc2 \
+            mingw-w64-${{matrix.arch}}-clang \
             mingw-w64-${{matrix.arch}}-lld
 
       - name: Set up MSYS2 (MSVC)
@@ -299,11 +317,6 @@ jobs:
         # so we delete everything that could mess up our builds
         run: rmdir /S /Q C:\Strawberry
         shell: cmd
-
-      - name: Install Windows packages (MSVC)
-        if: env.IS_WINDOWS_MSVC == 'true'
-        shell: cmd
-        run: choco install ninja
 
       - name: Set up VS Developer Command Prompt (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'

@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
-#import "../../../Source/GSFastEnumeration.h"
 
 static SEL	add;
 static SEL	set;
@@ -30,7 +29,7 @@ void fast_enumeration_mutation_add(id mutableCollection)
   NSUInteger	i = 0;
   NSUInteger	c = [mutableCollection count]/2;
 
-  FOR_IN(id, o, mutableCollection)
+  GS_FOR_IN(id, o, mutableCollection)
   if (i == c)
     {
       if ([mutableCollection respondsToSelector: set])
@@ -43,7 +42,7 @@ void fast_enumeration_mutation_add(id mutableCollection)
 	}
     }
   i++;
-  END_FOR_IN(mutableCollection)
+  GS_END_FOR(mutableCollection)
 }
 
 void fast_enumeration_mutation_remove(id mutableCollection)
@@ -51,7 +50,7 @@ void fast_enumeration_mutation_remove(id mutableCollection)
   NSUInteger 	i = 0;
   NSUInteger	c = [mutableCollection count]/2;
 
-  FOR_IN(id, o, mutableCollection)
+  GS_FOR_IN(id, o, mutableCollection)
   if (i == c)
     {
       if ([mutableCollection respondsToSelector: key])
@@ -64,16 +63,16 @@ void fast_enumeration_mutation_remove(id mutableCollection)
 	}
     }
   i++;
-  END_FOR_IN(mutableCollection)
+  GS_END_FOR(mutableCollection)
 }
 
 void test_fast_enumeration(id collection, NSArray *objects)
 {
   NSMutableArray *returnedObjects = [NSMutableArray array];
 
-  FOR_IN(id, o, collection)
+  GS_FOR_IN(id, o, collection)
   [returnedObjects addObject: o];
-  END_FOR_IN(collection)
+  GS_END_FOR(collection)
   if (!([collection isKindOfClass: [NSArray class]]
     || [collection isKindOfClass: [NSOrderedSet class]]))
     {
@@ -142,25 +141,25 @@ int main()
   
   START_SET("NSMapTable")
   id map = [NSMapTable strongToStrongObjectsMapTable];
-  FOR_IN(id, o, objects)
+  GS_FOR_IN(id, o, objects)
   [map setObject: o forKey: o];
-  END_FOR_IN(objects)
+  GS_END_FOR(objects)
   test_fast_enumeration(map, objects);
   END_SET("NSMapTable")
   
   START_SET("NSHashTable")
   id table = [NSHashTable weakObjectsHashTable];
-  FOR_IN(id, o, objects)
+  GS_FOR_IN(id, o, objects)
   [table addObject: o];
-  END_FOR_IN(objects)
+  GS_END_FOR(objects)
   test_fast_enumeration(table, objects);
   END_SET("NSHashTable")
   
   START_SET("NSPointerArray")
   id array = [NSPointerArray weakObjectsPointerArray];
-  FOR_IN(id, o, objects)
+  GS_FOR_IN(id, o, objects)
   [array addPointer: o];
-  END_FOR_IN(objects)
+  GS_END_FOR(objects)
   test_fast_enumeration(array, objects);
   END_SET("NSPointerArray")
   

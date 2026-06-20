@@ -165,6 +165,7 @@ GS_EXPORT_CLASS
  */
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
++ (NSStringEncoding) encodingForXml: (id)xml;
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset;
 
 - (void) addContent: (id)newContent;

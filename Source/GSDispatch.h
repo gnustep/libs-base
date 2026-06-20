@@ -25,6 +25,8 @@
 
 #if HAVE_DISPATCH_H
 #include <dispatch.h>
+#elif HAVE_DISPATCH_RPRIVATE_H
+#include <dispatch/private.h>
 #elif HAVE_DISPATCH_DISPATCH_H
 #include <dispatch/dispatch.h>
 #endif

@@ -40,17 +40,17 @@
 
 #include <sys/stat.h>
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #include <sys/un.h>
@@ -354,8 +354,14 @@ static NSMapTable *portToNamesMap;
       return NO;
     }
 
-  fgets(socket_path, sizeof(socket_path), f);
-  len = strlen(socket_path);
+  if (NULL == fgets(socket_path, sizeof(socket_path), f))
+    {
+      len = 0;
+    }
+  else
+    {
+      len = strlen(socket_path);
+    }
   if (len == 0 || socket_path[len - 1] != '\n')
     {
       fclose(f);
@@ -617,7 +623,10 @@ static NSMapTable *portToNamesMap;
       [dl unlock];
       return YES;
     }
-  fgets(socket_path, sizeof(socket_path), f);
+  if (NULL == fgets(socket_path, sizeof(socket_path), f))
+    {
+      socket_path[0] = '\0';
+    }
   if (strlen(socket_path) > 0)
     {
       socket_path[strlen(socket_path) - 1] = 0;

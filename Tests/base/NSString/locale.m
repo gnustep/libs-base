@@ -1,3 +1,4 @@
+#include "Foundation/NSObjCRuntime.h"
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
@@ -7,6 +8,18 @@
 #define	NSLOCALE_SUPPORTED	GS_USE_ICU
 #else
 #define	NSLOCALE_SUPPORTED	1 /* Assume Apple support */
+#endif
+
+#if !defined(GS_HAVE_ICU_UTRANS)
+# if defined(__has_include)
+#  if __has_include(<unicode/utrans.h>)
+#   define GS_HAVE_ICU_UTRANS 1
+#  else
+#   define GS_HAVE_ICU_UTRANS 0
+#  endif
+# else
+#  define GS_HAVE_ICU_UTRANS 0
+# endif
 #endif
 
 static void testBasic(void)
@@ -53,7 +66,18 @@ static void testBasic(void)
   compRes = [@"z" localizedCompare: @"A"];
   PASS(compRes == NSOrderedDescending, "expected 1 got %d", (int)compRes);
 
-  
+  // `localizedStandardCompare` orders file names ending in numbers
+  // by numeric value instead of lexicographically.
+  compRes = [@"Foo 10.txt" localizedCompare: @"Foo 5.txt"];
+  PASS(compRes == NSOrderedAscending, "expected 1 got %d", (int)compRes);
+
+  compRes = [@"Foo 10.txt" localizedStandardCompare: @"Foo 5.txt"];
+  PASS(compRes == NSOrderedDescending, "expected 1 got %d", (int)compRes);
+
+  // `localizedStandardCompare` is case insensitive
+  compRes = [@"foo 50.txt" localizedStandardCompare:@"FOO 5.txt"];
+  PASS(compRes == NSOrderedAscending, "expected 1 got %d", (int)compRes);
+
   // These two may be considered implementation details
   {
     BOOL wasHopeful = testHopeful;
@@ -257,6 +281,112 @@ static void testDiacritics(void)
 	PASS(compRes == NSOrderedSame, "expected 0 got %d", (int)compRes);
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+static void testFolding(void)
+{
+  const unichar eAcute = 0x00e9;
+  const unichar fullWidthA = 0xFF21;
+  const unichar dotlessI = 0x0131;
+  NSString *eAcuteStr = [[[NSString alloc] initWithCharacters: &eAcute
+						       length: 1] autorelease];
+  NSString *fullWidthAStr = [[[NSString alloc] initWithCharacters: &fullWidthA
+							   length: 1] autorelease];
+  NSString *dotlessIStr = [[[NSString alloc] initWithCharacters: &dotlessI
+							length: 1] autorelease];
+  NSString *turkish = [[[NSLocale alloc] initWithLocaleIdentifier: @"tr_TR"]
+    autorelease];
+  NSString *folded;
+
+  folded = [@"HELLO" stringByFoldingWithOptions: NSCaseInsensitiveSearch
+					 locale: nil];
+  PASS_EQUAL(folded, @"hello",
+    "NSCaseInsensitiveSearch folds HELLO to hello");
+
+#if GS_HAVE_ICU_UTRANS
+  folded = [eAcuteStr stringByFoldingWithOptions: NSDiacriticInsensitiveSearch
+					   locale: nil];
+  PASS_EQUAL(folded, @"e",
+    "NSDiacriticInsensitiveSearch folds e-acute to e");
+
+  folded = [fullWidthAStr stringByFoldingWithOptions: NSWidthInsensitiveSearch
+					      locale: nil];
+  PASS_EQUAL(folded, @"A",
+    "NSWidthInsensitiveSearch folds fullwidth A to ASCII A");
+
+  folded = [@"ＡＢＣ１２３"
+    stringByFoldingWithOptions: NSWidthInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @"ABC123",
+    "NSWidthInsensitiveSearch folds fullwidth letters and digits");
+
+  folded = [@"Ａ\u0301"
+    stringByFoldingWithOptions: NSWidthInsensitiveSearch
+    | NSDiacriticInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @"A",
+    "Width+diacritic folding removes acute after width fold");
+
+  folded = [@"，．！ＡＢＣ"
+    stringByFoldingWithOptions: NSWidthInsensitiveSearch
+    | NSCaseInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @",.!abc",
+    "NSWidthInsensitiveSearch and NSCaseInsensitiveSearch folds "
+    "fullwidth punctuation and uppercase letters");
+
+  folded = [@"Iİıi"
+    stringByFoldingWithOptions: NSCaseInsensitiveSearch
+			 locale: turkish];
+  PASS_EQUAL(folded, @"ıiıi",
+    "Turkish NSCaseInsensitiveSearch folds I-sequence correctly");
+
+  folded = [@"K"
+    stringByFoldingWithOptions: NSCaseInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @"k",
+    "NSCaseInsensitiveSearch folds Kelvin sign to k");
+
+  folded = [@"ÅÇñöü"
+    stringByFoldingWithOptions: NSDiacriticInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @"ACnou",
+    "NSDiacriticInsensitiveSearch folds multiple accented Latin letters");
+
+  folded = [@"e\u0301"
+    stringByFoldingWithOptions: NSDiacriticInsensitiveSearch
+			 locale: nil];
+  PASS_EQUAL(folded, @"e",
+    "NSDiacriticInsensitiveSearch folds decomposed acute sequence");
+
+  folded = [@"ÉＡI"
+    stringByFoldingWithOptions: NSCaseInsensitiveSearch
+    | NSDiacriticInsensitiveSearch
+    | NSWidthInsensitiveSearch
+			  locale: turkish];
+  PASS_EQUAL(folded, @"eaı",
+    "combined folding applies case, diacritic, and width handling");
+
+  folded = [@"é" stringByFoldingWithOptions: NSWidthInsensitiveSearch
+				     locale: nil];
+  PASS_EQUAL(folded, @"é",
+    "NSWidthInsensitiveSearch does not remove diacritics");
+
+  folded = [@"ø" stringByFoldingWithOptions: NSDiacriticInsensitiveSearch
+					     locale: nil];
+  PASS_EQUAL(folded, @"ø",
+    "NSDiacriticInsensitiveSearch does not fold stroked o");
+#else
+  {
+    BOOL wasHopeful = testHopeful;
+    testHopeful = YES;
+    PASS(YES, "Skipping transliterator-dependent folding checks "
+      "(ICU transliterator support unavailable at compile time)");
+    testHopeful = wasHopeful;
+  }
+#endif
+}
+#endif
+
 int main()
 {
   START_SET("NSString + locale")
@@ -270,6 +400,14 @@ int main()
   testEszett();
   testLithuanian();
   testDiacritics();
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+  {
+    BOOL wasHopeful = testHopeful;
+    testHopeful = NO;
+    testFolding();
+    testHopeful = wasHopeful;
+  }
+#endif
 
   END_SET("NSString + locale")
 

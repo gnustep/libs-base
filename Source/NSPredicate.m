@@ -47,7 +47,6 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 
 // For pow()
 #include <math.h>
@@ -183,6 +182,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 
 - (instancetype) initWithBlock: (GSBlockPredicateBlock)block;
+- (id) copyWithZone: (NSZone *)z;
+
 @end
 
 
@@ -192,6 +193,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 - (instancetype) initWithBlock: (GSBlockPredicateBlock)block
                       bindings: (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)bindings;
+- (id) copyWithZone: (NSZone *)z;
+
 @end
 #endif
 
@@ -368,7 +371,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 - (id) copyWithZone: (NSZone *)z
 {
-  return NSCopyObject(self, 0, z);
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -1907,12 +1911,14 @@ do { \
   NSMutableArray	*result = [NSMutableArray arrayWithCapacity:
 						    [_collection count]];
 
-  FOR_IN(NSExpression*, exp, _collection)
+  GS_FOR_IN(NSExpression*, exp, _collection)
     {
-      NSExpression *value = [exp expressionValueWithObject: object context: context];
+      NSExpression *value;
+
+      value = [exp expressionValueWithObject: object context: context];
       [result addObject: value];
     }
-  END_FOR_IN(_collection);
+  GS_END_FOR(_collection);
 
   return result;
 }
@@ -3115,12 +3121,10 @@ do { \
   
   while (YES)
     {
-      NSExpression *right;
-
       if ([self scanString: @":=" intoString: NULL])	// assignment
         {
           // check left to be a variable?
-          right = [self parseAdditionExpression];
+          [self parseAdditionExpression];
           // FIXME
         }
       else
@@ -3167,6 +3171,14 @@ do { \
             substitutionVariables: nil];
 }
 
+- (id) copyWithZone: (NSZone *) z
+{
+  Class c;
+
+  c = [self class];
+  return [[c allocWithZone: z] initWithBlock: _block];
+}
+
 - (void) dealloc
 {
   [(id)_block release];
@@ -3198,6 +3210,14 @@ do { \
 {
   return [self evaluateWithObject: object
             substitutionVariables: _bindings];
+}
+
+- (id) copyWithZone: (NSZone *) z
+{
+  Class c;
+
+  c = [self class];
+  return [[c allocWithZone: z] initWithBlock: _block bindings: _bindings];
 }
 
 - (void) dealloc

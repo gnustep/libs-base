@@ -155,7 +155,7 @@ main(int argc, char** argv, char **env)
 	  NS_DURING
 	    {
 	      NSString	*myString;
-	      id		result;
+	      id	result;
 
 	      myString = [NSString stringWithContentsOfFile: file];
 	      result = [myString propertyListFromStringsFileFormat];

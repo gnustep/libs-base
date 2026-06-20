@@ -69,14 +69,52 @@
 
 #if defined(OBJC_CAP_ARC)
 #  include <objc/objc-arc.h>
-#else
+#elif !defined(__APPLE__)
+
 GS_EXPORT void objc_copyWeak(id *dest, id *src);
 GS_EXPORT void objc_destroyWeak(id *obj);
 GS_EXPORT id objc_initWeak(id *addr, id obj);
-GS_EXPORT id objc_loadWeak(id *object);
 GS_EXPORT id objc_loadWeakRetained(id *addr);
 GS_EXPORT void objc_moveWeak(id *dest, id *src);
+
+GS_EXPORT id objc_loadWeak(id *object);
 GS_EXPORT id objc_storeWeak(id *addr, id obj);
+
+/** objc_AssociationPolicy acts like a bitfield, but
+ * only specific combinations of flags are permitted.
+ * NB The atomic forms are (non-atomic-form | 0x300), so 0x300 can be used
+ * as a marker for the atomic version.
+ */
+typedef enum uintptr_t {
+
+  /** Simple pointer assignment creating an unsafe unretained reference.
+   */
+  OBJC_ASSOCIATION_ASSIGN = 0,
+
+  /** Retain when set, without a guarantee of atomicity.
+   */
+  OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1,
+
+  /** Copy when set (by sending a -copy message), without a guarantee
+   * of atomicity.
+   */
+  OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
+
+  /** Retain when set, with guaranteed atomicity.
+   */
+  OBJC_ASSOCIATION_RETAIN = 0x301,
+
+  /** Copy when set (by sending a -copy message), without guarantee
+   * of atomicity.
+   */
+  OBJC_ASSOCIATION_COPY = 0x303
+} objc_AssociationPolicy;
+
+GS_EXPORT id objc_getAssociatedObject(id object, const void *key);
+GS_EXPORT void objc_removeAssociatedObjects(id object);
+GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
+  id value, objc_AssociationPolicy policy);
+
 #endif
 
 /*
@@ -90,9 +128,11 @@ GS_EXPORT id objc_storeWeak(id *addr, id obj);
 #define	_C_ULNG_LNG	'Q'
 #endif
 
-#if	OBJC2RUNTIME
 /* We have a real ObjC2 runtime.
  */
+#if	OBJC2RUNTIME
+#include <objc/runtime.h>
+#elif	defined(__APPLE__)
 #include <objc/runtime.h>
 #else
 /* We emulate an ObjC2 runtime.
@@ -486,11 +526,20 @@ GSClassSwizzle(id instance, Class newClass);
 #if GS_API_VERSION(GS_API_ANY,011500)
 
 GS_EXPORT const char *
-GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
+GSLastErrorStr(long error_id) GS_DEPRECATED;
 
 #endif
 
 
+
+/**
+ * The maximum number of bytes to allocate from the stack for a butffer.
+ * For buffer sizes greater than this, we use the heap.
+ * NB. This MUST be a multiple of 16
+ */
+#ifndef	GS_MAX_BYTES_FROM_STACK
+#define	GS_MAX_BYTES_FROM_STACK	4096
+#endif
 
 #ifndef	GS_MAX_OBJECTS_FROM_STACK
 /**
@@ -498,7 +547,7 @@ GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
  * the stack ... if there are more than this, use the heap.
  * NB. This MUST be a multiple of 2
  */
-#define	GS_MAX_OBJECTS_FROM_STACK	128
+#define	GS_MAX_OBJECTS_FROM_STACK	(GS_MAX_BYTES_FROM_STACK/sizeof(id))
 #endif
 
 /**

@@ -268,27 +268,29 @@ static	Class	strict = Nil;
       if (self)
 	{
 	  NSStringEncoding	enc;
+          NSString		*tmp;
 
 	  _parser = [GSXMLParserIvars new];
-	  /* Determine character encoding and convert to utf-8 if needed.
+	  /* Determine character encoding and convert to utf-8
 	   */
 	  enc = [GSMimeDocument encodingFromCharset:
 	    [GSMimeDocument charsetForXml: data]];
-	  if (enc == NSUTF8StringEncoding
-	    || enc == NSASCIIStringEncoding
-	    || enc == GSUndefinedEncoding)
+	  if (GSUndefinedEncoding == enc)
 	    {
-	      this->data = [data copy];
+	      enc = NSUTF8StringEncoding;	// Guess at UTF8
 	    }
-	  else
-	    {
-	      NSString	*tmp;
 
+          tmp = [[NSString alloc] initWithData: data encoding: enc];
+	  if (nil == tmp)
+	    {
+	      /* Bad encoding... fall back to latin1, guaranteed to work.
+	       */
+	      enc = NSISOLatin1StringEncoding;
 	      tmp = [[NSString alloc] initWithData: data encoding: enc];
-	      this->data
-		= [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
-	      RELEASE(tmp);
-	    }
+	    }  
+	  this->data = RETAIN([tmp dataUsingEncoding: NSUTF8StringEncoding]);
+	  RELEASE(tmp);
+
 	  this->tagPath = [[NSMutableArray alloc] init];
 	  this->namespaces = [[NSMutableArray alloc] init];
 	  this->bytes = [this->data bytes];
@@ -935,6 +937,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
   if (*ep == '#')
     {
+      /* The maximum unicode codepoint is defined as U+10FFFF
+       * so we only need to parse 6 hex digits (or 7 decimal)
+       * and those can be nul terminated in an 8 byte buffer.
+       */
       if (len < 8)
         {
           uint32_t val;
@@ -942,7 +948,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
           memcpy(buf, ep + 1, len - 1);
           buf[len - 1] = '\0';
-          // &#ddd; or &#xhh;
+          // &#xhhhhhh; or &#ddddddd;
           if (sscanf(buf, "x%x;", &val) || sscanf(buf, "%d;", &val))
             {
               // &#xhh; hex value or &ddd; decimal value
@@ -950,6 +956,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 {
                   unichar       buf[2];
 
+		  if (val > 0x10FFFF)
+		    {
+		      [self _parseError: @"invalid numeric entity codepoint"
+				   code: NSXMLParserInvalidCharacterError];
+		      return @"";	// Bad codepoint
+		    }
                   /* Convert codepoint outside base plane to surrogate pair
                    */
                   val -= 0x010000;
@@ -1347,24 +1359,22 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             {
               if ([this->tagPath count] != 0)
                 {
-                  if (!this->acceptHTML)
+                  if (this->acceptHTML)
+		    {
+		      /* Implicitly closes all open tags.
+		       */
+		      while ([this->tagPath count] > 0)
+			{
+			  [self _closeLastTag];
+			}
+		    }
+                  else
                     {
                       /* strict XML nesting error
                        */
                       return [self _parseError: @"unexpected end of file"
 			code: NSXMLParserNotWellBalancedError];
                     }
-                while ([this->tagPath count] > 0)
-                  {
-                    // lazily close all open tags
-                    if (this->didEndElement != 0)
-                      {
-                        (*this->didEndElement)(_del,
-			  didEndElementSel, self,
-                          [this->tagPath lastObject], nil, nil);
-                      }
-                    [this->tagPath removeLastObject];  // pop from stack
-                  }
                 }
 #if EXTRA_DEBUG
               NSLog(@"parserDidEndDocument: ");
@@ -1389,7 +1399,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
               if ([self _parseEntity: &entity] == NO)
                 {
-                  return [self _parseError: @"empty entity name"
+                  return [self _parseError:
+		    @"'&' not followed by entity name or number"
 		    code: NSXMLParserEntityRefAtEOFError];
                 }
 	      if (this->foundCharacters != 0)
@@ -1550,9 +1561,13 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
+			  NSString	*s;
+
 			  RELEASE(attributes);
+			  s = [NSString stringWithFormat:
+			    @"<%@/ is missing the >", tag];
 			  RELEASE(tag);
-                          return [self _parseError: @"<tag/ is missing the >"
+                          return [self _parseError: s
 			    code: NSXMLParserGTRequiredError];
                         }
                       [self _processTag: tag
@@ -2263,31 +2278,40 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 - (id) initWithContentsOfURL: (NSURL*)anURL
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                  withContentsOfURL: anURL];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+				      withContentsOfURL: anURL];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 
 - (id) initWithData: (NSData*)data
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                           withData: data];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+					       withData: data];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 
 - (id) initWithStream: (NSInputStream*)stream
 {
-  _handler = [NSXMLSAXHandler new];
-  [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
-                                    withInputStream: stream];
-  [(GSXMLParser*)_parser substituteEntities: YES];
+  if (nil != (self = [super init]))
+    {
+      _handler = [NSXMLSAXHandler new];
+      [myHandler _setOwner: self];
+      _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+					withInputStream: stream];
+      [(GSXMLParser*)_parser substituteEntities: YES];
+    }
   return self;
 }
 

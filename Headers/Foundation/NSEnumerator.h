@@ -36,6 +36,9 @@ extern "C" {
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
 
+/** Stores state information for the
+ * -countByEnumeratingWithState:objects:count: method.
+ */ 
 typedef struct
 {
   unsigned long	state;

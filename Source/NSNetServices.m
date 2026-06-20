@@ -25,11 +25,11 @@
 
 #import "common.h"
 #import "GSNetServices.h"
-#import "GSFastEnumeration.h"
 #import "GNUstepBase/NSNetServices+GNUstepBase.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSStream.h"
@@ -240,7 +240,7 @@ static Class concreteBrowserClass;
       return nil;
     }
   array = [[NSMutableArray alloc] initWithCapacity: [dict count]];
-  FOR_IN(NSString*, key, dict)
+  GS_FOR_IN(NSString*, key, dict)
     {
       NSData *value = [dict objectForKey: key];
 
@@ -260,7 +260,7 @@ static Class concreteBrowserClass;
           [array addObject: [[key copy] autorelease]];
         }
     }
-  END_FOR_IN(dict)
+  GS_END_FOR(dict)
   
   if ([array count] > 0)
     {
@@ -270,7 +270,7 @@ static Class concreteBrowserClass;
   return retVal;
 }
 
-- (void) setProtocolSpecificInformation: (NSString *) specificInformation
+- (void) setProtocolSpecificInformation: (NSString *)specificInformation
 {
   NSArray *array = [specificInformation componentsSeparatedByString: @"\001"];
     
@@ -279,8 +279,8 @@ static Class concreteBrowserClass;
       NSMutableDictionary *dictionary;
 
       dictionary
-	= [[NSMutableDictionary alloc] initWithCapacity: [array count]];
-      FOR_IN(NSString*, item, array)
+	= [NSMutableDictionary dictionaryWithCapacity: [array count]];
+      GS_FOR_IN(NSString*, item, array)
         {
           NSArray	*parts;
           NSData	*value;
@@ -291,14 +291,14 @@ static Class concreteBrowserClass;
           [dictionary setObject: value
                          forKey: [parts objectAtIndex: 0]];
         }
-      END_FOR_IN(array)
+      GS_END_FOR(array)
       [self setTXTRecordData:
         [[self class] dataFromTXTRecordDictionary: dictionary]];
     }
 }
 
-- (BOOL) getInputStream: (NSInputStream **) inputStream
-           outputStream: (NSOutputStream **) outputStream
+- (BOOL) getInputStream: (NSInputStream **)inputStream
+           outputStream: (NSOutputStream **)outputStream
 {
   [NSStream getStreamsToHost: [NSHost hostWithName: [self hostName]]
                         port: [self port]

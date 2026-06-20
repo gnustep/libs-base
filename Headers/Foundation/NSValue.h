@@ -1,7 +1,7 @@
 /* Interface for NSValue for GNUStep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Created: 1995
    
    This file is part of the GNUstep Base Library.

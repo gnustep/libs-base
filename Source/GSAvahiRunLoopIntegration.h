@@ -27,8 +27,8 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSLock.h"
-#import "GSFastEnumeration.h"
 #include <avahi-common/watch.h>
 
 @class GSAvahiWatcher,GSAvahiTimer;

@@ -115,15 +115,15 @@ extern "C" {
  */
 extern BOOL NSDebugEnabled;
 
-#ifndef	NDEBUG
-
-/**
- * Used internally by NSAllocateObject() ... you probably don't need this.
+/** Used internally by [NSObject-init] and NSCopyObject().<br />
+ * You don't need this unless you create/initialise an object by some
+ * custom method which avoids calling either of those.
  */
 GS_EXPORT void		GSDebugAllocationAdd(Class c, id o);
 
-/**
- * Used internally by NSDeallocateObject() ... you probably don't need this.
+/** Used internally by the [NSObject-dealloc] method.<br />
+ * You don't need this unless you destroy an object by some
+ * custom method which avoids calling that.
  */
 GS_EXPORT void		GSDebugAllocationRemove(Class c, id o);
 
@@ -320,8 +320,6 @@ GS_EXPORT id GSDebugAllocationTagRecordedObject(id object, id tag);
 GS_EXPORT void  GSSetDebugAllocationFunctions(
   void (*newAddObjectFunc)(Class c, id o),
   void (*newRemoveObjectFunc)(Class c, id o));
-
-#endif
 
 /**
  * Enable/disable zombies.

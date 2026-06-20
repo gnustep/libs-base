@@ -1,7 +1,7 @@
 /** Interface for NSBundle for GNUStep   -*-objc-*-
    Copyright (C) 1995, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: 1995
 
    Updates by various authors.
@@ -144,13 +144,27 @@ GS_EXPORT_CLASS
 
 /**
  * <p>Return the bundle containing the resources for the executable.  If
- * the executable is an application, this is the main application
- * bundle (the xxx.app directory); if the executable is a tool, this
- * is a bundle 'naturally' associated with the tool: if the tool
- * executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control then the
- * tool's main bundle directory is xxx/Tools/Resources/Control.
+ * the executable is an application (executable and associated resources
+ * treated as a single unit), this is the Resources subdirectory within
+ * the main application bundle (the xxx.app directory); if the executable
+ * is a tool, this is a bundle 'naturally' associated with the tool:
+ * the GNUSTEP_*_LIBRARY/Tools/Resources/{executablename} directory where
+ * '*' is the domain in which the executable is located.<br />
+ * For instance, in the standard GNUstep filesystem layout, if the tool is
+ * installed in the local domain (GNUSTEP_LOCAL_TOOLS
+ * is /usr/GNUstep/Local/Tools, and GNUSTEP_LOCAL_LIBRARY is
+ * /usr/GNUstep/Local/Library), if the executable is
+ * /usr/GNUstep/Local/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control
+ * (/usr/GNUstep/Local/Tools/Control when using a 'flattened' layout)
+ * then the tool's  main bundle directory is installed as
+ * /usr/GNUstep/Local/Library/Tools/Resources/Control.<br />
+ * Of course the resources may also be in the SYSTEM, NETWORK or USER areas
+ * of the filesystem.<br />
+ * For alternative file system layouts see the gnustep-make documentation.<br />
+ * For configurable overrides of the filesystem layout, see the
+ * 'GNUstep Configuration File' section in the gnustep-base documentation.
  * </p>
- * <p>NB: traditionally tools didn't have a main bundle -- this is a recent
+ * <p>NB: traditionally tools didn't have a main bundle -- this is a
  * GNUstep extension, but it's quite nice and it's here to stay.
  * </p>
  * <p>The main bundle is where the application should put all of its
@@ -225,14 +239,14 @@ GS_EXPORT_CLASS
  * actually accepts relative paths too.<br />
  * The GNUstep behavior is similar in that it accepts a relative path,
  * but GNUstep converts it to an absolute path by referring to the
- * current working directory when the is initialised, so an absolute
+ * current working directory when the bundle is initialised, so an absolute
  * path is then used and a warning message is printed.<br />
  * On MacOS-X using a bundle initialised with a relative path will cause
  * a crash if the current working directory is changed between the point
  * at which the bundle was initialised and that at which it is used.<br />
  * If path is nil or can't be accessed, initWithPath: deallocates the
  * receiver and returns nil.<br />
- * If a bundle for that path already existed, it is returned in place
+ * If a bundle for that path already exists, it is returned in place
  * of the receiver (and the receiver is deallocated).<br />
  * If the -bundleIdentifier is not nil, and a bundle with the same
  * identifier already exists, the existing bundle is returned in place
@@ -426,7 +440,10 @@ GS_EXPORT_CLASS
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName;
 
-/** Returns the info property list associated with the bundle. */
+/** Returns the info property list associated with the bundle.<br />
+ * This is read from the 'Info-gnustep.plist' file (or 'Info.plist' if that
+ * does not exist) in this bundle, otherwise it is an empty dictionary.
+ */
 - (NSDictionary*) infoDictionary;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 

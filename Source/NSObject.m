@@ -49,6 +49,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GNUstep.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -59,10 +60,10 @@
 
 #import "GSPThread.h"
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #if __GNUC__ >= 4
@@ -83,17 +84,38 @@
 #endif
 #endif
 
-/* objc_enumerationMutation() is called whenever a collection mutates in the
- * middle of fast enumeration.  We need to have this defined and linked into
- * any code that uses fast enumeration, so we define it in NSObject.h
- * This symbol is exported to take precedence over the weak symbol provided
- * by the runtime library.
+/* GSEnumerationMutation() is called whenever a collection mutates in the
+ * middle of fast enumeration.
  */
-GS_EXPORT void objc_enumerationMutation(id obj)
+void GSEnumerationMutation(id obj)
 {
   [NSException raise: NSGenericException 
     format: @"Collection %@ was mutated while being enumerated", obj];
 }
+
+#if	GS_HAVE_FAST_ENUMERATION
+  /* If possible we will ask the runtime to call our handler.
+   */
+# if	GS_HAVE_FAST_ENUMERATION_SETTER
+    extern void objc_setEnumerationMutationHandler(void (*handler)(id));
+# else
+    /* Otherwise, we can override a weak symbol in the runtime on platforms
+     * which support it (not reliable with DLLs in mingw).
+     */
+#   if	defined(__clang__) || !defined(__MINGW__)
+      /* objc_enumerationMutation() is called whenever a collection mutates
+       * in the middle of fast enumeration.  We need to have this defined
+       * and linked into any code that uses fast enumeration.
+       * This symbol is exported to take precedence over the weak symbol
+       * provided by the runtime library.
+       */
+      void objc_enumerationMutation(id obj)
+      {
+	GSEnumerationMutation(obj);
+      }
+#   endif
+# endif
+#endif
 
 /* platforms which do not support weak */
 #if defined (__WIN32)
@@ -434,7 +456,8 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 
 #ifndef OBJC_CAP_ARC
 typedef struct {
-  BOOL	hadWeakReference: 1;	// set if the instance ever had a weak reference
+  BOOL	hadWeakReference: 1;	// if the instance ever had a weak reference
+  BOOL	hadAssociations: 1;	// if the instance ever had associated objects
 } gsinstinfo_t;
 #endif
 
@@ -475,7 +498,18 @@ typedef	struct obj_layout *obj;
 
 #ifndef OBJC_CAP_ARC
 BOOL
-GSPrivateMarkedWeak(id anObject, BOOL  mark)
+GSPrivateMarkedAssociations(id anObject, BOOL mark)
+{
+  BOOL	wasMarked = ((obj)anObject)[-1].extra.hadAssociations;
+
+  if (mark)
+    {
+      ((obj)anObject)[-1].extra.hadAssociations = YES;
+    }
+  return wasMarked;
+}
+BOOL
+GSPrivateMarkedWeak(id anObject, BOOL mark)
 {
   BOOL	wasMarked = ((obj)anObject)[-1].extra.hadWeakReference;
 
@@ -608,12 +642,12 @@ NSDecrementExtraRefCountWasZero(id anObject)
   return release_fast_no_destroy(anObject);
 }
 
-size_t object_getRetainCount_np_internal(id anObject)
+static size_t object_getRetainCount_np_internal(id anObject)
 {
   return ((obj)anObject)[-1].retained + 1;
 }
 
-size_t getRetainCount(id anObject)
+static size_t getRetainCount(id anObject)
 {
 #ifdef __GNUSTEP_RUNTIME__
   if (object_getRetainCount_np)
@@ -737,15 +771,6 @@ NSIncrementExtraRefCount(id anObject)
    retain_fast(anObject);
 }
 
-#ifndef	NDEBUG
-#define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#define	AREM(c, o) GSDebugAllocationRemove(c, o)
-#else
-#define	AADD(c, o)
-#define	AREM(c, o)
-#endif
-
-
 #ifndef OBJC_CAP_ARC
 static SEL cxx_construct, cxx_destruct;
 
@@ -789,18 +814,13 @@ callCXXConstructors(Class aClass, id anObject)
  *	the start of each object.
  */
 
-// FIXME rewrite object allocation to use class_createInstance when we
-// are using libobjc2.
 inline id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
 
 #ifdef OBJC_CAP_ARC
-  if ((new = class_createInstance(aClass, extraBytes)) != nil)
-    {
-      AADD(aClass, new);
-    }
+  new = class_createInstance(aClass, extraBytes);
 #else
   int	size;
 
@@ -816,7 +836,6 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
       memset (new, 0, size);
       new = (id)&((obj)new)[1];
       object_setClass(new, aClass);
-      AADD(aClass, new);
     }
 
   /* Don't bother doing this in a thread-safe way, because the cost of locking
@@ -852,7 +871,13 @@ NSDeallocateObject(id anObject)
        */
       (*finalize_imp)(anObject, finalize_sel);
 
-      AREM(aClass, (id)anObject);
+#ifndef OBJC_CAP_ARC
+      if (GSPrivateMarkedAssociations(anObject, NO))
+	{
+	  objc_removeAssociatedObjects(anObject);
+	}
+#endif
+
       if (NSZombieEnabled)
 	{
 	  /* Replace the isa pointer etc to turn the object into a zombie.
@@ -991,6 +1016,12 @@ static id gs_weak_load(id obj)
 {
   if (self == [NSObject class])
     {
+#if	GS_HAVE_FAST_ENUMERATION_SETTER
+      /* Tell runtime to pass enumeration mutation detection handling to us.
+       */
+      objc_setEnumerationMutationHandler(GSEnumerationMutation);
+#endif
+
 #ifdef _WIN32
       /* Start of sockets so we can get host name and other info */
       WORD wVersionRequested = MAKEWORD(2, 2);
@@ -1178,14 +1209,6 @@ static id gs_weak_load(id obj)
  *  some reasons silently allocates instances of another class
  *  (this is typically needed to implement class clusters and
  *  similar design schemes).
- * </p>
- * <p>
- *   If you have turned on debugging of object allocation (by
- *   calling the <code>GSDebugAllocationActive</code>
- *   function), this method will also update the various
- *   debugging counts and monitors of allocated objects, which
- *   you can access using the <code>GSDebugAllocation...</code>
- *   functions.
  * </p>
  */
 + (id) allocWithZone: (NSZone*)z
@@ -1386,6 +1409,7 @@ static id gs_weak_load(id obj)
  */
 - (void) dealloc
 {
+  GSDebugAllocationRemove(object_getClass(self), self);
   NSDeallocateObject(self);
 }
 
@@ -1459,11 +1483,18 @@ static id gs_weak_load(id obj)
   return nil;
 }
 
-/**
- * Initialises the receiver ... the NSObject implementation simply returns self.
+/** Initialises the receiver.  The NSObject implementation 
+ * calls GSDebugAllocationAdd() and returns self.<br />
+ * If you have turned on debugging of object allocation (by
+ * calling the <code>GSDebugAllocationActive</code>
+ * function), GSDebugAllocationAdd() will update the various
+ * debugging counts and monitors of allocated objects, which
+ * you can access using the <code>GSDebugAllocation...</code>
+ * functions.
  */
 - (id) init
 {
+  GSDebugAllocationAdd(object_getClass(self), self);
   return self;
 }
 

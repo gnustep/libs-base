@@ -25,8 +25,15 @@
 #ifndef __NSOperation_h_GNUSTEP_BASE_INCLUDE
 #define __NSOperation_h_GNUSTEP_BASE_INCLUDE
 
+#include "GNUstepBase/GSConfig.h"
 #import <Foundation/NSObject.h>
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST) \
+  && GS_USE_LIBDISPATCH == 1
+#include "dispatch/dispatch.h"
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -334,9 +341,23 @@ GS_EXPORT_CLASS
  * and removed from the queue).
  */
 - (void) waitUntilAllOperationsAreFinished;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST) \
+  && GS_USE_LIBDISPATCH == 1
+  /** Returns the underlying dispatch queue.
+   */
+- (dispatch_queue_t) underlyingQueue;
+
+  /** Sets the underlying dispatch queue.
+   *
+   * Throws `NSInvalidArgumentException` if:
+   *  - The argument is `NULL`
+   *  - There are operations in the queue `(operationCount > 0)`
+   *  - The argument is the value returned by `dispatch_get_main_queue()`
+   */
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue;
+#endif
 @end
-
-
 
 #if	defined(__cplusplus)
 }

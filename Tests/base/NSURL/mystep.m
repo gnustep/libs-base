@@ -14,20 +14,16 @@ int main()
 @"file%20name.htm;param1;param2?something=other&andmore=more#fragments"
     relativeToURL: url];
 
-  PASS_EQUAL([url description],
-    @"file%20name.htm;param1;param2?something=other&andmore=more#fragments -- scheme://user:password@host.domain.org:888/path/absfile.htm",
-    "description ok");
-
   PASS_EQUAL([url absoluteString],
     @"scheme://user:password@host.domain.org:888/path/file%20name.htm;param1;param2?something=other&andmore=more#fragments",
     "absolute string ok");
 
   PASS_EQUAL([[url absoluteURL] description],
-    @"scheme://user:password@host.domain.org:888/path/file%20name.htm;param1;param2?something=other&andmore=more#fragments",
+    @"scheme://user:HIDDEN-PASSWORD@host.domain.org:888/path/file%20name.htm;param1;param2?something=other&andmore=more#fragments",
     "absolute url description ok");
 
   PASS_EQUAL([[url baseURL] description],
-    @"scheme://user:password@host.domain.org:888/path/absfile.htm",
+    @"scheme://user:HIDDEN-PASSWORD@host.domain.org:888/path/absfile.htm",
     "base url description ok");
 
   PASS_EQUAL([url fragment], @"fragments", "fragment ok");

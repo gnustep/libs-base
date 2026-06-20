@@ -723,43 +723,45 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (id) init
 {
-  id	o;
-  int idx;
-  
-  GS_CREATE_INTERNAL(NSNumberFormatter)
-  
-  _allowsFloats = YES;
-  _decimalSeparator = '.';
-  _thousandSeparator = ',';
-  _hasThousandSeparators = YES;
-  o = [[NSAttributedString alloc] initWithString: @""];
-  [self setAttributedStringForNil: o];
-  RELEASE(o);
-  o = [[NSAttributedString alloc] initWithString: @"NaN"];
-  [self setAttributedStringForNotANumber: o];
-  RELEASE(o);
-  
-  internal->_behavior = _defaultBehavior;
-  internal->_locale = RETAIN([NSLocale currentLocale]);
-  internal->_style = NSNumberFormatterNoStyle;
-
-  /* Set all attributes to -1 before resetting the formatter.  When
-   * resetting them only values < 0 will be skipped.
-   */
-  for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
-    internal->_attributes[idx] = -1;
-  
-  [self _resetUNumberFormat];
-#if GS_USE_ICU == 1
-  if (internal->_formatter == NULL)
+  if (nil != (self = [super init]))
     {
-      RELEASE(self);
-      return nil;
-    }
+      id	o;
+      int 	idx;
+      
+      GS_CREATE_INTERNAL(NSNumberFormatter)
+      
+      _allowsFloats = YES;
+      _decimalSeparator = '.';
+      _thousandSeparator = ',';
+      _hasThousandSeparators = YES;
+      o = [[NSAttributedString alloc] initWithString: @""];
+      [self setAttributedStringForNil: o];
+      RELEASE(o);
+      o = [[NSAttributedString alloc] initWithString: @"NaN"];
+      [self setAttributedStringForNotANumber: o];
+      RELEASE(o);
+      
+      internal->_behavior = _defaultBehavior;
+      internal->_locale = RETAIN([NSLocale currentLocale]);
+      internal->_style = NSNumberFormatterNoStyle;
+
+      /* Set all attributes to -1 before resetting the formatter.  When
+       * resetting them only values < 0 will be skipped.
+       */
+      for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
+	internal->_attributes[idx] = -1;
+      
+      [self _resetUNumberFormat];
+#if GS_USE_ICU == 1
+      if (internal->_formatter == NULL)
+	{
+	  RELEASE(self);
+	  return nil;
+	}
 #endif
-  
-  [self setMaximumFractionDigits: 0];
-  
+      
+      [self setMaximumFractionDigits: 0];
+    }  
   return self;
 }
 
@@ -1051,6 +1053,56 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
+  NSDecimalNumber *zeroNumber;
+  NSDecimalNumber *nanNumber;
+  NSAttributedString *attrStr;
+  
+  // Handle nil objects
+  if (nil == anObject)
+    {
+      attrStr = [self attributedStringForNil];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle non-NSNumber objects
+  if (![anObject isKindOfClass: [NSNumber class]])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle NaN
+  nanNumber = [NSDecimalNumber notANumber];
+  if ([anObject isEqual: nanNumber])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle zero
+  zeroNumber = [NSDecimalNumber zero];
+  if ([anObject isEqual: zeroNumber])
+    {
+      attrStr = [self attributedStringForZero];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      // Fall through to normal formatting if no special zero string is set
+    }
+  
   if (MYBEHAVIOR == NSNumberFormatterBehaviorDefault
     || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
     {
@@ -1086,10 +1138,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
        * falling through to the double case for this, which will lose us some
        * precision, but hopefully not matter too much...
        */
-      if (nil == anObject)
-        return [self nilSymbol];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [self notANumberSymbol];
       switch ([anObject objCType][0])
         {
           case _C_LNG_LNG:
@@ -1177,16 +1225,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
         characterSetWithCharactersInString: @"0123456789#.,_"];
       placeHolders = [NSCharacterSet 
         characterSetWithCharactersInString: @"0123456789#_"];
-
-      if (nil == anObject)
-        return [[self attributedStringForNil] string];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [[self attributedStringForNotANumber] string];
-      if ([anObject isEqual: [NSDecimalNumber notANumber]])
-        return [[self attributedStringForNotANumber] string];
-      if (_attributedStringForZero
-          && [anObject isEqual: [NSDecimalNumber zero]])
-        return [[self attributedStringForZero] string];
       
       useFormat = _positiveFormat;
       if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
@@ -1419,7 +1457,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       UErrorCode 	err = U_ZERO_ERROR;
       int64_t 		intNum;
       double 		doubleNum;
-      GS_BEGINITEMBUF(ustring, length * sizeof(unichar), unichar)
+      GS_BEGINITEMBUF(ustring, length, unichar)
   
       [string getCharacters: ustring range: NSMakeRange(0, length)];
   

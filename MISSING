@@ -506,7 +506,6 @@ NSString:
 	NSCharacterConversionException
 	NSStringEnumerationOptions
 
-	- localizedStandardCompare:
 	- uppercaseStringWithLocale:
 	- lowercaseStringWithLocale:
 	- capitalizedStringWithLocale:

@@ -64,18 +64,18 @@ GS_EXPORT_CLASS
 /**
  * Return a path containing the single value anIndex.
  */
-+ (id) indexPathWithIndex: (NSUInteger)anIndex;
++ (instancetype) indexPathWithIndex: (NSUInteger)anIndex;
 
 /**
  * Return a path containing all the indexes in the supplied array.
  */
-+ (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
++ (instancetype) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_11,GS_API_LATEST)
 /**
  * Return a path containing an item number and section.
  */
-+ (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
++ (instancetype) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
 
 /**
  * Return an index number identifying an item in a collection view
@@ -92,7 +92,7 @@ GS_EXPORT_CLASS
 /**
  * Return a path containing row number and section.
  */
-+ (NSIndexPath *) indexPathForRow: (NSInteger)item inSection: (NSInteger)section;
++ (instancetype) indexPathForRow: (NSInteger)item inSection: (NSInteger)section;
 
 /**
  * Return an index number identifying a row in a table view

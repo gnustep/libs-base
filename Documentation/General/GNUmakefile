@@ -29,6 +29,8 @@ include ../../config.mak
 
 DOCUMENT_NAME = General
 
+General_AGSDOC_INSTALL_BUNDLE = General
+General_AGSDOC_LOCAL_DIR = General
 General_DOC_INSTALL_DIR = Developer/Base
 
 General_AGSDOC_FILES = \
@@ -36,13 +38,9 @@ Debugging.gsdoc \
 OpenStepCompliance.gsdoc \
 
 
-#
-# Hack ... using the -DocumentationDirectory flag overrides the value
-# used by the make package, and puts our output in the documentation
-# directory.
-#
-#General_AGSDOC_FLAGS = -DocumentationDirectory .
-General_AGSDOC_FLAGS = -DTDs ../../Tools
+General_AGSDOC_FLAGS = \
+	-MakeFrames NO \
+	-DTDs ../../Tools
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc

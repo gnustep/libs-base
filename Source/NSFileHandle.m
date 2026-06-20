@@ -26,6 +26,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHost.h"
@@ -186,9 +187,10 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithNullDevice]);
 }
 
-+ (id) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForReadingFromURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForReadingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -196,9 +198,10 @@ static Class NSFileHandle_ssl_class = nil;
   return o;
 }
 
-+ (id) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForWritingToURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForWritingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -209,6 +212,7 @@ static Class NSFileHandle_ssl_class = nil;
 + (id) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error
 {
   id	o = [self fileHandleForUpdatingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -305,7 +309,7 @@ static Class NSFileHandle_ssl_class = nil;
 /**
  *  Reads up to len bytes from file or communications channel into return data.
  */
-- (NSData*) readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -319,6 +323,23 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL) writeData:(NSData *)data error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (NSData *) readDataUpToLength:(NSUInteger)length error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 
 // Asynchronous I/O operations
 
@@ -409,8 +430,8 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Seeking within a file
 
-- (BOOL) getOffset: (out unsigned long long *)offsetInFile
-             error: (out NSError **)error
+- (BOOL) getOffset: (unsigned long long *)offsetInFile
+             error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -436,15 +457,15 @@ static Class NSFileHandle_ssl_class = nil;
   return 0;
 }
 
-- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
-                            error: (out NSError **)error
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile
+                            error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
 - (BOOL) seekToOffset: (unsigned long long)offset
-                error: (out NSError **)error
+                error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -489,7 +510,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset
-                    error: (out NSError **)error
+                    error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -1117,26 +1138,20 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
    */
   if (nil == session)
     {
-      /* If No value is specified for GSTLSRemoteHosts, make a comma separated
-       * list of all known names for the remote host and use that.
+      /* If no value is specified for GSTLSServerName, try to use any name of
+       * the remote host in case the remote server requres a name.
        */
-      if (nil == [opts objectForKey: GSTLSRemoteHosts])
+      if (nil == [opts objectForKey: GSTLSServerName])
         {
           NSHost        *host = [NSHost hostWithAddress: [self socketAddress]];
-          NSString      *s = [[host names] description];
+          NSString      *name = [host name];
 
-          s = [s stringByReplacingString: @"\"" withString: @""];
-          if ([s length] > 1)
+          if (name)
             {
-              s = [s substringWithRange: NSMakeRange(1, [s length] - 2)];
-            }
-          if ([s length] > 0)
-            {
-              NSMutableDictionary   *d = [opts mutableCopy];
+              NSMutableDictionary   *d = AUTORELEASE([opts mutableCopy]);
 
-              [d setObject:s forKey: GSTLSRemoteHosts];
+              [d setObject: name forKey: GSTLSRemoteHosts];
               ASSIGNCOPY(opts, d);
-              [d release];
             }
         }
       [self setNonBlocking: YES];

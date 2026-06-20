@@ -150,9 +150,8 @@ static NSMutableDictionary *__presenterIdDict = nil;
                          byAccessor: (GSAccessorCallbackHandler)accessor
 {
   NSEnumerator *en = [intents objectEnumerator];
-  id obj = nil;
   
-  while ((obj = [en nextObject]) != nil)
+  while ([en nextObject] != nil)
     {
       NSBlockOperation *op;
 

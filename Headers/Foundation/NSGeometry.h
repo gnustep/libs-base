@@ -1,7 +1,7 @@
 /** Interface for NSGeometry routines for GNUStep
  * Copyright (C) 1995 Free Software Foundation, Inc.
  * 
- * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+ * Written by:  Adam Fedor <fedor@gnu.org>
  * Date: 1995,199
  * 
  * This file is part of the GNUstep Base Library.

@@ -112,11 +112,6 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
-- (id) init
-{
-  return [self initWithOptions: 0];
-}
-
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   [self subclassResponsibility: _cmd];
@@ -134,7 +129,7 @@ static Class	concreteClass = Nil;
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
   [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (BOOL) isEqual: (id)other
@@ -461,18 +456,21 @@ static Class	concreteClass = Nil;
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
+      memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
     }
-  memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
   return self;
 }
 

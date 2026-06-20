@@ -155,6 +155,10 @@ static char * xml_strdup(const char *from)
   return to;
 }
 
+@interface	NSObject (SetupForGSXML)
++ (void) _setupForGSXML;
+@end
+
 @implementation	NSObject (SetupForGSXML)
 + (void) _setupForGSXML
 {
@@ -171,6 +175,10 @@ static char * xml_strdup(const char *from)
       usImp = (id (*)(id, SEL, const unsigned char*))
 	[NSString_class methodForSelector: usSel];
       cacheDone = YES;
+      if (NO == [NSThread isMainThread])
+	{
+	  NSLog(@"WARNING libxml2 not initialised in main thread ... XML operations performed after this thread exits may crash.");
+	}
     }
 }
 @end
@@ -182,9 +190,28 @@ setupCache()
     {
       /* Setup of libxml2 must be done on main thread.
        */
-      [NSObject performSelectorOnMainThread: @selector(_setupForGSXML)
-				 withObject: nil
-			      waitUntilDone: YES];
+      if ([NSThread isMainThread])
+	{
+	  [NSObject _setupForGSXML];
+	}
+      else
+	{
+	  NSTimeInterval	limit;
+
+	  limit = [NSDate timeIntervalSinceReferenceDate] + 5.0;
+	  [NSObject performSelectorOnMainThread: @selector(_setupForGSXML)
+				     withObject: nil
+				  waitUntilDone: NO];
+	  while (NO == cacheDone
+	    && [NSDate timeIntervalSinceReferenceDate] < limit)
+	    {
+	      [NSThread sleepForTimeInterval: 0.1];
+	    }
+	  if (NO == cacheDone)
+	    {
+	      [NSObject _setupForGSXML];
+	    }
+	}
     }
 }
 
@@ -608,10 +635,13 @@ static NSMapTable	*attrNames = 0;
       DESTROY(self);
       return nil;
     }
-  lib = data;
-  _ownsLib = f;
-  ((xmlNodePtr)(lib))->_private = self;
-  ASSIGN(_parent, p);
+  if (nil != (self = [super init]))
+    {
+      lib = data;
+      _ownsLib = f;
+      ((xmlNodePtr)(lib))->_private = self;
+      ASSIGN(_parent, p);
+    }
   return self;
 }
 @end
@@ -1663,15 +1693,18 @@ static NSMapTable	*nodeNames = 0;
  */
 - (id) _initFrom: (void*)data parent: (id)p
 {
-  if (data == NULL)
+  if (nil != (self = [super init]))
     {
-      NSLog(@"%@ - no data for initialization",
-	NSStringFromClass([self class]));
-      DESTROY(self);
-      return nil;
+      if (data == NULL)
+	{
+	  NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
+	  return nil;
+	}
+      lib = data;
+      ASSIGN(_parent, p);
     }
-  lib = data;
-  ASSIGN(_parent, p);
   return self;
 }
 - (void) _setOwnsLib: (BOOL)f
@@ -2055,25 +2088,28 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
-  if (handler == nil)
+  if (nil != (self = [super init]))
     {
-      saxHandler = [GSTreeSAXHandler new];
-    }
-  else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
-    {
-      saxHandler = RETAIN(handler);
-    }
-  else
-    {
-      NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
-      DESTROY(self);
-      return nil;
-    }
-  [saxHandler _setParser: self];
-  if ([self _initLibXML] == NO)
-    {
-      DESTROY(self);
-      return nil;
+      if (handler == nil)
+	{
+	  saxHandler = [GSTreeSAXHandler new];
+	}
+      else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
+	{
+	  saxHandler = RETAIN(handler);
+	}
+      else
+	{
+	  NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
+	  DESTROY(self);
+	  return nil;
+	}
+      [saxHandler _setParser: self];
+      if ([self _initLibXML] == NO)
+	{
+	  DESTROY(self);
+	  return nil;
+	}
     }
   return self;
 }
@@ -2154,8 +2190,10 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  src = [data copy];
-  self = [self initWithSAXHandler: handler];
+  if (nil != (self = [self initWithSAXHandler: handler]))
+    {
+      src = [data copy];
+    }
   return self;
 }
 
@@ -3949,11 +3987,14 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (id) _initWithNativePointer: (xmlXPathObject *)lib
 		      context: (GSXPathContext *)context
 {
-  _lib = lib;
-  /* We RETAIN our context because we might be holding references to nodes
-   * which belong to the document, and we must make sure the document is
-   * not freed before we are.  */
-  ASSIGN (_context, context);
+  if (nil != (self = [super init]))
+    {
+      _lib = lib;
+      /* We RETAIN our context because we might be holding references to nodes
+       * which belong to the document, and we must make sure the document is
+       * not freed before we are.  */
+      ASSIGN (_context, context);
+    }
   return self;
 }
 
@@ -4138,10 +4179,12 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (id) initWithDocument: (GSXMLDocument *)d
 {
-  ASSIGN (_document, d);
-  _lib = xmlXPathNewContext ([_document lib]);
-  ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
-
+  if (nil != (self = [super init]))
+    {
+      ASSIGN (_document, d);
+      _lib = xmlXPathNewContext ([_document lib]);
+      ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
+    }
   return self;
 }
 

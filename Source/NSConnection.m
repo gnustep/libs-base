@@ -323,11 +323,12 @@ GS_PRIVATE_INTERNAL(NSConnection)
 - (void) addLocalObject: (NSDistantObject*)anObj;
 - (void) removeLocalObject: (NSDistantObject*)anObj;
 
-- (void) _doneInReply: (NSPortCoder*)c;
+- (void) _doneInReply: (NSPortCoder*) NS_CONSUMED c;
 - (void) _doneInRmc: (NSPortCoder*) NS_CONSUMED c;
-- (void) _failInRmc: (NSPortCoder*)c;
+- (void) _failInRmc: (NSPortCoder*) NS_CONSUMED c;
 - (void) _failOutRmc: (NSPortCoder*)c;
-- (NSPortCoder*) _getReplyRmc: (int)sn for: (const char*)request;
+- (NSPortCoder*) NS_RETURNS_RETAINED _getReplyRmc: (int)sn
+					      for: (const char*)request;
 - (NSPortCoder*) _newInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _newOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
 - (void) _portIsInvalid: (NSNotification*)notification;
@@ -335,12 +336,12 @@ GS_PRIVATE_INTERNAL(NSConnection)
                 type: (int)msgid
             sequence: (int)sno;
 
-- (void) _service_forwardForProxy: (NSPortCoder*)rmc;
-- (void) _service_release: (NSPortCoder*)rmc;
-- (void) _service_retain: (NSPortCoder*)rmc;
-- (void) _service_rootObject: (NSPortCoder*)rmc;
-- (void) _service_shutdown: (NSPortCoder*)rmc;
-- (void) _service_typeForSelector: (NSPortCoder*)rmc;
+- (void) _service_forwardForProxy: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_release: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_retain: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_rootObject: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_shutdown: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_typeForSelector: (NSPortCoder*) NS_CONSUMED rmc;
 - (void) _shutdown;
 + (void) _threadWillExit: (NSNotification*)notification;
 @end
@@ -1007,6 +1008,11 @@ static NSLock	*cached_proxies_gate = nil;
       return self;
     }
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
+
   /* Create our private data structure.
    */
   GS_CREATE_INTERNAL(NSConnection);
@@ -1157,10 +1163,15 @@ static NSLock	*cached_proxies_gate = nil;
     }
   /* Here is the GNUstep version, which allows the delegate to specify
      a substitute.  Note: The delegate is responsible for freeing
-     newConn if it returns something different. */
+     the new connection if it returns something different. */
   if ([del respondsToSelector: @selector(connection:didConnect:)])
     {
-      self = [del connection: parent didConnect: self];
+      NSConnection	*conn = [del connection: parent didConnect: self];
+
+      if (conn != self)
+	{
+	  ASSIGN(self, conn);
+	}
     }
 
   nCenter = [NSNotificationCenter defaultCenter];
@@ -2323,7 +2334,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  }
 	else
 	  {
-	    [GSIVar(conn, _requestQueue) addObject: rmc];
+	    [GSIVar(conn, _requestQueue) addObject: AUTORELEASE(rmc)];
 	  }
 	/*
 	 * Service any requests that were queued while we
@@ -2332,7 +2343,7 @@ static NSLock	*cached_proxies_gate = nil;
 	while (GSIVar(conn, _requestDepth) == 0
 	  && [GSIVar(conn, _requestQueue) count] > 0)
 	  {
-	    rmc = [GSIVar(conn, _requestQueue) objectAtIndex: 0];
+	    rmc = RETAIN([GSIVar(conn, _requestQueue) objectAtIndex: 0]);
 	    [GSIVar(conn, _requestQueue) removeObjectAtIndex: 0];
 	    GSM_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
@@ -3257,7 +3268,7 @@ static NSLock	*cached_proxies_gate = nil;
   IrepInCount++;
 }
 
-- (void) _doneInRmc: (NSPortCoder*) NS_CONSUMED c
+- (void) _doneInRmc: (NSPortCoder*)c
 {
   GS_M_LOCK(IrefGate);
   if (debug_connection > 5)
@@ -3277,7 +3288,7 @@ static NSLock	*cached_proxies_gate = nil;
  * This method called if an exception occurred, and we don't know
  * whether we have already tidied the NSPortCoder object up or not.
  */
-- (void) _failInRmc: (NSPortCoder*)c
+- (void) _failInRmc: (NSPortCoder*) NS_CONSUMED c
 {
   GS_M_LOCK(IrefGate);
   if (cacheCoders == YES && IcachedDecoders != nil
@@ -3613,10 +3624,17 @@ static NSLock	*cached_proxies_gate = nil;
 			anObj, target);
 	}
 
-      /*
-       * Remove the proxy from IlocalObjects and release it.
+      /* Remove the proxy from IlocalObjects and release it.
        */
       GSIMapRemoveKey(IlocalObjects, (GSIMapKey)anObj);
+
+      /* We need to suppress the clang analyser warning about the release
+       * because the static analysed does not know that the object was
+       * retained before it was stored in the map node.
+       */
+#ifdef  __clang_analyzer__
+      [[clang::suppress]]
+#endif
       RELEASE(prox);
 
       /*

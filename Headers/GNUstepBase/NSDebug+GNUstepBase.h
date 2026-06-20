@@ -41,6 +41,10 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
+/** Returns YES if the specified debug level has been set for the running
+ * process.  Debug levels are ususaally set on the command line with an
+ * argument of the form --GNU-Debug=level
+ */
 GS_EXPORT BOOL GSDebugSet(NSString *level);
 
 /**
@@ -56,6 +60,25 @@ GS_EXPORT NSString*	GSDebugFunctionMsg(const char *func, const char *file,
 GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 
+/** Returns the requested ISX compatibility version for the process, derived
+ * from the value of the GSMacOSXCompatible user default.
+ * This specifies waht level of compatiblity with undefined/bad OSX features
+ * has been requested by the user.<br />
+ * The GNUstep-base library uses this information internally to turn on any
+ * contributed features for compatibility with particular versions of OSX,
+ * providing this function to encourage other frameworks to do the same.<br />
+ * The meaning of the integer value is as follows:
+ * <deflist>
+ *   <term>0</term><desc>No special compatibility requested</desc>
+ *   <term>1</term><desc>Any/all compatibility features requested</desc>
+ *   <term>version</term><desc>Compatibility with the specified OSX version
+ *   requested.</desc>
+ * </deflist>
+ * The version number values match those defined in the GSVersionMacros.h
+ * header, and can be used to bracket sections of code which try to behave
+ * like different versions of OSX.
+ */
+GS_EXPORT int	GSMacOSXVersion();
 
 #ifdef GSDIAGNOSE
 

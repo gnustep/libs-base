@@ -17,6 +17,7 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
 {
   NSArray  *arr, *carr;
   NSString *localPath;
+  NSString *str;
 
   PASS((bundle != nil),
     "bundle was found");
@@ -52,6 +53,11 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
     @"Resources/English.lproj/TextRes.txt"];
   PASS([arr containsObject: localPath],
     "Returned array contains localized resource");
+
+  str = [bundle localizedStringForKey: @"test"
+                                value: @"not-found"
+                                table: nil];
+  PASS_EQUAL(str, @"42", "Localizable strings file contains 'test'")
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
   arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil

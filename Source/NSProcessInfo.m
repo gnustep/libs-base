@@ -61,20 +61,20 @@
 #  include <windows.h>
 #endif
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #if	defined(HAVE_SYS_FILE_H)
 #  include <sys/file.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #ifdef HAVE_SYS_UTSNAME_H
@@ -455,8 +455,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		val = [NSString stringWithCharacters: start
 					      length: wenvp - start];
 		wenvp++;	// Skip past variable terminator
-		[keys addObject: key];
-		[values addObject: val];
+		if (key != nil && val != nil)
+		  {
+		    [keys addObject: key];
+		    [values addObject: val];
+		  }
 	      }
 	    FreeEnvironmentStringsW(base);
 	    env = 0;	// Suppress standard code.
@@ -1087,7 +1090,12 @@ int main(int argc, char *argv[], char *env[])
 
 - (NSDictionary *) environment
 {
-  return _gnu_environment;
+  NSDictionary	*d;
+
+  [procLock lock];
+  d = RETAIN(_gnu_environment);
+  [procLock unlock];
+  return AUTORELEASE(d);
 }
 
 - (NSString *) globallyUniqueString
@@ -1812,6 +1820,76 @@ GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char 
       return YES;
     }
   return NO;
+}
+
+
+- (BOOL) setValue: (NSString*)value inEnvironment: (NSString*)key
+{
+  NSMutableDictionary	*m;
+  BOOL			reallyChanged = NO;
+
+  NSAssert([key isKindOfClass: [NSString class]], NSInvalidArgumentException);
+  NSAssert(nil == value || [value isKindOfClass: [NSString class]],
+    NSInvalidArgumentException);
+  [procLock lock];
+  m = [_gnu_environment mutableCopy];
+  DESTROY(_gnu_environment);
+  _gnu_environment = m;
+  if (nil == value)
+    {
+      [m removeObjectForKey: key];
+    }
+  else
+    {
+      [m setObject: value forKey: key];
+    }
+#if defined(_WIN32)
+  {
+    NSUInteger		kLength = [key length];
+    GSNativeChar  	kStr[kLength + 1];
+
+    [key getCharacters: kStr];
+    kStr[kLength] = L'\0';
+
+    if (value)
+      {
+	NSUInteger	vLength = [value length];
+	GSNativeChar  	vStr[vLength + 1];
+  
+	[value getCharacters: vStr];
+	vStr[vLength] = L'\0';
+    
+	if (SetEnvironmentVariableW(kStr, vStr) != 0)
+	  {
+	    reallyChanged = YES;
+	  }
+      }
+    else
+      {
+	if (SetEnvironmentVariableW(kStr, NULL) != 0)
+	  {
+	    reallyChanged = YES;
+	  }
+      }
+  }
+#else
+  if (nil == value)
+    {
+      if (0 == unsetenv([key cString]))
+	{
+	  reallyChanged = YES;
+	}
+    }
+  else
+    {
+      if (0 == setenv([key cString], [value cString], 1))
+	{
+	  reallyChanged = YES;
+	}
+    }
+#endif
+  [procLock unlock];
+  return reallyChanged;
 }
 
 #ifdef __ANDROID__

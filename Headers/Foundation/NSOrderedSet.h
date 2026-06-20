@@ -579,10 +579,6 @@ GS_EXPORT_CLASS
  */
 - (void) unionSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 
-/**
- * Implementation of NSCopying protocol.
- */
-- (instancetype) initWithCoder: (NSCoder *)coder;
 @end
 
 #if	defined(__cplusplus)

@@ -31,6 +31,7 @@
 #import "common.h"
 #if	!defined(NeXT_Foundation_LIBRARY)
 #import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
@@ -71,6 +72,7 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #include "unicode/gsm0338.h"
 #include "unicode/thai.h"
 
+
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H
 #include <giconv.h>
@@ -94,6 +96,21 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #define UNICODE_UTF32 "UTF-32LE"
 #define UNICODE_INT "UNICODELITTLE"
 #endif
+
+static inline uint16_t
+GSUnicodeSwap16(uint16_t codePoint)
+{
+  return (codePoint << 8) | (codePoint >> 8);
+}
+
+static inline uint32_t
+GSUnicodeSwap32(uint32_t codePoint)
+{
+  return ((codePoint & 0xFF) << 24)
+    | ((codePoint & 0xFF00) << 8)
+    | ((codePoint & 0xFF0000) >> 8)
+    | (codePoint >> 24);
+}
 
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
@@ -323,15 +340,15 @@ static struct _strenc_ str_encoding_table[] = {
 /* Now Apple encodings which have high numeric values.
  */
   {NSUTF16BigEndianStringEncoding,
-    "NSUTF16BigEndianStringEncoding","UTF-16BE",0,0,0},
+    "NSUTF16BigEndianStringEncoding","UTF-16BE",0,1,0},
   {NSUTF16LittleEndianStringEncoding,
-    "NSUTF16LittleEndianStringEncoding","UTF-16LE",0,0,0},
+    "NSUTF16LittleEndianStringEncoding","UTF-16LE",0,1,0},
   {NSUTF32StringEncoding,
-    "NSUTF32StringEncoding",UNICODE_UTF32,0,0,0},
+    "NSUTF32StringEncoding",UNICODE_UTF32,0,1,0},
   {NSUTF32BigEndianStringEncoding,
-    "NSUTF32BigEndianStringEncoding","UTF-32BE",0,0,0},
+    "NSUTF32BigEndianStringEncoding","UTF-32BE",0,1,0},
   {NSUTF32LittleEndianStringEncoding,
-    "NSUTF32LittleEndianStringEncoding","UTF-32LE",0,0,0},
+    "NSUTF32LittleEndianStringEncoding","UTF-32LE",0,1,0},
 
   {0,"Unknown encoding","",0,0,0}
 };
@@ -736,13 +753,14 @@ octdigit(int c)
  */
 unsigned
 GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1)
+  BOOL *isASCII, BOOL *isLatin1, BOOL *isBad)
 {
   unsigned	i = 0;
   unichar	c;
 
   if (isASCII) *isASCII = YES;
   if (isLatin1) *isLatin1 = YES;
+  if (isBad) *isBad = NO;
   while (i < length)
     {
       if (chars[i++] > 127)
@@ -760,19 +778,37 @@ GSUnicode(const unichar *chars, unsigned length,
 		      c = chars[i++];
 		      if (c >= 0xdc00 && c <= 0xdfff)
 		        {
-			  return i - 1;	// Second half of a surrogate pair.
+			  // Second half of a surrogate pair.
+			  if (NULL == isBad)
+			    {
+			      return i - 1;
+			    }
+			  *isBad = YES;
+			  return length;
 		        }
 		      if (c >= 0xd800 && c <= 0xdbff)
 		        {
 			  // First half of a surrogate pair.
 			  if (i >= length)
 			    {
-			      return i - 1;	// Second half missing
+			      // Second half missing
+			      if (NULL == isBad)
+				{
+				  return i - 1;
+				}
+			      *isBad = YES;
+			      return length;
 			    }
 			  c = chars[i];
 			  if (c < 0xdc00 || c > 0xdfff)
 			    {
-			      return i - 1;	// Second half missing
+			      // Second half missing
+			      if (NULL == isBad)
+				{
+				  return i - 1;
+				}
+			      *isBad = YES;
+			      return length;
 			    }
 			  i++;		// Step past second half
 		        }
@@ -782,6 +818,45 @@ GSUnicode(const unichar *chars, unsigned length,
         }
     }
   return i;
+}
+
+void
+GSPrivateCleanUnichars(unichar *u, unsigned l)
+{
+  unsigned	i;
+
+  for (i = 0; i < l; i++)
+    {
+      unichar	c = u[i];
+
+      if (c >= 0xdc00 && c <= 0xdfff)
+	{
+	  // Second half of surrogate pair without first half
+	  u[i] = 0xFFFD;
+	}
+      if (c >= 0xd800 && c <= 0xdbff)
+	{
+	  // First half of a surrogate pair.
+	  if (i + 1 >= l)
+	    {
+	      // Second half missing (short string)
+	      u[i] = 0xFFFD;
+	    }
+	  else
+	    {
+	      c = u[i + 1];
+	      if (c < 0xdc00 || c > 0xdfff)
+		{
+		  // Second half missing
+		  u[i] = 0xFFFD;
+		}
+	      else
+		{
+		  i++;
+		}
+	    }
+	}
+    }
 }
 
 #define	GROW() \
@@ -1140,6 +1215,102 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	}
 	break;
 
+      case NSUTF16BigEndianStringEncoding:
+      case NSUTF16LittleEndianStringEncoding:
+	if (dpos + slen/2 + (extra ? 1 : 0) > bsize)
+	  {
+	    if (zone == 0)
+	      {
+		result = NO; /* No buffer growth possible ... fail. */
+		goto done;
+	      }
+	    else
+	      {
+		unsigned	grow = (dpos + slen/2) * sizeof(unichar);
+		unichar		*tmp;
+
+		tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
+		if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		  {
+		    memcpy(tmp, ptr, dpos * sizeof(unichar));
+		  }
+		if (ptr != buf && ptr != *dst)
+		  {
+		    NSZoneFree(zone, ptr);
+		  }
+		ptr = tmp;
+		if (ptr == 0)
+		  {
+		    return NO;	/* Not enough memory */
+		  }
+		bsize = grow / sizeof(unichar);
+	      }
+	  }
+
+	if ((GS_WORDS_BIGENDIAN && NSUTF16LittleEndianStringEncoding == enc)
+	  || (!GS_WORDS_BIGENDIAN && NSUTF16BigEndianStringEncoding == enc))
+	  {
+	    while (spos < slen)
+              {
+                uint16_t	c = *(uint16_t*)(src + spos);
+
+	        c = GSUnicodeSwap16(c);
+	        ptr[dpos++] = c;
+		spos += 2;
+	      }
+	  }
+	else
+	  {
+	    while (spos < slen)
+              {
+	        ptr[dpos++] = *(uint16_t*)(src + spos);
+		spos += 2;
+	      }
+	  }
+	break;
+
+      case NSUTF32StringEncoding:
+      case NSUTF32BigEndianStringEncoding:
+      case NSUTF32LittleEndianStringEncoding:
+	{
+	  BOOL	swap = NO;
+
+	  if ((GS_WORDS_BIGENDIAN && NSUTF32LittleEndianStringEncoding == enc)
+	    || (!GS_WORDS_BIGENDIAN && NSUTF32BigEndianStringEncoding == enc))
+	    {
+	      swap = YES;
+	    }
+	  while (spos < slen)
+	    {
+	      uint32_t	c = *(uint32_t*)(src + spos);
+
+	      if (swap)
+		{
+	          c = GSUnicodeSwap32(c);
+		}
+	      if (dpos >= bsize)
+		{
+		  GROW();
+		}
+	      if (c <= 0xffff)
+		{
+		  ptr[dpos++] = (uint16_t)c;
+		}
+	      else
+		{
+		  c -= 0x10000;
+		  ptr[dpos++] = ((c >> 10) & 0x03ff) + 0xd800;	// High
+		  if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
+		  ptr[dpos++] = (c & 0x03ff) + 0xdc00;		// Low
+		}
+	      spos += 4;
+	    }
+	}
+	break;
+
       case NSNonLossyASCIIStringEncoding:
         {
           unsigned int  index = 0;
@@ -1213,7 +1384,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
                       tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
                       if ((ptr == buf || ptr == *dst) && (tmp != 0))
                         {
-                          memcpy(tmp, ptr, bsize * sizeof(unichar));
+                          memcpy(tmp, ptr, dpos * sizeof(unichar));
                         }
                       if (ptr != buf && ptr != *dst)
                         {
@@ -1311,7 +1482,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
-			memcpy(tmp, ptr, bsize * sizeof(unichar));
+			memcpy(tmp, ptr, dpos * sizeof(unichar));
 		      }
 		    if (ptr != buf && ptr != *dst)
 		      {
@@ -1369,7 +1540,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
-			memcpy(tmp, ptr, bsize * sizeof(unichar));
+			memcpy(tmp, ptr, dpos * sizeof(unichar));
 		      }
 		    if (ptr != buf && ptr != *dst)
 		      {
@@ -1452,7 +1623,7 @@ tables:
 		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
-			memcpy(tmp, ptr, bsize * sizeof(unichar));
+			memcpy(tmp, ptr, dpos * sizeof(unichar));
 		      }
 		    if (ptr != buf && ptr != *dst)
 		      {
@@ -1804,7 +1975,8 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * an autoreleased buffer rather than in a buffer that the caller must
  * release.</item>
  * <item>If GSUniBOM is set, the function will read the first unicode
- * character as a byte order marker.</item>
+ * character as a byte order marker, otherwise the unicode data must be
+ * in host byte order.</item>
  * <item>If GSUniShortOk is set, the function will return a buffer containing
  * any decoded characters even if the whole conversion fails.</item>
  * </list>
@@ -1903,7 +2075,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
     {
       case NSUTF8StringEncoding:
 	{
-	  if (swapped == YES)
+	  if (swapped)
 	    {
 	      while (spos < slen)
 		{
@@ -1915,7 +2087,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
 		  /* get first unichar */
 		  u1 = src[spos++];
-		  u1 = (((u1 & 0xff00) >> 8) + ((u1 & 0x00ff) << 8));
+		  u1 = GSUnicodeSwap16(u1);
 
 		  /* Fast track ... if this is actually an ascii character
 		   * it just converts straight to utf-8
@@ -1930,48 +2102,57 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
+		      /* The (unmatched) second part of a surrogate pair
+		       */
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;	// Skip invalid character.
+		      u = 0xfffd;	// Replacement character
 		    }
-
-		  /* possibly get second character and calculate 'u' */
-		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		  else if ((u1 >= 0xd800) && (u1 < 0xdc00))
 		    {
+		      /* The first part of a surrogate pair?
+		       */
 		      if (spos >= slen)
 			{
+			  /* Second half is missing - premature end of string
+			   */
 			  if (strict)
 			    {
 			      result = NO;
 			      goto done;
 			    }
-			  continue;	// At end.
+			  u = 0xfffd;	// Replacement character
 			}
-
-		      /* get second unichar */
-		      u2 = src[spos++];
-		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
-
-		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
+		      else
 			{
-			  spos--;
-			  if (strict)
-			    {
-			      result = NO;
-			      goto done;
-			    }
-			  continue;	// Skip bad half of surrogate pair.
-			}
+			  /* get second unichar */
+			  u2 = src[spos++];
+			  u2 = GSUnicodeSwap16(u2);
 
-		      /* make the full value */
-		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
-			+ (u2 - 0xdc00) + 0x10000;
+			  if ((u2 < 0xdc00) || (u2 > 0xdfff))
+			    {
+			      /* Not the second part of a surrogate pair :-(
+			       */
+			      spos--;
+			      if (strict)
+				{
+				  result = NO;
+				  goto done;
+				}
+			      u = 0xfffd;	// replacement
+			    }
+			  else
+			    {
+			      /* make the full value */
+			      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+				+ (u2 - 0xdc00) + 0x10000;
+			    }
+			}
 		    }
 		  else
 		    {
@@ -2049,47 +2230,56 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      continue;
 		    }
 
-		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)
 		    {
+		      /* The (unmatched) second part of a surrogate pair?
+		       */
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;	// Skip invalid character.
+		      u = 0xfffd;	// Replacement character
 		    }
-
-		  /* possibly get second character and calculate 'u' */
-		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		  else if ((u1 >= 0xd800) && (u1 < 0xdc00))
 		    {
+		      /* The first part of a surrogate pair?
+		       */
 		      if (spos >= slen)
 			{
+			  /* Second half is missing - premature end of string
+			   */
 			  if (strict)
 			    {
 			      result = NO;
 			      goto done;
 			    }
-			  continue;	// At end.
+			  u = 0xfffd;	// Replacement character
 			}
-
-		      /* get second unichar */
-		      u2 = src[spos++];
-
-		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
+		      else
 			{
-			  spos--;
-			  if (strict)
-			    {
-			      result = NO;
-			      goto done;
-			    }
-			  continue;	// Skip bad half of surrogate pair.
-			}
+			  /* get second unichar */
+			  u2 = src[spos++];
 
-		      /* make the full value */
-		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
-			+ (u2 - 0xdc00) + 0x10000;
+			  if ((u2 < 0xdc00) || (u2 > 0xdfff))
+			    {
+			      /* Not the second part of a surrogate pair :-(
+			       */
+			      spos--;
+			      if (strict)
+				{
+				  result = NO;
+				  goto done;
+				}
+			      u = 0xfffd;	// replacement
+			    }
+			  else
+			    {
+			      /* make the full value */
+			      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+				+ (u2 - 0xdc00) + 0x10000;
+			    }
+			}
 		    }
 		  else
 		    {
@@ -2149,13 +2339,13 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
           unsigned int  index = 0;
           unsigned int  count = 0;
 
-          if (YES == swapped)
+          if (swapped)
             {
               while (index < slen)
                 {
                   unichar	u = src[index++];
 
-                  u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		  u = GSUnicodeSwap16(u);
                   if (u < 256)
                     {
                       if ((u >= ' ' && u < 127)
@@ -2247,9 +2437,9 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                 {
                   unichar	u = src[index++];
 
-                  if (YES == swapped)
+                  if (swapped)
                     {
-                      u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		      u = GSUnicodeSwap16(u);
                     }
                   if (u < 256)
                     {
@@ -2291,9 +2481,133 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	goto bases;
 
       case NSISOLatin1StringEncoding:
-      case NSUnicodeStringEncoding:
 	base = 256;
 	goto bases;
+
+      case NSUTF16StringEncoding:
+      case NSUTF16BigEndianStringEncoding:
+      case NSUTF16LittleEndianStringEncoding:
+	/* The source characters are already in UTF16 format, so this
+	 * is either a simple copy of a byte swapping copy.
+	 */
+	if (dst == 0)
+	  {
+	    /* Just counting bytes ... two per character.
+	     */
+	    dpos = slen * 2;
+	  }
+        else
+	  {
+	    /* Because we know that each output character is exactly
+	     * two bytes, we can check the destination buffer size
+	     * and allocate more space in one go, before entering
+	     * the loop where we deal with each character.
+	     */
+	    if ((slen * 2) > bsize)
+	      {
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    uint8_t	*tmp;
+
+		    tmp = NSZoneMalloc(zone, (slen * 2) + extra);
+		    if (ptr != buf && ptr != *dst)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			return NO;	/* Not enough memory */
+		      }
+		    bsize = slen * 2;
+		  }
+	      }
+	  }
+	if ((GS_WORDS_BIGENDIAN && NSUTF16LittleEndianStringEncoding == enc)
+	  || (!GS_WORDS_BIGENDIAN && NSUTF16BigEndianStringEncoding == enc))
+	  {
+	    swapped = (swapped ? NO : YES);
+	  }
+	if (swapped)
+	  {
+	    unichar	*d = (unichar*)&ptr[dpos];
+
+	    /* We need to swap
+	     */
+	    while (spos < slen)
+	      {
+		unichar	u = src[spos++];
+
+		u = GSUnicodeSwap16(u);
+		*d++ = u;
+	      }
+	  }
+	else
+	  {
+	    memcpy(ptr, &src[spos], slen * 2);
+	  }
+	dpos += slen * 2;
+	break;
+
+      case NSUTF32StringEncoding:
+      case NSUTF32BigEndianStringEncoding:
+      case NSUTF32LittleEndianStringEncoding:
+	/* The source characters are in UTF16 format so we must combine
+	 * surrogate pairs and copy (possibly with byte swapping) into
+	 * 32bit output.
+	 */
+	while (spos < slen)
+	  {
+	    unichar	u1 = src[spos++];
+	    uint32_t	u;
+
+	    /* Swap byte order if necessary */
+	    if (swapped)
+	      {
+		u1 = GSUnicodeSwap16(u1);
+	      }
+	    u = u1;
+
+	    /* Do we have a complete surrogate pair?
+	     */
+	    if (u1 >= 0xd800 && u1 <= 0xdbff && spos < slen)
+	      {
+		unichar	u2 = src[spos];
+
+		if (swapped)
+		  {
+		    u2 = GSUnicodeSwap16(u2);
+		  }
+		if (u2 >= 0xdc00 && u2 <= 0xdfff)
+		  {
+		    u = ((uint32_t)(u1 - 0xd800) * 0x400)
+		      + (u2 - 0xdc00) + 0x10000;
+		    spos++;
+		  }
+	      }
+
+	    /* Grow output buffer to make room if necessary */
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+#if GS_WORDS_BIGENDIAN
+	    if (NSUTF32LittleEndianStringEncoding == enc)
+#else
+	    if (NSUTF32BigEndianStringEncoding == enc)
+#endif
+	      {
+	        u = GSUnicodeSwap32(u);
+	      }
+	    memcpy((ptr + dpos), &u, 4);
+	    dpos += 4;
+	  }
+	break;
 
 bases:
 	if (dst == 0)
@@ -2337,13 +2651,13 @@ bases:
 	  }
 	if (strict == NO)
 	  {
-	    if (swapped == YES)
+	    if (swapped)
 	      {
 		while (spos < slen)
 		  {
 		    unichar	u = src[spos++];
 
-		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    u = GSUnicodeSwap16(u);
 		    if (u < base)
 		      {
 			ptr[dpos++] = (unsigned char)u;
@@ -2373,13 +2687,13 @@ bases:
 	  }
 	else
 	  {
-	    if (swapped == YES)
+	    if (swapped)
 	      {
 		while (spos < slen)
 		  {
 		    unichar	u = src[spos++];
 
-		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    u = GSUnicodeSwap16(u);
 		    if (u < base)
 		      {
 			ptr[dpos++] = (unsigned char)u;
@@ -2470,9 +2784,9 @@ tables:
 	    int	i;
 
 	    /* Swap byte order if necessary */
-	    if (swapped == YES)
+	    if (swapped)
 	      {
-		u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		u = GSUnicodeSwap16(u);
 	      }
 
 	    /* Grow output buffer to make room if necessary */
@@ -3098,7 +3412,6 @@ GSPrivateNativeCStringEncoding()
       char      *old;
 
       /* Take it from the system locale information.  */
-      [GSPrivateGlobalLock() lock];
       /* Initialise locale system by setting current locale from
        * environment and then resetting it.  Must be done before
        * any call to nl_langinfo()
@@ -3109,7 +3422,6 @@ GSPrivateNativeCStringEncoding()
         }
       strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
       encbuf[sizeof(encbuf)-1] = '\0';
-      [GSPrivateGlobalLock() unlock];
 #else
       encbuf[0] = '\0';
 #endif

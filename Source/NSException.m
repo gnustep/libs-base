@@ -1,7 +1,7 @@
 /** NSException - Object encapsulation of a general exception handler
    Copyright (C) 1993-2013 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: Mar 1995
 
    This file is part of the GNUstep Base Library.
@@ -651,10 +651,10 @@ __builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
  * Of course this will fail horribly if an exception occurs in one of the
  * few methods we use to manage the per-thread jump buffer.
  */
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #if	defined(_WIN32)
@@ -1269,7 +1269,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
         {
           NSUInteger	addr = (NSUInteger)*ptrs++; 
 
-          if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
+          if (fromSym && (fromSym)(hProcess, (DWORD64)addr, 0, symbol))
             {
               syms[i] = [NSString stringWithFormat:
                 @"%s - %lx", symbol->Name, (unsigned long)addr];

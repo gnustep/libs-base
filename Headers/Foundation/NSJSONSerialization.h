@@ -50,7 +50,24 @@ enum
    * If this is not set, then the writer will not generate any superfluous
    * whitespace, producing space-efficient but not very human-friendly JSON.
    */
-  NSJSONWritingPrettyPrinted = (1UL << 0)
+  NSJSONWritingPrettyPrinted = (1UL << 0),
+
+#if     OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
+  /** Additional modified for indentation control when pretty-printing
+   */
+  GSJSONWritingIndentTwoSpaces = (0UL << 24),
+  GSJSONWritingIndentOneSpace = (1UL << 24),
+  GSJSONWritingIndentFourSpaces = (2UL << 24),
+  GSJSONWritingIndentUsingTab = (3UL << 24),
+  GSJSONWritingIndentMask = (3UL << 24),
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13, GS_API_LATEST)
+  /**
+   * When writing JSON, sort keys in lexicographic order.
+   */
+  NSJSONWritingSortedKeys = (1UL << 1)
+#endif
 };
 /**
  * A bitmask containing flags from the NSJSONWriting* set, specifying options

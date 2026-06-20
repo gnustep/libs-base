@@ -24,9 +24,11 @@
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
 #define	EXPOSE_GSFileHandle_IVARS	1
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSFileHandle.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSNotification.h"
@@ -55,10 +57,10 @@
 
 #include <sys/stat.h>
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #include <sys/ioctl.h>
@@ -95,6 +97,23 @@
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	(1024 * 16)
 #define	READ_SIZE	NETBUF_SIZE*10
+
+// Convienience Macro for Error Handling
+#define SET_ERROR(err, errcode, desc) \
+      if (err) \
+      { \
+        NSDictionary *userInfo; \
+        userInfo = [NSDictionary dictionaryWithObject: desc forKey: NSLocalizedDescriptionKey]; \
+        *error = [NSError errorWithDomain: NSCocoaErrorDomain code: errcode userInfo: userInfo]; \
+      }
+
+#define SET_ERROR_WITH_UNDERLYING(err, errcode, underlying, desc) \
+      if (err) \
+      { \
+        NSDictionary *userInfo; \
+        userInfo = [NSDictionary dictionaryWithObjectsAndKeys: desc, NSLocalizedDescriptionKey, underlying, NSUnderlyingErrorKey, nil]; \
+        *err = [NSError errorWithDomain: NSCocoaErrorDomain code: errcode userInfo: userInfo]; \
+      }
 
 static GSFileHandle     *fh_stdin = nil;
 static GSFileHandle     *fh_stdout = nil;
@@ -153,7 +172,12 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 	}
       else
 #endif
-      if (isSocket)
+      if (descriptor < 0)
+	{
+	  result = -1;
+	  errno = EBADF;
+	}
+      else if (isSocket)
 	{
 	  result = recv(descriptor, buf, len, 0);
 	}
@@ -1179,36 +1203,48 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return [self initWithFileDescriptor: (uintptr_t)hdl closeOnDealloc: flag];
 }
 
-- (void) checkAccept
+- (BOOL) checkAcceptWithError: (NSError **) error
 {
   if (acceptOK == NO)
-    {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"accept not permitted in this file handle"];
-    }
+  {
+    SET_ERROR(error, NSFileReadNoPermissionError, @"accept not permitted in this file handle");
+    return NO;
+  }
   if (readInfo)
     {
       id	operation = [readInfo objectForKey: NotificationKey];
 
       if (operation == NSFileHandleConnectionAcceptedNotification)
         {
-          [NSException raise: NSFileHandleOperationException
-                      format: @"accept already in progress"];
-	}
+          SET_ERROR(error, NSFileReadUnknownError, @"accept already in progress");
+          return NO;
+        }
       else
-	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"read already in progress"];
-	}
+        {
+          SET_ERROR(error, NSFileReadUnknownError, @"read already in progress");
+          return NO;
+        }
+    }
+  
+  return YES;
+}
+
+- (void) checkAccept
+{
+  NSError *error = nil;
+  if (![self checkAcceptWithError: &error])
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"%@", [error description]];
     }
 }
 
-- (void) checkConnect
+- (BOOL) checkConnectWithError: (NSError **) error
 {
   if (connectOK == NO)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"connect not permitted in this file handle"];
+      SET_ERROR(error, NSFileWriteNoPermissionError, @"connect not permitted in this file handle")
+      return NO;
     }
   if ([writeInfo count] > 0)
     {
@@ -1217,23 +1253,35 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (operation == GSFileHandleConnectCompletionNotification)
 	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"connect already in progress"];
+          SET_ERROR(error, NSFileWriteUnknownError, @"connect already in progress")
+          return NO;
 	}
       else
 	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"write already in progress"];
+          SET_ERROR(error, NSFileWriteUnknownError, @"write already in progress")
+          return NO;
 	}
+    }
+  
+  return YES;
+}
+
+- (void) checkConnect
+{
+  NSError *error = nil;
+  if (![self checkAcceptWithError: &error])
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"%@", [error description]];
     }
 }
 
-- (void) checkRead
+- (BOOL) checkReadWithError: (NSError **) error
 {
-  if (readOK == NO)
+    if (readOK == NO)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"read not permitted on this file handle"];
+      SET_ERROR(error, NSFileReadNoPermissionError, @"read not permitted on this file handle")
+      return NO;
     }
   if (readInfo)
     {
@@ -1241,23 +1289,35 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (operation == NSFileHandleConnectionAcceptedNotification)
         {
-          [NSException raise: NSFileHandleOperationException
-                      format: @"accept already in progress"];
+          SET_ERROR(error, NSFileReadUnknownError, @"accept already in progress")
+          return NO;
 	}
       else
 	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"read already in progress"];
+          SET_ERROR(error, NSFileReadUnknownError, @"read already in progress")
+          return NO;
 	}
+    }
+
+  return YES;
+}
+
+- (void) checkRead
+{
+  NSError *error = nil;
+  if (![self checkReadWithError: &error])
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"%@", [error description]];
     }
 }
 
-- (void) checkWrite
+- (BOOL) checkWriteWithError: (NSError **) error
 {
   if (writeOK == NO)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"write not permitted in this file handle"];
+      SET_ERROR(error, NSFileWriteNoPermissionError, @"write not permitted in this file handle")
+      return NO;
     }
   if ([writeInfo count] > 0)
     {
@@ -1265,11 +1325,24 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       id		operation = [info objectForKey: NotificationKey];
 
       if (operation != GSFileHandleWriteCompletionNotification)
-	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"connect in progress"];
-	}
+      {
+        SET_ERROR(error, NSFileWriteUnknownError, @"connect in progress")
+        return NO;
+	    }
     }
+
+  return YES;
+}
+
+- (void) checkWrite
+{
+  NSError *error = nil;
+  if (![self checkWriteWithError: &error])
+  {
+          [NSException raise: NSFileHandleOperationException
+                      format: @"%@", [error description]];
+
+  }
 }
 
 // Returning file handles
@@ -1356,14 +1429,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return d;
 }
 
-- (NSData*) readDataToEndOfFile
-{
+- (NSData *) readDataToEndOfFileAndReturnError:(NSError **)error {
   int			rmax = [GSTcpTune recvSize];
   char			buf[rmax];
   NSMutableData*	d;
   int			len;
 
-  [self checkRead];
+  if (![self checkReadWithError: error])
+    {
+    return nil;
+    }
   if (isNonBlocking == YES)
     {
       [self setNonBlocking: NO];
@@ -1375,21 +1450,40 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (len < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"unable to read from descriptor - %@",
-                  [NSError _last]];
+      SET_ERROR_WITH_UNDERLYING(error, NSFileReadUnknownError, [NSError _last], @"unable to read from descriptor")
+      return nil;
     }
+
   return d;
 }
 
-- (NSData*) readDataOfLength: (unsigned)len
+- (NSData*) readDataToEndOfFile
+{
+  NSData *data;
+  NSError *error = nil;
+
+  data = [self readDataToEndOfFileAndReturnError: &error];
+  if (!data)
+    {
+      NSError *underlying = [[error userInfo] objectForKey: NSUnderlyingErrorKey];
+      [NSException raise: NSFileHandleOperationException
+                  format: @"%@ - %@", [error description], underlying];
+    }
+
+    return  data;
+}
+
+- (NSData*) readDataUpToLength: (NSUInteger)len error: (NSError **) error
 {
   NSMutableData	*d;
   int		got;
   int		rmax = [GSTcpTune recvSize];
   char		buf[rmax];
 
-  [self checkRead];
+  if (![self checkReadWithError: error])
+    {
+      return nil;
+    }
   if (isNonBlocking == YES)
     {
       [self setNonBlocking: NO];
@@ -1408,9 +1502,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else if (got < 0)
 	{
-	  [NSException raise: NSFileHandleOperationException
-		      format: @"unable to read from descriptor - %@",
-		      [NSError _last]];
+    SET_ERROR_WITH_UNDERLYING(error, NSFileReadUnknownError, [NSError _last], @"unable to read from descriptor");
+    return nil;
 	}
     }
   while (len > 0 && got > 0);
@@ -1418,14 +1511,33 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return d;
 }
 
-- (void) writeData: (NSData*)item
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
-  int		rval = 0;
+  NSData *data;
+  NSError *error = nil;
+
+  data = [self readDataUpToLength: len error: &error];
+  if (!data)
+    {
+      NSError *underlying = [[error userInfo] objectForKey: NSUnderlyingErrorKey];
+      [NSException raise: NSFileHandleOperationException
+                  format: @"%@ - %@", [error description], underlying];
+    }
+
+  return data;
+}
+
+- (BOOL) writeData: (NSData*)item error: (NSError **) error
+{
+    int		rval = 0;
   const void*	ptr = [item bytes];
   unsigned int	len = [item length];
   unsigned int	pos = 0;
 
-  [self checkWrite];
+  if (![self checkWriteWithError: error])
+    {
+      return NO;
+    }
   if (isNonBlocking == YES)
     {
       [self setNonBlocking: NO];
@@ -1434,7 +1546,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       int	toWrite = len - pos;
 
-      toWrite = [GSTcpTune sendSize: toWrite];
+      if (NO == isStandardFile)
+	{
+	  toWrite = [GSTcpTune sendSize: toWrite];
+	}
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
@@ -1451,9 +1566,22 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (rval < 0)
     {
+      SET_ERROR_WITH_UNDERLYING(error, NSFileWriteUnknownError, [NSError _last], @"unable to write to descriptor")
+      return NO;
+    }
+
+  return YES;
+}
+
+- (void) writeData: (NSData*)item
+{
+  NSError *error = nil;
+
+  if (![self writeData: item error: &error])
+    {
+      NSError *underlying = [[error userInfo] objectForKey: NSUnderlyingErrorKey];
       [NSException raise: NSFileHandleOperationException
-                  format: @"unable to write to descriptor - %@",
-                  [NSError _last]];
+                  format: @"%@ - %@", [error description], underlying];
     }
 }
 
@@ -1540,8 +1668,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Seeking within a file
 
-- (BOOL) getOffset: (out unsigned long long *)offsetInFile
-             error: (out NSError **)error;
+- (BOOL) getOffset: (unsigned long long *)offsetInFile
+             error: (NSError **)error;
 {
   off_t	result = -1;
 
@@ -1604,8 +1732,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return result;
 }
 
-- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
-                            error: (out NSError **)error
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile
+                            error: (NSError **)error
 {
   off_t	result = -1;
 
@@ -1654,7 +1782,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 }
 
 - (BOOL) seekToOffset: (unsigned long long)offset
-                error: (out NSError **)error
+                error: (NSError **)error
 {
   off_t	result = -1;
 
@@ -1790,7 +1918,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 }
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset
-                    error: (out NSError **)error
+                    error: (NSError **)error
 {
   if (ftruncate((isStandardFile ? descriptor : -1), offset) < 0)
     {
@@ -2075,10 +2203,18 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (operation == NSFileHandleConnectionAcceptedNotification)
     {
       struct sockaddr	buf;
-      int			desc;
-      unsigned int		blen = sizeof(buf);
+      int		desc;
+      unsigned int	blen = sizeof(buf);
 
-      desc = accept(descriptor, &buf, &blen);
+      if (descriptor < 0)
+	{
+	  errno = EBADF;
+	  desc = -1;
+	}
+      else
+	{
+          desc = accept(descriptor, &buf, &blen);
+	}
       if (desc == -1)
 	{
 	  NSString	*s;
@@ -2225,7 +2361,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
           written = [self write: (char*)ptr+writePos
                          length: length-writePos];
-          if (written <= 0)
+          if (written < 0)
             {
 	      if (errno != EAGAIN && errno != EINTR)
 	        {

@@ -97,6 +97,7 @@ typedef struct {
 #define	EXPOSE_NSThread_IVARS	1
 #define	GS_NSThread_IVARS \
   id                    _stringCollatorCache; \
+  id                    _stringTransliteratorCache; \
   BOOL                  _targetIsBlock; \
   gs_thread_id_t        _pthreadID; \
   NSUInteger            _threadID; \
@@ -122,10 +123,10 @@ typedef struct {
 #  include <sys/resource.h> // For getpriority and setpriority
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #if defined(__POSIX_SOURCE)\
@@ -171,6 +172,7 @@ GS_PRIVATE_INTERNAL(NSThread)
 #define lockInfo (internal->_lockInfo)
 #define targetIsBlock (internal->_targetIsBlock)
 #define stringCollatorCache (internal->_stringCollatorCache)
+#define stringTransliteratorCache (internal->_stringTransliteratorCache)
 
 
 #if defined(HAVE_PTHREAD_MAIN_NP)
@@ -878,6 +880,13 @@ unregisterActiveThread(NSThread *thread)
 
   if (t == nil)
     {
+      /* We suppress the static analyser warning which occurs because it
+       * doesn't understand the mechanism to release the NSThread when
+       * the POSIX thread exists.
+       */
+#ifdef  __clang_analyzer__
+          [[clang::suppress]]
+#endif
       t = [self new];
       t->_active = YES;
       [t _makeThreadCurrent];
@@ -1198,6 +1207,7 @@ unregisterActiveThread(NSThread *thread)
   DESTROY(_arg);
   DESTROY(_name);
   DESTROY(stringCollatorCache);
+  DESTROY(stringTransliteratorCache);
   if (_autorelease_vars.pool_cache != 0)
     {
       [NSAutoreleasePool _endThread: self];
@@ -1592,6 +1602,15 @@ nsthreadLauncher(void *thread)
 - (void) _setStringCollatorCache: (id) cache
 {
   ASSIGN(stringCollatorCache, cache);
+}
+
+- (id) _stringTransliteratorCache
+{
+  return (id)stringTransliteratorCache;
+}
+- (void) _setStringTransliteratorCache: (id) cache
+{
+  ASSIGN(stringTransliteratorCache, cache);
 }
 
 @end

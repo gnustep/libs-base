@@ -1,7 +1,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
-
+#import <Foundation/NSByteOrder.h>
 
 static NSString*
 makeFormattedString(NSString *theFormat, ...)
@@ -142,7 +142,16 @@ int main()
   s = [[NSString alloc] initWithBytes: "\\u20ac"
                                length: 6
                              encoding: NSNonLossyASCIIStringEncoding];
-  PASS_EQUAL(s, @"€", "lossy backslassh-u20ac is a euro");
+  PASS_EQUAL(s, @"€", "lossy backslash-u20ac is a euro");
+  DESTROY(s);
+
+  uint8_t	smiley[10] = {
+    'S', 'M', 'I', 'L', 'E', 'Y', 0xf0, 0x9f, 0x98, 0x8a
+  }; 
+  s = [[NSString alloc] initWithBytes: smiley
+                               length: 10
+                             encoding: NSUTF8StringEncoding];
+  PASS_EQUAL(s, @"SMILEY😊", "text with smiley at end");
   DESTROY(s);
 
   s = makeFormattedString(@"%d.%d%s", 10, 20, "hello");

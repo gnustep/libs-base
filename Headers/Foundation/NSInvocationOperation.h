@@ -41,7 +41,7 @@ GS_EXPORT_CLASS
   @private
     NSInvocation *_invocation;
     NSException *_exception;
-    void        *_reserved;
+    void        * __attribute__((unused)) _reserved;
 }
 
 - (id) initWithInvocation: (NSInvocation *)inv;

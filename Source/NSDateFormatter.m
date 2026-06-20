@@ -25,12 +25,13 @@
    */
 
 #define	GS_NSDateFormatter_IVARS \
-  NSUInteger _behavior; \
-  NSLocale   *_locale; \
-  NSTimeZone *_tz; \
-  NSDateFormatterStyle _timeStyle; \
-  NSDateFormatterStyle _dateStyle; \
-  void      *_formatter
+  NSUInteger 		_behavior; \
+  NSLocale   		*_locale; \
+  NSTimeZone 		*_tz; \
+  NSDateFormatterStyle	_timeStyle; \
+  NSDateFormatterStyle	_dateStyle; \
+  void      		*_formatter; \
+  BOOL			_relative
 
 #define	EXPOSE_NSDateFormatter_IVARS	1
 #import "common.h"
@@ -56,38 +57,29 @@
 
 
 
-// This is defined to be the same as UDAT_RELATIVE
-#define FormatterDoesRelativeDateFormatting (1<<16)
 #define BUFFER_SIZE 1024
 
 @interface NSDateFormatter (PrivateMethods)
 - (void) _resetUDateFormat;
-- (void) _setSymbols: (NSArray *)array : (NSInteger)symbol;
-- (NSArray *) _getSymbols: (NSInteger)symbol;
+- (void) _setSymbols: (NSArray*)array : (NSInteger)symbol;
+- (NSArray*) _getSymbols: (NSInteger)symbol;
 @end
 
-static inline NSInteger
-NSToUDateFormatStyle (NSDateFormatterStyle style)
-{
 #if GS_USE_ICU == 1
-  NSInteger relative =
-    (style & FormatterDoesRelativeDateFormatting) ? UDAT_RELATIVE : 0;
+static inline UDateFormatStyle
+NSToUDateFormatStyle(NSDateFormatterStyle style)
+{
   switch (style)
     {
-      case NSDateFormatterNoStyle:
-        return (relative | UDAT_NONE);
-      case NSDateFormatterShortStyle: 
-        return (relative | UDAT_SHORT);
-      case NSDateFormatterMediumStyle: 
-        return (relative | UDAT_MEDIUM);
-      case NSDateFormatterLongStyle:
-        return (relative | UDAT_LONG);
-      case NSDateFormatterFullStyle: 
-        return (relative | UDAT_FULL);
+      case NSDateFormatterNoStyle:	return UDAT_NONE;
+      case NSDateFormatterShortStyle:	return UDAT_SHORT;
+      case NSDateFormatterMediumStyle:	return UDAT_MEDIUM;
+      case NSDateFormatterLongStyle:	return UDAT_LONG;
+      case NSDateFormatterFullStyle:	return UDAT_FULL;
     }
-#endif
   return -1;
 }
+#endif
 
 
 #define	GSInternal		NSDateFormatterInternal
@@ -149,6 +141,53 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSString*) dateFormat
 {
+#if GS_USE_ICU == 1
+  NSString	*str = @"";
+
+  if ([_dateFormat length] > 0
+    || NSDateFormatterNoStyle != internal->_dateStyle
+    || NSDateFormatterNoStyle != internal->_timeStyle)
+    {
+      if (internal->_formatter != NULL)
+	{
+	  UChar		buf[BUFSIZ];
+	  UChar		*pat = NULL;
+	  int32_t 		len = sizeof(buf)/sizeof(*buf);
+	  UErrorCode 	err = U_ZERO_ERROR;
+	  
+	  len = udat_toPattern(internal->_formatter, 0, buf, len, &err);
+	  if (len > sizeof(buf)/sizeof(*buf))
+	    {
+	      err = U_ZERO_ERROR;
+	      pat = (UChar*)malloc(len * sizeof(UChar));
+	      udat_toPattern(internal->_formatter, 0, pat, len, &err);
+	    }
+	  if (U_FAILURE(err))
+	    {
+	      if (pat)
+		{
+		  free(pat);
+		}
+	    }
+	  else
+	    {
+	      if (pat)
+		{
+		  str = [[NSString alloc] initWithBytesNoCopy: pat
+		    length: len * sizeof(UChar)
+		    encoding: NSUnicodeStringEncoding
+		    freeWhenDone: YES];
+		}
+	      else
+		{
+		  str = [[NSString alloc] initWithCharacters: buf
+						      length: len];
+		}
+	    }
+	}
+    }
+  return AUTORELEASE(str);
+#endif
   return _dateFormat;
 }
 
@@ -160,11 +199,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       RELEASE(internal->_locale);
       RELEASE(internal->_tz);
 #if GS_USE_ICU == 1
-      udat_close (internal->_formatter);
+      udat_close(internal->_formatter);
 #endif
       GS_DESTROY_INTERNAL(NSDateFormatter)
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSString*) editingStringForObjectValue: (id)anObject
@@ -221,7 +260,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   return self;
 }
 
-- (id) initWithDateFormat: (NSString *)format
+- (id) initWithDateFormat: (NSString*)format
      allowNaturalLanguage: (BOOL)flag
 {
   self = [self init];
@@ -311,7 +350,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 }
 
 
-- (NSDate *) dateFromString: (NSString *) string
+- (NSDate*) dateFromString: (NSString*) string
 {
 #if GS_USE_ICU == 1
   NSDate *result = nil;
@@ -340,7 +379,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSString *) stringFromDate: (NSDate *) date
+- (NSString*) stringFromDate: (NSDate*) date
 {
 #if GS_USE_ICU == 1
   NSString *result;
@@ -370,15 +409,15 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (BOOL) getObjectValue: (out id *) obj
-              forString: (NSString *) string
-                  range: (inout NSRange *) range
+- (BOOL) getObjectValue: (out id*) obj
+              forString: (NSString*) string
+                  range: (inout NSRange*) range
                   error: (out NSError **) error
 {
   return NO; // FIXME
 }
 
-- (void) setDateFormat: (NSString *)string
+- (void) setDateFormat: (NSString*)string
 {
   ASSIGNCOPY(_dateFormat, string);
   [self _resetUDateFormat];
@@ -392,7 +431,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setDateStyle: (NSDateFormatterStyle)style
 {
   internal->_dateStyle = style;
-  [self _resetUDateFormat];
+  [self setDateFormat: nil];
 }
 
 - (NSDateFormatterStyle) timeStyle
@@ -403,18 +442,18 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setTimeStyle: (NSDateFormatterStyle)style
 {
   internal->_timeStyle = style;
-  [self _resetUDateFormat];
+  [self setDateFormat: nil];
 }
 
-- (NSCalendar *) calendar
+- (NSCalendar*) calendar
 {
   return [internal->_locale objectForKey: NSLocaleCalendar];
 }
 
-- (void) setCalendar: (NSCalendar *)calendar
+- (void) setCalendar: (NSCalendar*)calendar
 {
-  NSMutableDictionary *dict;
-  NSLocale *locale;
+  NSMutableDictionary	*dict;
+  NSLocale 		*locale;
   
   dict = [[NSLocale componentsFromLocaleIdentifier:
     [internal->_locale localeIdentifier]] mutableCopy];
@@ -428,37 +467,36 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   RELEASE(dict);
 }
 
-- (NSDate *) defaultDate
+- (NSDate*) defaultDate
 {
   return nil;  // FIXME
 }
 
-- (void) setDefaultDate: (NSDate *)date
+- (void) setDefaultDate: (NSDate*)date
 {
   return; // FIXME
 }
 
-- (NSLocale *) locale
+- (NSLocale*) locale
 {
   return internal->_locale;
 }
 
-- (void) setLocale: (NSLocale *)locale
+- (void) setLocale: (NSLocale*)locale
 {
   if (locale == internal->_locale)
     return;
   RELEASE(internal->_locale);
-  
   internal->_locale = RETAIN(locale);
   [self _resetUDateFormat];
 }
 
-- (NSTimeZone *) timeZone
+- (NSTimeZone*) timeZone
 {
   return internal->_tz;
 }
 
-- (void) setTimeZone: (NSTimeZone *)tz
+- (void) setTimeZone: (NSTimeZone*)tz
 {
   if (tz == internal->_tz)
     return;
@@ -468,7 +506,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   [self _resetUDateFormat];
 }
 
-- (NSDate *) twoDigitStartDate
+- (NSDate*) twoDigitStartDate
 {
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
@@ -479,7 +517,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setTwoDigitStartDate: (NSDate *)date
+- (void) setTwoDigitStartDate: (NSDate*)date
 {
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
@@ -492,7 +530,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 }
 
 
-- (NSString *) AMSymbol
+- (NSString*) AMSymbol
 {
 #if GS_USE_ICU == 1
   NSArray *array = [self _getSymbols: UDAT_AM_PMS];
@@ -503,12 +541,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setAMSymbol: (NSString *) string
+- (void) setAMSymbol: (NSString*) string
 {
   return;
 }
 
-- (NSString *) PMSymbol
+- (NSString*) PMSymbol
 {
 #if GS_USE_ICU == 1
   NSArray *array = [self _getSymbols: UDAT_AM_PMS];
@@ -519,12 +557,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setPMSymbol: (NSString *)string
+- (void) setPMSymbol: (NSString*)string
 {
   return;
 }
 
-- (NSArray *) weekdaySymbols
+- (NSArray*) weekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_WEEKDAYS];
@@ -533,7 +571,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setWeekdaySymbols: (NSArray *)array
+- (void) setWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_WEEKDAYS];
@@ -542,7 +580,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortWeekdaySymbols
+- (NSArray*) shortWeekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
@@ -551,7 +589,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortWeekdaySymbols: (NSArray *)array
+- (void) setShortWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_SHORT_WEEKDAYS];
@@ -560,7 +598,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) monthSymbols
+- (NSArray*) monthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_MONTHS];
@@ -569,7 +607,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setMonthSymbols: (NSArray *)array
+- (void) setMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_MONTHS];
@@ -578,7 +616,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortMonthSymbols
+- (NSArray*) shortMonthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_SHORT_MONTHS];
@@ -587,7 +625,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortMonthSymbols: (NSArray *)array
+- (void) setShortMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_SHORT_MONTHS];
@@ -596,7 +634,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) eraSymbols
+- (NSArray*) eraSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_ERAS];
@@ -605,7 +643,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setEraSymbols: (NSArray *)array
+- (void) setEraSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_ERAS];
@@ -614,17 +652,17 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSDate *) gregorianStartDate
+- (NSDate*) gregorianStartDate
 {
   return nil;
 }
 
-- (void) setGregorianStartDate: (NSDate *)date
+- (void) setGregorianStartDate: (NSDate*)date
 {
   return;
 }
 
-- (NSArray *) longEraSymbols
+- (NSArray*) longEraSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_ERA_NAMES];
@@ -633,7 +671,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setLongEraSymbols: (NSArray *)array
+- (void) setLongEraSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_ERA_NAMES];
@@ -643,7 +681,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 }
 
 
-- (NSArray *) quarterSymbols
+- (NSArray*) quarterSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_QUARTERS];
@@ -652,7 +690,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setQuarterSymbols: (NSArray *)array
+- (void) setQuarterSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_QUARTERS];
@@ -661,7 +699,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortQuarterSymbols
+- (NSArray*) shortQuarterSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_SHORT_QUARTERS];
@@ -670,7 +708,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortQuarterSymbols: (NSArray *)array
+- (void) setShortQuarterSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_SHORT_QUARTERS];
@@ -679,7 +717,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) standaloneQuarterSymbols
+- (NSArray*) standaloneQuarterSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_QUARTERS];
@@ -688,7 +726,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setStandaloneQuarterSymbols: (NSArray *)array
+- (void) setStandaloneQuarterSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_QUARTERS];
@@ -697,7 +735,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortStandaloneQuarterSymbols
+- (NSArray*) shortStandaloneQuarterSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_SHORT_QUARTERS];
@@ -706,7 +744,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortStandaloneQuarterSymbols: (NSArray *)array
+- (void) setShortStandaloneQuarterSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_SHORT_QUARTERS];
@@ -715,7 +753,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortStandaloneMonthSymbols
+- (NSArray*) shortStandaloneMonthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_SHORT_MONTHS];
@@ -724,7 +762,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortStandaloneMonthSymbols: (NSArray *)array
+- (void) setShortStandaloneMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_SHORT_MONTHS];
@@ -733,7 +771,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) standaloneMonthSymbols
+- (NSArray*) standaloneMonthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_MONTHS];
@@ -742,7 +780,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setStandaloneMonthSymbols: (NSArray *)array
+- (void) setStandaloneMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_MONTHS];
@@ -751,7 +789,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) veryShortMonthSymbols
+- (NSArray*) veryShortMonthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_NARROW_MONTHS];
@@ -760,7 +798,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setVeryShortMonthSymbols: (NSArray *)array
+- (void) setVeryShortMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_NARROW_MONTHS];
@@ -769,7 +807,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) veryShortStandaloneMonthSymbols
+- (NSArray*) veryShortStandaloneMonthSymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_NARROW_MONTHS];
@@ -778,7 +816,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setVeryShortStandaloneMonthSymbols: (NSArray *)array
+- (void) setVeryShortStandaloneMonthSymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_NARROW_MONTHS];
@@ -787,7 +825,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) shortStandaloneWeekdaySymbols
+- (NSArray*) shortStandaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_SHORT_WEEKDAYS];
@@ -796,7 +834,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setShortStandaloneWeekdaySymbols: (NSArray *)array
+- (void) setShortStandaloneWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_SHORT_WEEKDAYS];
@@ -805,7 +843,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) standaloneWeekdaySymbols
+- (NSArray*) standaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_WEEKDAYS];
@@ -814,7 +852,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setStandaloneWeekdaySymbols: (NSArray *)array
+- (void) setStandaloneWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_WEEKDAYS];
@@ -823,7 +861,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) veryShortWeekdaySymbols
+- (NSArray*) veryShortWeekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
@@ -832,7 +870,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setVeryShortWeekdaySymbols: (NSArray *)array
+- (void) setVeryShortWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_SHORT_WEEKDAYS];
@@ -841,7 +879,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (NSArray *) veryShortStandaloneWeekdaySymbols
+- (NSArray*) veryShortStandaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
   return [self _getSymbols: UDAT_STANDALONE_NARROW_WEEKDAYS];
@@ -850,7 +888,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-- (void) setVeryShortStandaloneWeekdaySymbols: (NSArray *)array
+- (void) setVeryShortStandaloneWeekdaySymbols: (NSArray*)array
 {
 #if GS_USE_ICU == 1
   [self _setSymbols: array : UDAT_STANDALONE_NARROW_WEEKDAYS];
@@ -859,7 +897,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
-+ (NSString *) localizedStringFromDate: (NSDate *) date
++ (NSString*) localizedStringFromDate: (NSDate*) date
                              dateStyle: (NSDateFormatterStyle) dateStyle
                              timeStyle: (NSDateFormatterStyle) timeStyle
 {
@@ -875,9 +913,9 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   return result;
 }
 
-+ (NSString *) dateFormatFromTemplate: (NSString *) aTemplate
++ (NSString*) dateFormatFromTemplate: (NSString*) aTemplate
                               options: (NSUInteger) opts
-                               locale: (NSLocale *) locale
+                               locale: (NSLocale*) locale
 {
 #if GS_USE_ICU == 1
   unichar pat[BUFFER_SIZE];
@@ -911,12 +949,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (BOOL) doesRelativeDateFormatting
 {
-  return (internal->_dateStyle & FormatterDoesRelativeDateFormatting) ? YES : NO;
+  return internal->_relative;
 }
 
 - (void) setDoesRelativeDateFormatting: (BOOL)flag
 {
-  internal->_dateStyle |= FormatterDoesRelativeDateFormatting;
+  internal->_relative = (flag ? YES : NO);
 }
 @end
 
@@ -933,7 +971,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   UErrorCode err = U_ZERO_ERROR;
   
   if (internal->_formatter)
-    udat_close (internal->_formatter);
+    udat_close(internal->_formatter);
   
   tzIDLength = [[internal->_tz name] length];
   tzID = malloc(sizeof(UChar) * tzIDLength);
@@ -946,11 +984,27 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       [self->_dateFormat getCharacters: pat];
     }
 #if U_ICU_VERSION_MAJOR_NUM >= 50 || defined(HAVE_ICU_H)
-  timeStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_timeStyle);
-  dateStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_dateStyle);
+  if (pat)
+    {
+      timeStyle = UDAT_PATTERN;
+      dateStyle = UDAT_PATTERN;
+    }
+  else
+    {
+      timeStyle = NSToUDateFormatStyle(internal->_timeStyle);
+      dateStyle = NSToUDateFormatStyle(internal->_dateStyle);
+      if (internal->_relative)
+	{
+	  dateStyle |= UDAT_RELATIVE;
+	}
+    }
 #else
-  timeStyle = NSToUDateFormatStyle (internal->_timeStyle);
-  dateStyle = NSToUDateFormatStyle (internal->_dateStyle);
+  timeStyle = NSToUDateFormatStyle(internal->_timeStyle);
+  dateStyle = NSToUDateFormatStyle(internal->_dateStyle);
+  if (internal->_relative)
+    {
+      dateStyle |= UDAT_RELATIVE;
+    }
 #endif
   internal->_formatter = udat_open (timeStyle, dateStyle,
                           [[internal->_locale localeIdentifier] UTF8String],
@@ -1017,7 +1071,7 @@ symbolRange(NSInteger symbol, int *from)
   return;
 }
 
-- (NSArray *) _getSymbols: (NSInteger)symbol
+- (NSArray*) _getSymbols: (NSInteger)symbol
 {
 #if GS_USE_ICU == 1
   NSMutableArray        *mArray;

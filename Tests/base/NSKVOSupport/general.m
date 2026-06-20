@@ -967,9 +967,10 @@ DisabledInitialNotification()
             "An INITIAL notification for nonNotifyingObjectProperty should "
             "have fired.");
 
-  PASS_EQUAL(BOXF(NSKeyValueChangeSetting),
-             [[[changes anyObject] info] objectForKey:NSKeyValueChangeKindKey],
-             "The change kind should be NSKeyValueChangeSetting.");
+  PASS_EQUAL(
+    [[[changes anyObject] info] objectForKey:NSKeyValueChangeKindKey],
+    BOXF(NSKeyValueChangeSetting),
+    "The change kind should be NSKeyValueChangeSetting.");
 
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"nonNotifyingObjectProperty"],
@@ -1399,15 +1400,17 @@ SubpathsWithInitialNotification()
                changesForKeypath:@"cascadableKey.basicObjectProperty"]
                anyObject] info] objectForKey:NSKeyValueChangeNewKey],
              "The initial value of basicObjectProperty should be nil.");
-  PASS_EQUAL(BOXI(0),
-             [[[[observer changesForKeypath:@"cascadableKey.basicPodProperty"]
-               anyObject] info] objectForKey:NSKeyValueChangeNewKey],
-             "The initial value of basicPodProperty should be 0.");
-  PASS_EQUAL([NSNull null],
-             [[[[observer
-               changesForKeypath:@"cascadableKey.derivedObjectProperty"]
-               anyObject] info] objectForKey:NSKeyValueChangeNewKey],
-             "The initial value of derivedObjectProperty should be nil.");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"cascadableKey.basicPodProperty"]
+      anyObject] info] objectForKey:NSKeyValueChangeNewKey],
+    BOXI(0),
+    "The initial value of basicPodProperty should be 0.");
+  PASS_EQUAL(
+    [[[[observer
+      changesForKeypath:@"cascadableKey.derivedObjectProperty"]
+      anyObject] info] objectForKey:NSKeyValueChangeNewKey],
+    [NSNull null],
+    "The initial value of derivedObjectProperty should be nil.");
 
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"cascadableKey.basicObjectProperty"],
@@ -1975,21 +1978,23 @@ DerivedKeyDependentOnTwoKeys()
   PASS(1 == [observer numberOfObservedChanges],
              "One change should have "
              "been observed.");
-  PASS_EQUAL(BOXBOOL(NO),
-             [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
-             "The new value "
-             "should be NO.");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
+      info] objectForKey:NSKeyValueChangeNewKey],
+    BOXBOOL(NO),
+    "The new value "
+    "should be NO.")
 
   [observer clear];
   observed.boolTrigger2 = @"secondObject";
 
   PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(BOXBOOL(YES),
-             [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
-             "The new value should be YES.");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
+      info] objectForKey:NSKeyValueChangeNewKey],
+    BOXBOOL(YES),
+    "The new value should be YES.")
 
   PASS_RUNS([observed removeObserver:observer forKeyPath:@"dependsOnTwoKeys"],
             "remove observer should not throw");
@@ -2018,30 +2023,33 @@ DerivedKeyDependentOnTwoSubKeys()
   observed.cascadableKey = child;
   PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(BOXBOOL(NO),
-             [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
-             "new value should be NO");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
+      info] objectForKey:NSKeyValueChangeNewKey],
+    BOXBOOL(NO),
+    "new value should be NO");
 
   [observer clear];
   child.boolTrigger1 = @"firstObject";
 
   PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(BOXBOOL(NO),
-             [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
-             "new value should be NO");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
+      info] objectForKey:NSKeyValueChangeNewKey],
+    BOXBOOL(NO),
+    "new value should be NO");
 
   [observer clear];
   child.boolTrigger2 = @"secondObject";
 
   PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(BOXBOOL(YES),
-             [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
-             "new value should be YES");
+  PASS_EQUAL(
+    [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
+      info] objectForKey:NSKeyValueChangeNewKey],
+    BOXBOOL(YES),
+    "new value should be YES");
 
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"dependsOnTwoSubKeys"],

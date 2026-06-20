@@ -3,6 +3,7 @@
 #import "ObjectTesting.h"
 
 #if     GNUSTEP
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 extern const char *GSPathHandling(const char *);
 #endif
 
@@ -44,6 +45,26 @@ int main()
   
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
+
+#if     GNUSTEP
+  url = [[NSURL alloc]
+    initWithScheme: @"http"
+	      user: @"testing@free.fr"
+	  password: @"password"
+	      host: @"127.0.0.1"
+	      port: nil
+	  fullPath: @"dav.php/short/"
+   parameterString: nil
+	     query: nil
+	  fragment: nil];
+  PASS_EQUAL([url absoluteString],
+    @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/",
+    "Full -initWithScheme... works")
+  PASS_EQUAL([url description],
+    @"http://testing%40free.fr:HIDDEN-PASSWORD@127.0.0.1/dav.php/short/",
+    "-description hides the password")
+  DESTROY(url);
+#endif
 
   // Test depends on network connection
   testHopeful = YES;
@@ -166,6 +187,20 @@ int main()
 #if     GNUSTEP
   PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
     "Simple relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa/bbb/ccc/",
+    "Simple relative URL pathWithEscapes works");
+#endif
+  rel = [NSURL URLWithString: @"aaa%2fbbb%2fccc/" relativeToURL: url];
+  PASS_EQUAL([rel absoluteString],
+    @"http://here.and.there/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL absoluteString works");
+  PASS_EQUAL([rel path], @"/testing/aaa/bbb/ccc",
+    "Escaped relative URL path works");
+#if     GNUSTEP
+  PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
+    "Escaped relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL pathWithEscapes works");
 #endif
 
   url = [NSURL URLWithString: @"http://1.2.3.4/a?b;foo"];
@@ -359,6 +394,34 @@ GSPathHandling("right");
   rel = [NSURL URLWithString: @"data:,$2A" relativeToURL: url];
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
   PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
+
+  /* Test URLs with query but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value"];
+  PASS(url != nil, "URL with query but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value is key=value");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value", "absoluteString works for URL with query but no path");
+
+  /* Test URLs with fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com#section"];
+  PASS(url != nil, "URL with fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com#section is empty");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com#section", "absoluteString works for URL with fragment but no path");
+
+  /* Test URLs with query and fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value#section"];
+  PASS(url != nil, "URL with query and fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value#section is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value#section is key=value");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com?key=value#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value#section", "absoluteString works for URL with query and fragment but no path");
 
   ///NSURLQueryItem
   

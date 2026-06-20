@@ -282,6 +282,13 @@ int main()
       PASS_EQUAL(doc, idoc, "rawMimeData reproduces document with long header");
     }
 
+  orig = [NSData dataWithContentsOfFile: @"mime13.dat"];
+  doc = [GSMimeParser documentFromData: orig];
+  PASS([[doc content] count] == 3, "parsed document with empty part")
+  doc = [[doc content] lastObject];
+  PASS([[doc allHeaders] count] == 0, "empty document part has no headers")
+  PASS_EQUAL([doc content], nil, "empty document part has no content")
+
   [arp release]; arp = nil;
   return 0;
 }

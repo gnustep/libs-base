@@ -6,10 +6,12 @@ dnl  notice and this notice are preserved.
 dnl AM_PATH_XML([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN([AM_PATH_XML],[
 AC_ARG_WITH(xml-prefix,
-            [  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)],
+            AS_HELP_STRING([--with-xml-prefix=PFX],
+	    [Prefix where libxml is installed (optional)]),
             xml_config_prefix="$withval", xml_config_prefix="")
 AC_ARG_ENABLE(xmltest,
-              [  --disable-xmltest		Do not try to compile and run a test XML program],,
+              [AS_HELP_STRING([--disable-xmltest],
+	      [Do not try to compile and run a test XML program])],,
               enable_xmltest=yes)
 
   if test x$xml_config_prefix != x ; then

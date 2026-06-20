@@ -267,7 +267,7 @@ GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
 GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1);
+  BOOL *isASCII, BOOL *isLatin1, BOOL *isBad);
 #endif
 
 

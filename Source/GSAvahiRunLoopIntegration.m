@@ -502,11 +502,11 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   [lock lock];
   if ((rl == runLoop) && [mode isEqualToString: m])
     {
-      FOR_IN(GSAvahiWatcher*, child, children)
+      GS_FOR_IN(GSAvahiWatcher*, child, children)
         {
           [child unschedule];
         }
-      END_FOR_IN(children)
+      GS_END_FOR(children)
       runLoop = nil;
       [mode release];
       mode = nil;
@@ -523,11 +523,11 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
     {
       runLoop = rl;
       ASSIGNCOPY(mode,m);
-      FOR_IN(GSAvahiWatcher*, child, children)
+      GS_FOR_IN(GSAvahiWatcher*, child, children)
         {
           [child reschedule];
         }
-      END_FOR_IN(children)
+      GS_END_FOR(children)
     }
   [lock unlock];
 }
@@ -541,11 +541,11 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   ap->userdata = (void*)NULL;
   [self removeFromRunLoop: runLoop
                   forMode: mode];
-  FOR_IN(GSAvahiWatcher*, child, children)
+  GS_FOR_IN(GSAvahiWatcher*, child, children)
     {
       [child setContext: nil];
     }
-  END_FOR_IN(children)
+  GS_END_FOR(children)
   free(ap);
   ap = NULL;
   [children release];

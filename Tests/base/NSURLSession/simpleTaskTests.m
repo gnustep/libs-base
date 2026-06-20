@@ -4,7 +4,9 @@
 id __work_around_clang_bug2 = @"__unused__";
 #endif
 
-#if GS_HAVE_NSURLSESSION
+// #if GS_HAVE_NSURLSESSION
+// Currently disabled due to a regression in libdispatch
+#if 0
 
 #import "Helpers/HTTPServer.h"
 #import "NSRunLoop+TimeOutAdditions.h"

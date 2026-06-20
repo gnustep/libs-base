@@ -324,6 +324,11 @@ static BOOL useSmallDate;
 
 // NSDate initialization
 
+- (instancetype) init
+{
+  return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
+}
+
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   if (isnan(secs))
@@ -345,7 +350,10 @@ static BOOL useSmallDate;
 #endif
 
 #if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secs;
+  if (nil != (self = [super initWithTimeIntervalSinceReferenceDate: secs]))
+    {
+      _seconds_since_ref = secs;
+    }
   return self;
 #else
   return CREATE_SMALL_DATE(secs);
@@ -367,7 +375,11 @@ static BOOL useSmallDate;
     }
 
 #if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secondsSinceRef;
+  if (nil != (self = [super
+    initWithTimeIntervalSinceReferenceDate: secondsSinceRef]))
+    {
+      _seconds_since_ref = secondsSinceRef;
+    }
   return self;
 #else
   return CREATE_SMALL_DATE(secondsSinceRef);
@@ -622,6 +634,7 @@ static BOOL useSmallDate;
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
+  _seconds_since_ref = secs;
   return self;
 }
 
@@ -635,14 +648,15 @@ static BOOL useSmallDate;
     {
       id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
 
-      _distantPast = [obj init];
+      _distantPast
+	= [obj initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
     }
   return _distantPast;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  SET_INTERVAL(self, DISTANT_PAST);
+  _seconds_since_ref = DISTANT_PAST;
   return self;
 }
 
@@ -657,14 +671,15 @@ static BOOL useSmallDate;
     {
       id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
 
-      _distantFuture = [obj init];
+      _distantFuture
+	= [obj initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
     }
   return _distantFuture;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  SET_INTERVAL(self, DISTANT_FUTURE);
+  _seconds_since_ref = DISTANT_FUTURE;
   return self;
 }
 
@@ -1713,6 +1728,8 @@ otherTime(NSDate* other)
   return o;
 }
 
+/* Subclasses override this to do current date/time.
+ */
 - (instancetype) init
 {
   return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
@@ -1765,8 +1782,7 @@ otherTime(NSDate* other)
 
 - (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  [self subclassResponsibility: _cmd];
-  return self;
+  return [super init];
 }
 
 - (BOOL) isEqual: (id)other

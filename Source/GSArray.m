@@ -179,7 +179,7 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 /* This is the designated initializer for NSArray. */
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  if (count > 0)
+  if ((self = [super init]) != nil && count > 0)
     {
       NSUInteger i;
 

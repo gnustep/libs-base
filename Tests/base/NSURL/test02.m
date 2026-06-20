@@ -113,6 +113,15 @@ int main()
   [request setHTTPBody: data];
   [request setHTTPMethod: @"POST"];
 
+/* Our test certificate is self-signed and out of date ... don't require
+ * the server to be verified.
+ */
+#if defined(GNUSTEP_BASE_LIBRARY)
+  [NSURLProtocol setProperty: @"NO"
+                      forKey: GSTLSVerify
+                   inRequest: request];
+#endif
+
   // sending the request
   [NSURLConnection sendSynchronousRequest: request
 			returningResponse: &response

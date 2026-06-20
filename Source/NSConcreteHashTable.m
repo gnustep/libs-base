@@ -980,32 +980,35 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 		       capacity: (NSUInteger)initialCapacity
 {
-  legacy = NO;
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      legacy = NO;
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
-    sizeof(self->cb.pf));
+      memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
+	sizeof(self->cb.pf));
 
 #if	GC_WITH_GC
-  if (self->cb.pf.usesWeakReadAndWriteBarriers)
-    {
-      zone = (NSZone*)nodeW;
-    }
-  else
-    {
-      zone = (NSZone*)nodeS;
-    }
+      if (self->cb.pf.usesWeakReadAndWriteBarriers)
+	{
+	  zone = (NSZone*)nodeW;
+	}
+      else
+	{
+	  zone = (NSZone*)nodeS;
+	}
 #endif
-  GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+      GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+    }
   return self;
 }
 

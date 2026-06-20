@@ -53,6 +53,16 @@ GSPathHandling(const char *mode);
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
 
+/** Returns the relative path from the specified folder to the path represented
+ * by the receiver (if the receiver is the empty string, it is taken to be the
+ * current working directory).<br />
+ * If aFolder is empty or nil, it is taken to be the current directory.<br />
+ * If either path is not absolute, it is converted to an absolute path
+ * based on the current directory.<br />
+ * Returns nil if a relative path can not be established.
+ */
+- (NSString*) pathRelativeTo: (NSString*)aFolder;
+
 /**
  * Returns a string formed by removing the prefix string from the
  * receiver.  Raises an exception if the prefix is not present.

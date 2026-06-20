@@ -105,7 +105,7 @@ GS_EXPORT_CLASS
 - (void) setZeroFormattingBehavior: (NSDateComponentsFormatterZeroFormattingBehavior)behavior;
 
 - (NSCalendar *) calendar;
-- (void) setCalender: (NSCalendar *)calendar;
+- (void) setCalendar: (NSCalendar *)calendar;
 
 - (NSDate *) referenceDate;
 - (void) setReferenceDate: (NSDate *)referenceDate;

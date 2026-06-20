@@ -35,6 +35,20 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface	NSTask (GNUstepBase)
+
+/** Converts a shell-style command line to an argument array suitable for
+ * launching an NSTask instance, with the task name as the first argument.<br />
+ * <list>
+ *  <item>Supports whitespace separation of arguments.</item>
+ *  <item>Supports single quote sequences with no escapes inside,
+ *  <code>'like this'</code>.</item>
+ *  <item>Supports double quote sequences with \" and \\ inside,
+ *  <code>"like this"</code>.</item>
+ *  <item>Supports backslash escapes outside quotes.</item>
+ * </list>
+ */
++ (NSArray*) argumentsFromString: (NSString*)commandLine;
+
 /** Returns the set of extensions known to indicate an executable file
  * type on systems which require that (currently mswindows).
  */

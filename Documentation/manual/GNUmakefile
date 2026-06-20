@@ -44,7 +44,7 @@ manual_TEXI_FILES =              \
 	WorkingWithObjects.texi  \
 	WritingNewClasses.texi
 
-manual_DOC_INSTALL_DIR = Developer/Base/ProgrammingManual
+manual_DOC_INSTALL_DIR = Developer/Base
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 

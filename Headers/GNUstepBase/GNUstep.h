@@ -24,6 +24,9 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
+#include	"GNUstepBase/GSConfig.h"
+#include	"GNUstepBase/GSVersionMacros.h"
+
 /* The contents of this file are designed to be usable with either
  * GNUstep-base or MacOS-X Foundation.
  */
@@ -441,9 +444,14 @@ void *__object = (void*)(object);\
 #define GSLocalizedStaticString(key, comment) key
 
 /**
+ * <p>
+ *   This function (macro) is a GNUstep extension.
+ * </p>
+ * <p>
  * To be used inside a method for making sure that a range does not specify
  * anything outside the size of an array/string.  Raises exception if range
  * extends beyond [0,size]. Size must be an unsigned integer (NSUInteger).
+ * </p>
  */
 #define GS_RANGE_CHECK(RANGE, SIZE) \
   if (RANGE.location > (NSUInteger)SIZE \
@@ -460,5 +468,74 @@ if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
   [NSException raise: NSRangeException \
     format: @"in %s, index %" PRIuPTR " is out of range", \
     GSNameFromSelector(_cmd), (NSUInteger)INDEX]
+
+
+#if ((defined(__clang__) || GS_HAVE_FAST_ENUMERATION) \
+  && (GS_HAVE_FAST_ENUMERATION_SETTER || !defined(__MINGW__)))
+/** <p>This function (macro) is a GNUstep extension.</p>
+ * <p>
+ * Macro to support fast enumeration on platforms where the compiler or
+ * runtime do not support fast enumeration directly. The argument are
+ * a type specification for the value returned by the iteration, the name of
+ * a variable to hold that value, and the collection to be iterated over
+ * (may also be an instance of [NSEnumerator] rather than a collection).<br />
+ * On a compiler/runtime with fast enumeration support, this macro starts
+ * the fast enumeration block.
+ * </p>
+ */
+#define GS_FOR_IN(type, var, collection) \
+  for (type var in collection)\
+  {
+/** <p>This function (macro) is a GNUstep extension.</p>
+ * <p>
+ * Macro to end a fast enumeration block on older compilers.  Its argument
+ * must be identical to that of the corresponding GS_FOR_IN macro.<br />
+ * On a compiler/runtime with fast enumeration support, this just ends
+ * the fast enumeration block.
+ * </p>
+ */
+#define GS_END_FOR(collection) }
+#else
+
+/* We declare the function to be called when a mutation of a collection is
+ * detected during fast enumeration; provided by GNUstep-base.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+void GSEnumerationMutation(id);
+#pragma GCC diagnostic pop
+
+#define GS_FOR_IN(type, var, c) \
+do\
+{\
+  type var;\
+  NSFastEnumerationState gs_##c##_enumState = { 0 };\
+  id gs_##c##_items[16];\
+  unsigned long gs_##c##_limit = \
+    [c countByEnumeratingWithState: &gs_##c##_enumState \
+                           objects: gs_##c##_items \
+                             count: 16];\
+  if (gs_##c##_limit)\
+  {\
+    unsigned long gs_startMutations = *gs_##c##_enumState.mutationsPtr;\
+    do {\
+      unsigned long gs_##c##counter = 0;\
+      do {\
+        if (gs_startMutations != *gs_##c##_enumState.mutationsPtr)\
+        {\
+          GSEnumerationMutation(c);\
+        }\
+        var = gs_##c##_enumState.itemsPtr[gs_##c##counter++];\
+
+#define GS_END_FOR(c) \
+      } while (gs_##c##counter < gs_##c##_limit);\
+    } while ((gs_##c##_limit \
+      = [c countByEnumeratingWithState: &gs_##c##_enumState\
+			       objects: gs_##c##_items\
+				 count: 16]));\
+  }\
+} while(0);
+#endif
+
 
 #endif /* __GNUSTEP_GNUSTEP_H_INCLUDED_ */

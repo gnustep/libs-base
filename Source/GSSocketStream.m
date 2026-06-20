@@ -1810,6 +1810,11 @@ setNonBlocking(SOCKET fd)
 	    {
 	      result = GSPrivateSockaddrHost((struct sockaddr*)&sin);
 	    }
+	  else
+	    {
+	      // Assume we are not yet connected.
+	      result = GSPrivateSockaddrHost((struct sockaddr*)&_address);
+	    }
 	}
       else if ([key isEqualToString: GSStreamRemotePortKey])
 	{
@@ -1856,6 +1861,10 @@ setNonBlocking(SOCKET fd)
 {
   uint16_t	p = (uint16_t)port;
 
+  if (nil == address)
+    {
+      return NO;
+    }
   switch (family)
     {
       case AF_INET:
@@ -2325,13 +2334,11 @@ setNonBlocking(SOCKET fd)
 	  error = WSAGetLastError();
           NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-#ifndef	NDEBUG
       else
 	{
 	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
-#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -2845,13 +2852,11 @@ setNonBlocking(SOCKET fd)
 	  error = WSAGetLastError();
           NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-#ifndef	NDEBUG
       else
 	{
 	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
-#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -3375,7 +3380,7 @@ setNonBlocking(SOCKET fd)
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  if ([super init] != nil)
+  if ((self = [super init]) != nil)
     {
       if ([addr length] == 0)
         {

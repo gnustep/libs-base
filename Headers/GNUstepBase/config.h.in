@@ -9,6 +9,9 @@
 /* The normal alignment of `gs_mutex_t', in bytes. */
 #undef ALIGNOF_GS_MUTEX_T
 
+/* The normal alignment of `objc_object', in bytes. */
+#undef ALIGNOF_OBJC_OBJECT
+
 /* The normal alignment of `pthread_cond_t', in bytes. */
 #undef ALIGNOF_PTHREAD_COND_T
 
@@ -57,6 +60,9 @@
 /* Built in default value for GNUstep local library */
 #undef GNUSTEP_TARGET_LOCAL_LIBRARY
 
+/* Built in default value for GNUstep local services */
+#undef GNUSTEP_TARGET_LOCAL_SERVICES
+
 /* Built in default value for GNUstep local tools */
 #undef GNUSTEP_TARGET_LOCAL_TOOLS
 
@@ -96,6 +102,9 @@
 /* Built in default value for GNUstep network library */
 #undef GNUSTEP_TARGET_NETWORK_LIBRARY
 
+/* Built in default value for GNUstep network services */
+#undef GNUSTEP_TARGET_NETWORK_SERVICES
+
 /* Built in default value for GNUstep network tools */
 #undef GNUSTEP_TARGET_NETWORK_TOOLS
 
@@ -131,6 +140,9 @@
 
 /* Built in default value for GNUstep system library */
 #undef GNUSTEP_TARGET_SYSTEM_LIBRARY
+
+/* Built in default value for GNUstep system services */
+#undef GNUSTEP_TARGET_SYSTEM_SERVICES
 
 /* Built in default value for GNUstep system tools */
 #undef GNUSTEP_TARGET_SYSTEM_TOOLS
@@ -174,6 +186,9 @@
 /* Built in default value for GNUstep user_dir library */
 #undef GNUSTEP_TARGET_USER_DIR_LIBRARY
 
+/* Built in default value for GNUstep user_dir services */
+#undef GNUSTEP_TARGET_USER_DIR_SERVICES
+
 /* Built in default value for GNUstep user_dir tools */
 #undef GNUSTEP_TARGET_USER_DIR_TOOLS
 
@@ -212,6 +227,10 @@
 
 /* Define to 1 if you have the <dbghelp.h> header file. */
 #undef HAVE_DBGHELP_H
+
+/* Define to 1 if you have the declaration of `gethostbyname_r', and to 0 if
+   you don't. */
+#undef HAVE_DECL_GETHOSTBYNAME_R
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
@@ -295,6 +314,9 @@
 /* Define to 1 if you have the `gethostbyname' function. */
 #undef HAVE_GETHOSTBYNAME
 
+/* Define to 1 if your system has gethostbyname_r with 6 arguments. */
+#undef HAVE_GETHOSTBYNAME_R
+
 /* Define to 1 if you have the `getlogin' function. */
 #undef HAVE_GETLOGIN
 
@@ -333,6 +355,9 @@
 
 /* Define to 1 if you have the `gnutls_x509_privkey_import2' function. */
 #undef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
+
+/* Define to 1 if you have the <gnu-libiconv/iconv.h> header file. */
+#undef HAVE_GNU_LIBICONV_ICONV_H
 
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
@@ -460,6 +485,9 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* Define to 1 if you have the `objc_enumerationMutation' function. */
+#undef HAVE_OBJC_ENUMERATIONMUTATION
+
 /* Define if objc-api.h defines this function */
 #undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
 
@@ -471,6 +499,10 @@
 
 /* Define to 1 if you have the <objc/runtime.h> header file. */
 #undef HAVE_OBJC_RUNTIME_H
+
+/* Define to 1 if you have the `objc_setEnumerationMutationHandler' function.
+   */
+#undef HAVE_OBJC_SETENUMERATIONMUTATIONHANDLER
 
 /* Define to 1 if you have the `objc_setProperty' function. */
 #undef HAVE_OBJC_SETPROPERTY
@@ -540,6 +572,12 @@
 
 /* Define to 1 if you have the `register_printf_specifier' function. */
 #undef HAVE_REGISTER_PRINTF_SPECIFIER
+
+/* Define to 1 if you have the <resolv.h> header file. */
+#undef HAVE_RESOLV_H
+
+/* Define to 1 if you have the `res_nquery' function. */
+#undef HAVE_RES_NQUERY
 
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT

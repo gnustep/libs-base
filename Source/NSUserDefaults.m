@@ -111,8 +111,10 @@ static BOOL		hasSharedDefaults = NO;
 
 /* Caching some default flag values.  Until the standard defaults have
  * been loaded, these values are taken from the process arguments.
+ * NB. while these mostly represent boolean values, some may hold more
+ * information.
  */
-static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
+static int		flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
  * a single persistent domain (represented as a property list file in
@@ -239,6 +241,7 @@ updateCache(NSUserDefaults *self)
   if (self == sharedDefaults)
     {
       NSArray	*debug;
+      NSString	*str;
 
       /**
        * If there is an array NSUserDefault called GNU-Debug,
@@ -261,8 +264,49 @@ updateCache(NSUserDefaults *self)
 
       /* NB the following flags are first set up, in the +initialize method.
        */
-      flags[GSMacOSXCompatible]
-	= [self boolForKey: @"GSMacOSXCompatible"];
+      str = [self stringForKey: @"GSMacOSXCompatible"];
+      if ([str length] > 0 && isdigit([str characterAtIndex: 0]))
+	{
+	  /* A numeric version number for OSX compatibility desired.
+	   */
+	  const char	*ptr = [str UTF8String];
+	  unsigned	maj;
+	  unsigned	min;
+	  unsigned	sub;
+
+	  if (sscanf(ptr, "%2u.%2u.%2u", &maj, &min, &sub) != 3)
+	    {
+	      if (sscanf(ptr, "%2u.%2u", &maj, &min) != 2)
+		{
+		  if (sscanf(ptr, "%2u", &maj) != 1)
+		    {
+		      NSLog(@"Bad value for GSMacOSXCompatible; assuming YES");
+		      maj = 0;
+		    }
+		  min = 0;
+		}
+	      sub = 0;
+	    }
+	  if (maj > 10 || min > 9)
+	    {
+	      // Newer constant format ...  101000 upwards
+	      flags[GSMacOSXCompatible] = (maj * 100 + min) * 100 + sub;
+	    }
+	  else if (10 == maj)
+	    {
+	      // Older constant format ...  1000 to 1090
+	      flags[GSMacOSXCompatible] = 1000 + min;
+	    }
+	  else
+	    {
+	      flags[GSMacOSXCompatible] = 1;
+	    }
+	}
+      else
+	{
+	  flags[GSMacOSXCompatible]
+	    = [self boolForKey: @"GSMacOSXCompatible"] ? 1 : 0;
+	}
       flags[GSOldStyleGeometry]
 	= [self boolForKey: @"GSOldStyleGeometry"];
       flags[GSLogSyslog]
@@ -276,80 +320,6 @@ updateCache(NSUserDefaults *self)
       flags[GSExceptionStackTrace]
 	= [self boolForKey: @"GSExceptionStackTrace"];
     }
-}
-
-static void
-setPermissions(NSString *file)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSDictionary	*attr;
-  uint32_t	desired;
-  uint32_t	attributes;
-
-  attr = [mgr fileAttributesAtPath: file
-		      traverseLink: YES];
-  attributes = [attr filePosixPermissions];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-  desired = 0600;
-#else
-  desired = (S_IRUSR|S_IWUSR);
-#endif
-  if (attributes != desired)
-    {
-      NSMutableDictionary	*enforced_attributes;
-      NSNumber			*permissions;
-
-      enforced_attributes
-	= [NSMutableDictionary dictionaryWithDictionary:
-	[mgr fileAttributesAtPath: file
-		     traverseLink: YES]];
-
-      permissions = [NSNumberClass numberWithUnsignedLong: desired];
-      [enforced_attributes setObject: permissions
-			      forKey: NSFilePosixPermissions];
-
-      [mgr changeFileAttributes: enforced_attributes
-			 atPath: file];
-    }
-}
-
-static BOOL
-writeDictionary(NSDictionary *dict, NSString *file)
-{
-  if ([file length] == 0)
-    {
-      NSLog(@"Defaults database filename is empty when writing");
-    }
-  else if (nil == dict)
-    {
-      NSFileManager	*mgr = [NSFileManager defaultManager];
-
-      return [mgr removeFileAtPath: file handler: nil];
-    }
-  else
-    {
-      NSData	*data;
-      NSString	*err;
-
-      err = nil;
-      data = [NSPropertyListSerialization dataFromPropertyList: dict
-	       format: NSPropertyListXMLFormat_v1_0
-	       errorDescription: &err];
-      if (data == nil)
-	{
-	  NSLog(@"Failed to serialize defaults database for writing: %@", err);
-	}
-      else if ([data writeToFile: file atomically: YES] == NO)
-	{
-	  NSLog(@"Failed to write defaults database to file: %@", file);
-	}
-      else
-	{
-	  setPermissions(file);
-	  return YES;
-	}
-    }
-  return NO;
 }
 
 /**
@@ -659,16 +629,6 @@ newLanguages(NSArray *oldNames)
  */
 @implementation NSUserDefaults: NSObject
 
-+ (void) atExit
-{
-  DESTROY(sharedDefaults);
-  DESTROY(bundleIdentifier);
-  DESTROY(processName);
-  DESTROY(argumentsDictionary);
-  DESTROY(classLock);
-  DESTROY(syncLock);
-}
-
 /* Opt-out off automatic willChange/didChange notifications 
  * as the KVO behaviour for NSUserDefaults is slightly different.
  *
@@ -713,7 +673,6 @@ newLanguages(NSArray *oldNames)
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
       argumentsDictionary = [NSDictionary new];
-      [self registerAtExit];
 
       processName = [[[NSProcessInfo processInfo] processName] copy];
       key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
@@ -842,11 +801,13 @@ newLanguages(NSArray *oldNames)
   NS_ENDHANDLER
   if (nil != regDefs)
     {
-      [self standardUserDefaults];
-      if (sharedDefaults != nil)
+      NSUserDefaults	*defs = [self standardUserDefaults];
+
+      if (defs != nil)
 	{
-	  [sharedDefaults->_tempDomains setObject: regDefs
-	    forKey: NSRegistrationDomain];
+	  [defs->_lock lock];
+	  [defs->_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
+	  [defs->_lock unlock];
 	}
     }
 }
@@ -1353,6 +1314,21 @@ newLanguages(NSArray *oldNames)
   return [self initWithContentsOfFile: path];
 }
 
+/* This code ensures that, if the shared instance is about to be deallocated
+ * we clear the sharedDefaults variable first so that no other thread can
+ * grab a reference to the deallocated instance.
+ */
+- (oneway void) release
+{
+  [classLock lock];
+  if (self == sharedDefaults && [self retainCount] < 2)
+    {
+      sharedDefaults = nil;
+    }
+  [classLock unlock];
+  [super release];
+}
+
 - (void) dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
@@ -1563,7 +1539,7 @@ newLanguages(NSArray *oldNames)
 	       * changed, meaning -objectForKey: would return a different
 	       * value than before.
 	       */
-	      if ([new hash] != [old hash])
+	      if (![new isEqual: old])
 		{
 		  [self _notifyObserversOfChangeForKey: defaultName
 					      oldValue: old
@@ -1722,7 +1698,7 @@ static BOOL isPlistObject(id o)
           [self _changePersistentDomain: bundleIdentifier];
 	  
 	  // Emit only a KVO notification when the value has actually changed
-	  if ([new hash] != [old hash])
+	  if (![new isEqual: old])
 	    {
               [self _notifyObserversOfChangeForKey: defaultName
 					  oldValue: old
@@ -2339,9 +2315,46 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
 }
 
+- (BOOL) writeDictionary: (NSDictionary*)dict
+                  toFile: (NSString*)file
+{
+  if ([file length] == 0)
+    {
+      NSLog(@"Defaults database filename is empty when writing");
+    }
+  else if (nil == dict)
+    {
+      NSFileManager	*mgr = [NSFileManager defaultManager];
+
+      return [mgr removeFileAtPath: file handler: nil];
+    }
+  else
+    {
+      NSData	*data;
+      NSString	*err;
+
+      err = nil;
+      data = [NSPropertyListSerialization dataFromPropertyList: dict
+	       format: NSPropertyListXMLFormat_v1_0
+	       errorDescription: &err];
+      if (data == nil)
+	{
+	  NSLog(@"Failed to serialize defaults database for writing: %@", err);
+	}
+      else if ([data writeToFile: file atomically: YES] == NO)
+	{
+	  NSLog(@"Failed to write defaults database to file: %@", file);
+	}
+      else
+	{
+	  return YES;
+	}
+    }
+  return NO;
+}
 @end
 
-BOOL
+int
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
   if (nil == classLock)
@@ -2367,6 +2380,12 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 	}
     }
   return flags[type];
+}
+
+int
+GSMacOSXVersion()
+{
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
 }
 
 /* Slightly faster than
@@ -2624,7 +2643,7 @@ static BOOL isLocked = NO;
   if (NO == beenHere)
     {
       NSString	*npath = _defaultsDatabase;
-      NSString	*opath = _defaultsDatabase;
+      NSString	*opath;
 
       beenHere = YES;
       /* The default domain name for a program changed from being the name
@@ -2875,6 +2894,41 @@ static BOOL isLocked = NO;
     }
 }
 
+static void
+setPermissions(NSString *file)
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSDictionary	*attr;
+  uint32_t	desired;
+  uint32_t	attributes;
+
+  attr = [mgr fileAttributesAtPath: file
+		      traverseLink: YES];
+  attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+  desired = 0600;
+#else
+  desired = (S_IRUSR|S_IWUSR);
+#endif
+  if (attributes != desired)
+    {
+      NSMutableDictionary	*enforced_attributes;
+      NSNumber			*permissions;
+
+      enforced_attributes
+	= [NSMutableDictionary dictionaryWithDictionary:
+	[mgr fileAttributesAtPath: file
+		     traverseLink: YES]];
+
+      permissions = [NSNumberClass numberWithUnsignedLong: desired];
+      [enforced_attributes setObject: permissions
+			      forKey: NSFilePosixPermissions];
+
+      [mgr changeFileAttributes: enforced_attributes
+			 atPath: file];
+    }
+}
+
 - (BOOL) synchronize
 {
   BOOL  isLocked = NO;
@@ -2966,13 +3020,14 @@ static BOOL isLocked = NO;
                     {
                       /* Remove empty defaults dictionary.
                        */
-                      written = writeDictionary(nil, path);
+                      written = [owner writeDictionary: nil toFile: path];
                     }
                   else
                     {
                       /* Write dictionary to file.
                        */
-                      written = writeDictionary(contents, path);
+                      written = [owner writeDictionary: contents toFile: path];
+	   	      setPermissions(path);
                     }
                 }
             }

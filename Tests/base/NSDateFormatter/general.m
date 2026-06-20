@@ -82,6 +82,42 @@ int main(void)
       "EST time zone is correctly accounted for.");
     RELEASE(inFmt);
     
+    inFmt = [NSDateFormatter new];
+    PASS_EQUAL([inFmt dateFormat], @"",
+      "initial dateFormat is empty")
+    PASS([inFmt dateStyle] == NSDateFormatterNoStyle,
+      "initial dateStyle is NSDateFormatterNoStyle")
+    PASS([inFmt timeStyle] == NSDateFormatterNoStyle,
+      "initial timeStyle is NSDateFormatterNoStyle")
+    [inFmt setDateFormat: @"MY"];
+    PASS_EQUAL([inFmt dateFormat], @"MY",
+      "dateFormat was set")
+
+    [inFmt setDateStyle: NSDateFormatterNoStyle];
+    PASS_EQUAL([inFmt dateFormat], @"",
+      "dateFormat was cleared by setDateStyle:NSDateFormatterNoStyle")
+
+    [inFmt setDateFormat: @"MY"];
+    [inFmt setDateStyle: NSDateFormatterShortStyle];
+    PASS([inFmt dateStyle] == NSDateFormatterShortStyle,
+      "setting short date style works")
+    PASS(NO == [[inFmt dateFormat] isEqual: @"MY"],
+      "dateFormat was set by setDateStyle:NSDateFormatterShortStyle")
+
+    [inFmt setDateFormat: @"MY"];
+    PASS([inFmt dateStyle] == NSDateFormatterShortStyle,
+      "setting format leaves date style unchanged")
+    [inFmt setDateStyle: NSDateFormatterMediumStyle];
+    [inFmt setTimeStyle: NSDateFormatterMediumStyle];
+    str = [inFmt dateFormat];
+    PASS([str length] > 0 && NO == [str isEqual: @"MY"],
+      "setting styles replaces previously set format")
+    [inFmt setDateFormat: nil];
+    PASS_EQUAL([inFmt dateFormat], str,
+      "setting a nil format has no effect when styles are set")
+
+    RELEASE(inFmt);
+
     cal = [[NSCalendar alloc] initWithCalendarIdentifier: NSGregorianCalendar];
     [cal setTimeZone: [NSTimeZone timeZoneWithName: @"CST"]];
     [cal setLocale: locale];

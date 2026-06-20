@@ -100,6 +100,7 @@ NSLog(@"%@", [defaultInput streamError]);
       {
         NSAssert1(1, @"Error! code is %ld",
           (long int)[[theStream streamError] code]);
+	done = YES;
         break;
       }  
     }
@@ -109,13 +110,15 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSRunLoop *rl;
+  NSString *name;
   NSHost *host;
   Listener *li;
   NSDate *d;
 
   rl = [NSRunLoop currentRunLoop];
-  host = [NSHost hostWithName: @"www.google.com"];
-  //host = [NSHost hostWithName: @"localhost"];
+  name = @"www.google.com";
+  //name = @"localhost";
+  host = [NSHost hostWithName: name];
 
 #if 1
   li = [[Listener new] autorelease];
@@ -161,6 +164,12 @@ int main()
 		       forKey: NSStreamSocketSecurityLevelKey];
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
+
+/* Our getStreamsToHost:port:inputStream:outputStream: does this using some
+ * randomly selected name fo the host.  To use a specific name we may want
+ * an override here.
+ * [defaultOutput setProperty: name forKey: GSTLSServerName];
+ */
     [defaultInput open];
     [defaultOutput open];
 

@@ -27,8 +27,11 @@
  * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  */
 
+#import "Foundation/NSException.h"
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSHTTPCookie.h"
+
+#include <curl/curl.h>
 
 // TODO: This is the old implementation. It requires a rewrite!
 
@@ -166,7 +169,14 @@ static NSURLSessionConfiguration * def = nil;
 
 - (void) setHTTPMaximumConnectionLifetime: (NSInteger)n
 {
+#if CURL_AT_LEAST_VERSION(7, 66, 0)
   _HTTPMaximumConnectionLifetime = n;
+#else
+  [NSException raise: NSInternalInconsistencyException
+    format: @"-[%@ %@] not supported by the version of Curl"
+    @" this library was built with",
+    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+#endif
 }
 
 - (BOOL) HTTPShouldUsePipelining

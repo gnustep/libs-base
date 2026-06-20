@@ -31,8 +31,8 @@
 
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSDictionary.h"
+#import "GSDispatch.h"
 #import <curl/curl.h>
-#import <dispatch/dispatch.h>
 
 extern NSString * GS_NSURLSESSION_DEBUG_KEY;
 

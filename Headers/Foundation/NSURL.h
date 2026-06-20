@@ -705,10 +705,23 @@ GS_NSURLComponents_IVARS;
 }
   // Creating URL components...
 + (instancetype) componentsWithString: (NSString *)URLString;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_14, GS_API_LATEST)
++ (instancetype) componentsWithString: (NSString*)URLString
+            encodingInvalidCharacters: (BOOL)encodingInvalidCharacters;
+#endif
+
 + (instancetype) componentsWithURL: (NSURL *)url 
            resolvingAgainstBaseURL: (BOOL)resolve;
+
 - (instancetype) init;
+
 - (instancetype) initWithString: (NSString *)URLString;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_14, GS_API_LATEST)
+- (instancetype) initWithString: (NSString*)URLString
+      encodingInvalidCharacters: (BOOL)encodingInvalidCharacters;
+#endif
 
 - (instancetype) initWithURL: (NSURL *)url 
      resolvingAgainstBaseURL: (BOOL)resolve;

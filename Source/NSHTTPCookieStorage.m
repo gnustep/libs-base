@@ -32,7 +32,7 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSDistributedNotificationCenter.h"
 
-NSString *objectObserver = @"org.GNUstep.NSHTTPCookieStorage";
+static NSString *objectObserver = @"org.GNUstep.NSHTTPCookieStorage";
 
 // Internal data storage
 typedef struct {

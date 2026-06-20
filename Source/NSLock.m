@@ -1005,12 +1005,20 @@ gs_mutex_trylock(gs_mutex_t *mutex)
 
   // needs to be atomic because another thread can concurrently set it
   ownerThread = gs_atomic_load(&mutex->owner);
-  if (ownerThread == thisThread && mutex->attr == gs_mutex_attr_recursive)
+  if (ownerThread == thisThread)
     {
-      // this thread already owns this lock and it's recursive
-      assert(mutex->depth > 0);
-      mutex->depth++;
-      return 0;
+      if (mutex->attr == gs_mutex_attr_recursive)
+	{
+	  // this thread already owns this lock and it's recursive
+	  assert(mutex->depth > 0);
+	  mutex->depth++;
+	  return 0;
+	}
+      if (mutex->attr == gs_mutex_attr_errorcheck)
+	{
+	  // error check mutex already held by this thread
+	  return EDEADLK;
+	}
     }
 
   // lock is taken

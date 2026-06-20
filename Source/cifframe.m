@@ -97,7 +97,7 @@ cifframe_type(const char *typePtr, const char **adv, NSPointerArray **extra);
 
 /* Best guess at the space needed for a structure, since we don't know
    for sure until it's calculated in ffi_prep_cif, which is too late */
-int
+static int
 cifframe_guess_struct_size(ffi_type *stype)
 {
   int      i, size;

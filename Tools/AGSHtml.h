@@ -31,6 +31,7 @@
 @interface AGSHtml : NSObject
 {
   NSString		*project;
+  NSString		*version;
   AGSIndex		*localRefs;
   AGSIndex		*globalRefs;
   AGSIndex		*projectRefs;

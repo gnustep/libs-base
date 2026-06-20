@@ -1,7 +1,7 @@
 /** Interface for NSLog for GNUStep
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: November 1996
 
    This file is part of the GNUstep Base Library.
@@ -99,16 +99,22 @@ static IMP              unlockImp = 0;
 NSRecursiveLock *
 GSLogLock()
 {
-  if (myLock == nil)
+  if (nil == myLock)
     {
       static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
 
       GS_MUTEX_LOCK(setupLock);
-      if (myLock == nil)
+      if (nil == myLock)
 	{
-	  myLock = [NSRecursiveLock new];
-          lockImp = [myLock methodForSelector: @selector(lock)];
-          unlockImp = [myLock methodForSelector: @selector(unlock)];
+	  NSRecursiveLock	*tmp;
+
+	  /* Avoid race condition by caching method implementations
+	   * before setting value in myLock 
+	   */
+	  tmp = [NSRecursiveLock new];
+          lockImp = [tmp methodForSelector: @selector(lock)];
+          unlockImp = [tmp methodForSelector: @selector(unlock)];
+	  myLock = tmp;
 	}
       GS_MUTEX_UNLOCK(setupLock);
     }

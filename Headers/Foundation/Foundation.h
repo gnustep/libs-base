@@ -106,6 +106,7 @@
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
+#import <Foundation/NSMassFormatter.h>
 #import <Foundation/NSMeasurement.h>
 #import <Foundation/NSMeasurementFormatter.h>
 #import <Foundation/NSMetadata.h>

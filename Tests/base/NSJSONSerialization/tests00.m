@@ -117,7 +117,7 @@
 - (void)cr1524466
 {
     NSURL *u = [[[NSURL alloc] initWithScheme: @"http" host: @"1.2.3.4" path: @"/a?b;foo"] autorelease];
-    NSString *s = [[u absoluteURL] description];
+    NSString *s = [u absoluteString];
     NSAssert([s isEqual: @"http://1.2.3.4/a?b;foo"], @"NSURL encoding botch");
 }
 
@@ -318,7 +318,7 @@ static NSString *percentQuoted(NSString *s)
                           }
                       }
                       checkstr(expectedPath, [url path]);
-                      checkstr(urlstring, [[url absoluteURL] description]);
+                      checkstr(urlstring, [url absoluteString]);
                       NSAssert([[url host] isEqual:host], @"host botch");
                       NSAssert([[url path] isEqual:expectedPath],
                         @"path botch");

@@ -59,7 +59,6 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
-#import "GSFastEnumeration.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -153,10 +152,10 @@
 #include <sys/stat.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #ifdef HAVE_PWD_H
@@ -944,9 +943,9 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
   paths = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
   urls = [NSMutableArray arrayWithCapacity: [paths count]];
-  FOR_IN(NSString*, path, paths)
+  GS_FOR_IN(NSString*, path, paths)
     [urls addObject: [NSURL fileURLWithPath: path]];
-  END_FOR_IN(paths)
+  GS_END_FOR(paths)
   return urls;
 }
 
@@ -1748,7 +1747,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (res == WIN32ERR)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       if (res & FILE_ATTRIBUTE_DIRECTORY)
 	{
@@ -1763,7 +1766,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (lstat(lpath, &statbuf) != 0)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
 #endif /* _WIN32 */
@@ -2870,12 +2877,44 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   if (GSIArrayCount(_stack) > 0)
     {
+      _flags.currentIsDir = NO;
       GSIArrayRemoveLastItem(_stack);
       if (_currentFilePath != 0)
 	{
 	  DESTROY(_currentFilePath);
 	}
     }
+}
+
+/**
+ * An alias for skipDescendents that fixes the typo in the method name.
+ */
+- (void) skipDescendants
+{
+  [self skipDescendents];
+}
+
+/**
+ * Returns the number of levels the current file is nested in the
+ * directory hierarchy. The level of the initial directory is 0,
+ * so all files immediately in that directory are at level 1.
+ */
+- (NSUInteger) level
+{
+  /* NB Apple's implementation returns 1 after the last file (and also
+   * before the first one), so we do that here, too.
+   */
+  NSUInteger level = GSIArrayCount(_stack);
+  if (level == 0)
+    {
+      level = 1;
+    }
+  else if (_flags.currentIsDir)
+    {
+      NSParameterAssert(level > 1);
+      level--;
+    }
+  return level;
 }
 
 /*
@@ -2893,6 +2932,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   NSString      *returnFileName = nil;
 
+  _flags.currentIsDir = NO;
   if (_currentFilePath != 0)
     {
       DESTROY(_currentFilePath);
@@ -3016,6 +3056,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #endif
 
 		      GSIArrayAddItem(_stack, item);
+                      _flags.currentIsDir = YES;
 		    }
 		  else
 		    {
@@ -3627,8 +3668,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               error, @"Error", nil];
       return [handler fileManager: self
 	  shouldProceedAfterError: errorInfo];
@@ -3645,8 +3692,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               fromPath, @"FromPath",
                                               toPath, @"ToPath",
                                               error, @"Error", nil];

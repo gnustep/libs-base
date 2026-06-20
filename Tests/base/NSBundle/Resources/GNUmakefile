@@ -6,14 +6,14 @@ BUNDLE_NAME = TestBundle
 FRAMEWORK_NAME = TestFramework
 
 TestBundle_OBJC_FILES = TestBundle.m
-TestBundle_RESOURCE_FILES = NonLocalRes.txt
+TestBundle_RESOURCE_FILES = NonLocalRes.txt Localizable.strings
 TestBundle_LANGUAGES = English French de
 TestBundle_LOCALIZED_RESOURCE_FILES = TextRes.txt
 TestBundle_NEEDS_GUI = NO
 
 
 TestFramework_OBJC_FILES = TestFramework.m
-TestFramework_RESOURCE_FILES = NonLocalRes.txt
+TestFramework_RESOURCE_FILES = NonLocalRes.txt Localizable.strings
 TestFramework_LANGUAGES = English French de
 TestFramework_LOCALIZED_RESOURCE_FILES = TextRes.txt
 TestFramework_CURRENT_VERSION_NAME = 2

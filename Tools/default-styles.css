@@ -1,90 +1,300 @@
-.content-bar {
-    float: left;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    width: 20%;
-    height: 100%;
-    border-right: 1px solid grey;
+/* 1. Base & Global Styles
+-------------------------------------------------- */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --primary-color: #223355; /* A professional blue */
+  --border-color: #e0e0e0;
+  --sidebar-bg: #f8f9fa;
+  --code-bg: #eff2f5;
+  --code-color: #2d3748;
+  --header-bg: #223355;
+  --header-hover-bg: #92a8d3;
+  --header-color: White;
+  --header-titles: #dae0f1;
+  --link-color: var(--primary-color);
+  --link-hover-color: #003d69;
+  --top-bar-height: 55px; /* Control top bar height */
 }
 
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, Helvetica, Arial, "Segoe UI", Roboto, sans-serif, "Segoe UI Symbol";
+  line-height: 1.4rem;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  margin: 0;
+  padding-top: var(--top-bar-height); /* Make space for fixed top bar */
+  display: flex;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 2rem 0;
+}
+
+hr.section-separator { width: 100%; }
+hr.method-separator { width: 50%; margin-left: 0; }
+
+
+/* 2. Global Top Navigation Bar (from .content-bar-top)
+   We use `position: fixed` to visually move it to the
+   top of the viewport.
+-------------------------------------------------- */
 .content-bar-top {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    height: 30%;
-    width: 100%;
-    overflow: auto;
-    border-bottom: 1px solid grey;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--top-bar-height);
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .content-bar-top-body {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    padding-left: 10px;
-    padding-top: 10px;
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  width: 100%;
 }
 
-.content-bar-bottom {
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
-    height:70%;
-    width: 100%;
-    overflow: auto;
+/* Add "GNUstep Documentation" title using a pseudo-element */
+.content-bar-top-body-title {
+  content: "GNUstep Documentation";
+  font-size: 1.1rem;
+  font-weight: thin;
+  color: var(--header-color);
+  margin-right: 1.5rem;
+  white-space: nowrap;
 }
 
-.content-bar-bottom-body {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    padding-left: 10px;
-    padding-top: 10px;
+/* Style the navigation links as buttons */
+.content-bar-top-body a {
+  padding: 0.2rem 0.4rem;
+  border-radius: 2px;
+  color: var(--header-titles);
+  font-size: 1.0rem;
+  font-weight: bold;
+  white-space: nowrap;
 }
 
+.content-bar-top-body a:hover {
+  background-color: var(--header-hover-bg);
+  color: var(--header-bg);
+  text-decoration: none;
+}
+
+/* The <br> tags in the HTML are still there, so we hide them. */
+.content-bar-top-body br {
+  display: none;
+}
+
+
+/* 3. Sidebar & Main Content Layout
+-------------------------------------------------- */
+.content-bar {
+  flex: 0 0 22em;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  /* The entire sidebar is now just the *bottom* part, which should scroll */
+  overflow-y: auto;
+}
 
 .content-pane {
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    width: 80%;
-    height: 100%;
-    overflow-y: auto;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 2rem 3rem;
+  box-sizing: border-box;
 }
 
-.content-pane-body {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    padding-left: 10px;
-}
-
-hr.section-separator {
-    width:50%;
-    margin-left:0;
-    text-align:left;
+/* Reset original positioning for the now-scrolling list container */
+.content-bar-bottom,
+.content-bar-bottom-body {
+    position: static;
+    height: auto;
+    width: auto;
+    overflow: visible;
+    border: none;
+    padding: 1rem;
 }
 
 
-hr.method-separator {
-    width:25%;
-    margin-left:0;
-    text-align:left;
-}
-
+/* 4. Sidebar Navigation List Styling
+-------------------------------------------------- */
 h3.content-bar-index-section-header {
-    font-family: sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--header-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3rem;
+    line-height: 1.2rem;
 }
 
+h3.content-bar-index-section-header:first-child {
+  margin-top: 0;
+}
+
+.content-bar-bottom-body p a {
+    /* Reduced vertical padding for tighter spacing */
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-bar-bottom-body p a:hover {
+    background-color: #e2e8f0;
+    text-decoration: none;
+}
+
+
+/* 5. Main Content Styling (largely unchanged)
+-------------------------------------------------- */
+.content-pane-body {
+}
+
+.content-pane h1, .content-pane h2, .content-pane h3 {
+  color: var(--header-color);
+  margin-bottom: 1rem;
+}
+
+.content-pane h1 {
+  font-size: 2.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  line-height: 2.2rem;
+}
+
+.content-pane h2.class {
+  font-size: 1.75rem;
+  margin-top: 3rem;
+  color: var(--text-color);
+  line-height: 1.75rem;
+}
+
+.content-pane h2.class a, .content-pane h2 a { color: inherit; }
 h3.index-section-header {
-    font-family: sans-serif;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
 }
 
-p {
-    font-family: Serif;
+.method, div[id^="ivariable"] {
+  margin-top: 2rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--primary-color);
 }
 
-.desc {
-    font-family: Serif;
+.method h3, div[id^="ivariable"] h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  line-height: 1.2rem;
+}
+
+
+var, code, .desc a[rel="gsdoc"] {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    background-color: var(--code-bg);
+    color: var(--code-color);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    line-height: 0.9rem;
+}
+
+.availability, blockquote.declared {
+  background-color: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #7c90a2;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 0.9rem;
+}
+
+blockquote.declared dl { margin: 0; }
+blockquote.declared dt { font-weight: bold; }
+svg { margin: 1.5rem 0; }
+
+
+/* 6. Responsive Design
+-------------------------------------------------- */
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    line-height: 1.1rem;
+    height: auto;
+    padding-top: 0; /* Remove padding for a different mobile layout */
+  }
+
+  /* Stack the top bar and sidebar for mobile */
+  .content-bar-top {
+    position: static; /* Un-fix the header */
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: none;
+  }
+
+  .content-bar-top-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .content-bar-top-body::before {
+    margin-bottom: 0.5rem;
+    font-size: 1.0rem;
+    font-weight: normal;
+  }
+
+  .content-bar-top-body a {
+    width: 100%;
+    border-radius: 0;
+    font-weight: normal;
+  }
+
+  .content-bar {
+    flex: 1 1 auto;
+    height: auto;
+    max-height: 40vh; /* Sidebar gets 40% of vertical height */
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .content-pane {
+    flex: 1 1 auto;
+    height: auto;
+    width: auto;
+    padding: 1.5rem;
+  }
 }

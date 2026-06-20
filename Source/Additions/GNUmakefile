@@ -38,10 +38,11 @@ Additions_OBJC_FILES =\
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \
-	GSMime.m \
-	GSXML.m \
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
+	GSMime.m \
+	GSURITemplate.m \
+	GSXML.m \
 	NSArray+GNUstepBase.m \
 	NSAttributedString+GNUstepBase.m \
 	NSBundle+GNUstepBase.m \

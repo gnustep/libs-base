@@ -111,7 +111,10 @@ static NSDecimal one = {0, NO, YES, 1, {1}};
 GS_DECLARE void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source)
 {
-  memcpy(destination, source, sizeof(NSDecimal));
+  if (destination != source)
+    {
+      memcpy(destination, source, sizeof(NSDecimal));
+    }
 }
 
 static void
@@ -1043,16 +1046,26 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
       i = 0;
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	    }
+	  else
+	    {
+	      result->exponent++;
+	    }
 	  s++;
 	}
       s = [[numberValue substringFromIndex: NSMaxRange(found)] lossyCString];
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
-	  result->exponent--;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	      result->exponent--;
+	    }
 	  s++;
 	}	
     }
@@ -1068,8 +1081,15 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
       i = 0;
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	    }
+	  else
+	    {
+	      result->exponent++;
+	    }
 	  s++;
 	}
     }

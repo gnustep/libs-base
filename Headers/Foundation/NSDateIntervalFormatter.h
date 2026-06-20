@@ -25,7 +25,7 @@
 #ifndef _NSDateIntervalFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSDateIntervalFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFormatter.h>
+#import <Foundation/NSFormatter.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -47,26 +47,26 @@ typedef NSUInteger NSDateIntervalFormatterStyle;
 GS_EXPORT_CLASS
 @interface NSDateIntervalFormatter : NSFormatter
 {
-    NSLocale *_locale;
-    NSCalendar *_calendar;
-    NSTimeZone *_timeZone;
-    NSString *_dateTemplate;
-    NSDateIntervalFormatterStyle _dateStyle;
-    NSDateIntervalFormatterStyle _timeStyle;
+  NSLocale 			*_locale;
+  NSCalendar 			*_calendar;
+  NSTimeZone 			*_timeZone;
+  NSString 			*_dateTemplate;
+  NSDateIntervalFormatterStyle	_dateStyle;
+  NSDateIntervalFormatterStyle 	_timeStyle;
 }
 
 // Properties
-- (NSLocale *) locale;
-- (void) setLocale: (NSLocale *)locale;
+- (NSLocale*) locale;
+- (void) setLocale: (NSLocale*)locale;
 
-- (NSCalendar *) calendar;
-- (void) setCalendar: (NSCalendar *)calendar;
+- (NSCalendar*) calendar;
+- (void) setCalendar: (NSCalendar*)calendar;
 
-- (NSTimeZone *) timeZone;
-- (void) setTimeZone: (NSTimeZone *)timeZone;
+- (NSTimeZone*) timeZone;
+- (void) setTimeZone: (NSTimeZone*)timeZone;
 
-- (NSString *) dateTemplate;
-- (void) setDateTemplate: (NSString *)dateTemplate;
+- (NSString*) dateTemplate;
+- (void) setDateTemplate: (NSString*)dateTemplate;
 
 - (NSDateIntervalFormatterStyle) dateStyle;
 - (void) setDateStyle: (NSDateIntervalFormatterStyle)dateStyle;
@@ -75,9 +75,9 @@ GS_EXPORT_CLASS
 - (void) setTimeStyle: (NSDateIntervalFormatterStyle)timeStyle;
 
 // Create strings
-- (NSString *)stringFromDate:(NSDate *)fromDate toDate:(NSDate *)toDate;
+- (NSString*) stringFromDate: (NSDate*)fromDate toDate: (NSDate*)toDate;
 
-- (NSString *)stringFromDateInterval:(NSDateInterval *)dateInterval;
+- (NSString*) stringFromDateInterval: (NSDateInterval*)dateInterval;
 
 @end
 

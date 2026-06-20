@@ -492,15 +492,20 @@ _attributesAtIndexEffectiveRange(
 
   if (nil == aString)
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] is nil"];
     }
   if (![aString respondsToSelector: @selector(length)])
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] does not respond to -length"];
     }
-
+  if (nil == (self = [super initWithString: aString attributes: attributes]))
+    {
+      return nil;
+    }
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
@@ -603,13 +608,19 @@ _attributesAtIndexEffectiveRange(
 
   if (nil == aString)
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] is nil"];
     }
   if (![aString respondsToSelector: @selector(length)])
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] does not respond to -length"];
+    }
+  if (nil == (self = [super initWithString: aString attributes: attributes]))
+    {
+      return nil;
     }
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];

@@ -67,17 +67,25 @@ static Class concrete = 0;
     }
 }
 
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info
 {
-  GSNotification	*n;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithName: name object: object userInfo: info]);
+}
 
-  n = (GSNotification*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  n->_name = [name copyWithZone: [self zone]];
-  n->_object = TEST_RETAIN(object);
-  n->_info = TEST_RETAIN(info);
-  return AUTORELEASE(n);
+- (instancetype) initWithName: (NSNotificationName)name
+		       object: (id)object
+		     userInfo: (NSDictionary*)info
+{
+  if ((self = [super init]))
+    {
+      _name = [name copyWithZone: [self zone]];
+      _object = TEST_RETAIN(object);
+      _info = TEST_RETAIN(info);
+    }
+  return self;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -103,7 +111,7 @@ static Class concrete = 0;
   [super dealloc];
 }
 
-- (NSString*) name
+- (NSNotificationName) name
 {
   return _name;
 }
@@ -856,13 +864,18 @@ static NSNotificationCenter *default_center = nil;
       if (n == 0)
 	{
 	  m = mapNew(TABLE);
-	  /*
-	   * As this is the first observation for the given name, we take a
+
+	  /* As this is the first observation for the given name, we take a
 	   * copy of the name so it cannot be mutated while in the map.
+	   *
+	   * We suppress static analyzer warnings about the copy (the
+	   * analyzer doesn't understand that we will release the name when
+	   * the map node is removed).
 	   */
-	  name = [name copyWithZone: NSDefaultMallocZone()];
-	  GSIMapAddPair(NAMED, (GSIMapKey)(id)name, (GSIMapVal)(void*)m);
-	  GS_CONSUMED(name)
+#ifdef	__clang_analyzer__
+	  [[clang::suppress]]
+#endif
+	  GSIMapAddPair(NAMED, (GSIMapKey)(id)[name copy], (GSIMapVal)(void*)m);
 	}
       else
 	{
@@ -1066,38 +1079,36 @@ static NSNotificationCenter *default_center = nil;
        * Locate the map table for this name.
        */
       n0 = GSIMapNodeForKey(NAMED, (GSIMapKey)((id)name));
-      if (n0 == 0)
+      if (n0)
 	{
-	  unlockNCTable(TABLE);
-	  return;		/* Nothing to do.	*/
-	}
-      m = (GSIMapTable)n0->value.ptr;
+	  m = (GSIMapTable)n0->value.ptr;
 
-      if (object == nil)
-	{
-	  e0 = GSIMapEnumeratorForMap(m);
-	  n0 = GSIMapEnumeratorNextNode(&e0);
-
-	  while (n0 != 0)
+	  if (object == nil)
 	    {
-	      GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
+	      e0 = GSIMapEnumeratorForMap(m);
+	      n0 = GSIMapEnumeratorNextNode(&e0);
 
-	      purgeMapNode(m, n0, observer);
-	      n0 = next;
+	      while (n0 != 0)
+		{
+		  GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
+
+		  purgeMapNode(m, n0, observer);
+		  n0 = next;
+		}
 	    }
-	}
-      else
-	{
-	  n0 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
-	  if (n0 != 0)
+	  else
 	    {
-	      purgeMapNode(m, n0, observer);
+	      n0 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	      if (n0 != 0)
+		{
+		  purgeMapNode(m, n0, observer);
+		}
 	    }
-	}
-      if (m->nodeCount == 0)
-	{
-	  mapFree(TABLE, m);
-	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
+	  if (m->nodeCount == 0)
+	    {
+	      mapFree(TABLE, m);
+	      GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
+	    }
 	}
     }
 

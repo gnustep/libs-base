@@ -22,6 +22,7 @@
 
 */
 #import "common.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
@@ -30,6 +31,72 @@
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 @implementation	NSTask (GNUstepBase)
+
++ (NSArray*) argumentsFromString: (NSString*)commandLine
+{
+  NSMutableData		*data;
+  NSMutableArray	*args = nil;
+  const char		*input = [commandLine UTF8String];
+  const char		*src = input;
+
+  data = [NSMutableData dataWithCapacity: 1000];
+  if (src)
+    {
+      while (*src)
+	{
+	  NSString	*arg;
+	  char		*dst;
+	  char		*output;
+
+	  while (isspace((int)*src))
+	    {
+	      src++;
+	    }
+	  if (!*src) break;
+
+	  [data setLength: strlen(src) + 1];
+	  output = (char*)[data mutableBytes];
+	  dst = output;
+
+	  if ('\'' == *src || '"' == *src)
+	    {
+	      char	quote = *src++;
+
+	      while (*src && *src != quote)
+		{
+		  *dst++ = *src++;
+		}
+	      if (*src == quote)
+		{
+		  src++;
+		}
+	    }
+	  else
+	    {
+	      while (*src && !isspace((int)*src))
+		{
+		  if ('\\' == *src && src[1] != '\0')
+		    {
+		      src++;
+		    }
+		  *dst++ = *src++;
+		}
+	    }
+
+	  *dst = '\0';
+	  arg = [NSString stringWithUTF8String: output];
+	  if (arg)
+	    {
+	      if (nil == args)
+		{
+		  args = [NSMutableArray array];
+		}
+	      [args addObject: arg];
+	    }
+        }
+    }
+  return args;
+}
 
 + (NSSet*) executableExtensions
 {

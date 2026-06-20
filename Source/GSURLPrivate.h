@@ -55,6 +55,10 @@
  * Private accessors for URL loading classes
  */
 
+@interface	NSURL (Private)
+- (NSString*) _requestPath: (BOOL)withoutQuery;
+@end
+
 @interface	NSURLRequest (Private)
 - (BOOL) _debug;
 - (id<GSLogDelegate>) _debugLogDelegate;
