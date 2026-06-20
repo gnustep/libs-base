@@ -557,6 +557,20 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
+  /* The type string is used below as a NUL-terminated C string, but a
+   * crafted archive can supply size bytes with no terminator (when
+   * size == sizeof(type) the stack buffer is filled completely), which
+   * would over-read the buffer.  Reject a type that is not terminated.
+   */
+  if (0 == size || objctype[size - 1] != '\0')
+    {
+      if (size > 64)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
+	}
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-[NSValue initWithCoder:] invalid type encoding"];
+    }
   if (strncmp(CGSIZE_ENCODING_PREFIX, objctype, strlen(CGSIZE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSSize)];
   else if (strncmp(CGPOINT_ENCODING_PREFIX, objctype, strlen(CGPOINT_ENCODING_PREFIX)) == 0)

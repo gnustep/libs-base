@@ -1,5 +1,14 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSValue.m (-[NSValue initWithCoder:]): the object-type
+	string length was decoded from the archive and, when <= 64, that many
+	bytes were copied into a 64-byte stack buffer; a length of exactly 64
+	filled the buffer with no room for a terminator, yet the bytes were
+	then used as a NUL-terminated C string (strncmp,
+	-valueClassWithObjCType:), reading past the end of the buffer.  Reject
+	a type string that is not NUL-terminated.
+	* Tests/base/NSValue/codertype.m: new regression test.
+	* Tests/base/NSValue/TestInfo: added so the NSValue tests are run.
 	* Source/NSXMLParser.m (-[NSXMLParser parse]): the '<' tag handler
 	tested cp < cend - 8' when looking ahead for
 	"!--" and "![CDATA[", but cend is an unsigned NSUInteger, so a tag
