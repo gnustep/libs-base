@@ -229,7 +229,7 @@ typedef NSString *NSKeyValueChangeKey;
  * they should also be sent for dependentKey.
  */
 + (void) setKeys: (NSArray*)triggerKeys
-triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
+triggerChangeNotificationsForDependentKey: (NSString*)dependentKey __attribute__((deprecated));
 
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
