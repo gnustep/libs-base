@@ -459,6 +459,15 @@ static NSMapTable	*globalClassMap = 0;
   return NO;
 }
 
+- (BOOL) _containsRawKey: (NSString*)aKey
+{
+  /* Look the key up in the current object map without the leading-'$'
+   * escaping that GETVAL applies, so the internal sequential element keys
+   * ("$0", "$1", ...) can be probed.
+   */
+  return (nil == [_keyMap objectForKey: aKey]) ? NO : YES;
+}
+
 - (void) dealloc
 {
   DESTROY(_archive);
