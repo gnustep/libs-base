@@ -220,7 +220,7 @@ int main()
        [obj isEqual:dict],
        "-description gives us a text property-list");
 
-  [dict getObjects: &vals1Array andKeys: &keys1Array];
+  [dict getObjects: vals1Array andKeys: keys1Array];
   uint8_t found = 0;
   if (vals1Array[0] == val1 || vals1Array[1] == val1)
     {
