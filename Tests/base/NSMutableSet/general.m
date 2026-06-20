@@ -14,8 +14,8 @@ int main()
   val4 = @"Another";
   
   vals1 = [NSMutableSet setWithObject: val1];
-  vals2 = [vals1 setByAddingObject: val2];
-  vals3 = [vals1 setByAddingObject: val3];
+  vals2 = AUTORELEASE([[vals1 setByAddingObject: val2] mutableCopy]);
+  vals3 = AUTORELEASE([[vals1 setByAddingObject: val3] mutableCopy]);
   vals4 = [NSMutableSet setWithObject: val4];
   
   obj = [NSMutableSet set];

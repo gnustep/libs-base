@@ -247,7 +247,7 @@ static NSDecimalNumber *one;
 }
 
 + (NSDecimalNumber*) decimalNumberWithString: (NSString*)numericString
-				      locale: (NSDictionary*)locale
+				      locale: (id)locale
 {
   return AUTORELEASE([[self alloc] initWithString: numericString
 					   locale: locale]);
@@ -452,7 +452,7 @@ static NSDecimalNumber *one;
 }
 
 - (id) initWithString: (NSString*)numberValue
-	       locale: (NSDictionary*)locale
+	       locale: (id)locale
 {
   NSDecimal decimal;
 

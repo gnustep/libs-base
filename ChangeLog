@@ -1,15 +1,26 @@
-2025-02-04 Hugo Melder <hugo@algoriddim.com>
+2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSDecimalNumber.h:
+        * Source/NSDecimalNumber.m:
+        * Tests/base/NSJSONSerialization/depth.m:
+        * Tests/base/NSJSONSerialization/number.m:
+        * Tests/base/NSMutableSet/general.m:
+        * Tests/base/NSStream/memandfile_2.m:
+        * Tests/base/NSString/NSString_custom.m:
+        * Tests/base/NSString/locale.m:
+	Fix type casting issues causing compiler warnings/errors.
+
+2026-06-20 Todd White <todd.white@thalion.global>
 
 	* Source/NSKVOSupport.m:
 	* Tests/base/NSKVOSupport/legacy.m:
 	Implements the setKeys:triggerChangeNotificationsForDependentKey: class
-    method. Please do not use it. It is fundamentally broken, and requires
-    the object's meta class to hold additional state.
-    Keys from this class method are the last resort when retrieving
-    dependencies via keyPathsForValuesAffectingValueForKey:.
-    This aligns with the implementation in Foundation.
+    	method. Please do not use it. It is fundamentally broken, and requires
+    	the object's meta class to hold additional state.
+    	Keys from this class method are the last resort when retrieving
+    	dependencies via keyPathsForValuesAffectingValueForKey:.
+    	This aligns with the implementation in Foundation.
 
-2025-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 2026-06-19 Todd White <todd.white@thalion.global>
 
 	* Source/NSInvocation.m (-[NSInvocation initWithCoder:]): when the decoded

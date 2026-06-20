@@ -107,12 +107,13 @@ main(int argc, char *argv[])
   NSInputStream		*stream;
   NSData		*data;
   NSError		*error;
+  NSError		*dummy = [[[NSError alloc] init] autorelease];
   NSMutableString	*s;
   unsigned		i;
   id			result;
 
   data = buildNestedArrayJSON(20, @"42");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -120,7 +121,7 @@ main(int argc, char *argv[])
   PASS(error == nil, "20-level array cleared error out-parameter")
 
   data = buildNestedObjectJSON(20, @"42");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -128,7 +129,7 @@ main(int argc, char *argv[])
   PASS(error == nil, "20-level object cleared error out-parameter")
 
   data = buildNestedArrayJSON(512, @"null");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -136,7 +137,7 @@ main(int argc, char *argv[])
   PASS(error == nil, "512-level array cleared error out-parameter")
 
   data = buildNestedObjectJSON(512, @"null");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -144,7 +145,7 @@ main(int argc, char *argv[])
   PASS(error == nil, "512-level object cleared error out-parameter")
 
   data = buildNestedArrayJSON(513, @"null");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -152,7 +153,7 @@ main(int argc, char *argv[])
   PASS(ISERROR(error), "513-level array populated error out-parameter")
 
   data = buildNestedObjectJSON(513, @"null");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -160,7 +161,7 @@ main(int argc, char *argv[])
   PASS(ISERROR(error), "513-level object populated error out-parameter")
 
   data = buildNestedArrayJSON(2000, @"null");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -169,7 +170,7 @@ main(int argc, char *argv[])
 
 
   data = buildNestedMixedJSON(300, @"0");
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -178,7 +179,7 @@ main(int argc, char *argv[])
 
 
   data = buildNestedArrayJSON(2000, @"null");
-  error = @"dummy";
+  error = dummy;
   stream = [NSInputStream inputStreamWithData: data];
   [stream open];
   result = [NSJSONSerialization JSONObjectWithStream: stream

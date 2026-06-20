@@ -45,10 +45,11 @@ main(int argc, char *argv[])
   START_SET("NSJSONSerialization number length")
   NSData	*data;
   NSError	*error;
+  NSError	*dummy = [[[NSError alloc] init] autorelease];
   id		result;
 
   data = [@"[123]" dataUsingEncoding: NSUTF8StringEncoding];
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];
@@ -61,7 +62,7 @@ main(int argc, char *argv[])
    * the stack buffer.
    */
   data = buildLongNumberJSON(4096);
-  error = @"dummy";
+  error = dummy;
   result = [NSJSONSerialization JSONObjectWithData: data
 					   options: 0
 					     error: &error];

@@ -293,7 +293,7 @@ static void testFolding(void)
 							   length: 1] autorelease];
   NSString *dotlessIStr = [[[NSString alloc] initWithCharacters: &dotlessI
 							length: 1] autorelease];
-  NSString *turkish = [[[NSLocale alloc] initWithLocaleIdentifier: @"tr_TR"]
+  NSLocale *turkish = [[[NSLocale alloc] initWithLocaleIdentifier: @"tr_TR"]
     autorelease];
   NSString *folded;
 
