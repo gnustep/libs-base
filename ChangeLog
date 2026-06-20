@@ -1,3 +1,12 @@
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSInvocation.m (-[NSInvocation initWithCoder:]): when the decoded
+	method-type string was missing or unparseable, the method signature and the
+	replacement invocation were nil, but the method went on to decode the
+	target, selector and arguments through ivars off the nil self (a near-NULL
+	out-of-bounds write).  Reject a nil signature before touching the ivars.
+	* Tests/base/NSInvocation/codersig.m: new regression test.
+
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc: minor tidy
