@@ -3353,6 +3353,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = next - 0x50;
+      if (counter > _length || len > _length - counter)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len
                   encoding: NSUTF8StringEncoding];
@@ -3372,6 +3377,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = [self readCountAt: &counter];
+      if (counter > _length || len > _length - counter)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len
                   encoding: NSUTF8StringEncoding];
@@ -3391,6 +3401,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = next - 0x60;
+      if (counter > _length || len > (_length - counter) / sizeof(unichar))
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len * sizeof(unichar)
                   encoding: NSUTF16BigEndianStringEncoding];
@@ -3410,6 +3425,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  s = [NSString alloc];
 	}
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / sizeof(unichar))
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"binary plist string extends beyond the supplied data"];
+	}
       s = [s initWithBytes: _bytes + counter
                     length: len * sizeof(unichar)
                   encoding: NSUTF16BigEndianStringEncoding];
@@ -3466,6 +3486,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       id	*objects;
 
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / index_size)
+	{
+	  [NSException raise: NSGenericException
+		format: @"Invalid binary property list array size %lu", len];
+	}
       objects = NSAllocateCollectable(sizeof(id) * len, NSScannedOption);
       PUSH_OBJ(index);
       for (i = 0; i < len; i++)
@@ -3531,6 +3556,11 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       id	*values;
 
       len = [self readCountAt: &counter];
+      if (counter > _length || len > (_length - counter) / (2 * index_size))
+	{
+	  [NSException raise: NSGenericException
+		format: @"Invalid binary property list dictionary size %lu", len];
+	}
       keys = NSAllocateCollectable(sizeof(id) * len * 2, NSScannedOption);
       values = keys + len;
       PUSH_OBJ(index);
