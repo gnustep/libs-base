@@ -1888,20 +1888,25 @@ static void Grow(DescriptionInfo *info, unsigned size)
 {
   if (info->offset + size >= info->length)
     {
+      /* Grow by at least 'size' so a single field larger than the fixed
+       * increment (e.g. a long locale-supplied month or weekday name) does
+       * not leave the buffer too small for the caller's write. */
+      unsigned	want = info->length + (size > 512 ? size : 512);
+
       if (info->t == info->base)
 	{
 	  unichar	*old = info->t;
 
 	  info->t = NSZoneMalloc(NSDefaultMallocZone(),
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	  memcpy(info->t, old, info->length*sizeof(unichar));
 	}
       else
 	{
 	  info->t = NSZoneRealloc(NSDefaultMallocZone(), info->t,
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	}
-      info->length += 512;
+      info->length = want;
     }
 }
 

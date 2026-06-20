@@ -8,6 +8,62 @@
 	out-of-range range read past the end of the character buffer.  Perform
 	GS_RANGE_CHECK first, as the GSMutableString implementations do.
 	* Tests/base/NSString/substring-bounds.m: new regression test.
+	* Source/NSValue.m (-[NSValue initWithCoder:]): the object-type
+	string length was decoded from the archive and, when <= 64, that many
+	bytes were copied into a 64-byte stack buffer; a length of exactly 64
+	filled the buffer with no room for a terminator, yet the bytes were
+	then used as a NUL-terminated C string (strncmp,
+	-valueClassWithObjCType:), reading past the end of the buffer.  Reject
+	a type string that is not NUL-terminated.
+	* Tests/base/NSValue/codertype.m: new regression test.
+	* Tests/base/NSValue/TestInfo: added so the NSValue tests are run.
+	* Source/NSXMLParser.m (-[NSXMLParser parse]): the '<' tag handler
+	tested cp < cend - 8' when looking ahead for
+	"!--" and "![CDATA[", but cend is an unsigned NSUInteger, so a tag
+	with fewer than 3 (resp. 8) bytes remaining made the subtraction
+	underflow to a huge value, the guard passed, and the following
+	strncmp() read past the end of the buffer.  Test cp + 8 < cend' instead, equivalent whenever there are enough bytes
+	but without the underflow.
+	* Tests/base/NSXMLParser/cend-bounds.m: new regression test.
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the
+	0xAF "big array" and 0xDF "big dictionary" cases read an element
+	count straight from the (untrusted) data and used it both to size the
+	NSAllocateCollectable() buffer and to bound the loop that reads that
+	many object-index entries, with no check that the data could hold
+	them.  A crafted marker declaring billions of elements over a few
+	bytes made the loop read object indices far past the end of the
+	buffer (and on 32-bit wrapped the sizeof(id)*count product to an
+	undersized allocation).  Reject a count that cannot fit in the bytes
+	remaining for the index entries before allocating or reading.
+	* Tests/base/NSPropertyList/bplist-bigcontainer-bounds.m: new
+	regression test.
+	* Source/NSCalendarDate.m (Grow): the helper that enlarges the date
+	formatting buffer always grew by a fixed 512 unichars, so a format field
+	longer than that increment (e.g. a long month or weekday name supplied
+	through the locale) left the buffer too small and the following
+	-getCharacters: wrote past its end.  Grow by at least the requested size.
+	* Tests/base/NSCalendarDate/growname.m: new regression test.
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the four
+	string object cases (short and long UTF-8 and UTF-16, markers 0x50-0x5F and
+	0x60-0x6F) read len bytes from the object body without checking that the
+	body stayed within the data, unlike the sibling data cases, so a string
+	object declaring a length past the end read out of bounds.  Validate the
+	length against the remaining data before reading.
+	* Tests/base/NSPropertyList/bplist-string-bounds.m: new regression test.
+	* Source/NSAttributedString.m (-[NSAttributedString initWithCoder:],
+	-[NSMutableAttributedString initWithCoder:]): the variable-length integer
+	decode loops for NSAttributeInfo (`while (*p & 0x80)' and the trailing
+	`*p++') had no `p < end' bound, so an NSAttributeInfo value ending in a
+	continuation byte read past the end of the buffer.  Bound both loops (and
+	the trailing byte) by end.
+	* Tests/base/NSAttributedString/coderinfo.m: new regression test.
+	* Source/NSValue.m (-[NSValue initWithCoder:]): in the version >= 2 decode
+	path, when the unpacked type size was <= 64 the serialized bytes were placed
+	in a stack VLA whose length came straight from the (untrusted) archive, so a
+	large size overran the stack.  Heap-allocate the serialized buffer, as the
+	> 64 case already does.
+	* Tests/base/NSValue/TestInfo: add the marker so the directory is run.
+	* Tests/base/NSValue/codervla.m: new regression test.
 
 2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
 
