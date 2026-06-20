@@ -1,5 +1,13 @@
 2026-06-20 Todd White <todd.white@thalion.global>
 
+	* Source/NSXMLParser.m (-[NSXMLParser parse]): the '<' tag handler
+	tested cp < cend - 8' when looking ahead for
+	"!--" and "![CDATA[", but cend is an unsigned NSUInteger, so a tag
+	with fewer than 3 (resp. 8) bytes remaining made the subtraction
+	underflow to a huge value, the guard passed, and the following
+	strncmp() read past the end of the buffer.  Test cp + 8 < cend' instead, equivalent whenever there are enough bytes
+	but without the underflow.
+	* Tests/base/NSXMLParser/cend-bounds.m: new regression test.
 	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the
 	0xAF "big array" and 0xDF "big dictionary" cases read an element
 	count straight from the (untrusted) data and used it both to size the

@@ -1428,14 +1428,14 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	      this->ignorable = YES;
 	      this->whitespace = YES;
 
-              if (this->cp < this->cend-3
+              if (this->cp + 3 < this->cend
                 && strncmp((char *)addr(this->cp), "!--", 3) == 0)
                 {
                   /* start of comment skip all characters until "-->"
                    */
                   this->cp += 3;
 		  tp = this->cp;
-                  while (this->cp < this->cend-3
+                  while (this->cp + 3 < this->cend
                          && strncmp((char *)addr(this->cp), "-->", 3) != 0)
                     {
                       this->cp++;  // search
@@ -1461,14 +1461,14 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   c = cget();		// get first character after comment
                   continue;
                 }
-              if (this->cp < this->cend-8
+              if (this->cp + 8 < this->cend
                 && strncmp((char *)addr(this->cp), "![CDATA[", 8) == 0)
 		{
                   /* start of CDATA skip all characters until "]>"
                    */
                   this->cp += 8;
 		  tp = this->cp;
-                  while (this->cp < this->cend-3
+                  while (this->cp + 3 < this->cend
                     && strncmp((char *)addr(this->cp), "]]>", 3) != 0)
                     {
                       this->cp++;  // search
