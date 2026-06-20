@@ -1,3 +1,16 @@
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSCoder.m (-[_NSKeyedCoderOldStyleArray initWithCoder:]): the
+	destination buffer was allocated with -[NSMutableData initWithLength:
+	_c * _s] where _c (the decoded NS.count) and _s are both unsigned, so the
+	32-bit product could truncate and an attacker-chosen count made the buffer
+	far smaller than the _c elements the following loop wrote into it.  Reject
+	a count larger than the sequential element keys actually present, and
+	widen the product.
+	* Source/NSKeyedUnarchiver.m (-_containsRawKey:): new private helper that
+	probes the current object map without the leading-'$' escaping.
+	* Tests/base/NSKeyedArchiver/arrayoverflow.m: new regression test.
+
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc: minor tidy
