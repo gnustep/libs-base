@@ -6,6 +6,53 @@
 	target, selector and arguments through ivars off the nil self (a near-NULL
 	out-of-bounds write).  Reject a nil signature before touching the ivars.
 	* Tests/base/NSInvocation/codersig.m: new regression test.
+	* Source/NSCharacterSet.m (-[NSCharacterSet initWithCoder:]): the abstract
+	class decoded an int from the archive and used it directly as an index into
+	the fixed-size cache_set[] array of standard sets with no bounds check, so a
+	crafted archive could read and -retain an out-of-bounds slot.  Range-check
+	the index.
+	* Tests/base/NSCharacterSet/coderindex.m: new regression test.
+	* Source/NSSerializer.m (deserializeFromInfo): the ST_CSTRING case read a
+	byte count from the (untrusted) data and built the string with length
+	size-1; a crafted count of 0 made size-1 underflow to a huge length over a
+	zero-byte buffer (an out-of-bounds read).  Reject a zero C-string length.
+	* Tests/base/NSSerializer/cstring.m: new regression test.
+	* Source/NSData.m (-[NSDataStatic
+	deserializeTypeTag:andCrossRef:atCursor:]): the 32-bit cross-reference
+	read was guarded with `*cursor >= length-3', but length is an unsigned
+	NSUInteger, so a buffer shorter than 3 bytes made length-3 underflow and
+	defeated the guard, reading past the end of the buffer.  Reject a
+	too-short buffer before the subtraction.
+	* Tests/base/NSData/typetag.m: new regression test.
+	* Source/NSData.m (-[NSData deserializeInts:count:atCursor:],
+	-[NSData deserializeInts:count:atIndex:]): both passed &intBuffer (the
+	address of the local pointer parameter) to -deserializeBytes:length:
+	atCursor: instead of intBuffer, so the decoded bytes were written over the
+	pointer on the stack rather than into the caller's buffer.  Pass intBuffer.
+	* Tests/base/NSData/deserializeints.m: new regression test.
+	* Source/NSCoder.m (-[_NSKeyedCoderOldStyleArray initWithCoder:]): the
+	destination buffer was allocated with -[NSMutableData initWithLength:
+	_c * _s] where _c (the decoded NS.count) and _s are both unsigned, so the
+	32-bit product could truncate and an attacker-chosen count made the buffer
+	far smaller than the _c elements the following loop wrote into it.  Reject
+	a count larger than the sequential element keys actually present, and
+	widen the product.
+	* Source/NSKeyedUnarchiver.m (-_containsRawKey:): new private helper that
+	probes the current object map without the leading-'$' escaping.
+	* Tests/base/NSKeyedArchiver/arrayoverflow.m: new regression test.
+	* Source/NSDecimal.m (GSDecimalFromString): the digit-copying loops wrote
+	into the fixed-size cMantissa[] array of a stack decimal without bounding
+	the destination index, so a numeric string with more digits than the
+	mantissa can hold overran the buffer.  Stop filling the mantissa at its
+	capacity (sizeof cMantissa): excess integer digits raise the exponent to
+	preserve magnitude and excess fractional digits are dropped.
+	* Tests/base/NSDecimalNumber/string.m: new regression test.
+	* Source/NSJSONSerialization.m (parseNumber): the BUFFER() macro raised a
+	parse error when the 255-byte numeric buffer was full but did not stop, so
+	a numeric token longer than the buffer overran the stack array.  Return as
+	soon as the error is raised so an over-long token is rejected instead of
+	overflowing the buffer.
+	* Tests/base/NSJSONSerialization/number.m: new regression test.
 
 2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 

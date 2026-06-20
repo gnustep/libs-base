@@ -1865,7 +1865,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(unsigned)
 		atCursor: cursor];
   for (i = 0; i < numInts; i++)
@@ -1883,7 +1883,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(int)
 		atCursor: &index];
   for (i = 0; i < numInts; i++)
@@ -3799,7 +3799,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    {
 	      uint32_t	x;
 
-	      if (*cursor >= length-3)
+	      /* length is unsigned, so guard the length-3 subtraction against
+	       * underflow for a short buffer before using it as a bound. */
+	      if (length < 4 || *cursor >= length-3)
 		{
 		  [NSException raise: NSRangeException
 			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
