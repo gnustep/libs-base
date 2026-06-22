@@ -5,7 +5,7 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 -->
-<gsdoc base="Debugging" up="Tools">
+<gsdoc base="Debugging" up="../Reference/Base">
   <head>
     <title>Debugging with GDB</title>
     <author name="Adam Fedor"></author>

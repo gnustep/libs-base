@@ -8,7 +8,7 @@ on this usage is also included.
 
 The manual does not cover installation instructions as these vary from system
 to system, and are documented fairly well in the GNUstep
-@uref{../../../User/GNUstep/gnustep-howto_toc.html, HOWTO}.
+@uref{../../../User/GNUstep/gnustep-howto/index.html, HOWTO}.
 
 The target audience for this manual is the C, C++, or Java programmer that
 wishes to learn to use Objective-C effectively.  We assume that, while the

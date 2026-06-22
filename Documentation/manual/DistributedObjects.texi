@@ -443,7 +443,7 @@ automatically be started on each machine, if it isn't running already, that
 handles this, allowing the server to register and the client to send a query
 behind the scenes.  This @i{GNUstep Distributed Objects Name Server} runs as
 '@code{gdomap}' and binds to port 538.  See the manual page or the HTML
-``GNUstep Base Tools'' @uref{../../Tools/Reference/index.html,
+``GNUstep Base Tools'' @uref{../../BaseTools/BaseTools.html,
 documentation} for further information.
 
 

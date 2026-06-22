@@ -1301,7 +1301,24 @@ static NSMutableSet	*textNodes = nil;
 	      prevFile = [prop objectForKey: @"prev"];
 	      prevFile = [prevFile stringByAppendingPathExtension: @"html"];
 	      upFile = [prop objectForKey: @"up"];
-	      upFile = [upFile stringByAppendingPathExtension: @"html"];
+	      if (upFile)
+		{
+		  NSString	*ext = [upFile pathExtension];
+
+		  if ([ext isEqual: @"html"])
+		    {
+		      upFile = [upFile stringByDeletingPathExtension];
+		    }
+			
+		  /* If we are in a template document the special name {Project}
+		   * lets us link to the main document of the current project
+		   */
+		  if ([upFile isEqual: @"{Project}"])
+		    {
+		      upFile = project;
+		    }
+		  upFile = [upFile stringByAppendingPathExtension: @"html"];
+		}
 
 	      // special formatting for table-of-contents frames; ultimately
 	      // this should be moved to stylesheet
@@ -1375,7 +1392,8 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: @"<div class=\"content-bar-top-body-title\">"];
 	      if (upFile != nil)
 		{
-		  [buf appendFormat: @"<a href=\"%@\">%@</a>", upFile, project];
+		  [buf appendFormat: @"<a href=\"%@\">%@</a>", upFile,
+		  [[upFile lastPathComponent] stringByDeletingPathExtension]];
 		}
 	      else
 		{

@@ -5,7 +5,7 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 -->
-<gsdoc base="BaseTools">
+<gsdoc base="BaseTools" up="../Base/Reference/Base">
   <head>
     <title>Base Tools</title>
     <author name="Richard Frith-MacDonald"/>

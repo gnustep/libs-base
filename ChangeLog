@@ -1,3 +1,23 @@
+2026-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/BaseAdditions.gsdoc:
+	* Documentation/Functions.gsdoc:
+	* Documentation/GNUmakefile:
+	* Documentation/General/Debugging.gsdoc:
+	* Documentation/General/OpenStepCompliance.gsdoc:
+	* Documentation/HtmlNav/docs-web.html:
+	* Documentation/HtmlNav/index.html:
+	* Documentation/TypesAndConstants.gsdoc:
+	* Documentation/manual/BaseLibrary.texi:
+	* Documentation/manual/DistributedObjects.texi:
+	* Documentation/manual/GSDoc.texi:
+	* Documentation/manual/foreword.texi:
+	* Documentation/manual/index.html:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Tools/AGSHtml.m:
+	* Tools/BaseTools.gsdoc:
+	Documentation internal link fixes.
+
 2026-06-20 Todd White <todd.white@thalion.global>
 
 	* Source/GSString.m (-[GSCString substringFromRange:],
