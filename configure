@@ -664,6 +664,7 @@ USE_GMP
 GS_HAVE_NSURLSESSION
 HAVE_LIBCURL
 HAVE_NEWKVO
+HAVE_LIBXPC
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
@@ -867,6 +868,7 @@ enable_icu
 enable_libdispatch
 with_dispatch_include
 with_dispatch_library
+enable_libxpc
 enable_newkvo
 with_curl
 enable_nsurlsession
@@ -1564,6 +1566,8 @@ Optional Features:
   --disable-zeroconf      Disable NSNetServices support
   --disable-icu           Disable International Components for Unicode
   --disable-libdispatch   Disable dispatching blocks via libdispatch
+  --disable-libxpc        Disable use of libxpc library for XPC inter-process
+                          communication
   --disable-newkvo        Disable new KVO implementation
   --disable-nsurlsession  Disable support for NSURLSession
   --enable-setuid-gdomap  Enable installing gdomap as a setuid executable. By
@@ -14976,6 +14980,87 @@ then :
 
 fi
 
+fi
+
+
+
+#--------------------------------------------------------------------
+# Check for libxpc (XPC inter-process communication)
+#--------------------------------------------------------------------
+HAVE_LIBXPC=0
+# Check whether --enable-libxpc was given.
+if test ${enable_libxpc+y}
+then :
+  enableval=$enable_libxpc; enable_libxpc=$enableval
+else $as_nop
+  enable_libxpc=yes
+fi
+
+
+if test $enable_libxpc = yes; then
+         for ac_header in xpc/xpc.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "xpc/xpc.h" "ac_cv_header_xpc_xpc_h" "$ac_includes_default"
+if test "x$ac_cv_header_xpc_xpc_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_XPC_XPC_H 1" >>confdefs.h
+ have_libxpc=yes
+else $as_nop
+  have_libxpc=no
+fi
+
+done
+  if test "$have_libxpc" = "yes"; then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for xpc_connection_create_mach_service in -lxpc" >&5
+printf %s "checking for xpc_connection_create_mach_service in -lxpc... " >&6; }
+if test ${ac_cv_lib_xpc_xpc_connection_create_mach_service+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lxpc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char xpc_connection_create_mach_service ();
+int
+main (void)
+{
+return xpc_connection_create_mach_service ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_xpc_xpc_connection_create_mach_service=yes
+else $as_nop
+  ac_cv_lib_xpc_xpc_connection_create_mach_service=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xpc_xpc_connection_create_mach_service" >&5
+printf "%s\n" "$ac_cv_lib_xpc_xpc_connection_create_mach_service" >&6; }
+if test "x$ac_cv_lib_xpc_xpc_connection_create_mach_service" = xyes
+then :
+  have_libxpc=yes
+else $as_nop
+  have_libxpc=no
+fi
+
+    if test "$have_libxpc" = "yes"; then
+      HAVE_LIBXPC=1
+      LIBS="$LIBS -lxpc"
+
+printf "%s\n" "#define HAVE_LIBXPC 1" >>confdefs.h
+
+    fi
+  fi
 fi
 
 

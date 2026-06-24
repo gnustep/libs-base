@@ -3806,6 +3806,30 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
 
 #--------------------------------------------------------------------
+# Check for libxpc (XPC inter-process communication)
+#--------------------------------------------------------------------
+HAVE_LIBXPC=0
+AC_ARG_ENABLE(libxpc,
+  [AS_HELP_STRING([--disable-libxpc],
+  [Disable use of libxpc library for XPC inter-process communication])],
+  enable_libxpc=$enableval,
+  enable_libxpc=yes)
+
+if test $enable_libxpc = yes; then
+  AC_CHECK_HEADERS(xpc/xpc.h, have_libxpc=yes, have_libxpc=no)
+  if test "$have_libxpc" = "yes"; then
+    AC_CHECK_LIB(xpc, xpc_connection_create_mach_service, have_libxpc=yes, have_libxpc=no)
+    if test "$have_libxpc" = "yes"; then
+      HAVE_LIBXPC=1
+      LIBS="$LIBS -lxpc"
+      AC_DEFINE(HAVE_LIBXPC,1,[Define if libxpc is available])
+    fi
+  fi
+fi
+AC_SUBST(HAVE_LIBXPC)
+
+
+#--------------------------------------------------------------------
 # Check for whether the new KVO implementation is enabled (only with
 # the NG runtime)
 #--------------------------------------------------------------------
