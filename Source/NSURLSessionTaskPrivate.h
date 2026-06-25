@@ -140,4 +140,8 @@
 
 @interface NSURLSessionWebSocketTask(Private)
 
+- (instancetype)initWithSession: (NSURLSession *)session
+                        request: (NSURLRequest *)request
+                 taskIdentifier: (NSUInteger)identifier;
+
 @end

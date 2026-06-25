@@ -26,6 +26,8 @@
  * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  */
 
+#include "Foundation/NSArray.h"
+#include "Foundation/NSURLSession.h"
 #import "NSURLSessionPrivate.h"
 #import "GSDispatch.h"
 #include <curl/curl.h>
@@ -927,7 +929,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
                 forKey: @"headers"];
 }
 
-- (void) _configureEasyHandleForRequest: (NSURLRequest *)request
+- (void) _initializeEasyhandleForRequest: (NSURLRequest *)request
 {
   NSString *httpMethod;
   NSURL *url;
@@ -941,8 +943,11 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     {
       curl_easy_setopt(_easyHandle, CURLOPT_NOBODY, 1L);
     }
-
-  [self _configureRequestBodyForRequest: request];
+  else 
+    {
+      // Point libcurl to the body of the request, if it has one
+      [self _configureEasyhandleForRequestBody: request];
+    }
 
   curl_easy_setopt(
     _easyHandle,
@@ -955,10 +960,11 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     [[url absoluteString] UTF8String]);
 }
 
-- (void) _configureRequestBodyForRequest: (NSURLRequest *)request
+- (void) _configureEasyhandleForRequestBody: (NSURLRequest *)request
 {
   if (nil != [request HTTPBody])
     {
+      // Data is transmitted in a single chunk
       NSData *body = [request HTTPBody];
 
       curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
@@ -970,6 +976,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
   else if (nil != [request HTTPBodyStream])
     {
+      // Let libcurl upload the data as a stream using the read callback
       NSInputStream *stream = [request HTTPBodyStream];
 
       [_taskData setObject: stream forKey: taskInputStreamKey];
@@ -982,7 +989,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
 }
 
-- (void) _configureTransferCallbacks
+- (void) _configureEasyhandleForRequestBody
 {
   /* This callback function gets called by libcurl as soon as there is data
    * received that needs to be saved. For most transfers, this callback gets
@@ -1171,14 +1178,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   url = [request URL];
   configuration = [session configuration];
 
-  [self _configureEasyHandleForRequest: request];
+  [self _initializeEasyhandleForRequest: request];
   [self _configureTransferCallbacks];
   [self _configureProtocolOptionsForRequest: request
                               configuration: configuration];
 
   requestHeaders = [self _mergedRequestHeadersForRequest: request
                                            configuration: configuration
-                                                    URL: url];
+                                                     URL: url];
   [self _installRequestHeaders: requestHeaders];
   LEAVE_POOL
 
@@ -1785,7 +1792,58 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 @end
 
+typedef struct
+{
+  NSURLSessionWebSocketMessage *message;
+  void (^completionHandler)(NSError *error);
+} GSURLSessionWebSocketSendQueueEntry;
+
+static GSURLSessionWebSocketSendQueueEntry *
+GSURLSessionWebSocketSendQueueEntryCreate(
+  NSURLSessionWebSocketMessage *message,
+  void (^completionHandler)(NSError *error))
+{
+  GSURLSessionWebSocketSendQueueEntry *entry;
+
+  entry = malloc(sizeof (*entry));
+  entry->message = RETAIN(message);
+  entry->completionHandler = _Block_copy(completionHandler);
+  return entry;
+}
+
+static void
+GSURLSessionWebSocketSendQueueEntryDestroy(
+  GSURLSessionWebSocketSendQueueEntry *entry)
+{
+  if (NULL == entry)
+    {
+      return;
+    }
+
+  RELEASE(entry->message);
+  _Block_release(entry->completionHandler);
+  free(entry);
+}
+
 @implementation  NSURLSessionWebSocketTask
+
+- (instancetype) initWithSession: (NSURLSession *)session
+                         request: (NSURLRequest *)request
+                  taskIdentifier: (NSUInteger)identifier
+{
+  self = [super initWithSession: session
+                        request: request
+                 taskIdentifier: identifier];
+  if (self != nil)
+    {
+      _sendQueue = [[NSMutableArray alloc] init];
+      _recvQueue = [[NSMutableArray alloc] init];
+      GS_MUTEX_INIT(_mutex);
+    }
+
+  return self;
+}
+
 - (NSInteger) maximumMessageSize
 {
   return _maximumMessageSize;
@@ -1809,21 +1867,31 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (void) sendMessage:(NSURLSessionWebSocketMessage *) message 
    completionHandler:(void (^)(NSError *error)) completionHandler
 {
-  // TODO(WS): Serialize and queue websocket messages for transport.
-  (void)message;
-  if (completionHandler != NULL)
-    {
-      completionHandler(nil);
-    }
+  GSURLSessionWebSocketSendQueueEntry *entry;
+
+  entry = GSURLSessionWebSocketSendQueueEntryCreate(message, completionHandler);
+
+  GS_MUTEX_LOCK(_mutex);
+  [_sendQueue addObject: [NSValue valueWithPointer: entry]];
+  GS_MUTEX_UNLOCK(_mutex);
 }
 
 - (void) receiveMessageWithCompletionHandler:(void (^)(NSURLSessionWebSocketMessage *message, NSError *error)) completionHandler
 {
-  // TODO(WS): Read and decode websocket frames into message objects.
-  if (completionHandler != NULL)
+  id handler;
+
+  if (completionHandler == NULL)
     {
-      completionHandler(nil, nil);
+      return;
     }
+
+  handler = (id)_Block_copy(completionHandler);
+
+  GS_MUTEX_LOCK(_mutex);
+  [_recvQueue addObject: handler];
+  GS_MUTEX_UNLOCK(_mutex);
+
+  [handler release];
 }
 
 - (void) sendPingWithPongReceiveHandler:(void (^)(NSError *error)) pongReceiveHandler
@@ -1846,6 +1914,17 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) dealloc
 {
+  NSValue *entryValue;
+
+  GS_MUTEX_DESTROY(_mutex);
+
+  for (entryValue in _sendQueue)
+    {
+      GSURLSessionWebSocketSendQueueEntryDestroy([entryValue pointerValue]);
+    }
+
+  RELEASE(_recvQueue);
+  RELEASE(_sendQueue);
   RELEASE(_closeReason);
   [super dealloc];
 }

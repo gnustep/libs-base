@@ -29,6 +29,7 @@
 #ifndef __NSURLSession_h_GNUSTEP_BASE_INCLUDE
 #define __NSURLSession_h_GNUSTEP_BASE_INCLUDE
 
+#include "GSPThread.h"
 #import <Foundation/NSObject.h>
 #import <Foundation/NSURLRequest.h>
 #import <Foundation/NSHTTPCookieStorage.h>
@@ -448,6 +449,7 @@ GS_EXPORT_CLASS
   NSData *_closeReason;
   NSMutableArray *_sendQueue;
   NSMutableArray *_recvQueue;
+  gs_mutex_t _mutex;
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode

@@ -278,21 +278,21 @@ socket_callback(CURL * easy,           /* easy handle */
       dispatch_source_set_cancel_handler(
         _timer,
         ^{
-      dispatch_release(this->_timer);
-    });
+            dispatch_release(this->_timer);
+        });
 
       // Called after timeout set by libcurl is reached
       dispatch_source_set_event_handler(
         _timer,
         ^{
-      // TODO: Check for return values
-      curl_multi_socket_action(
-        this->_multiHandle,
-        CURL_SOCKET_TIMEOUT,
-        0,
-        &this->_stillRunning);
-      [this _checkForCompletion];
-    });
+          // TODO: Check for return values
+          curl_multi_socket_action(
+            this->_multiHandle,
+            CURL_SOCKET_TIMEOUT,
+            0,
+            &this->_stillRunning);
+          [this _checkForCompletion];
+        });
 
       /* Use the provided delegateQueue if available */
       if (queue)
@@ -666,7 +666,7 @@ socket_callback(CURL * easy,           /* easy handle */
             eff_url,
             curl_easy_strerror(res));
 
-          curl_multi_remove_handle(_multiHandle, easyHandle);
+          [self _removeHandle easy: easyHandle];
 
           /* This session might be released in _transferFinishedWithCode. Better
            * retain it first. */
@@ -709,7 +709,7 @@ socket_callback(CURL * easy,           /* easy handle */
     {
       [_delegateQueue addOperationWithBlock:^{
          [(id<NSURLSessionTaskDelegate>) _delegate URLSession: self
-                                                didCreateTask  : task];
+                                                didCreateTask: task];
        }];
     }
 }
@@ -920,7 +920,7 @@ socket_callback(CURL * easy,           /* easy handle */
                                              taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task _setProperties: GSURLSessionUpdatesDelegate];
-  
+
   // TODO(WS): Configure websocket-specific handshake and framing state.
 
   [self _didCreateTask: task];
