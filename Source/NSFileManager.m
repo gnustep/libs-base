@@ -194,6 +194,7 @@
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
                   skipHidden: (BOOL)skipHidden
+                skipPackages: (BOOL)skipPackages
                 errorHandler: (GSDirEnumErrorHandler) handler
 			 for: (NSFileManager*)mgr;
 
@@ -958,6 +959,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
   NSString              *path;
   BOOL                  shouldRecurse;
   BOOL                  shouldSkipHidden;
+  BOOL                  shouldSkipPackages;
 
   [self _setLastError: nil code: 0];
 
@@ -986,6 +988,16 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     {
       shouldSkipHidden = NO;
     }
+
+  if ((mask & NSDirectoryEnumerationSkipsPackageDescendants)
+    == NSDirectoryEnumerationSkipsPackageDescendants)
+    {
+      shouldSkipPackages = YES;
+    }
+  else
+    {
+      shouldSkipPackages = NO;
+    }
   
   direnum = [[GSURLEnumerator alloc]
 		       initWithDirectoryPath: path
@@ -993,6 +1005,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
                               followSymlinks: NO
                                 justContents: NO
                                   skipHidden: shouldSkipHidden
+                                skipPackages: shouldSkipPackages
                                 errorHandler: handler
                                          for: self];
 
@@ -2752,6 +2765,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
                   skipHidden: (BOOL)skipHidden
+                skipPackages: (BOOL)skipPackages
                 errorHandler: (GSDirEnumErrorHandler) handler
 			 for: (NSFileManager*)mgr
 {
@@ -2770,6 +2784,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       _flags.isFollowing = follow ? 1 : 0;
       _flags.justContents = justContents ? 1 : 0;
       _flags.skipHidden = skipHidden ? 1 : 0;
+      _flags.skipPackages = skipPackages ? 1 : 0;
       _errorHandler = handler;
       
       _topPath = [[NSString alloc] initWithString: path];
@@ -2830,6 +2845,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
                       followSymlinks: follow
                         justContents: justContents
                           skipHidden: NO
+                        skipPackages: NO
                         errorHandler: NULL
                                  for: mgr];
 }
@@ -3041,6 +3057,17 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
 		{
 		  _DIR  *dir_pointer;
+		  NSString *extension;
+
+		  extension = [[_currentFilePath pathExtension] lowercaseString];
+		  if (_flags.skipPackages
+		    && ([extension isEqualToString: @"app"]
+		      || [extension isEqualToString: @"bundle"]
+		      || [extension isEqualToString: @"framework"]
+		      || [extension isEqualToString: @"plugin"]))
+		    {
+		      break;
+		    }
 
 		  dir_pointer
 		    = _OPENDIR([_mgr fileSystemRepresentationWithPath:

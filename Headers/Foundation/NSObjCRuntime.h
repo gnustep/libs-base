@@ -185,6 +185,16 @@ extern "C" {
 #endif
 
 /*
+ * Import a declaration with a specific Swift name when the compiler
+ * supports the attribute.
+ */
+#if __has_attribute(swift_name)
+#  define NS_SWIFT_NAME(_name) __attribute__((swift_name(#_name)))
+#else
+#  define NS_SWIFT_NAME(_name)
+#endif
+
+/*
  * Backwards compatibility macro for instance type.
  */
 #if !__has_feature(objc_instancetype)
@@ -243,17 +253,21 @@ typedef NS_OPTIONS(NSUInteger, NSSortOptions)
 
 #import <GNUstepBase/GSObjCRuntime.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
-GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
-GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
+GS_EXPORT NSString	*_Nullable NSStringFromProtocol(Protocol *_Nullable aProtocol);
+GS_EXPORT Protocol	*_Nullable NSProtocolFromString(NSString *aProtocolName);
 #endif
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
-GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
+GS_EXPORT NSString	*_Nullable NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
-GS_EXPORT Class		NSClassFromString(NSString *aClassName);
-GS_EXPORT NSString	*NSStringFromClass(Class aClass);
+GS_EXPORT Class		_Nullable NSClassFromString(NSString *aClassName);
+GS_EXPORT NSString	*_Nullable NSStringFromClass(Class _Nullable aClass);
 GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
-  NSUInteger *sizep, NSUInteger *alignp);
+  NSUInteger *_Nullable sizep, NSUInteger *_Nullable alignp);
+
+NS_ASSUME_NONNULL_END
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /* Logging */
