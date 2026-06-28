@@ -3,6 +3,7 @@
 #import <Foundation/NSKeyedArchiver.h>
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSData.h>
+#import <Foundation/NSError.h>
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSSet.h>
@@ -21,6 +22,7 @@ int main()
   NSArray *a;
   NSURL *u;
   NSMutableSet *ms;
+  NSError *error = nil;
   NSKeyedArchiver *archiver = nil;
   NSKeyedUnarchiver *unarchiver = nil;
 
@@ -66,6 +68,22 @@ int main()
   NSLog(@"From file: original array %@, decoded array %@",vals2, a);
   PASS((a != nil && [a isKindOfClass:[NSArray class]] && [a isEqual:vals2]),
        "unarchiveObjectWithFile: seems ok");
+
+  data1 = [NSData dataWithBytes: "nope" length: 4];
+  error = nil;
+  a = [NSKeyedUnarchiver unarchivedObjectOfClass: [NSString class]
+				       fromData: data1
+					  error: &error];
+  PASS((a == nil && error != nil),
+    "unarchivedObjectOfClass:fromData:error: reports invalid data as NSError");
+
+  error = nil;
+  a = [NSKeyedUnarchiver unarchivedObjectOfClasses:
+    [NSSet setWithObject: [NSString class]]
+				       fromData: data1
+					  error: &error];
+  PASS((a == nil && error != nil),
+    "unarchivedObjectOfClasses:fromData:error: reports invalid data as NSError");
 
   // encode
   data2 = [NSMutableData dataWithCapacity: 10240];
