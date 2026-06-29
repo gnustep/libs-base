@@ -832,6 +832,7 @@ NSDictionary *locale)
   /* Buffer intermediate results.  */
   unichar work_buffer[1000];
   unichar *workend;
+  unichar *workmalloc = 0;
   int workend_malloced = 0;
 
   /* State for restartable multibyte character handling functions.  */
@@ -1149,12 +1150,13 @@ NSDictionary *locale)
 
             if (want > 168384)
               {
-                workend = (unichar *)malloc(want);
+                workmalloc = (unichar *)malloc(want);
                 workend_malloced = 1;
+                workend = workmalloc + want / sizeof (unichar);
               }
             else
               {
-                workend = (unichar *)alloca(want);
+                workend = (unichar *)alloca(want) + want / sizeof (unichar);
               }
 	  }
 
@@ -1944,7 +1946,7 @@ NSDictionary *locale)
   }
 
 all_done:
-  if (workend_malloced) free(workend);
+  if (workend_malloced) free(workmalloc);
   /* Unlock the stream.  */
 #ifdef __va_copy
   va_end(ap_save);
