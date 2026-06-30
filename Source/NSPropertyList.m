@@ -1326,7 +1326,10 @@ static id parsePlItem(pldata* pld) NS_RETURNS_RETAINED
                 // We permit (but do not require) space between/after hex octets
 		(void)skipSpace(pld);
 	      }
-            if (pld->ptr[pld->pos] != '>')
+            // skipSpace() can consume a comment that runs to the end of the
+            // buffer (taking the closing '>' with it), leaving pos == end, so
+            // the terminator check must guard against reading past the end.
+            if (pld->pos >= pld->end || pld->ptr[pld->pos] != '>')
               {
                 NSZoneFree(NSDefaultMallocZone(), buf);
 		pld->err = @"unexpected character (wanted '>')";
