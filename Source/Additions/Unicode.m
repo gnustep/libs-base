@@ -1250,7 +1250,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	if ((GS_WORDS_BIGENDIAN && NSUTF16LittleEndianStringEncoding == enc)
 	  || (!GS_WORDS_BIGENDIAN && NSUTF16BigEndianStringEncoding == enc))
 	  {
-	    while (spos < slen)
+	    while (slen - spos >= sizeof(uint16_t))
               {
                 uint16_t	c = *(uint16_t*)(src + spos);
 
@@ -1261,7 +1261,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	  }
 	else
 	  {
-	    while (spos < slen)
+	    while (slen - spos >= sizeof(uint16_t))
               {
 	        ptr[dpos++] = *(uint16_t*)(src + spos);
 		spos += 2;
@@ -1280,7 +1280,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	    {
 	      swap = YES;
 	    }
-	  while (spos < slen)
+	  while (slen - spos >= sizeof(uint32_t))
 	    {
 	      uint32_t	c = *(uint32_t*)(src + spos);
 
