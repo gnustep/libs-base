@@ -3073,9 +3073,14 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	       */
 	      if (tmp > src)
 		{
-		  unsigned char	buf[tmp - src + 1];
 		  unsigned char	*ptr;
 
+		  /* The encoded word length is controlled by the (untrusted)
+		   * header data, so GS_BEGINITEMBUF keeps a short word on the
+		   * stack but moves a long one to the heap, avoiding both a
+		   * stack overflow and an unconditional heap allocation.
+		   */
+		  GS_BEGINITEMBUF(buf, tmp - src + 1, unsigned char)
 		  ptr = decodeWord(buf, src, tmp, encoding);
 		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: buf
@@ -3090,6 +3095,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
                       [hdr appendString: s];
                     }
 		  RELEASE(s);
+		  GS_ENDITEMBUF()
 		}
 	      /* Point past end to continue parsing.
 	       */
