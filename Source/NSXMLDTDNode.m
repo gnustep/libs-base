@@ -114,17 +114,17 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (void) setNotationName: (NSString*)notationName
 {
-  internal->node.entity->name = XMLSTRING(notationName);
+  internal->node.entity->name = XMLStringCopy(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  internal->node.entity->ExternalID = XMLSTRING(publicID);
+  internal->node.entity->ExternalID = XMLStringCopy(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  internal->node.entity->ExternalID = XMLSTRING(systemID);
+  internal->node.entity->SystemID = XMLStringCopy(systemID);
 }
 
 - (NSString*) systemID

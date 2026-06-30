@@ -1,5 +1,17 @@
 2026-06-29 Todd White <todd.white@thalion.global>
 
+	* Source/NSXMLDTDNode.m (-setNotationName:, -setPublicID:,
+	-setSystemID:): these stored XMLSTRING(arg) - the transient
+	[arg UTF8String] buffer - directly in the persistent libxml2 entity
+	fields, so once the autorelease pool that produced the string
+	drained the field dangled: a getter read freed memory and -dealloc
+	xmlFreeEntity freed a pointer libxml2 never allocated.  Copy the
+	argument with XMLStringCopy, as -[NSXMLDTD setPublicID:] and
+	-setSystemID: do.  -setSystemID: also wrote ExternalID instead of
+	SystemID, so -systemID never returned the value set; store it in
+	SystemID.
+	* Tests/base/NSXMLDTDNode/entity-id-persistence.m: new regression
+	test.
 	* Source/NSPropertyList.m (parsePlItem): the GNUstep-extended
 	OpenStep typed values <*I...>, <*D...> and <*R...> copied their
 	token body into a stack buffer (char buf[len+1] / unichar buf[len])
