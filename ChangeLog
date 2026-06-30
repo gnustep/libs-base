@@ -1,3 +1,16 @@
+2026-06-29 Todd White <todd.white@thalion.global>
+
+	* Source/NSPropertyList.m (parsePlItem): the GNUstep-extended
+	OpenStep typed values <*I...>, <*D...> and <*R...> copied their
+	token body into a stack buffer (char buf[len+1] / unichar buf[len])
+	whose size was taken straight from the token length, so a token of
+	a few hundred KB overflowed the stack.  The token is reachable from
+	+propertyListWithData:options:format:error: with attacker-supplied
+	data.  A valid typed value is a short number or date, so reject an
+	over-long token before allocating the buffer.
+	* Tests/base/NSPropertyList/openstep-typed-value-bounds.m: new
+	regression test.
+
 2026-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/BaseAdditions.gsdoc:
