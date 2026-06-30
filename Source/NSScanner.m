@@ -1332,7 +1332,7 @@ typedef GSString	*ivars;
  */
 - (void) setScanLocation: (NSUInteger)anIndex
 {
-  if (_scanLocation <= myLength())
+  if (anIndex <= myLength())
     _scanLocation = anIndex;
   else
     [NSException raise: NSRangeException

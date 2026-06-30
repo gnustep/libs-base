@@ -295,10 +295,19 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
       if (l == 0)
         {
           int x;
-             
+
           x = result->length;
           result->length += 1;
           l += 1;
+          if (x >= NSDecimalMaxDigit)
+            {
+              /* No room to prepend a digit into the fixed-size mantissa: stop
+                 the shift at the last element, dropping the least significant
+                 digit.  Only the prepended digit survives the rounding below
+                 (length becomes l == 1), so the dropped digit cannot change
+                 the result. */
+              x = NSDecimalMaxDigit - 1;
+            }
           while (x > 0)
             {
                result->cMantissa[x] = result->cMantissa[x-1];
@@ -1462,12 +1471,36 @@ GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 
       if (carry)
 	{
-	  // The number must be shifted to the right
+	  BOOL	roundUp = NO;
+
+	  // The number must be shifted right to make room for the carried-out
+	  // leading digit.
 	  if (NSDecimalMaxDigit == result->length)
 	    {
-	      NSDecimalRound(result, result,
-			     NSDecimalMaxDigit - 1 - result->exponent,
-			     mode);
+	      // No room for another digit: drop the least significant one
+	      // (remembering whether it rounds the result up) and raise the
+	      // exponent.  The prepended carry digit is 1, so the round-up
+	      // below cannot overflow the mantissa again.
+	      switch (mode)
+		{
+		  case NSRoundDown:
+		    roundUp = result->isNegative;
+		    break;
+		  case NSRoundUp:
+		    roundUp = !result->isNegative;
+		    break;
+		  case NSRoundBankers:
+		    if (5 != result->cMantissa[result->length - 1])
+		      roundUp = (result->cMantissa[result->length - 1] > 5);
+		    else
+		      roundUp = ((result->cMantissa[result->length - 2] % 2) != 0);
+		    break;
+		  default:
+		    roundUp = (result->cMantissa[result->length - 1] >= 5);
+		    break;
+		}
+	      result->length--;
+	      result->exponent++;
 	    }
 
 	  if (127 == result->exponent)
@@ -1482,6 +1515,19 @@ GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	    }
 	  result->cMantissa[0] = 1;
 	  result->length++;
+
+	  if (roundUp)
+	    {
+	      for (i = result->length - 1; i >= 0; i--)
+		{
+		  if (result->cMantissa[i] != 9)
+		    {
+		      result->cMantissa[i]++;
+		      break;
+		    }
+		  result->cMantissa[i] = 0;
+		}
+	    }
 	}
     }
 
