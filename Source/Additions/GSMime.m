@@ -338,12 +338,12 @@ decodeWord(unsigned char *dst, const unsigned char *src,
 
   if (enc == WE_QUOTED)
     {
-      while (*src && (src != end))
+      while (src < end && *src)
 	{
 	  if (*src == '=')
 	    {
 	      src++;
-	      if (*src == '\0')
+	      if (src >= end || *src == '\0')
 		{
 		  break;
 		}
@@ -351,7 +351,7 @@ decodeWord(unsigned char *dst, const unsigned char *src,
                 {
                   break;
                 }
-              if (!isxdigit(src[0]) || !isxdigit(src[1]))
+              if (src + 1 >= end || !isxdigit(src[0]) || !isxdigit(src[1]))
                 {
                   /* Strictly speaking the '=' must be followed by
                    * two hexadecimal characters, but RFC2045 says that
