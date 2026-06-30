@@ -1133,6 +1133,16 @@ static id parsePlItem(pldata* pld) NS_RETURNS_RETAINED
 		    len -= 2;
 		    ptr++;
 		  }
+		/* The buffers used to parse these typed values below are
+		 * stack-allocated and sized from len, while a valid value is
+		 * a short number or date.  Reject an over-long token rather
+		 * than overflow the stack.
+		 */
+		if (len > 4096)
+		  {
+		    pld->err = @"typed value too long";
+		    return nil;
+		  }
 		if (type == 'I')
 		  {
 		    char	buf[len+1];
