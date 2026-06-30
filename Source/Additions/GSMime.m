@@ -590,7 +590,7 @@ wordData(NSString *word, BOOL *encoded)
    * Expand destination data buffer to have capacity to handle info.
    */
   [dData setLength: size + (3 * (end + 8 - src))/4];
-  dst = (unsigned char*)[dData mutableBytes];
+  dst = (unsigned char*)[dData mutableBytes] + size;
   beg = dst;
 
   /*
@@ -690,7 +690,7 @@ wordData(NSString *word, BOOL *encoded)
    * Expand destination data buffer to have capacity to handle info.
    */
   [dData setLength: size + (end - src)];
-  dst = (unsigned char*)[dData mutableBytes];
+  dst = (unsigned char*)[dData mutableBytes] + size;
   beg = dst;
 
   while (src < end)
