@@ -979,10 +979,13 @@ static NSUInteger	urlAlign;
       start = end;
 
       if (buf->scheme != 0 && base != 0
-        && 0 != strcmp(buf->scheme, base->scheme))
+        && (base->scheme == 0 || 0 != strcmp(buf->scheme, base->scheme)))
         {
-          /* The relative URL is of a different scheme to the base ...
-           * so it's actually an absolute URL without a base.
+          /* The relative URL has a scheme which the base lacks or which
+           * differs from the base ... so it's actually an absolute URL
+           * without a base.  (base->scheme may be NULL when the base was
+           * itself parsed from a scheme-less string, so it must be checked
+           * before strcmp.)
            */
           DESTROY(_baseURL);
           base = 0;
