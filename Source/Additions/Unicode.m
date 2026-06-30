@@ -2592,7 +2592,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	      }
 
 	    /* Grow output buffer to make room if necessary */
-	    if (dpos >= bsize)
+	    while (dpos + 4 > bsize)
 	      {
 		GROW();
 	      }
