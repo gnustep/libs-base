@@ -2253,10 +2253,17 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       else
 	{
-	  unichar	buf[length];
-	  unichar	*src = buf;
-	  unichar	*dst = buf;
+	  unichar	*src;
+	  unichar	*dst;
+	  NSString	*result;
 
+	  /* The quoted string length is attacker-controlled (it comes from an
+	   * untrusted header value), so use GS_BEGINITEMBUF rather than a stack
+	   * VLA to avoid a stack overflow on a very long quoted string.
+	   */
+	  GS_BEGINITEMBUF(buf, length, unichar)
+	  src = buf;
+	  dst = buf;
 	  [string getCharacters: buf range: NSMakeRange(start, length)];
 	  while (src < &buf[length])
 	    {
@@ -2270,7 +2277,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		}
 	      *dst++ = *src++;
 	    }
-	  return [NSStringClass stringWithCharacters: buf length: dst - buf];
+	  result = [NSStringClass stringWithCharacters: buf length: dst - buf];
+	  GS_ENDITEMBUF()
+	  return result;
 	}
     }
   else							// Token
