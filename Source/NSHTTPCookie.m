@@ -942,7 +942,7 @@ GSCookieStrings(NSString *string)
 
 		  /* skip past token characters.
 		   */
-		  while (c > 32 && c < 128 && strchr(bad, c) == 0)
+		  while (pos < end && c > 32 && c < 128 && strchr(bad, c) == 0)
 		    {
 		      pos++;
 		      if (pos < end)
