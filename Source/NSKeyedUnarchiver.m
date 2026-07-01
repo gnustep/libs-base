@@ -164,6 +164,17 @@ static NSMapTable	*globalClassMap = 0;
    * If the referenced object is already in _objMap
    * we simply return it (the object at index 0 maps to nil)
    */
+  /* The index comes from an (untrusted) CF$UID in the archive, and GSIArray
+   * is not bounds checked in release builds, so reject an out-of-range
+   * reference (as -[_objects objectAtIndex:] does below) rather than reading
+   * past the end of the map.
+   */
+  if (index >= GSIArrayCount(_objMap))
+    {
+      [NSException raise: NSRangeException
+		  format: @"[%@ -%@] archive object index out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   obj = GSIArrayItemAtIndex(_objMap, index).obj;
   if (obj != nil)
     {
