@@ -1,3 +1,10 @@
+2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProxy.m:
+	* Tests/base/NSProxy/test00.m:
+	Add testcase and some improvements in NSProxy for the fast forwarding
+	mechanism.
+
 2026-06-29 Todd White <todd.white@thalion.global>
 
 	* Source/NSXMLDTDNode.m (-setNotationName:, -setPublicID:,

@@ -61,9 +61,77 @@
 }
 @end
 
+@interface MyProxy2 : NSProxy
+{
+  id    _remote;
+}
+@end
+
+@implementation MyProxy2
+- (id) init
+{
+  _remote = nil;
+  return self;
+}
+- (void) dealloc
+{
+  [_remote release];
+  DEALLOC
+}
+- (NSUInteger) hash
+{
+  if (_remote)
+    return [_remote hash];
+  else
+    return [super hash];
+}
+- (BOOL) isEqual: (id)other
+{
+  if (_remote)
+    return [_remote isEqual: other];
+  else
+    return [super isEqual: other];
+}
+- (void) setRemote:(id)remote
+{
+  ASSIGN(_remote,remote);
+}
+- (NSString *) description
+{
+  return [_remote description];
+}
+- (id) remote
+{
+  return _remote;
+}
+- (NSMethodSignature *) methodSignatureForSelector:(SEL)aSelector
+{
+  NSMethodSignature *sig = [_remote methodSignatureForSelector:aSelector];
+  if (sig == nil)
+    sig = [self methodSignatureForSelector:aSelector];
+  return sig;
+}
+- (void) forwardInvocation:(NSInvocation *)inv
+{
+  [inv setTarget:_remote];
+  [inv invoke];
+}
+- (id) forwardingTargetForSelector: (SEL)aSelector
+{
+  if (aSelector == @selector(methodForSelector:))
+    {
+      return nil;
+    }
+  if ([_remote respondsToSelector: aSelector])
+    {
+      return _remote;
+    }
+  return nil;
+}
+@end
+
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   START_SET("NSProxy 0")
   testHopeful = YES; // This test is somewhat flaky on GCC MinGW. Further investigation is needed.
 
@@ -106,6 +174,40 @@ int main()
   PASS([rem compare: sub] == NSOrderedSame, "remote compare: subclass");
   
   END_SET("NSProxy 0")
-  [arp release]; arp = nil;
+
+  START_SET("NSProxy fast forwarding")
+
+  id obj = nil;
+  id rem = @"Remote";
+  id sub = @"Remote";
+  
+  obj = AUTORELEASE([[MyProxy2 alloc] init]);
+  PASS(obj != nil, "Can create a MyProxy2 instance");
+  PASS([obj isEqual: obj], "proxy isEqual: to self without remote");
+  [obj setRemote: rem];
+  PASS([obj remote] == rem, "Can set the remote object for the proxy");
+  PASS([obj length] == [rem length], "Get the length of the remote object");
+  PASS([sub length] == [rem length], "Get the length of the subclass object");
+  PASS([obj isEqual: rem], "proxy isEqual: to remote");
+  PASS([obj isEqual: sub], "proxy isEqual: to subclass");
+  PASS([sub isEqual: rem], "subclass isEqual: to remote");
+  PASS([sub isEqual: obj], "subclass isEqual: to proxy");
+  PASS([rem isEqual: obj], "remote isEqual: to proxy");
+  PASS([rem isEqual: sub], "remote isEqual: to subclass");
+  PASS([obj isEqualToString: rem], "proxy isEqualToString: to remote");
+  PASS([obj isEqualToString: sub], "proxy isEqualToString: to subclass");
+  PASS([sub isEqualToString: rem], "subclass isEqualToString: to remote");
+  PASS([sub isEqualToString: obj], "subclass isEqualToString: to proxy");
+  PASS([rem isEqualToString: obj], "remote isEqualToString: to proxy");
+  PASS([rem isEqualToString: sub], "remote isEqualToString: to subclass");
+  PASS([obj compare: rem] == NSOrderedSame, "proxy compare: remote");
+  PASS([obj compare: sub] == NSOrderedSame, "proxy compare: subclass");
+  PASS([sub compare: rem] == NSOrderedSame, "subclass compare: remote");
+  PASS([sub compare: obj] == NSOrderedSame, "subclass compare: proxy");
+  PASS([rem compare: obj] == NSOrderedSame, "remote compare: proxy");
+  PASS([rem compare: sub] == NSOrderedSame, "remote compare: subclass");
+  
+  END_SET("NSProxy fast forwarding")
+
   return 0;
 }
