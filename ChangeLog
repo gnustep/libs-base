@@ -1,5 +1,13 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSValueTransformer/registry.m:
+	Add tests for the NSValueTransformer name registry
+	(setValueTransformer:forName:, valueTransformerForName:,
+	valueTransformerNames), the allowsReverseTransformation metadata, and
+	that reverseTransformedValue: on a non-reversible transformer raises.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
