@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSCountedSet/counting.m:
+	Add tests for the NSCountedSet counting behaviour: countForObject:, the
+	distinct count, addObject: incrementing, removeObject: decrementing and
+	removing an object at zero, and initWithArray: counting duplicates.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
