@@ -1,5 +1,13 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSUUID/format.m:
+	Add tests for the NSUUID string/byte layout: that a UUID string parses
+	to the expected bytes in order and back, that parsing accepts lower
+	case and produces upper case and rejects malformed strings, and that
+	+UUID yields distinct, well-formed values.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
