@@ -1,5 +1,14 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSOrderedSet/operations.m:
+	Add tests for NSOrderedSet / NSMutableOrderedSet accessors, ordering
+	and uniqueness, and the index-based mutation and set-algebra operations
+	(objectAtIndex:, indexOfObject:, first/lastObject, isEqualToOrderedSet:,
+	reversedOrderedSet, array, set, and the mutable insert / remove /
+	replace / exchange / union / minus operations).
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
