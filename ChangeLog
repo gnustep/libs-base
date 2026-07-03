@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSPointerArray/mutation.m:
+	Add tests for pointerAtIndex:, removePointerAtIndex:,
+	replacePointerAtIndex:withPointer:, setCount: (growing with NULLs and
+	shrinking) and storing a NULL pointer.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
