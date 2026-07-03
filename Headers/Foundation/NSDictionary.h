@@ -36,34 +36,38 @@ extern "C" {
 @class GS_GENERIC_CLASS(NSSet, ElementT);
 @class NSString, NSURL;
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSDictionary,
   __covariant KeyT:id<NSCopying>, __covariant ValT)
   : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (instancetype) dictionary;
-+ (instancetype) dictionaryWithContentsOfFile: (NSString*)path;
++ (instancetype _Nullable) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (instancetype) dictionaryWithContentsOfURL: (NSURL*)aURL;
++ (instancetype _Nullable) dictionaryWithContentsOfURL: (NSURL*)aURL;
 #endif
 + (instancetype) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (instancetype) dictionaryWithObject: (GS_GENERIC_TYPE(ValT))object
                                forKey: (GS_GENERIC_TYPE(KeyT))key;
 + (instancetype) dictionaryWithObjects: (GS_GENERIC_CLASS(NSArray,ValT)*)objects
                                forKeys: (GS_GENERIC_CLASS(NSArray,KeyT)*)keys;
-+ (instancetype) dictionaryWithObjects: (const GS_GENERIC_TYPE(ValT)[])objects
-  forKeys: (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys
++ (instancetype) dictionaryWithObjects:
+  (const GS_GENERIC_TYPE(ValT) _Nonnull [])objects
+  forKeys:
+  (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nonnull [])keys
   count: (NSUInteger)count;
 + (instancetype) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
 - (GS_GENERIC_CLASS(NSArray,KeyT)*) allKeys;
-- (GS_GENERIC_CLASS(NSArray,KeyT)*) allKeysForObject:
-  (GS_GENERIC_TYPE(ValT))anObject;
+- (GS_GENERIC_CLASS(NSArray,KeyT)* _Nullable) allKeysForObject:
+  (GS_GENERIC_TYPE(ValT) _Nullable)anObject;
 - (GS_GENERIC_CLASS(NSArray,ValT)*) allValues;
 - (NSUInteger) count;						// Primitive
 - (NSString*) description;
 - (NSString*) descriptionInStringsFileFormat;
-- (NSString*) descriptionWithLocale: (id)locale;
-- (NSString*) descriptionWithLocale: (id)locale
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale
 			     indent: (NSUInteger)level;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -74,13 +78,15 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,
   usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock;
 #endif
 
-- (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ValT)[])objects
-  andKeys: (__unsafe_unretained GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys;
+- (void) getObjects:
+  (__unsafe_unretained GS_GENERIC_TYPE(ValT) _Nullable [])objects
+  andKeys:
+  (__unsafe_unretained GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nullable [])keys;
 - (instancetype) init;
-- (instancetype) initWithContentsOfFile: (NSString*)path;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (instancetype) initWithContentsOfURL: (NSURL*)aURL;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 
 - (instancetype) initWithDictionary:
@@ -90,8 +96,9 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,
 - (id) initWithObjects: (GS_GENERIC_CLASS(NSArray,KeyT)*)objects
                forKeys: (GS_GENERIC_CLASS(NSArray,ValT)*)keys;
 - (id) initWithObjectsAndKeys: (GS_GENERIC_TYPE(ValT))firstObject, ...;
-- (id) initWithObjects: (const GS_GENERIC_TYPE(ValT)[])objects
-	       forKeys: (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys
+- (id) initWithObjects: (const GS_GENERIC_TYPE(ValT) _Nonnull [])objects
+	       forKeys:
+  (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nonnull [])keys
 		 count: (NSUInteger)count; // Primitive
 - (BOOL) isEqualToDictionary: (GS_GENERIC_CLASS(NSDictionary,KeyT, ValT)*)other;
 
@@ -110,14 +117,14 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,i
 - (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingComparator:(NSComparator)cmptr;
 - (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr;  
 - (GS_GENERIC_CLASS(NSEnumerator,ValT)*) objectEnumerator;	// Primitive
-- (GS_GENERIC_TYPE(ValT)) objectForKey:
+- (GS_GENERIC_TYPE(ValT) _Nullable) objectForKey:
   (GS_GENERIC_TYPE(KeyT))aKey;				// Primitive
 - (GS_GENERIC_CLASS(NSArray,ValT)*) objectsForKeys:
   (GS_GENERIC_CLASS(NSArray,KeyT)*)keys
   notFoundMarker: (GS_GENERIC_TYPE(ValT))marker;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (GS_GENERIC_TYPE(ValT)) valueForKey: (NSString*)key;
+- (GS_GENERIC_TYPE(ValT) _Nullable) valueForKey: (NSString*)key;
 #endif
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
@@ -128,7 +135,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,i
 /**
  * Method called by array subscripting.
  */
-- (GS_GENERIC_TYPE(ValT)) objectForKeyedSubscript:
+- (GS_GENERIC_TYPE(ValT) _Nullable) objectForKeyedSubscript:
   (GS_GENERIC_TYPE(KeyT))aKey;
 @end
 
@@ -153,17 +160,22 @@ GS_EXPORT_CLASS
 - (void) setDictionary:
     (GS_GENERIC_CLASS(NSDictionary, KeyT, ValT)*)otherDictionary;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (void) setValue: (GS_GENERIC_TYPE(ValT))value forKey: (NSString*)key;
-- (void) takeStoredValue: (GS_GENERIC_TYPE(ValT))value forKey: (NSString*)key;
-- (void) takeValue: (GS_GENERIC_TYPE(ValT))value forKey: (NSString*)key;
+- (void) setValue: (GS_GENERIC_TYPE(ValT) _Nullable)value
+           forKey: (NSString*)key;
+- (void) takeStoredValue: (GS_GENERIC_TYPE(ValT) _Nullable)value
+                  forKey: (NSString*)key;
+- (void) takeValue: (GS_GENERIC_TYPE(ValT) _Nullable)value
+            forKey: (NSString*)key;
 #endif
 /**
  * Method called by array subscripting.
  */
-- (void) setObject: (GS_GENERIC_TYPE(ValT))anObject
+- (void) setObject: (GS_GENERIC_TYPE(ValT) _Nullable)anObject
  forKeyedSubscript: (GS_GENERIC_TYPE(KeyT))aKey;
 
 @end
+
+NS_ASSUME_NONNULL_END
 
 #if	defined(__cplusplus)
 }
