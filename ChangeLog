@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/Functions/NSGeometry2.m:
+	Add tests for the NSGeometry rectangle functions not covered by
+	NSGeometry1.m: the coordinate accessors, NSIsEmptyRect, NSOffsetRect,
+	NSInsetRect, NSIntegralRect, NSUnionRect, NSIntersectionRect,
+	NSContainsRect, NSPointInRect, NSMouseInRect and NSDivideRect.
 	* Tests/base/NSSet/operations.m:
 	Add tests for NSSet and NSMutableSet: creation and de-duplication,
 	membership (containsObject:, member:, anyObject, allObjects), the set
