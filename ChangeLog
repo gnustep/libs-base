@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSSortDescriptor/descriptors.m:
+	Add tests for the key/ascending accessors, reversedSortDescriptor, the
+	equal case of compareObject:toObject:, a custom-selector descriptor, and
+	single-descriptor ascending/descending sorting.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
