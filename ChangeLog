@@ -5,6 +5,19 @@
 	values of different mantissa length (as produced by NSDecimalNormalize)
 	compare as NSOrderedSame rather than by length.
 	* Tests/base/NSDecimalNumber/compare_trailing_zeros.m: New test.
+	* Tests/base/NSDecimalNumber/decimal_functions.m:
+	Add tests for the NSDecimal C functions: NSDecimalFromString,
+	NSDecimalFromComponents, NSDecimalString, NSDecimalAdd,
+	NSDecimalSubtract, NSDecimalMultiply, NSDecimalDivide (including
+	division by zero and loss of precision), NSDecimalPower,
+	NSDecimalMultiplyByPowerOf10, NSDecimalRound in each rounding mode,
+	NSDecimalCompare, NSDecimalCopy, NSDecimalNormalize, NSDecimalMax,
+	NSDecimalMin, NSDecimalDouble and NSDecimalIsNotANumber.
+	* Tests/base/Functions/NSRange.m:
+	Add tests for the NSRange functions: NSMakeRange (including its
+	location + length overflow exception), NSMaxRange, NSEqualRanges,
+	NSLocationInRange, NSUnionRange, NSIntersectionRange, and the
+	NSStringFromRange / NSRangeFromString round trip.
 
 2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
 
