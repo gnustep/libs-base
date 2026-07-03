@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSPredicate/compound.m:
+	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
+	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
+	semantics (AND of nothing is true, OR of nothing is false).
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
