@@ -1,5 +1,13 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
+	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
+	receiver's contents rather than removing objects while enumerating the
+	receiver itself.
+	* Tests/base/NSOrderedSet/intersect.m: New test.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative

@@ -1695,7 +1695,7 @@ static SEL	remSel;
 {
   if (other != self)
     {
-      id keys = [self objectEnumerator];
+      id keys = [[self array] objectEnumerator];
       id key;
 
       while ((key = [keys nextObject]))
@@ -1710,7 +1710,7 @@ static SEL	remSel;
 
 - (void) intersectSet: (NSSet *)other
 {
-  id keys = [self objectEnumerator];
+  id keys = [[self array] objectEnumerator];
   id key;
 
   while ((key = [keys nextObject]))
