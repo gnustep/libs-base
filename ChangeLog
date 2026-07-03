@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSCache.m (-_evictObjectsToMakeSpaceForObjectWithCost:):
+	Only apply the count limit when one has been set.  A count limit of 0
+	means "no limit", but the eviction test triggered on count >= 0 for
+	every insert, so an otherwise unbounded cache discarded the content of
+	the discardable objects it held.  Guard the count check with
+	_countLimit > 0, matching the existing _costLimit > 0 guard.
+	* Tests/base/NSCache/nolimit.m: New test.
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
