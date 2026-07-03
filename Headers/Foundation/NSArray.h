@@ -56,19 +56,22 @@ enum
 typedef NSUInteger NSBinarySearchingOptions;
 #endif
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSArray, __covariant ElementT) : NSObject
   <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (instancetype) array;
 + (instancetype) arrayWithArray: (GS_GENERIC_CLASS(NSArray, ElementT) *)array;
-+ (instancetype) arrayWithContentsOfFile: (NSString*)file;
++ (instancetype _Nullable) arrayWithContentsOfFile: (NSString*)file;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (instancetype) arrayWithContentsOfURL: (NSURL*)aURL;
++ (instancetype _Nullable) arrayWithContentsOfURL: (NSURL*)aURL;
 #endif
 + (instancetype) arrayWithObject: (id)anObject;
 + (instancetype) arrayWithObjects: (id)firstObject, ...;
-+ (instancetype) arrayWithObjects: (const id[])objects count: (NSUInteger)count;
++ (instancetype) arrayWithObjects: (const id _Nonnull [])objects
+                             count: (NSUInteger)count;
 
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) arrayByAddingObject:
   (GS_GENERIC_TYPE(ElementT))anObject;
@@ -80,8 +83,10 @@ GS_EXPORT_CLASS
  * Returns the number of elements contained in the receiver.
  */
 - (NSUInteger) count;
-- (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer;
-- (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer
+- (void) getObjects:
+  (__unsafe_unretained GS_GENERIC_TYPE(ElementT) _Nonnull [])aBuffer;
+- (void) getObjects:
+  (__unsafe_unretained GS_GENERIC_TYPE(ElementT) _Nonnull [])aBuffer
               range: (NSRange)aRange;
 - (NSUInteger) indexOfObject: (GS_GENERIC_TYPE(ElementT))anObject;
 - (NSUInteger) indexOfObject: (GS_GENERIC_TYPE(ElementT))anObject
@@ -95,9 +100,9 @@ GS_EXPORT_CLASS
 - (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array
                      copyItems: (BOOL)shouldCopy;
 #endif
-- (instancetype) initWithContentsOfFile: (NSString*)file;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)file;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (instancetype) initWithContentsOfURL: (NSURL*)aURL;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (instancetype) initWithObjects: (GS_GENERIC_TYPE(ElementT)) firstObject, ...;
 
@@ -108,11 +113,12 @@ GS_EXPORT_CLASS
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (instancetype) initWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
+- (instancetype) initWithObjects:
+  (const GS_GENERIC_TYPE(ElementT) _Nonnull [])objects
                            count: (NSUInteger)count;
-- (GS_GENERIC_TYPE(ElementT)) lastObject;
+- (GS_GENERIC_TYPE(ElementT) _Nullable) lastObject;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-- (GS_GENERIC_TYPE(ElementT)) firstObject;
+- (GS_GENERIC_TYPE(ElementT) _Nullable) firstObject;
 #endif
 
 /** <override-subclass />
@@ -129,27 +135,27 @@ GS_EXPORT_CLASS
   (NSIndexSet *)indexes;
 #endif
 
-- (GS_GENERIC_TYPE(ElementT)) firstObjectCommonWithArray:
+- (GS_GENERIC_TYPE(ElementT) _Nullable) firstObjectCommonWithArray:
     (GS_GENERIC_CLASS(NSArray, ElementT) *)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (void) makeObjectsPerform: (SEL)aSelector;
-- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: (id _Nullable)argument;
 #endif
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg;
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id _Nullable)arg;
 #endif
 
-- (NSData*) sortedArrayHint;
+- (NSData *_Nullable) sortedArrayHint;
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingFunction:
     (NSComparisonResult (*)(id, id, void*))comparator
-			        context: (void*)context;
+			        context: (void *_Nullable)context;
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingFunction:
     (NSComparisonResult (*)(id, id, void*))comparator
-			      context: (void*)context
-				     hint: (NSData*)hint;
+			      context: (void *_Nullable)context
+				     hint: (NSData *_Nullable)hint;
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingSelector:
   (SEL)comparator;
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) subarrayWithRange: (NSRange)aRange;
@@ -162,15 +168,15 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) reverseObjectEnumerator;
 
 - (NSString*) description;
-- (NSString*) descriptionWithLocale: (id)locale;
-- (NSString*) descriptionWithLocale: (id)locale
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale
 			     indent: (NSUInteger)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
-- (void) setValue: (id)value forKey: (NSString*)key;
+- (void) setValue: (id _Nullable)value forKey: (NSString*)key;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -389,7 +395,7 @@ GS_EXPORT_CLASS
 - (void) sortUsingFunction:
     (NSComparisonResult (*)(GS_GENERIC_TYPE(ElementT),
        GS_GENERIC_TYPE(ElementT),void*))compare
-		           context: (void*)context;
+		           context: (void *_Nullable)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
 
@@ -414,6 +420,8 @@ GS_EXPORT_CLASS
 atIndexedSubscript: (NSUInteger)anIndex;
 #endif
 @end
+
+NS_ASSUME_NONNULL_END
 
 #if	defined(__cplusplus)
 }

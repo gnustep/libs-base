@@ -269,20 +269,20 @@ GS_EXPORT_CLASS
 + (NSData *) dataWithPropertyList: (id)aPropertyList
                            format: (NSPropertyListFormat)aFormat
                           options: (NSPropertyListWriteOptions)anOption
-                            error: (out NSError**)error;
+                            error: (out NSError *_Nullable *_Nullable)error;
 + (id) propertyListWithData: (NSData*)data
                     options: (NSPropertyListReadOptions)anOption
                      format: (NSPropertyListFormat*)aFormat
-                      error: (out NSError**)error;
+                      error: (out NSError *_Nullable *_Nullable)error;
 + (id) propertyListWithStream: (NSInputStream*)stream
                       options: (NSPropertyListReadOptions)anOption
                        format: (NSPropertyListFormat*)aFormat
-                        error: (out NSError**)error;
+                        error: (out NSError *_Nullable *_Nullable)error;
 + (NSInteger) writePropertyList: (id)aPropertyList
                        toStream: (NSOutputStream*)stream
                          format: (NSPropertyListFormat)aFormat
                         options: (NSPropertyListWriteOptions)anOption
-                          error: (out NSError**)error;
+                          error: (out NSError *_Nullable *_Nullable)error;
 #endif
 
 @end
