@@ -242,21 +242,25 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
 	}
     }
 
-  // Same digits, check length
+  // Same leading digits: the longer mantissa is larger in magnitude unless
+  // its extra (least significant) digits are all zeros, so that trailing
+  // zeros do not affect the comparison.
   if (leftOperand->length > rightOperand->length)
     {
-      if (rightOperand->isNegative)
-	return NSOrderedAscending;
-      else
-	return NSOrderedDescending;
+      for (i = l; i < leftOperand->length; i++)
+	if (leftOperand->cMantissa[i] != 0)
+	  return rightOperand->isNegative
+	    ? NSOrderedAscending : NSOrderedDescending;
+      return NSOrderedSame;
     }
 
   if (leftOperand->length < rightOperand->length)
     {
-      if (rightOperand->isNegative)
-	return NSOrderedDescending;
-      else
-	return NSOrderedAscending;
+      for (i = l; i < rightOperand->length; i++)
+	if (rightOperand->cMantissa[i] != 0)
+	  return rightOperand->isNegative
+	    ? NSOrderedDescending : NSOrderedAscending;
+      return NSOrderedSame;
     }
 
   return NSOrderedSame;

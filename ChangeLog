@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSDecimal.m (GSDecimalCompare):
+	Treat trailing zeros in a mantissa as insignificant, so that two equal
+	values of different mantissa length (as produced by NSDecimalNormalize)
+	compare as NSOrderedSame rather than by length.
+	* Tests/base/NSDecimalNumber/compare_trailing_zeros.m: New test.
 	* Tests/base/NSDecimalNumber/decimal_functions.m:
 	Add tests for the NSDecimal C functions: NSDecimalFromString,
 	NSDecimalFromComponents, NSDecimalString, NSDecimalAdd,
