@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSCharacterSet/mutable.m:
+	Add tests for characterSetWithRange:, isSupersetOfSet:, and the
+	NSMutableCharacterSet add / remove / formUnion / formIntersection /
+	invert operations.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
