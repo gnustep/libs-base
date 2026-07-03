@@ -1,5 +1,11 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSDateComponents/basic.m:
+	* Tests/base/NSDateComponents/TestInfo:
+	Add tests for NSDateComponents (there were none): the undefined defaults,
+	the component accessors and setters, valueForComponent: and
+	setValue:forComponent: (including the weekOfYear/week alias), and building
+	a date through an attached Gregorian calendar.
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
