@@ -8,15 +8,14 @@
 
 int main(int argc, char **argv, char **env)
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  START_SET("test02")
   NSFileManager *fm;
   NSBundle *bundle;
   BOOL loaded;
   NSString *helperPath;
 
 #if defined(_WIN64) && defined(_MSC_VER)
-  NSLog(@"Marking tests as hopeful because they are known to fail on 64-bit Windows with Clang/MSVC.");
-  testHopeful = YES;
+  SKIP("NSURLConnection tests fail on 64-bit Windows with Clang/MSVC.")
 #endif
 
   // load the test suite's classes
@@ -135,11 +134,7 @@ int main(int argc, char **argv, char **env)
 		  format: @"can't load bundle TestConnection"];
     }
 
-  DESTROY(arp);
+  END_SET("test02")
   
-#if defined(_WIN64) && defined(_MSC_VER)
-  testHopeful = NO;
-#endif
-
   return 0;
 }
