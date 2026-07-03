@@ -1,5 +1,13 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
+	Always return a new instance.  NSDateComponents is mutable, but
+	copyWithZone: short-circuited through NSShouldRetainWithZone and
+	returned the receiver, so -copy handed back the same object and
+	mutating the "copy" changed the original.
+	* Tests/base/NSDateComponents/copy.m:
+	* Tests/base/NSDateComponents/TestInfo:
+	New test.
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
