@@ -1,3 +1,14 @@
+2026-07-03 Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSDecimalNumber/decimal_functions.m:
+	Add tests for the NSDecimal C functions: NSDecimalFromString,
+	NSDecimalFromComponents, NSDecimalString, NSDecimalAdd,
+	NSDecimalSubtract, NSDecimalMultiply, NSDecimalDivide (including
+	division by zero and loss of precision), NSDecimalPower,
+	NSDecimalMultiplyByPowerOf10, NSDecimalRound in each rounding mode,
+	NSDecimalCompare, NSDecimalCopy, NSDecimalNormalize, NSDecimalMax,
+	NSDecimalMin, NSDecimalDouble and NSDecimalIsNotANumber.
+
 2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m:
