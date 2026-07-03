@@ -1,5 +1,11 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSIndexPath/compare_getindexes.m:
+	Add tests for getIndexes:, equal-path isEqual: and hash, and the equal
+	and element-difference cases of compare:.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
