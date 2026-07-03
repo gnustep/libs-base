@@ -1,5 +1,14 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSHashTable/operations.m:
+	Add tests for the NSHashTable membership helpers (member:, anyObject,
+	setRepresentation, removeAllObjects), the predicates
+	(isEqualToHashTable:, isSubsetOfHashTable:, intersectsHashTable:) and the
+	set-algebra operations (unionHashTable:, intersectHashTable:,
+	minusHashTable:).
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
