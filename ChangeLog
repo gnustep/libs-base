@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSPointerArray.m (-[NSConcretePointerArray compact]): Advance
+	the insertion point for every non-nil pointer and clear the trailing
+	slots, so that non-nil pointers before the first nil are not lost.
+	* Tests/base/NSPointerArray/compact.m: New test.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
