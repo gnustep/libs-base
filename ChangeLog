@@ -1,5 +1,12 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSError/basic.m:
+	* Tests/base/NSError/TestInfo:
+	Add tests for NSError: construction and accessors (domain, code,
+	userInfo), the localized-value accessors (localizedDescription and its
+	failure-reason and domain/code fallbacks, localizedFailureReason,
+	localizedRecoverySuggestion, localizedRecoveryOptions), copying and
+	NSCoding.
 	* Tests/base/Functions/NSGeometry2.m:
 	Add tests for the NSGeometry rectangle functions not covered by
 	NSGeometry1.m: the coordinate accessors, NSIsEmptyRect, NSOffsetRect,
