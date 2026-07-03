@@ -1,3 +1,11 @@
+2026-07-03 Todd White <todd.white@thalion.global>
+
+	* Tests/base/Functions/NSRange.m:
+	Add tests for the NSRange functions: NSMakeRange (including its
+	location + length overflow exception), NSMaxRange, NSEqualRanges,
+	NSLocationInRange, NSUnionRange, NSIntersectionRange, and the
+	NSStringFromRange / NSRangeFromString round trip.
+
 2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m:
