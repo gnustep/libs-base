@@ -1,5 +1,13 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
+	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
+	remove them highest index first so the earlier indexes stay valid, and
+	reinsert them at an increasing target index.
+	* Tests/base/NSOrderedSet/moveObjects.m: New test.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
