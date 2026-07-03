@@ -1,3 +1,12 @@
+2026-07-03 Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSSet/operations.m:
+	Add tests for NSSet and NSMutableSet: creation and de-duplication,
+	membership (containsObject:, member:, anyObject, allObjects), the set
+	predicates (isEqualToSet:, isSubsetOfSet:, intersectsSet:), the
+	setByAdding... derived-set methods, and NSMutableSet mutation and set
+	algebra (unionSet:, intersectSet:, minusSet:, setSet:).
+
 2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m:
