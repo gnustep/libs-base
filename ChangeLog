@@ -1,5 +1,11 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSCache/removeobjects.m:
+	Add tests for NSCache behaviour not covered by cache.m: removeObjectForKey:
+	(including the absent-key no-op), objectForKey: for an unknown key, value
+	replacement for an existing key, the evictsObjectsWithDiscardedContent and
+	delegate accessors, and the delegate cache:willEvictObject: callback on
+	removeObjectForKey: and removeAllObjects.
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
