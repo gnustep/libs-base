@@ -6,6 +6,94 @@
 	the component accessors and setters, valueForComponent: and
 	setValue:forComponent: (including the weekOfYear/week alias), and building
 	a date through an attached Gregorian calendar.
+	* Source/NSCache.m (-_evictObjectsToMakeSpaceForObjectWithCost:):
+	Only apply the count limit when one has been set.  A count limit of 0
+	means "no limit", but the eviction test triggered on count >= 0 for
+	every insert, so an otherwise unbounded cache discarded the content of
+	the discardable objects it held.  Guard the count check with
+	_countLimit > 0, matching the existing _costLimit > 0 guard.
+	* Tests/base/NSCache/nolimit.m: New test.
+	* Tests/base/NSCache/removeobjects.m:
+	Add tests for NSCache behaviour not covered by cache.m: removeObjectForKey:
+	(including the absent-key no-op), objectForKey: for an unknown key, value
+	replacement for an existing key, the evictsObjectsWithDiscardedContent and
+	delegate accessors, and the delegate cache:willEvictObject: callback on
+	removeObjectForKey: and removeAllObjects.
+	* Tests/base/NSCharacterSet/mutable.m:
+	Add tests for characterSetWithRange:, isSupersetOfSet:, and the
+	NSMutableCharacterSet add / remove / formUnion / formIntersection /
+	invert operations.
+	* Tests/base/NSCountedSet/counting.m:
+	Add tests for the NSCountedSet counting behaviour: countForObject:, the
+	distinct count, addObject: incrementing, removeObject: decrementing and
+	removing an object at zero, and initWithArray: counting duplicates.
+	* Source/NSPointerArray.m (-[NSConcretePointerArray compact]): Advance
+	the insertion point for every non-nil pointer and clear the trailing
+	slots, so that non-nil pointers before the first nil are not lost.
+	* Tests/base/NSPointerArray/compact.m: New test.
+	* Tests/base/NSPointerArray/mutation.m:
+	Add tests for pointerAtIndex:, removePointerAtIndex:,
+	replacePointerAtIndex:withPointer:, setCount: (growing with NULLs and
+	shrinking) and storing a NULL pointer.
+	* Tests/base/NSHashTable/operations.m:
+	Add tests for the NSHashTable membership helpers (member:, anyObject,
+	setRepresentation, removeAllObjects), the predicates
+	(isEqualToHashTable:, isSubsetOfHashTable:, intersectsHashTable:) and the
+	set-algebra operations (unionHashTable:, intersectHashTable:,
+	minusHashTable:).
+	* Tests/base/NSMapTable/strongObjects.m:
+	Add tests for the strong-to-strong NSMapTable operations not otherwise
+	covered: +strongToStrongObjectsMapTable, overwrite semantics,
+	objectForKey: of an absent key, removeAllObjects, keyEnumerator /
+	objectEnumerator, and dictionaryRepresentation.
+	* Tests/base/NSPredicate/compound.m:
+	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
+	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
+	semantics (AND of nothing is true, OR of nothing is false).
+	* Tests/base/NSValueTransformer/registry.m:
+	Add tests for the NSValueTransformer name registry
+	(setValueTransformer:forName:, valueTransformerForName:,
+	valueTransformerNames), the allowsReverseTransformation metadata, and
+	that reverseTransformedValue: on a non-reversible transformer raises.
+	* Source/NSIndexPath.m (-[NSIndexPath compare:]): Order a shorter path
+	that is a prefix of the other before the longer path, not after.
+	* Tests/base/NSIndexPath/compare_prefix.m: New test.
+	* Tests/base/NSIndexPath/compare_getindexes.m:
+	Add tests for getIndexes:, equal-path isEqual: and hash, and the equal
+	and element-difference cases of compare:.
+	* Tests/base/NSSortDescriptor/descriptors.m:
+	Add tests for the key/ascending accessors, reversedSortDescriptor, the
+	equal case of compareObject:toObject:, a custom-selector descriptor, and
+	single-descriptor ascending/descending sorting.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
+	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
+	receiver's contents rather than removing objects while enumerating the
+	receiver itself.
+	* Tests/base/NSOrderedSet/intersect.m: New test.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
+	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
+	remove them highest index first so the earlier indexes stay valid, and
+	reinsert them at an increasing target index.
+	* Tests/base/NSOrderedSet/moveObjects.m: New test.
+	* Tests/base/NSOrderedSet/operations.m:
+	Add tests for NSOrderedSet / NSMutableOrderedSet accessors, ordering
+	and uniqueness, and the index-based mutation and set-algebra operations
+	(objectAtIndex:, indexOfObject:, first/lastObject, isEqualToOrderedSet:,
+	reversedOrderedSet, array, set, and the mutable insert / remove /
+	replace / exchange / union / minus operations).
+	* Tests/base/NSUUID/format.m:
+	Add tests for the NSUUID string/byte layout: that a UUID string parses
+	to the expected bytes in order and back, that parsing accepts lower
+	case and produces upper case and rejects malformed strings, and that
+	+UUID yields distinct, well-formed values.
+	* Tests/base/NSIndexSet/basic.m:
+	Add tests for the core NSIndexSet and NSMutableIndexSet API: creation
+	and count, containment and range queries, first/last and
+	greater/less-than navigation, isEqualToIndexSet:, getIndexes:..., and
+	the mutable add / remove / shift operations.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSDateInterval/basic.m:
 	* Tests/base/NSDateInterval/TestInfo:
 	Add tests for NSDateInterval: construction (including the negative
