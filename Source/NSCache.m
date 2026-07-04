@@ -234,7 +234,8 @@
     }
 
   // Only evict if we need the space.
-  if (count > 0 && (spaceNeeded > 0 || count >= _countLimit))
+  if (count > 0
+    && (spaceNeeded > 0 || (_countLimit > 0 && count >= _countLimit)))
     {
       NSMutableArray *evictedKeys = nil;
       // Round up slightly.
