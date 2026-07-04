@@ -1379,22 +1379,15 @@ typedef struct {
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  if (NSShouldRetainWithZone(self, zone))
-    {
-      return RETAIN(self);
-    }
-  else
-    {
-      NSDateComponents  *c = [[NSDateComponents allocWithZone: zone] init];
+  NSDateComponents  *c = [[NSDateComponents allocWithZone: zone] init];
 
-      memcpy(c->_NSDateComponentsInternal, _NSDateComponentsInternal,
-        sizeof(DateComp));
-      /* We gave objects to the copy, so we need to retain them too.
-       */
-      RETAIN(my->cal);
-      RETAIN(my->tz);
-      return c;
-    }
+  memcpy(c->_NSDateComponentsInternal, _NSDateComponentsInternal,
+    sizeof(DateComp));
+  /* We gave objects to the copy, so we need to retain them too.
+   */
+  RETAIN(my->cal);
+  RETAIN(my->tz);
+  return c;
 }
 
 @end
