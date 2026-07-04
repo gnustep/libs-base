@@ -1,5 +1,11 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSDateComponents/basic.m:
+	* Tests/base/NSDateComponents/TestInfo:
+	Add tests for NSDateComponents (there were none): the undefined defaults,
+	the component accessors and setters, valueForComponent: and
+	setValue:forComponent: (including the weekOfYear/week alias), and building
+	a date through an attached Gregorian calendar.
 	* Source/NSCache.m (-_evictObjectsToMakeSpaceForObjectWithCost:):
 	Only apply the count limit when one has been set.  A count limit of 0
 	means "no limit", but the eviction test triggered on count >= 0 for
