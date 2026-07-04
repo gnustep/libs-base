@@ -1,5 +1,9 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSSortDescriptor/descriptors.m:
+	Add tests for the key/ascending accessors, reversedSortDescriptor, the
+	equal case of compareObject:toObject:, a custom-selector descriptor, and
+	single-descriptor ascending/descending sorting.
 	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
 	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
 	receiver's contents rather than removing objects while enumerating the
