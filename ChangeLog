@@ -4,6 +4,47 @@
 	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
 	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
 	semantics (AND of nothing is true, OR of nothing is false).
+	* Tests/base/NSValueTransformer/registry.m:
+	Add tests for the NSValueTransformer name registry
+	(setValueTransformer:forName:, valueTransformerForName:,
+	valueTransformerNames), the allowsReverseTransformation metadata, and
+	that reverseTransformedValue: on a non-reversible transformer raises.
+	* Source/NSIndexPath.m (-[NSIndexPath compare:]): Order a shorter path
+	that is a prefix of the other before the longer path, not after.
+	* Tests/base/NSIndexPath/compare_prefix.m: New test.
+	* Tests/base/NSIndexPath/compare_getindexes.m:
+	Add tests for getIndexes:, equal-path isEqual: and hash, and the equal
+	and element-difference cases of compare:.
+	* Tests/base/NSSortDescriptor/descriptors.m:
+	Add tests for the key/ascending accessors, reversedSortDescriptor, the
+	equal case of compareObject:toObject:, a custom-selector descriptor, and
+	single-descriptor ascending/descending sorting.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
+	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
+	receiver's contents rather than removing objects while enumerating the
+	receiver itself.
+	* Tests/base/NSOrderedSet/intersect.m: New test.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
+	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
+	remove them highest index first so the earlier indexes stay valid, and
+	reinsert them at an increasing target index.
+	* Tests/base/NSOrderedSet/moveObjects.m: New test.
+	* Tests/base/NSOrderedSet/operations.m:
+	Add tests for NSOrderedSet / NSMutableOrderedSet accessors, ordering
+	and uniqueness, and the index-based mutation and set-algebra operations
+	(objectAtIndex:, indexOfObject:, first/lastObject, isEqualToOrderedSet:,
+	reversedOrderedSet, array, set, and the mutable insert / remove /
+	replace / exchange / union / minus operations).
+	* Tests/base/NSUUID/format.m:
+	Add tests for the NSUUID string/byte layout: that a UUID string parses
+	to the expected bytes in order and back, that parsing accepts lower
+	case and produces upper case and rejects malformed strings, and that
+	+UUID yields distinct, well-formed values.
+	* Tests/base/NSIndexSet/basic.m:
+	Add tests for the core NSIndexSet and NSMutableIndexSet API: creation
+	and count, containment and range queries, first/last and
+	greater/less-than navigation, isEqualToIndexSet:, getIndexes:..., and
+	the mutable add / remove / shift operations.
 
 2026-07-03 Todd White <todd.white@thalion.global>
 
