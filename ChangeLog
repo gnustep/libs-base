@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSValueTransformer/registry.m:
+	Add tests for the NSValueTransformer name registry
+	(setValueTransformer:forName:, valueTransformerForName:,
+	valueTransformerNames), the allowsReverseTransformation metadata, and
+	that reverseTransformedValue: on a non-reversible transformer raises.
 	* Source/NSIndexPath.m (-[NSIndexPath compare:]): Order a shorter path
 	that is a prefix of the other before the longer path, not after.
 	* Tests/base/NSIndexPath/compare_prefix.m: New test.
