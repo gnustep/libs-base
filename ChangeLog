@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
+	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
+	receiver's contents rather than removing objects while enumerating the
+	receiver itself.
+	* Tests/base/NSOrderedSet/intersect.m: New test.
 	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
 	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
 	remove them highest index first so the earlier indexes stay valid, and
