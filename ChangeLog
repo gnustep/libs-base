@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
+	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
+	remove them highest index first so the earlier indexes stay valid, and
+	reinsert them at an increasing target index.
+	* Tests/base/NSOrderedSet/moveObjects.m: New test.
 	* Tests/base/NSOrderedSet/operations.m:
 	Add tests for NSOrderedSet / NSMutableOrderedSet accessors, ordering
 	and uniqueness, and the index-based mutation and set-algebra operations
