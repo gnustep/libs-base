@@ -5,6 +5,11 @@
 	to the expected bytes in order and back, that parsing accepts lower
 	case and produces upper case and rejects malformed strings, and that
 	+UUID yields distinct, well-formed values.
+	* Tests/base/NSIndexSet/basic.m:
+	Add tests for the core NSIndexSet and NSMutableIndexSet API: creation
+	and count, containment and range queries, first/last and
+	greater/less-than navigation, isEqualToIndexSet:, getIndexes:..., and
+	the mutable add / remove / shift operations.
 
 2026-07-03 Todd White <todd.white@thalion.global>
 
