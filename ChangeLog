@@ -1,5 +1,9 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSPredicate/compound.m:
+	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
+	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
+	semantics (AND of nothing is true, OR of nothing is false).
 	* Tests/base/NSValueTransformer/registry.m:
 	Add tests for the NSValueTransformer name registry
 	(setValueTransformer:forName:, valueTransformerForName:,
