@@ -1551,25 +1551,23 @@ static SEL	remSel;
          inIndexRange: NULL];
 
   // Build the temporary array....
-  while (i-- > 0)
+  for (i = 0; i < count; i++)
     {
-      NSUInteger index = indexArray[i];
-      id obj = [self objectAtIndex: index];
-      [tmpArray addObject: obj];
+      [tmpArray addObject: [self objectAtIndex: indexArray[i]]];
     }
 
   // Remove the originals...
-  for (i = 0; i < count; i++)
+  i = count;
+  while (i-- > 0)
     {
-      NSUInteger index = indexArray[i];
-      [self removeObjectAtIndex: index];
+      [self removeObjectAtIndex: indexArray[i]];
     }
 
   // Move the objects
   e = [tmpArray objectEnumerator];
   while ((o = [e nextObject]) != nil)
     {
-      [self insertObject: o atIndex: index];
+      [self insertObject: o atIndex: index++];
     }
 }
 
