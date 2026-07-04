@@ -1,5 +1,10 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSMapTable/strongObjects.m:
+	Add tests for the strong-to-strong NSMapTable operations not otherwise
+	covered: +strongToStrongObjectsMapTable, overwrite semantics,
+	objectForKey: of an absent key, removeAllObjects, keyEnumerator /
+	objectEnumerator, and dictionaryRepresentation.
 	* Tests/base/NSPredicate/compound.m:
 	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
 	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
