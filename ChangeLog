@@ -1,5 +1,9 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSPointerArray/mutation.m:
+	Add tests for pointerAtIndex:, removePointerAtIndex:,
+	replacePointerAtIndex:withPointer:, setCount: (growing with NULLs and
+	shrinking) and storing a NULL pointer.
 	* Tests/base/NSHashTable/operations.m:
 	Add tests for the NSHashTable membership helpers (member:, anyObject,
 	setRepresentation, removeAllObjects), the predicates
