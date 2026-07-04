@@ -1,5 +1,9 @@
 2026-07-03 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSCountedSet/counting.m:
+	Add tests for the NSCountedSet counting behaviour: countForObject:, the
+	distinct count, addObject: incrementing, removeObject: decrementing and
+	removing an object at zero, and initWithArray: counting duplicates.
 	* Source/NSPointerArray.m (-[NSConcretePointerArray compact]): Advance
 	the insertion point for every non-nil pointer and clear the trailing
 	slots, so that non-nil pointers before the first nil are not lost.
