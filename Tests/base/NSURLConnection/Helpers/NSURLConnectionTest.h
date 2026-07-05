@@ -146,9 +146,9 @@
   /* tha auxilliary TestWebServer instance needed in tests on redirecting */
   TestWebServer *_auxServer;
   /* the custom request (made by the instance or supplied externally) */
-  NSURLRequest *_request;
+  NSMutableURLRequest *_request;
   /* the redirect request (made by the instance) */
-  NSURLRequest *_redirectRequest;
+  NSMutableURLRequest *_redirectRequest;
   /* the data accumulator for the received response's content */
   NSMutableData *_received;
   /* the expected status code */

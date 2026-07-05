@@ -542,7 +542,7 @@ didReceiveResponse:(NSURLResponse *)response
     } // Is extra NSDictionary?
   else if ([extra isKindOfClass: [NSURLRequest class]])
     {
-      ASSIGN(_request, extra);
+      _request = [extra mutableCopy];
     }
 
   if (nil == _request)
