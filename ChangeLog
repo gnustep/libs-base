@@ -1,3 +1,8 @@
+2026-07-05 Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSDecimalNumber/nan_and_edges.m:
+	New test.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
