@@ -1,3 +1,10 @@
+2026-07-05 Todd White <todd.white@thalion.global>
+
+	* Source/NSScanner.m (-[NSScanner scanDecimal:]): Implement; it
+	was an unimplemented stub that raised an exception.
+	* Tests/base/NSScanner/scanDecimal.m:
+	New test.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
