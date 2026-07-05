@@ -15,7 +15,8 @@ int main(int argc, char **argv, char **env)
   NSString *helperPath;
 
 #if defined(_WIN64) && defined(_MSC_VER)
-  SKIP("NSURLConnection tests fail on 64-bit Windows with Clang/MSVC.")
+//  SKIP("NSURLConnection tests fail on 64-bit Windows with Clang/MSVC.")
+  testHopeful = YES;
 #endif
 
   // load the test suite's classes
