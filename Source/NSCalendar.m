@@ -879,7 +879,114 @@ do \
             interval: (NSTimeInterval*)tip
              forDate: (NSDate*)date
 {
+#if GS_USE_ICU == 1
+  UErrorCode	err = U_ZERO_ERROR;
+  UDate		udate, start, end;
+  UCalendarDateFields	advance;
+  BOOL		isWeek = NO;
+  int32_t	era, year, month, day, hour, minute, second;
+
+  [self _resetCalendar];
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis(my->cal, udate, &err);
+
+  era = ucal_get(my->cal, UCAL_ERA, &err);
+  year = ucal_get(my->cal, UCAL_YEAR, &err);
+  month = ucal_get(my->cal, UCAL_MONTH, &err);
+  day = ucal_get(my->cal, UCAL_DAY_OF_MONTH, &err);
+  hour = ucal_get(my->cal, UCAL_HOUR_OF_DAY, &err);
+  minute = ucal_get(my->cal, UCAL_MINUTE, &err);
+  second = ucal_get(my->cal, UCAL_SECOND, &err);
+  if (U_FAILURE(err))
+    {
+      return NO;
+    }
+
+  /* Rebuild the date from the requested unit downwards; the smaller fields
+   * default to their minimum, giving the start of the unit. */
+  ucal_clear(my->cal);
+  ucal_set(my->cal, UCAL_ERA, era);
+  ucal_set(my->cal, UCAL_YEAR, year);
+  switch (unit)
+    {
+      case NSCalendarUnitYear:
+        advance = UCAL_YEAR;
+        break;
+      case NSCalendarUnitMonth:
+        ucal_set(my->cal, UCAL_MONTH, month);
+        advance = UCAL_MONTH;
+        break;
+      case NSCalendarUnitWeekOfYear:
+      case NSCalendarUnitWeekOfMonth:
+        isWeek = YES;
+        /* fall through to set the day, then roll back to the first weekday */
+      case NSCalendarUnitDay:
+      case NSCalendarUnitWeekday:
+      case NSCalendarUnitWeekdayOrdinal:
+        ucal_set(my->cal, UCAL_MONTH, month);
+        ucal_set(my->cal, UCAL_DAY_OF_MONTH, day);
+        advance = UCAL_DAY_OF_MONTH;
+        break;
+      case NSCalendarUnitHour:
+        ucal_set(my->cal, UCAL_MONTH, month);
+        ucal_set(my->cal, UCAL_DAY_OF_MONTH, day);
+        ucal_set(my->cal, UCAL_HOUR_OF_DAY, hour);
+        advance = UCAL_HOUR_OF_DAY;
+        break;
+      case NSCalendarUnitMinute:
+        ucal_set(my->cal, UCAL_MONTH, month);
+        ucal_set(my->cal, UCAL_DAY_OF_MONTH, day);
+        ucal_set(my->cal, UCAL_HOUR_OF_DAY, hour);
+        ucal_set(my->cal, UCAL_MINUTE, minute);
+        advance = UCAL_MINUTE;
+        break;
+      case NSCalendarUnitSecond:
+        ucal_set(my->cal, UCAL_MONTH, month);
+        ucal_set(my->cal, UCAL_DAY_OF_MONTH, day);
+        ucal_set(my->cal, UCAL_HOUR_OF_DAY, hour);
+        ucal_set(my->cal, UCAL_MINUTE, minute);
+        ucal_set(my->cal, UCAL_SECOND, second);
+        advance = UCAL_SECOND;
+        break;
+      default:
+        return NO;	// Era and any composite units are not handled.
+    }
+
+  if (isWeek == YES)
+    {
+      int32_t	dow = ucal_get(my->cal, UCAL_DAY_OF_WEEK, &err);
+      int32_t	back = (dow - (int32_t)my->firstWeekday + 7) % 7;
+
+      ucal_add(my->cal, UCAL_DAY_OF_MONTH, -back, &err);
+    }
+
+  start = ucal_getMillis(my->cal, &err);
+  if (isWeek == YES)
+    {
+      ucal_add(my->cal, UCAL_DAY_OF_MONTH, 7, &err);
+    }
+  else
+    {
+      ucal_add(my->cal, advance, 1, &err);
+    }
+  end = ucal_getMillis(my->cal, &err);
+  if (U_FAILURE(err))
+    {
+      return NO;
+    }
+
+  if (datep != NULL)
+    {
+      *datep = [NSDate dateWithTimeIntervalSince1970: start / 1000.0];
+    }
+  if (tip != NULL)
+    {
+      *tip = (end - start) / 1000.0;
+    }
+  return YES;
+#else
   return NO;
+#endif
 }
 
 - (BOOL) isEqual: (id) obj

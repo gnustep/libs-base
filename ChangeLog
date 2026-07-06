@@ -1,3 +1,11 @@
+2026-07-06 Todd White <todd.white@thalion.global>
+
+	* Source/NSCalendar.m
+	(-[NSCalendar rangeOfUnit:startDate:interval:forDate:]): Implement;
+	it was a stub returning NO.  Return the start and duration of the
+	calendar unit that contains the date.
+	* Tests/base/NSCalendar/rangeOfUnitInterval.m: New test.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
