@@ -1,3 +1,19 @@
+2026-07-06 Todd White <todd.white@thalion.global>
+
+	* Source/NSKeyedUnarchiver.m: Enforce NSSecureCoding class
+	restrictions.  The secure decoding entry points
+	(unarchivedObjectOfClasses:fromData:error: and the array and
+	dictionary variants) now enable secure coding, decode against the
+	given allowed classes and return nil with an NSError on a
+	violation, instead of forwarding to the insecure path.
+	-_decodeObject: rejects a class-tagged object whose class is not
+	one of the allowed classes or does not support secure coding.
+	-decodeObjectOfClasses:forKey: restricts the allowed classes for
+	its subtree.
+	* Headers/Foundation/NSKeyedArchiver.h: Add the _allowedClasses
+	instance variable.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: New test.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
