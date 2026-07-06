@@ -1,3 +1,12 @@
+2026-07-06 Todd White <todd.white@thalion.global>
+
+	* Source/NSCalendar.m (_NSRangeOfUnitField,
+	-[NSCalendar rangeOfUnit:inUnit:forDate:]): Implement; it was a
+	stub that always returned {0, 0}.  Return the range of the smaller
+	unit within the larger unit for the date, or {NSNotFound,
+	NSNotFound} for a pair that is not a containment.
+	* Tests/base/NSCalendar/rangeOfUnit.m: New test.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
