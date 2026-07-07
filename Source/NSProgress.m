@@ -256,7 +256,17 @@ GSProgressIsIndeterminate(int64_t total, int64_t completed)
        * created (implicit) child. You can see the hand-off at the end of this
        * method. */
       internal->_pendingUnitCountForChild = 0;
-      internal->_userInfo = [userInfo mutableCopy];
+
+      /* Always create a userInfo dict for -setUserInfoObject:forKey: */
+      if (userInfo == nil)
+	{
+	  internal->_userInfo = [[NSMutableDictionary alloc] init];
+	}
+      else
+	{
+	  internal->_userInfo = [userInfo mutableCopy];
+	}
+
       internal->_cancelled = NO;
       internal->_cancellable = YES;
       internal->_finished = NO;
