@@ -4,6 +4,27 @@
 	was an unimplemented stub that raised an exception.
 	* Tests/base/NSScanner/scanDecimal.m:
 	New test.
+	* Source/NSScanner.m (-[NSScanner scanHexDouble:],
+	-[NSScanner scanHexFloat:]): Implement scanning of a C hexadecimal
+	floating point value; both were unimplemented stubs returning NO.
+	* Tests/base/NSScanner/scanHexFloat.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalAdd, NSDecimalSubtract): Do not turn
+	an overflow into an underflow when the result is negative.  A sum or
+	difference too large to represent is an overflow whatever its sign.
+	* Tests/base/NSDecimalNumber/add_subtract_overflow_sign.m:
+	New test.
+	* Tests/base/NSDecimalNumber/nan_and_edges.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
+	to represent as NSCalculationOverflow regardless of its sign, rather
+	than NSCalculationUnderflow when the result is negative.
+	* Tests/base/NSDecimalNumber/multiply_overflow_sign.m:
+	New test.
+2026-07-06 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProgress.m:
+	Create the userInfo dictionary if needed.
 
 2026-07-03 Todd White <todd.white@thalion.global>
 
