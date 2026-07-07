@@ -1,5 +1,9 @@
 2026-07-05 Todd White <todd.white@thalion.global>
 
+	* Source/NSScanner.m (-[NSScanner scanDecimal:]): Implement; it
+	was an unimplemented stub that raised an exception.
+	* Tests/base/NSScanner/scanDecimal.m:
+	New test.
 	* Source/NSScanner.m (-[NSScanner scanHexDouble:],
 	-[NSScanner scanHexFloat:]): Implement scanning of a C hexadecimal
 	floating point value; both were unimplemented stubs returning NO.
