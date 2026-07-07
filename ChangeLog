@@ -1,3 +1,8 @@
+2026-07-06 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProgress.m:
+	Create the userInfo dictionary if needed.
+
 2026-07-03 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
