@@ -1,3 +1,10 @@
+2026-07-05 Todd White <todd.white@thalion.global>
+
+	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
+	to represent as NSCalculationOverflow regardless of its sign, rather
+	than NSCalculationUnderflow when the result is negative.
+	* Tests/base/NSDecimalNumber/multiply_overflow_sign.m:
+	New test.
 2026-07-06 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSProgress.m:
