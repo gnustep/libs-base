@@ -69,6 +69,64 @@ static UCalendarDateFields _NSCalendarUnitToDateField(NSCalendarUnit unit)
     return UCAL_DAY_OF_WEEK_IN_MONTH;
   return (UCalendarDateFields)-1;
 }
+
+/* The ICU field whose range a smaller unit spans within a larger unit, or -1
+ * when the pair is not a supported containment.  The larger unit selects the
+ * field for the ambiguous day/week cases (a day is UCAL_DATE within a month
+ * but UCAL_DAY_OF_YEAR within a year). */
+static UCalendarDateFields
+_NSRangeOfUnitField(NSCalendarUnit smaller, NSCalendarUnit larger)
+{
+  switch (smaller)
+    {
+      case NSCalendarUnitSecond:
+        if (larger & (NSCalendarUnitMinute | NSCalendarUnitHour
+          | NSCalendarUnitDay | NSCalendarUnitWeekday
+          | NSCalendarUnitWeekOfMonth | NSCalendarUnitWeekOfYear
+          | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitEra))
+          return UCAL_SECOND;
+        break;
+      case NSCalendarUnitMinute:
+        if (larger & (NSCalendarUnitHour | NSCalendarUnitDay
+          | NSCalendarUnitWeekday | NSCalendarUnitWeekOfMonth
+          | NSCalendarUnitWeekOfYear | NSCalendarUnitMonth
+          | NSCalendarUnitYear | NSCalendarUnitEra))
+          return UCAL_MINUTE;
+        break;
+      case NSCalendarUnitHour:
+        if (larger & (NSCalendarUnitDay | NSCalendarUnitWeekday
+          | NSCalendarUnitWeekOfMonth | NSCalendarUnitWeekOfYear
+          | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitEra))
+          return UCAL_HOUR_OF_DAY;
+        break;
+      case NSCalendarUnitDay:
+        if (larger & NSCalendarUnitMonth)
+          return UCAL_DAY_OF_MONTH;
+        if (larger & NSCalendarUnitYear)
+          return UCAL_DAY_OF_YEAR;
+        break;
+      case NSCalendarUnitWeekday:
+        if (larger & (NSCalendarUnitWeekOfMonth | NSCalendarUnitWeekOfYear
+          | NSCalendarUnitMonth | NSCalendarUnitYear))
+          return UCAL_DAY_OF_WEEK;
+        break;
+      case NSCalendarUnitWeekOfMonth:
+        if (larger & NSCalendarUnitMonth)
+          return UCAL_WEEK_OF_MONTH;
+        break;
+      case NSCalendarUnitWeekOfYear:
+        if (larger & NSCalendarUnitYear)
+          return UCAL_WEEK_OF_YEAR;
+        break;
+      case NSCalendarUnitMonth:
+        if (larger & (NSCalendarUnitYear | NSCalendarUnitEra))
+          return UCAL_MONTH;
+        break;
+      default:
+        break;
+    }
+  return (UCalendarDateFields)-1;
+}
 #endif /* GS_USE_ICU */
 
 typedef struct {
@@ -871,7 +929,35 @@ do \
                  inUnit: (NSCalendarUnit) larger
                 forDate: (NSDate*) date
 {
-  return NSMakeRange (0, 0);
+  NSRange result = NSMakeRange (NSNotFound, NSNotFound);
+#if GS_USE_ICU == 1
+  UCalendarDateFields field = _NSRangeOfUnitField(smaller, larger);
+
+  if (field != (UCalendarDateFields)-1)
+    {
+      UErrorCode	err = U_ZERO_ERROR;
+      UDate		udate;
+
+      [self _resetCalendar];
+      udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+      ucal_setMillis(my->cal, udate, &err);
+      result.location = (NSUInteger)
+        ucal_getLimit(my->cal, field, UCAL_ACTUAL_MINIMUM, &err);
+      result.length = (NSUInteger)
+        ucal_getLimit(my->cal, field, UCAL_ACTUAL_MAXIMUM, &err)
+        - result.location + 1;
+      // ICU's month is 0-based, while NSCalendar is 1-based
+      if (field == UCAL_MONTH)
+        {
+          result.location += 1;
+        }
+      if (U_FAILURE(err))
+        {
+          result = NSMakeRange (NSNotFound, NSNotFound);
+        }
+    }
+#endif
+  return result;
 }
 
 - (BOOL) rangeOfUnit: (NSCalendarUnit) unit
