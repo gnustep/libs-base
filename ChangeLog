@@ -1,5 +1,7 @@
 2026-07-05 Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSDecimalNumber/nan_and_edges.m:
+	New test.
 	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
 	to represent as NSCalculationOverflow regardless of its sign, rather
 	than NSCalculationUnderflow when the result is negative.
