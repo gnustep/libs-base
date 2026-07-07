@@ -1,5 +1,10 @@
 2026-07-05 Todd White <todd.white@thalion.global>
 
+	* Source/NSScanner.m (-[NSScanner scanHexDouble:],
+	-[NSScanner scanHexFloat:]): Implement scanning of a C hexadecimal
+	floating point value; both were unimplemented stubs returning NO.
+	* Tests/base/NSScanner/scanHexFloat.m:
+	New test.
 	* Source/NSDecimal.m (NSDecimalAdd, NSDecimalSubtract): Do not turn
 	an overflow into an underflow when the result is negative.  A sum or
 	difference too large to represent is an overflow whatever its sign.
