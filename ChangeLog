@@ -33,6 +33,40 @@
 
 2026-07-07  Todd White <todd.white@thalion.global>
 
+	* configure.ac: Build the new key-value observing implementation on
+	every Objective-C runtime rather than only the next-generation one.
+	Add --disable-newkvo to fall back to the old implementation.
+	* configure: Regenerate.
+	* Source/GNUmakefile: Define GNUSTEP_BASE_NEW_KVO when the new KVO is
+	compiled so the swizzling code can select a backend.
+	* Source/NSKVOInternal.h: Guard on GNUSTEP_BASE_NEW_KVO as well as
+	__OBJC2__.  Declare the _NSKVOKeyObserver and _NSKVOKeypathObserver
+	instance variables explicitly; gcc does not synthesise them from the
+	property declarations.
+	* Source/NSKVOSwizzling.m: Add a per-class swizzling backend, using an
+	NSKVONotifying_<Class> subclass and object_setClass, for runtimes that
+	lack the libobjc2 object_addMethod_np extension.
+	(KVCSetterForPropertyName): Correct the buffer offset; it dropped the
+	second character of every key, so no setter selector resolved.
+	(_NSKVOInfoForClass, _NSKVOInstallOverride, _NSKVOEnsureKeyWillNotify):
+	Use a recursive gs_mutex instead of @synchronized, which needs
+	Objective-C exceptions that the GNU runtime does not enable on Windows.
+	(notifyingSetImpl*): Call straight through to the original setter when
+	the object has no observation info.
+	* Source/NSKVOSupport.m: Replace the block-based change dispatch with
+	plain functions.
+	(-[_NSKVOObservationInfo addObserver:], removeObserver:,
+	observersForKey:): Hold the per-key observer arrays copy-on-write so a
+	notification does not copy them.
+	(_kvoWillSetChange, _dispatchDidChange): Reuse the change dictionary
+	across notifications and iterate observers in reverse with an index
+	loop.
+	(_addNestedObserversAndOptionallyDependents,
+	_removeNestedObserversAndOptionallyDependents): Return early for a
+	simple key that has no dependents.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
 	* configure.ac: Detect the 5-argument (Solaris) form of
 	gethostbyname_r in addition to the 6-argument (glibc) form, and
 	record the argument count in GS_GETHOSTBYNAME_R_ARGS.

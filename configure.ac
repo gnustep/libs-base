@@ -3830,19 +3830,10 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 HAVE_NEWKVO=0
 AC_ARG_ENABLE(newkvo,
   [AS_HELP_STRING([--disable-newkvo],
-  [Disable new KVO implementation])],,[
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
-  enable_newkvo=yes
-else
-  enable_newkvo=no
-fi])
+  [Disable new KVO implementation])],,[enable_newkvo=yes])
 if test "x$enable_newkvo" = "xyes"
 then
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    HAVE_NEWKVO=1
-  else
-    echo "You are not using the new runtime ... newkvo not available"
-  fi
+  HAVE_NEWKVO=1
 fi
 AC_SUBST(HAVE_NEWKVO)
 

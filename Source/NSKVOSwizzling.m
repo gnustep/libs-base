@@ -42,20 +42,29 @@
   THE SOFTWARE.
 */
 
-/* This Key Value Observing Implementation is tied to libobjc2 */
+/* Key Value Observing setter swizzling.  There are two backends, selected on
+ * the runtime: the libobjc2 path adds notifying methods per object with
+ * object_addMethod_np; other runtimes install them on a per-class
+ * NSKVONotifying_<Class> subclass and switch the observed instance's isa.
+ */
 
 #import "common.h"
 #import "NSKVOInternal.h"
-
-#import <objc/encoding.h>
+#import "GSPThread.h"
 #import <objc/runtime.h>
-#import "NSKVOTypeEncodingCases.h"
-
 #import <Foundation/Foundation.h>
 
 #ifdef WIN32
 #define alloca(x) _alloca(x)
 #endif
+
+#if defined(__OBJC2__) && !defined(NSKVO_FORCE_PORTABLE)
+/* ==================================================================== *
+ *  libobjc2 backend: per-object method addition (object_addMethod_np).  *
+ * ==================================================================== */
+
+#import <objc/encoding.h>
+#import "NSKVOTypeEncodingCases.h"
 
 /* These are defined by the ABI and the runtime. */
 #define ABI_SUPER(obj) (((Class **) obj)[0][1])
@@ -442,12 +451,19 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
   static void funcName(id self, SEL _cmd, type val)                            \
   {                                                                            \
     struct objc_super super = {self, ABI_SUPER(self)};                         \
-    NSString         *key = _keyForSelector(self, _cmd);                       \
     void (*imp)(id, SEL, type)                                                 \
       = (void (*)(id, SEL, type)) objc_msg_lookup_super(&super, _cmd);         \
-    [self willChangeValueForKey: key];                                         \
-    imp(self, _cmd, val);                                                      \
-    [self didChangeValueForKey: key];                                          \
+    if (nil == [self observationInfo])                                         \
+      {                                                                        \
+        imp(self, _cmd, val);                                                  \
+        return;                                                                \
+      }                                                                        \
+    {                                                                          \
+      NSString *key = _keyForSelector(self, _cmd);                             \
+      [self willChangeValueForKey: key];                                       \
+      imp(self, _cmd, val);                                                    \
+      [self didChangeValueForKey: key];                                        \
+    }                                                                          \
   }
 
 GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplDouble, double);
@@ -704,3 +720,531 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key)
 
   free(rawKey);
 }
+
+#else
+/* ==================================================================== *
+ *  Portable backend: per-class NSKVONotifying_<Class> subclass.  Works  *
+ *  on any runtime that provides objc_allocateClassPair/object_setClass  *
+ *  (i.e. without libobjc2's per-object object_addMethod_np).            *
+ * ==================================================================== */
+
+#import "NSKVOTypeEncodingCases.h"
+
+/* Per public class: the notifying subclass, plus (keyed by selector name) the
+ * KVC key and the ORIGINAL setter IMP.  The original IMP is cached at install
+ * time.  Selectors are keyed by NAME: on the GNU runtime they are typed, so
+ * two selectors with the same name need not be the same pointer.
+ */
+@interface _NSKVOSwizzledClass : NSObject
+{
+@public
+  Class		subclass;
+  NSMapTable	*keyForSelector;
+  NSMapTable	*impForSelector;
+}
+@end
+
+/* One recursive lock guards all swizzle setup below.  The setup entry points
+ * nest (ensure -> info-for-class -> install-override), so it must be recursive.
+ * @synchronized is avoided because it requires Objective-C exceptions, which
+ * the GNU runtime does not enable on Windows. */
+static gs_mutex_t kvoSwizzleLock;
+
+@implementation _NSKVOSwizzledClass
++ (void) load
+{
+  GS_MUTEX_INIT_RECURSIVE(kvoSwizzleLock);
+}
+@end
+
+/* -class is overridden on the subclass so the observed object still reports
+ * its public class. */
+static Class
+_NSKVONotifyingClass(id self, SEL _cmd)
+{
+  return class_getSuperclass(object_getClass(self));
+}
+
+/* The public class of an object, seeing through a notifying subclass. */
+static Class
+_NSKVOPublicClass(id object)
+{
+  Class c = object_getClass(object);
+  if (class_getInstanceMethod(c, @selector(class)) != NULL
+    && class_getMethodImplementation(c, @selector(class)) == (IMP) _NSKVONotifyingClass)
+    return class_getSuperclass(c);
+  return c;
+}
+
+static _NSKVOSwizzledClass *
+_NSKVOInfoForClass(Class cls)
+{
+  static void	*assocKey = &assocKey;
+  _NSKVOSwizzledClass *info;
+
+  GS_MUTEX_LOCK(kvoSwizzleLock);
+  {
+    info = (_NSKVOSwizzledClass *) objc_getAssociatedObject(cls, &assocKey);
+    if (nil == info)
+      {
+	char name[256];
+
+	info = [_NSKVOSwizzledClass new];
+	snprintf(name, sizeof(name), "NSKVONotifying_%s", class_getName(cls));
+	info->subclass = objc_allocateClassPair(cls, name, 0);
+	info->keyForSelector = [[NSMapTable alloc] initWithKeyOptions:
+	  NSPointerFunctionsCStringPersonality | NSPointerFunctionsOpaqueMemory
+	  valueOptions: NSPointerFunctionsStrongMemory
+	  | NSPointerFunctionsObjectPersonality capacity: 4];
+	info->impForSelector = [[NSMapTable alloc] initWithKeyOptions:
+	  NSPointerFunctionsCStringPersonality | NSPointerFunctionsOpaqueMemory
+	  valueOptions: NSPointerFunctionsOpaqueMemory
+	  | NSPointerFunctionsOpaquePersonality capacity: 4];
+	class_addMethod(info->subclass, @selector(class),
+	  (IMP) _NSKVONotifyingClass, "#@:");
+	objc_registerClassPair(info->subclass);
+	objc_setAssociatedObject(cls, &assocKey, info, OBJC_ASSOCIATION_RETAIN);
+      }
+  }
+  GS_MUTEX_UNLOCK(kvoSwizzleLock);
+  return info;
+}
+
+/* Look up the KVC key and cached original IMP for a notifying setter call. */
+static inline void
+_NSKVOPortableLookup(id self, SEL _cmd, NSString **key, IMP *orig)
+{
+  _NSKVOSwizzledClass *info
+    = _NSKVOInfoForClass(class_getSuperclass(object_getClass(self)));
+  const char *name = sel_getName(_cmd);
+
+  *key = (NSString *) NSMapGet(info->keyForSelector, name);
+  *orig = (IMP) NSMapGet(info->impForSelector, name);
+}
+
+#define GENERATE_PORTABLE_SET_IMPL(funcName, type)                             \
+  static void funcName(id self, SEL _cmd, type val)                            \
+  {                                                                            \
+    NSString *key;                                                             \
+    IMP       orig;                                                            \
+    _NSKVOPortableLookup(self, _cmd, &key, &orig);                             \
+    [self willChangeValueForKey: key];                                         \
+    ((void (*)(id, SEL, type)) orig)(self, _cmd, val);                         \
+    [self didChangeValueForKey: key];                                          \
+  }
+
+GENERATE_PORTABLE_SET_IMPL(portableSetDouble, double);
+GENERATE_PORTABLE_SET_IMPL(portableSetFloat, float);
+GENERATE_PORTABLE_SET_IMPL(portableSetChar, signed char);
+GENERATE_PORTABLE_SET_IMPL(portableSetInt, int);
+GENERATE_PORTABLE_SET_IMPL(portableSetShort, short);
+GENERATE_PORTABLE_SET_IMPL(portableSetLong, long);
+GENERATE_PORTABLE_SET_IMPL(portableSetLongLong, long long);
+GENERATE_PORTABLE_SET_IMPL(portableSetUnsignedChar, unsigned char);
+GENERATE_PORTABLE_SET_IMPL(portableSetUnsignedInt, unsigned int);
+GENERATE_PORTABLE_SET_IMPL(portableSetUnsignedShort, unsigned short);
+GENERATE_PORTABLE_SET_IMPL(portableSetUnsignedLong, unsigned long);
+GENERATE_PORTABLE_SET_IMPL(portableSetUnsignedLongLong, unsigned long long);
+GENERATE_PORTABLE_SET_IMPL(portableSetObject, id);
+GENERATE_PORTABLE_SET_IMPL(portableSetPointer, void *);
+
+#define KVO_SET_IMPL_CASE(type, name, capitalizedName, encodingChar)           \
+    case encodingChar: {                                                       \
+      newImpl = (IMP) (&portableSet##capitalizedName);                         \
+      break;                                                                   \
+    }
+
+/* Setters whose value is a structure or array are passed on the stack.  We
+ * cannot know the exact prototype, so flatten the words the caller pushed and
+ * re-emit them to the original implementation.  This assumes variadic and
+ * non-variadic calls pass such arguments the same way, which holds on the
+ * platforms we support; the value size is capped (see below) accordingly. */
+static void
+portableVariadicSetImpl(id self, SEL _cmd, ...)
+{
+  NSString		*key;
+  IMP			orig;
+  NSMethodSignature	*sig = [self methodSignatureForSelector: _cmd];
+  size_t		argSz = objc_sizeof_type([sig getArgumentTypeAtIndex: 2]);
+  size_t		nStackArgs = argSz / sizeof(uintptr_t);
+  uintptr_t		*raw = (uintptr_t *) calloc(sizeof(uintptr_t), nStackArgs);
+  va_list		ap;
+  uintptr_t		i;
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+
+  va_start(ap, _cmd);
+  for (i = 0; i < nStackArgs; ++i)
+    {
+      raw[i] = va_arg(ap, uintptr_t);
+    }
+  va_end(ap);
+
+  [self willChangeValueForKey: key];
+  switch (nStackArgs)
+    {
+      case 1:
+	((void (*)(id, SEL, uintptr_t)) orig)(self, _cmd, raw[0]);
+	break;
+      case 2:
+	((void (*)(id, SEL, uintptr_t, uintptr_t)) orig)
+	  (self, _cmd, raw[0], raw[1]);
+	break;
+      case 3:
+	((void (*)(id, SEL, uintptr_t, uintptr_t, uintptr_t)) orig)
+	  (self, _cmd, raw[0], raw[1], raw[2]);
+	break;
+      case 4:
+	((void (*)(id, SEL, uintptr_t, uintptr_t, uintptr_t, uintptr_t)) orig)
+	  (self, _cmd, raw[0], raw[1], raw[2], raw[3]);
+	break;
+      case 5:
+	((void (*)(id, SEL, uintptr_t, uintptr_t, uintptr_t, uintptr_t,
+	  uintptr_t)) orig)(self, _cmd, raw[0], raw[1], raw[2], raw[3], raw[4]);
+	break;
+      case 6:
+	((void (*)(id, SEL, uintptr_t, uintptr_t, uintptr_t, uintptr_t,
+	  uintptr_t, uintptr_t)) orig)
+	  (self, _cmd, raw[0], raw[1], raw[2], raw[3], raw[4], raw[5]);
+	break;
+      default:
+	NSLog(@"Can't override setter with more than 6"
+	  @" sizeof(long int) stack arguments.");
+	free(raw);
+	return;
+    }
+  [self didChangeValueForKey: key];
+
+  free(raw);
+}
+
+static SEL
+KVCSetterForPropertyName(NSObject *self, const char *key)
+{
+  SEL    sel;
+  size_t len = strlen(key);
+  char  *buf = (char *) alloca(3 + len + 2);
+
+  memcpy(buf + 4, key + 1, len);
+  buf[0] = 's'; buf[1] = 'e'; buf[2] = 't';
+  buf[3] = toupper(key[0]);
+  buf[3 + len] = ':';
+  buf[3 + len + 1] = '\0';
+  sel = sel_getUid(buf);
+  return [self respondsToSelector: sel] ? sel : (SEL) 0;
+}
+
+static char *
+mutableBufferFromString(NSString *string)
+{
+  NSUInteger	lengthInBytes = [string length] + 1;
+  char		*rawKey = (char *) malloc(lengthInBytes);
+
+  [string getCString: rawKey
+	   maxLength: lengthInBytes
+	    encoding: NSASCIIStringEncoding];
+  return rawKey;
+}
+
+/* Indexed (ordered to-many) mutation notifiers. */
+static void
+portableInsertObjectAtIndex(id self, SEL _cmd, id object, NSUInteger index)
+{
+  NSString	*key;
+  IMP		orig;
+  NSIndexSet	*indexes = [NSIndexSet indexSetWithIndex: index];
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeInsertion valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, id, NSUInteger)) orig)(self, _cmd, object, index);
+  [self didChange: NSKeyValueChangeInsertion valuesAtIndexes: indexes forKey: key];
+}
+static void
+portableInsertAtIndexes(id self, SEL _cmd, id objects, NSIndexSet *indexes)
+{
+  NSString	*key;
+  IMP		orig;
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeInsertion valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, id, NSIndexSet *)) orig)(self, _cmd, objects, indexes);
+  [self didChange: NSKeyValueChangeInsertion valuesAtIndexes: indexes forKey: key];
+}
+static void
+portableRemoveObjectAtIndex(id self, SEL _cmd, NSUInteger index)
+{
+  NSString	*key;
+  IMP		orig;
+  NSIndexSet	*indexes = [NSIndexSet indexSetWithIndex: index];
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeRemoval valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, NSUInteger)) orig)(self, _cmd, index);
+  [self didChange: NSKeyValueChangeRemoval valuesAtIndexes: indexes forKey: key];
+}
+static void
+portableRemoveAtIndexes(id self, SEL _cmd, NSIndexSet *indexes)
+{
+  NSString	*key;
+  IMP		orig;
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeRemoval valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, NSIndexSet *)) orig)(self, _cmd, indexes);
+  [self didChange: NSKeyValueChangeRemoval valuesAtIndexes: indexes forKey: key];
+}
+static void
+portableReplaceObjectAtIndex(id self, SEL _cmd, NSUInteger index, id object)
+{
+  NSString	*key;
+  IMP		orig;
+  NSIndexSet	*indexes = [NSIndexSet indexSetWithIndex: index];
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeReplacement valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, NSUInteger, id)) orig)(self, _cmd, index, object);
+  [self didChange: NSKeyValueChangeReplacement valuesAtIndexes: indexes forKey: key];
+}
+static void
+portableReplaceAtIndexes(id self, SEL _cmd, NSIndexSet *indexes, id objects)
+{
+  NSString	*key;
+  IMP		orig;
+
+  _NSKVOPortableLookup(self, _cmd, &key, &orig);
+  [self willChange: NSKeyValueChangeReplacement valuesAtIndexes: indexes forKey: key];
+  ((void (*)(id, SEL, NSIndexSet *, id)) orig)(self, _cmd, indexes, objects);
+  [self didChange: NSKeyValueChangeReplacement valuesAtIndexes: indexes forKey: key];
+}
+
+/* Unordered (set to-many) mutation notifiers. */
+#define GENERATE_PORTABLE_SETDISPATCH(funcName, Kind)                          \
+  static void funcName(id self, SEL _cmd, NSSet *set)                          \
+  {                                                                            \
+    NSString *key;                                                             \
+    IMP       orig;                                                            \
+    _NSKVOPortableLookup(self, _cmd, &key, &orig);                             \
+    [self willChangeValueForKey: key withSetMutation: Kind usingObjects: set]; \
+    ((void (*)(id, SEL, NSSet *)) orig)(self, _cmd, set);                      \
+    [self didChangeValueForKey: key withSetMutation: Kind usingObjects: set];  \
+  }
+#define GENERATE_PORTABLE_SETDISPATCH_INDIVIDUAL(funcName, Kind)               \
+  static void funcName(id self, SEL _cmd, id obj)                              \
+  {                                                                            \
+    NSSet    *set = [NSSet setWithObject: obj];                                \
+    NSString *key;                                                             \
+    IMP       orig;                                                            \
+    _NSKVOPortableLookup(self, _cmd, &key, &orig);                             \
+    [self willChangeValueForKey: key withSetMutation: Kind usingObjects: set]; \
+    ((void (*)(id, SEL, id)) orig)(self, _cmd, obj);                           \
+    [self didChangeValueForKey: key withSetMutation: Kind usingObjects: set];  \
+  }
+GENERATE_PORTABLE_SETDISPATCH_INDIVIDUAL(portableUnionIndividual,
+  NSKeyValueUnionSetMutation);
+GENERATE_PORTABLE_SETDISPATCH_INDIVIDUAL(portableMinusIndividual,
+  NSKeyValueMinusSetMutation);
+GENERATE_PORTABLE_SETDISPATCH(portableUnionSet, NSKeyValueUnionSetMutation);
+GENERATE_PORTABLE_SETDISPATCH(portableMinusSet, NSKeyValueMinusSetMutation);
+GENERATE_PORTABLE_SETDISPATCH(portableIntersectSet,
+  NSKeyValueIntersectSetMutation);
+
+static SEL
+formatSelector(NSString *format, ...)
+{
+  NSString	*s;
+  SEL		sel;
+  va_list	ap;
+
+  va_start(ap, format);
+  s = [[NSString alloc] initWithFormat: format arguments: ap];
+  sel = NSSelectorFromString([s autorelease]);
+  va_end(ap);
+  return sel;
+}
+
+/* Override sel on the notifying subclass with notifyImp (once per selector),
+ * caching the original implementation and the KVC key for the setter body. */
+static void
+_NSKVOInstallOverride(id object, _NSKVOSwizzledClass *info, SEL sel,
+  NSString *key, IMP notifyImp)
+{
+  Method	m;
+
+  if ((SEL) 0 == sel || ![object respondsToSelector: sel])
+    {
+      return;
+    }
+  GS_MUTEX_LOCK(kvoSwizzleLock);
+  {
+    if (NSMapGet(info->impForSelector, sel_getName(sel)) == NULL)
+      {
+	m = class_getInstanceMethod(_NSKVOPublicClass(object), sel);
+	if (NULL == m)
+	  {
+	    GS_MUTEX_UNLOCK(kvoSwizzleLock);
+	    return;
+	  }
+	NSMapInsert(info->keyForSelector, sel_getName(sel), key);
+	NSMapInsert(info->impForSelector, sel_getName(sel),
+	  (void *) method_getImplementation(m));
+	class_addMethod(info->subclass, sel, notifyImp,
+	  method_getTypeEncoding(m));
+      }
+  }
+  GS_MUTEX_UNLOCK(kvoSwizzleLock);
+}
+
+/* invariant: rawKey has already been capitalized */
+static inline void
+_NSKVOEnsureSimpleKeyWillNotify(id object, _NSKVOSwizzledClass *info,
+  NSString *key, const char *rawKey)
+{
+  SEL			sel = KVCSetterForPropertyName(object, rawKey);
+  Method		originalMethod;
+  const char		*types;
+  const char		*valueType;
+  NSMethodSignature	*sig;
+  IMP			newImpl = NULL;
+
+  if ((SEL) 0 == sel)
+    {
+      return;
+    }
+  originalMethod = class_getInstanceMethod(_NSKVOPublicClass(object), sel);
+  types = method_getTypeEncoding(originalMethod);
+  if (!types)
+    {
+      return;
+    }
+  sig = [NSMethodSignature signatureWithObjCTypes: types];
+  valueType = [sig getArgumentTypeAtIndex: 2];
+
+  switch (valueType[0])
+    {
+      OBJC_APPLY_ALL_TYPE_ENCODINGS(KVO_SET_IMPL_CASE);
+      case '{':
+      case '[':
+	{
+	  size_t valueSize = objc_sizeof_type(valueType);
+
+	  if (valueSize > 6 * sizeof(uintptr_t))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Class %s key %@ has a value size of %u bytes"
+		@", and cannot currently be KVO compliant.",
+		class_getName(_NSKVOPublicClass(object)), key,
+		(unsigned int) valueSize];
+	    }
+	  newImpl = (IMP) (&portableVariadicSetImpl);
+	  break;
+	}
+      default:
+	[NSException raise: NSInvalidArgumentException
+		    format: @"Class %s is not KVO compliant for key %@.",
+	  class_getName(_NSKVOPublicClass(object)), key];
+	return;
+    }
+  _NSKVOInstallOverride(object, info, sel, key, newImpl);
+}
+
+/* invariant: rawKey has already been capitalized */
+static inline void
+_NSKVOEnsureOrderedCollectionWillNotify(id object, _NSKVOSwizzledClass *info,
+  NSString *key, const char *rawKey)
+{
+  SEL insertOne = formatSelector(@"insertObject:in%sAtIndex:", rawKey);
+  SEL insertMany = formatSelector(@"insert%s:atIndexes:", rawKey);
+
+  if ([object respondsToSelector: insertOne]
+    || [object respondsToSelector: insertMany])
+    {
+      _NSKVOInstallOverride(object, info, insertOne, key,
+	(IMP) portableInsertObjectAtIndex);
+      _NSKVOInstallOverride(object, info, insertMany, key,
+	(IMP) portableInsertAtIndexes);
+      _NSKVOInstallOverride(object, info,
+	formatSelector(@"removeObjectFrom%sAtIndex:", rawKey), key,
+	(IMP) portableRemoveObjectAtIndex);
+      _NSKVOInstallOverride(object, info,
+	formatSelector(@"remove%sAtIndexes:", rawKey), key,
+	(IMP) portableRemoveAtIndexes);
+      _NSKVOInstallOverride(object, info,
+	formatSelector(@"replaceObjectIn%sAtIndex:withObject:", rawKey), key,
+	(IMP) portableReplaceObjectAtIndex);
+      _NSKVOInstallOverride(object, info,
+	formatSelector(@"replace%sAtIndexes:with%s:", rawKey, rawKey), key,
+	(IMP) portableReplaceAtIndexes);
+    }
+}
+
+/* invariant: rawKey has already been capitalized */
+static inline void
+_NSKVOEnsureUnorderedCollectionWillNotify(id object, _NSKVOSwizzledClass *info,
+  NSString *key, const char *rawKey)
+{
+  SEL addOne = formatSelector(@"add%sObject:", rawKey);
+  SEL addMany = formatSelector(@"add%s:", rawKey);
+  SEL removeOne = formatSelector(@"remove%sObject:", rawKey);
+  SEL removeMany = formatSelector(@"remove%s:", rawKey);
+
+  if (([object respondsToSelector: addOne]
+    || [object respondsToSelector: addMany])
+    && ([object respondsToSelector: removeOne]
+      || [object respondsToSelector: removeMany]))
+    {
+      _NSKVOInstallOverride(object, info, addOne, key,
+	(IMP) portableUnionIndividual);
+      _NSKVOInstallOverride(object, info, addMany, key,
+	(IMP) portableUnionSet);
+      _NSKVOInstallOverride(object, info, removeOne, key,
+	(IMP) portableMinusIndividual);
+      _NSKVOInstallOverride(object, info, removeMany, key,
+	(IMP) portableMinusSet);
+      _NSKVOInstallOverride(object, info,
+	formatSelector(@"intersect%s:", rawKey), key,
+	(IMP) portableIntersectSet);
+    }
+}
+
+/* NSKVOEnsureKeyWillNotify is the main entrypoint into the swizzling code. */
+void
+_NSKVOEnsureKeyWillNotify(id object, NSString *key)
+{
+  char			*rawKey;
+  Class			cls;
+  Class			underlyingCls;
+  _NSKVOSwizzledClass	*info;
+
+  cls = [object class];
+  underlyingCls = [object _underlyingClass];
+  /* If cls differs from underlyingCls, object is actually a proxy. */
+  if (cls != underlyingCls)
+    {
+      object = [object valueForKey: @"self"];
+    }
+
+  if (![underlyingCls automaticallyNotifiesObserversForKey: key])
+    {
+      return;
+    }
+
+  rawKey = mutableBufferFromString(key);
+  rawKey[0] = toupper(rawKey[0]);
+
+  GS_MUTEX_LOCK(kvoSwizzleLock);
+  {
+    info = _NSKVOInfoForClass(_NSKVOPublicClass(object));
+    _NSKVOEnsureSimpleKeyWillNotify(object, info, key, rawKey);
+    _NSKVOEnsureOrderedCollectionWillNotify(object, info, key, rawKey);
+    _NSKVOEnsureUnorderedCollectionWillNotify(object, info, key, rawKey);
+    if (object_getClass(object) != info->subclass)
+      {
+	object_setClass(object, info->subclass);
+      }
+  }
+  GS_MUTEX_UNLOCK(kvoSwizzleLock);
+
+  free(rawKey);
+}
+
+#endif

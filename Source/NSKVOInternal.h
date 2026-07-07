@@ -54,7 +54,7 @@
 
 #import "GSPrivate.h"
 
-#if defined(__OBJC2__)
+#if defined(__OBJC2__) || defined(GNUSTEP_BASE_NEW_KVO)
 
 #import "GSPThread.h"
 
@@ -70,6 +70,19 @@
 @class _NSKVOKeypathObserver;
 
 @interface _NSKVOKeyObserver : NSObject
+{
+  _NSKVOKeypathObserver *_keypathObserver;
+  _NSKVOKeyObserver     *_restOfKeypathObserver;
+  NSArray               *_dependentObservers;
+  id                     _object;
+  NSString              *_key;
+  NSString              *_restOfKeypath;
+  NSArray               *_affectedObservers;
+  BOOL                   _root;
+  /* Accessed with __atomic_* builtins for portability: GCC does not allow
+   * the _Atomic type qualifier on an Objective-C instance variable. */
+  BOOL                   _isRemoved;
+}
 - (instancetype)initWithObject:(id)object
                keypathObserver:(_NSKVOKeypathObserver *)keypathObserver
                            key:(NSString *)key
@@ -87,6 +100,15 @@
 @end
 
 @interface _NSKVOKeypathObserver : NSObject
+{
+  id                         _object;
+  id                         _observer;
+  NSString                  *_keypath;
+  NSKeyValueObservingOptions _options;
+  void                      *_context;
+  NSMutableDictionary       *_pendingChange;
+  int                        _changeDepth;
+}
 - (instancetype)initWithObject:(id)object
                       observer:(id)observer
                        keyPath:(NSString *)keypath
@@ -103,11 +125,10 @@
 
 @interface _NSKVOObservationInfo : NSObject
 {
-  NSMutableDictionary<NSString *, NSMutableArray<_NSKVOKeyObserver *> *>
-                           *_keyObserverMap;
+  NSMutableDictionary      *_keyObserverMap;
   NSInteger                 _dependencyDepth;
-  NSMutableSet<id>         *_existingDependentKeys;
-  NSMutableSet<id>         *_dependencyAncestorKeys;
+  NSMutableSet             *_existingDependentKeys;
+  NSMutableSet             *_dependencyAncestorKeys;
   gs_mutex_t                _lock;
 }
 - (instancetype)init;
