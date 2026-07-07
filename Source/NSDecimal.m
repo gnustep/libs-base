@@ -672,10 +672,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
 
   NSDecimalCopy(&n1, l);
@@ -699,10 +696,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (result->exponent + exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
   else if (result->exponent + exp < -128)
     {
