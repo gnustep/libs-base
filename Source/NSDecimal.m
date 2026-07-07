@@ -515,10 +515,6 @@ NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	  error1 = GSSimpleAdd(result, &n2, &n1, mode);
 	}
       result->isNegative = YES;
-      if (NSCalculationUnderflow == error1)
-	error1 = NSCalculationOverflow;
-      else if (NSCalculationOverflow == error1)
-	error1 = NSCalculationUnderflow;
     }
   else
     {
@@ -581,10 +577,6 @@ NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
 	  n1.isNegative = NO;
 	  error1 = NSDecimalAdd(result, &n1, right, mode);
 	  result->isNegative = YES;
-	  if (NSCalculationUnderflow == error1)
-	    error1 = NSCalculationOverflow;
-	  else if (NSCalculationOverflow == error1)
-	    error1 = NSCalculationUnderflow;
 	  return error1;
 	}
       else
@@ -680,10 +672,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
 
   NSDecimalCopy(&n1, l);
@@ -707,10 +696,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (result->exponent + exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
   else if (result->exponent + exp < -128)
     {
