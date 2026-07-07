@@ -27,6 +27,8 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSNull.h"
@@ -74,6 +76,7 @@ static NSMapTable	*globalClassMap = 0;
 
 @interface NSKeyedUnarchiver (Private)
 - (id) _decodeObject: (unsigned)index;
+- (void) _validateSecureClass: (Class)aClass named: (NSString*)aName;
 @end
 
 @implementation NSKeyedUnarchiver (Internal)
@@ -155,6 +158,31 @@ static NSMapTable	*globalClassMap = 0;
 @end
 
 @implementation NSKeyedUnarchiver (Private)
+- (void) _validateSecureClass: (Class)aClass named: (NSString*)aName
+{
+  NSEnumerator	*e;
+  Class		a;
+
+  if ([aClass conformsToProtocol: @protocol(NSSecureCoding)] == NO
+    || [aClass supportsSecureCoding] == NO)
+    {
+      [NSException raise: NSInvalidUnarchiveOperationException
+	format: @"secure coding requested, but class '%@' does not support"
+	@" secure coding", aName];
+    }
+  e = [_allowedClasses objectEnumerator];
+  while ((a = [e nextObject]) != nil)
+    {
+      if ([aClass isSubclassOfClass: a] == YES)
+	{
+	  return;	// A kind of an allowed class.
+	}
+    }
+  [NSException raise: NSInvalidUnarchiveOperationException
+    format: @"secure coding requested, but class '%@' is not one of the"
+    @" allowed classes", aName];
+}
+
 - (id) _decodeObject: (unsigned)index
 {
   id	o;
@@ -231,6 +259,11 @@ static NSMapTable	*globalClassMap = 0;
 		    }
 		}
 	    }
+	}
+
+      if (_requiresSecureCoding == YES)
+	{
+	  [self _validateSecureClass: c named: classname];
 	}
 
       savedCursor = _cursor;
@@ -385,6 +418,45 @@ static NSMapTable	*globalClassMap = 0;
   return o;
 }
 
+/* Decode the root object of an archive with secure coding enabled and the
+ * given set of allowed classes, converting any failure into a nil result and
+ * an NSError rather than letting the exception escape. */
++ (id) _unarchivedRootFromData: (NSData*)data
+                allowedClasses: (NSSet*)classes
+                         error: (NSError**)error
+{
+  NSKeyedUnarchiver	*u = nil;
+  id			o = nil;
+
+  if (error != NULL)
+    {
+      *error = nil;
+    }
+  NS_DURING
+    {
+      u = [[NSKeyedUnarchiver alloc] initForReadingWithData: data];
+      [u setRequiresSecureCoding: YES];
+      u->_allowedClasses = classes;
+      o = RETAIN([u decodeObjectForKey: @"root"]);
+      [u finishDecoding];
+      DESTROY(u);
+    }
+  NS_HANDLER
+    {
+      DESTROY(u);
+      DESTROY(o);
+      if (error != NULL)
+	{
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+	    code: NSCoderReadCorruptError
+	    userInfo: [NSDictionary dictionaryWithObject: [localException reason]
+	                                          forKey: NSLocalizedDescriptionKey]];
+	}
+    }
+  NS_ENDHANDLER
+  return AUTORELEASE(o);
+}
+
 + (id) unarchivedObjectOfClass: (Class)cls
                       fromData: (NSData*)data
                          error: (NSError**)error
@@ -398,8 +470,7 @@ static NSMapTable	*globalClassMap = 0;
                         fromData: (NSData*)data
                            error: (NSError**)error
 {
-  /* FIXME: implement proper secure coding support */
-  return [self unarchiveObjectWithData: data];
+  return [self _unarchivedRootFromData: data allowedClasses: classes error: error];
 }
 
 + (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
@@ -415,8 +486,13 @@ static NSMapTable	*globalClassMap = 0;
                                       fromData: (NSData*)data
                                          error: (NSError**)error
 {
-  /* FIXME: implement proper secure coding support */
-  return [self unarchiveObjectWithData: data];
+  NSMutableSet	*allowed = [NSMutableSet setWithObject: [NSArray class]];
+
+  if (classes != nil)
+    {
+      [allowed unionSet: classes];
+    }
+  return [self _unarchivedRootFromData: data allowedClasses: allowed error: error];
 }
 
 + (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
@@ -435,8 +511,17 @@ static NSMapTable	*globalClassMap = 0;
                                                fromData: (NSData*)data
                                                   error: (NSError**)error
 {
-  /* FIXME: implement proper secure coding support */
-  return [self unarchiveObjectWithData: data];
+  NSMutableSet	*allowed = [NSMutableSet setWithObject: [NSDictionary class]];
+
+  if (keyClasses != nil)
+    {
+      [allowed unionSet: keyClasses];
+    }
+  if (valueClasses != nil)
+    {
+      [allowed unionSet: valueClasses];
+    }
+  return [self _unarchivedRootFromData: data allowedClasses: allowed error: error];
 }
 
 
@@ -737,7 +822,25 @@ static NSMapTable	*globalClassMap = 0;
 
 - (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)key
 {
-  return [self decodeObjectForKey: key];
+  NSSet	*saved = _allowedClasses;
+  id	o;
+
+  /* Restrict the allowed classes for this key's subtree, restoring the
+   * enclosing set afterwards (the enforcement itself is in -_decodeObject:
+   * and only applies when secure coding is required). */
+  _allowedClasses = classes;
+  NS_DURING
+    {
+      o = [self decodeObjectForKey: key];
+    }
+  NS_HANDLER
+    {
+      _allowedClasses = saved;
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  _allowedClasses = saved;
+  return o;
 }
 
 - (NSPoint) decodePoint
