@@ -1,5 +1,10 @@
 2026-07-05 Todd White <todd.white@thalion.global>
 
+	* Source/NSDecimal.m (NSDecimalAdd, NSDecimalSubtract): Do not turn
+	an overflow into an underflow when the result is negative.  A sum or
+	difference too large to represent is an overflow whatever its sign.
+	* Tests/base/NSDecimalNumber/add_subtract_overflow_sign.m:
+	New test.
 	* Tests/base/NSDecimalNumber/nan_and_edges.m:
 	New test.
 	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
