@@ -5,6 +5,52 @@
 	it was a stub returning NO.  Return the start and duration of the
 	calendar unit that contains the date.
 	* Tests/base/NSCalendar/rangeOfUnitInterval.m: New test.
+	* Source/NSCalendar.m (_NSRangeOfUnitField,
+	-[NSCalendar rangeOfUnit:inUnit:forDate:]): Implement; it was a
+	stub that always returned {0, 0}.  Return the range of the smaller
+	unit within the larger unit for the date, or {NSNotFound,
+	NSNotFound} for a pair that is not a containment.
+	* Tests/base/NSCalendar/rangeOfUnit.m: New test.
+	* Source/NSKeyedUnarchiver.m: Enforce NSSecureCoding class
+	restrictions.  The secure decoding entry points
+	(unarchivedObjectOfClasses:fromData:error: and the array and
+	dictionary variants) now enable secure coding, decode against the
+	given allowed classes and return nil with an NSError on a
+	violation, instead of forwarding to the insecure path.
+	-_decodeObject: rejects a class-tagged object whose class is not
+	one of the allowed classes or does not support secure coding.
+	-decodeObjectOfClasses:forKey: restricts the allowed classes for
+	its subtree.
+	* Headers/Foundation/NSKeyedArchiver.h: Add the _allowedClasses
+	instance variable.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: New test.
+2026-07-05 Todd White <todd.white@thalion.global>
+
+	* Source/NSScanner.m (-[NSScanner scanDecimal:]): Implement; it
+	was an unimplemented stub that raised an exception.
+	* Tests/base/NSScanner/scanDecimal.m:
+	New test.
+	* Source/NSScanner.m (-[NSScanner scanHexDouble:],
+	-[NSScanner scanHexFloat:]): Implement scanning of a C hexadecimal
+	floating point value; both were unimplemented stubs returning NO.
+	* Tests/base/NSScanner/scanHexFloat.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalAdd, NSDecimalSubtract): Do not turn
+	an overflow into an underflow when the result is negative.  A sum or
+	difference too large to represent is an overflow whatever its sign.
+	* Tests/base/NSDecimalNumber/add_subtract_overflow_sign.m:
+	New test.
+	* Tests/base/NSDecimalNumber/nan_and_edges.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
+	to represent as NSCalculationOverflow regardless of its sign, rather
+	than NSCalculationUnderflow when the result is negative.
+	* Tests/base/NSDecimalNumber/multiply_overflow_sign.m:
+	New test.
+2026-07-06 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProgress.m:
+	Create the userInfo dictionary if needed.
 
 2026-07-03 Todd White <todd.white@thalion.global>
 

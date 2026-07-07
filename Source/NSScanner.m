@@ -825,12 +825,112 @@ typedef GSString	*ivars;
 }
 
 /**
- * Not implemented.
+ * After initial skipping (if any), this method scans a decimal value,
+ * placing it in <em>value</em> if that is not null.  The decimal separator
+ * from the locale is honoured, as is a trailing 'e' or 'E' exponent.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
  */
 - (BOOL) scanDecimal: (NSDecimal*)value
 {
-  [self notImplemented:_cmd];			/* FIXME */
-  return NO;
+  unsigned int	saveScanLocation = _scanLocation;
+  unsigned int	start;
+  BOOL		seenDigit = NO;
+  int		exponent = 0;
+  BOOL		negativeExponent = NO;
+  NSDecimal	d;
+
+  /* Skip whitespace */
+  if (!skipToNextField())
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+  start = _scanLocation;
+
+  /* Optional sign */
+  if (_scanLocation < myLength())
+    {
+      unichar	c = mySevenBit(_scanLocation);
+
+      if (c == '+' || c == '-')
+	_scanLocation++;
+    }
+
+  /* Integer digits */
+  while (_scanLocation < myLength()
+    && mySevenBit(_scanLocation) >= '0' && mySevenBit(_scanLocation) <= '9')
+    {
+      seenDigit = YES;
+      _scanLocation++;
+    }
+
+  /* Optional decimal separator followed by fractional digits */
+  if (_scanLocation < myLength()
+    && (_decimal == mySevenBit(_scanLocation)
+      || (_decimal > 127 && _decimal == myCharacter(_scanLocation))))
+    {
+      _scanLocation++;
+      while (_scanLocation < myLength()
+	&& mySevenBit(_scanLocation) >= '0' && mySevenBit(_scanLocation) <= '9')
+	{
+	  seenDigit = YES;
+	  _scanLocation++;
+	}
+    }
+
+  if (!seenDigit)
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* NSDecimalFromString honours the locale's decimal separator but does not
+   * handle an exponent, which is applied separately below. */
+  NSDecimalFromString(&d,
+    [_string substringWithRange: NSMakeRange(start, _scanLocation - start)],
+    _locale);
+
+  /* Optional exponent: 'e' or 'E', an optional sign, then decimal digits */
+  if (_scanLocation < myLength()
+    && (mySevenBit(_scanLocation) == 'e' || mySevenBit(_scanLocation) == 'E'))
+    {
+      unsigned int	exponentLocation = _scanLocation;
+      BOOL		seenExponentDigit = NO;
+
+      _scanLocation++;
+      if (_scanLocation < myLength())
+	{
+	  unichar	c = mySevenBit(_scanLocation);
+
+	  if (c == '+')
+	    _scanLocation++;
+	  else if (c == '-')
+	    {
+	      negativeExponent = YES;
+	      _scanLocation++;
+	    }
+	}
+      while (_scanLocation < myLength()
+	&& mySevenBit(_scanLocation) >= '0' && mySevenBit(_scanLocation) <= '9')
+	{
+	  exponent = exponent * 10 + (mySevenBit(_scanLocation) - '0');
+	  seenExponentDigit = YES;
+	  _scanLocation++;
+	}
+      if (!seenExponentDigit)
+	_scanLocation = exponentLocation;
+      else
+	{
+	  if (negativeExponent)
+	    exponent = -exponent;
+	  NSDecimalMultiplyByPowerOf10(&d, &d, (short)exponent, NSRoundPlain);
+	}
+    }
+
+  if (value != 0)
+    *value = d;
+  return YES;
 }
 
 /**
@@ -1448,11 +1548,134 @@ typedef GSString	*ivars;
 
 - (BOOL) scanHexDouble: (double *)result
 {
-  return NO;    // FIXME
+  unsigned int	saveScanLocation = _scanLocation;
+  double	mantissa = 0.0;
+  int		fractionalDigits = 0;
+  int		exponent = 0;
+  BOOL		negative = NO;
+  BOOL		negativeExponent = NO;
+  BOOL		seenDot = NO;
+  BOOL		seenDigit = NO;
+
+  /* Skip whitespace */
+  if (!skipToNextField())
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* Optional sign */
+  if (_scanLocation < myLength())
+    {
+      unichar	c = mySevenBit(_scanLocation);
+
+      if (c == '+')
+	_scanLocation++;
+      else if (c == '-')
+	{
+	  negative = YES;
+	  _scanLocation++;
+	}
+    }
+
+  /* A hexadecimal floating point value requires a 0x or 0X prefix. */
+  if (_scanLocation + 1 >= myLength()
+    || mySevenBit(_scanLocation) != '0'
+    || (mySevenBit(_scanLocation + 1) != 'x'
+      && mySevenBit(_scanLocation + 1) != 'X'))
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+  _scanLocation += 2;
+
+  /* Hexadecimal mantissa with an optional binary point. */
+  while (_scanLocation < myLength())
+    {
+      unichar	c = mySevenBit(_scanLocation);
+      int	digit;
+
+      if (c == '.')
+	{
+	  if (seenDot)
+	    break;
+	  seenDot = YES;
+	  _scanLocation++;
+	  continue;
+	}
+      if (c >= '0' && c <= '9')
+	digit = c - '0';
+      else if (c >= 'a' && c <= 'f')
+	digit = c - 'a' + 10;
+      else if (c >= 'A' && c <= 'F')
+	digit = c - 'A' + 10;
+      else
+	break;
+      mantissa = mantissa * 16.0 + digit;
+      if (seenDot)
+	fractionalDigits++;
+      seenDigit = YES;
+      _scanLocation++;
+    }
+  if (!seenDigit)
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* Optional binary exponent: 'p' or 'P', an optional sign, then digits. */
+  if (_scanLocation < myLength()
+    && (mySevenBit(_scanLocation) == 'p' || mySevenBit(_scanLocation) == 'P'))
+    {
+      unsigned int	exponentLocation = _scanLocation;
+      BOOL		seenExponentDigit = NO;
+
+      _scanLocation++;
+      if (_scanLocation < myLength())
+	{
+	  unichar	c = mySevenBit(_scanLocation);
+
+	  if (c == '+')
+	    _scanLocation++;
+	  else if (c == '-')
+	    {
+	      negativeExponent = YES;
+	      _scanLocation++;
+	    }
+	}
+      while (_scanLocation < myLength()
+	&& mySevenBit(_scanLocation) >= '0' && mySevenBit(_scanLocation) <= '9')
+	{
+	  exponent = exponent * 10 + (mySevenBit(_scanLocation) - '0');
+	  seenExponentDigit = YES;
+	  _scanLocation++;
+	}
+      if (!seenExponentDigit)
+	_scanLocation = exponentLocation;
+      else if (negativeExponent)
+	exponent = -exponent;
+    }
+
+  if (result != 0)
+    {
+      double	value = ldexp(mantissa, exponent - 4 * fractionalDigits);
+
+      *result = negative ? -value : value;
+    }
+  return YES;
 }
+
 - (BOOL) scanHexFloat: (float *)result
 {
-  return NO;    // FIXME
+  double	d;
+
+  if ([self scanHexDouble: &d])
+    {
+      if (result != 0)
+	*result = (float)d;
+      return YES;
+    }
+  return NO;
 }
 - (BOOL) scanInteger: (NSInteger *)value
 {
