@@ -545,7 +545,7 @@ GSEncodingFromLocale(const char *clocale)
       NSString	*registry;
       NSString	*charset;
       NSArray	*array;
-      char	*s;
+      const char*s;
 
       s = strchr (clocale, '.');
       registry = [[NSString stringWithUTF8String: s+1] lowercaseString];
