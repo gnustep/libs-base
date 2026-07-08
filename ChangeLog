@@ -44,6 +44,7 @@
 	that made the affected cases hopeful on the GNU runtime; they now pass.
 
 2026-07-07  Todd White <todd.white@thalion.global>
+
 	* Tests/base/NSKVOSupport/kvoToMany.m: Rework to avoid Objective-C
 	blocks and other constructs unavailable with the GNU runtime
 	(property auto-synthesis, the strong attribute, object subscripting),

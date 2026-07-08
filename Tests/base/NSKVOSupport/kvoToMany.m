@@ -383,7 +383,7 @@ typedef void (*PerformBlock)(Observee *);
                      count:(NSUInteger)count
 {
   [_observer setCallbacks:callbacks count:count];
-  @try
+  NS_DURING
     {
       [_observee addObserver:_observer
                   forKeyPath:keyPath
@@ -392,10 +392,11 @@ typedef void (*PerformBlock)(Observee *);
       fn(_observee);
       [_observee removeObserver:_observer forKeyPath:keyPath];
     }
-  @catch (NSException *e)
+  NS_HANDLER
     {
-      NSLog(@"Test failed with exception: %@", e);
+      NSLog(@"Test failed with exception: %@", localException);
     }
+  NS_ENDHANDLER
 }
 
 - (NSUInteger)hits
