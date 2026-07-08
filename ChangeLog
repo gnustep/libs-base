@@ -33,6 +33,14 @@
 
 2026-07-07  Todd White <todd.white@thalion.global>
 
+	* Tests/base/NSKVOSupport/kvoToMany.m: Rework to avoid Objective-C
+	blocks and other constructs unavailable with the GNU runtime
+	(property auto-synthesis, the strong attribute, object subscripting),
+	and drop the objc-2 build guard, so the to-many key-value observing
+	tests build and run on the GNU runtime as well.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
 	* configure.ac: Build the new key-value observing implementation on
 	every Objective-C runtime rather than only the next-generation one.
 	Add --disable-newkvo to fall back to the old implementation.
