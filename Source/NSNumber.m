@@ -50,6 +50,91 @@
 #  include <objc/runtime.h>
 #endif
 
+#include <math.h>
+#include <stdint.h>
+
+/* An NSNumber compares equal to another whenever -compare: returns
+ * NSOrderedSame, and that comparison is performed on the -doubleValue of
+ * the two numbers (except between two integers, which are compared as
+ * integers but then have identical -doubleValue anyway).  A conforming
+ * -hash must therefore be a function of -doubleValue alone; hashing the
+ * raw storage would give equal numbers held in different types (an int
+ * and a double of the same value) different hashes and break their use as
+ * dictionary keys.
+ *
+ * This maps the value into the range of a Mersenne prime modulus, after
+ * the manner of CPython's number hashing, so that the whole value
+ * contributes to the hash and an integral value hashes to that integer.
+ */
+#if	UINTPTR_MAX > 0xffffffffUL
+#  define	GS_HASH_BITS	61
+#else
+#  define	GS_HASH_BITS	31
+#endif
+#define	GS_HASH_MODULUS	(((NSUInteger)1 << GS_HASH_BITS) - 1)
+#define	GS_HASH_INF	((NSUInteger)314159)
+
+static NSUInteger
+GSHashDouble(double value)
+{
+  int		e, sign;
+  double	m;
+  NSUInteger	x, y;
+
+  if (isnan(value))
+    {
+      return 0;
+    }
+  if (isinf(value))
+    {
+      return (value > 0) ? GS_HASH_INF : (NSUInteger)(0 - GS_HASH_INF);
+    }
+
+  m = frexp(value, &e);
+  sign = 1;
+  if (m < 0)
+    {
+      sign = -1;
+      m = -m;
+    }
+
+  /* Consume the mantissa 28 bits at a time, accumulating modulo the
+   * prime.  28 is below GS_HASH_BITS for both the 32 and 64 bit case.
+   */
+  x = 0;
+  while (m)
+    {
+      x = ((x << 28) & GS_HASH_MODULUS) | (x >> (GS_HASH_BITS - 28));
+      m *= 268435456.0;			/* 2^28 */
+      e -= 28;
+      y = (NSUInteger)m;		/* pull out the integer part */
+      m -= y;
+      x += y;
+      if (x >= GS_HASH_MODULUS)
+	{
+	  x -= GS_HASH_MODULUS;
+	}
+    }
+
+  /* Fold in the exponent, reduced modulo GS_HASH_BITS. */
+  e = e % GS_HASH_BITS;
+  if (e < 0)
+    {
+      e += GS_HASH_BITS;
+    }
+  x = ((x << e) & GS_HASH_MODULUS) | (x >> (GS_HASH_BITS - e));
+
+  if (sign < 0)
+    {
+      x = 0 - x;
+    }
+  if (x == (NSUInteger)-1)
+    {
+      x = (NSUInteger)-2;
+    }
+  return x;
+}
+
 /*
  * NSNumber implementation.  This matches the behaviour of Apple's
  * implementation.  Values in the range -1 to 12 inclusive are mapped to
@@ -713,7 +798,7 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
 
 - (NSUInteger) hash
 {
-  return (unsigned)[self doubleValue];
+  return GSHashDouble([self doubleValue]);
 }
 
 - (NSString*) stringValue
