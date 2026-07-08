@@ -11,6 +11,14 @@
 	so a container of secure classes can be decoded securely.
 	* Tests/base/NSKeyedArchiver/secure_coding.m: Add cases for decoding a
 	plist container (array, dictionary) of a secure class.
+	* Source/NSHost.m
+	(-[NSHost(Private) _addHostAddress:withNames:addresses:]): Call the
+	5-argument gethostbyaddr_r, which returns the struct hostent* directly,
+	on systems that provide that form.  The 5-argument gethostbyname_r
+	support added the equivalent for gethostbyname_r but missed its
+	companion gethostbyaddr_r, so the build failed on Solaris.  The Solaris
+	prototype takes the address as char*, so it is cast; it is still the
+	binary address rather than an ascii string.
 
 2026-07-07  Todd White <todd.white@thalion.global>
 
