@@ -2394,7 +2394,8 @@ setNonBlocking(SOCKET fd)
 	   * signalled again.
 	   */
 	  while ([_sibling _unhandledData] == NO
-	    && [_sibling hasSpaceAvailable])
+	    && [_sibling hasSpaceAvailable]
+	    && 0 == (events.lNetworkEvents & FD_CLOSE))
 	    {
 	      [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
 	    }
@@ -2909,7 +2910,8 @@ setNonBlocking(SOCKET fd)
 	   * failure/closure or a write blocked and we have not been
 	   * signalled again.
 	   */
-	  while ([self _unhandledData] == NO && [self hasSpaceAvailable])
+	  while ([self _unhandledData] == NO && [self hasSpaceAvailable]
+	    && 0 == (events.lNetworkEvents & FD_CLOSE))
 	    {
 	      [self _sendEvent: NSStreamEventHasSpaceAvailable];
 	    }
