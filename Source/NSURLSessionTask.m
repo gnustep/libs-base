@@ -1929,6 +1929,64 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
   free(entry);
 }
 
+static NSString *GSURLSessionWebSocketExceptionKey = @"GSWebSocketException";
+
+static NSError *
+GSURLSessionWebSocketError(NSInteger code, NSString *description)
+{
+  return [NSError errorWithDomain: NSURLErrorDomain
+                             code: code
+                         userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
+                                      description, NSLocalizedDescriptionKey,
+                                      nil]];
+}
+
+static NSError *
+GSURLSessionWebSocketErrorFromException(NSException *exception)
+{
+  return [NSError errorWithDomain: NSURLErrorDomain
+                             code: NSURLErrorUnknown
+                         userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
+                                      [exception reason],
+                                      NSLocalizedDescriptionKey,
+                                      exception,
+                                      GSURLSessionWebSocketExceptionKey,
+                                      nil]];
+}
+
+static void
+GSURLSessionWebSocketResetReceiveStateLocked(NSURLSessionWebSocketTask *task)
+{
+  [task->_receiveBuffer setLength: 0];
+  task->_receiveState = GSURLSessionWebSocketReceiveStateIdle;
+  task->_receiveFrameOffset = 0;
+}
+
+static GSURLSessionWebSocketSendQueueEntry *
+GSURLSessionWebSocketPopNextSendEntryLocked(NSURLSessionWebSocketTask *task)
+{
+  GSURLSessionWebSocketSendQueueEntry *entry;
+
+  if (NULL != task->_messageSendState.entry)
+    {
+      return (GSURLSessionWebSocketSendQueueEntry *)task->_messageSendState.entry;
+    }
+
+  if ([task->_sendQueue count] == 0)
+    {
+      return NULL;
+    }
+
+  entry = [[task->_sendQueue objectAtIndex: 0] pointerValue];
+  [task->_sendQueue removeObjectAtIndex: 0];
+  task->_messageSendState.entry = entry;
+  task->_messageSendState.kind = entry->kind;
+  task->_messageSendState.dataType = entry->dataType;
+  task->_messageSendState.payloadOffset = 0;
+  task->_messageSendState.frameStarted = NO;
+  return entry;
+}
+
 static void
 GSURLSessionWebSocketClearActiveSendEntryLocked(NSURLSessionWebSocketTask *task)
 {
@@ -1939,26 +1997,440 @@ GSURLSessionWebSocketClearActiveSendEntryLocked(NSURLSessionWebSocketTask *task)
   task->_messageSendState.frameStarted = NO;
 }
 
+static id
+GSURLSessionWebSocketPopReceiveHandlerLocked(NSURLSessionWebSocketTask *task)
+{
+  id handler;
+
+  if ([task->_recvQueue count] == 0)
+    {
+      return nil;
+    }
+
+  handler = RETAIN([task->_recvQueue objectAtIndex: 0]);
+  [task->_recvQueue removeObjectAtIndex: 0];
+  return AUTORELEASE(handler);
+}
+
+static void
+GSURLSessionWebSocketCompleteReceive(
+  NSURLSessionWebSocketTask *task,
+  void (^completionHandler)(NSURLSessionWebSocketMessage *message, NSError *error),
+  NSURLSessionWebSocketMessage *message,
+  NSError *error)
+{
+  if (completionHandler == NULL)
+    {
+      return;
+    }
+
+  [[[task _session] delegateQueue] addOperationWithBlock:^{
+    completionHandler(message, error);
+  }];
+}
+
+static void
+GSURLSessionWebSocketCompleteSend(
+  NSURLSessionWebSocketTask *task,
+  void (^completionHandler)(NSError *error),
+  NSError *error)
+{
+  if (completionHandler == NULL)
+    {
+      return;
+    }
+
+  [[[task _session] delegateQueue] addOperationWithBlock:^{
+    completionHandler(error);
+  }];
+}
+
+static size_t
+GSURLSessionWebSocketFailReceive(
+  NSURLSessionWebSocketTask *task,
+  void (^completionHandler)(NSURLSessionWebSocketMessage *message, NSError *error),
+  NSInteger code,
+  NSString *description)
+{
+  NSError *error;
+
+  error = GSURLSessionWebSocketError(code, description);
+  GS_MUTEX_LOCK(task->_mutex);
+  [task _setStoredTaskError: error];
+  GSURLSessionWebSocketResetReceiveStateLocked(task);
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  GSURLSessionWebSocketCompleteReceive(task, completionHandler, nil, error);
+  return 0;
+}
+
+static size_t
+GSURLSessionWebSocketFailSend(
+  NSURLSessionWebSocketTask *task,
+  GSURLSessionWebSocketSendQueueEntry *entry,
+  NSError *error)
+{
+  GS_MUTEX_LOCK(task->_mutex);
+  [task _setStoredTaskError: error];
+  GSURLSessionWebSocketClearActiveSendEntryLocked(task);
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  if (NULL != entry)
+    {
+      GSURLSessionWebSocketCompleteSend(task, entry->completionHandler, error);
+      GSURLSessionWebSocketSendQueueEntryDestroy(entry);
+    }
+
+  return CURL_READFUNC_ABORT;
+}
+
 static size_t
 ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
-  (void)ptr;
-  (void)userdata;
+  NSURLSessionWebSocketTask *task;
+  id handler;
+  const struct curl_ws_frame *meta;
+  NSURLSessionWebSocketMessage *message;
+  GSURLSessionWebSocketReceiveState messageState;
+  NSMutableData *buffer;
+  NSUInteger bytesInCallback;
+  NSUInteger bytesInChunk;
+  NSUInteger existingLength;
+  NSUInteger requiredLength;
+  BOOL messageContinuesInNextFrame;
+  NSString *string;
 
-  /* TODO(WS): Decode websocket frames and dispatch them to queued handlers. */
-  return size * nmemb;
+  task = (NSURLSessionWebSocketTask *)userdata;
+  bytesInCallback = size * nmemb;
+
+  meta = curl_ws_meta([task _easyHandle]);
+  if (NULL == meta)
+    {
+      GS_MUTEX_LOCK(task->_mutex);
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorCannotParseResponse,
+        @"curl_ws_meta returned NULL while receiving WebSocket data");
+    }
+
+  if ((meta->flags & (CURLWS_PING | CURLWS_PONG | CURLWS_CLOSE)) != 0)
+    {
+      /* TODO(WS): Handle websocket control frames separately. */
+      return bytesInCallback;
+    }
+
+  GS_MUTEX_LOCK(task->_mutex);
+  if ([task->_recvQueue count] == 0)
+    {
+      GS_MUTEX_UNLOCK(task->_mutex);
+      return CURL_WRITEFUNC_PAUSE;
+    }
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  if ((meta->flags & CURLWS_TEXT) != 0)
+    {
+      messageState = GSURLSessionWebSocketReceiveStateText;
+    }
+  else if ((meta->flags & CURLWS_BINARY) != 0)
+    {
+      messageState = GSURLSessionWebSocketReceiveStateBinary;
+    }
+  else
+    {
+      GS_MUTEX_LOCK(task->_mutex);
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorCannotParseResponse,
+        [NSString stringWithFormat:
+                    @"Unsupported websocket frame flags 0x%x", meta->flags]);
+    }
+
+  GS_MUTEX_LOCK(task->_mutex);
+  handler = nil;
+  buffer = task->_receiveBuffer;
+  existingLength = [buffer length];
+  messageContinuesInNextFrame = ((meta->flags & CURLWS_CONT) != 0);
+
+  if (task->_receiveState == GSURLSessionWebSocketReceiveStateIdle
+      && task->_receiveFrameOffset == 0)
+    {
+      task->_receiveState = messageState;
+    }
+  else if (task->_receiveState != messageState)
+    {
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorCannotParseResponse,
+        [NSString stringWithFormat:
+                    @"WebSocket message changed frame type from %lu to %lu",
+                    (unsigned long)task->_receiveState,
+                    (unsigned long)messageState]);
+    }
+
+  if (task->_receiveFrameOffset > 0
+      && (NSUInteger)meta->offset != task->_receiveFrameOffset)
+    {
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorCannotParseResponse,
+        [NSString stringWithFormat:
+                    @"WebSocket frame offset mismatch: expected %lu but received %lld",
+                    (unsigned long)task->_receiveFrameOffset,
+                    (long long)meta->offset]);
+    }
+
+  bytesInChunk = meta->len;
+  if (bytesInChunk != bytesInCallback)
+    {
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorCannotParseResponse,
+        [NSString stringWithFormat:
+                    @"WebSocket callback length mismatch: received %lu bytes but curl "
+                    @"metadata announced %lu",
+                    (unsigned long)bytesInCallback,
+                    (unsigned long)bytesInChunk]);
+    }
+  requiredLength = existingLength + bytesInChunk + (NSUInteger)meta->bytesleft;
+
+  NSCAssert(task->_maximumMessageSize > 0,
+            @"WebSocket task maximumMessageSize must be positive");
+  if (requiredLength > (NSUInteger)task->_maximumMessageSize)
+    {
+      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+
+      return GSURLSessionWebSocketFailReceive(
+        task,
+        handler,
+        NSURLErrorDataLengthExceedsMaximum,
+        [NSString stringWithFormat:
+                    @"WebSocket message length %lu exceeds maximumMessageSize %ld",
+                    (unsigned long)requiredLength,
+                    (long)task->_maximumMessageSize]);
+    }
+
+  if ([buffer length] < requiredLength)
+    {
+      [buffer setCapacity: requiredLength];
+    }
+
+  [buffer appendBytes: ptr length: bytesInChunk];
+  task->_receiveFrameOffset += bytesInChunk;
+
+  if (meta->bytesleft > 0)
+    {
+      GS_MUTEX_UNLOCK(task->_mutex);
+      return bytesInChunk;
+    }
+
+  task->_receiveFrameOffset = 0;
+  if (YES == messageContinuesInNextFrame)
+    {
+      GS_MUTEX_UNLOCK(task->_mutex);
+      return bytesInChunk;
+    }
+
+  if (task->_receiveState == GSURLSessionWebSocketReceiveStateText)
+    {
+      string = AUTORELEASE([[NSString alloc] initWithData: buffer
+                                                 encoding: NSUTF8StringEncoding]);
+      if (nil == string)
+        {
+          handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+          GS_MUTEX_UNLOCK(task->_mutex);
+
+          return GSURLSessionWebSocketFailReceive(
+            task,
+            handler,
+            NSURLErrorCannotDecodeContentData,
+            @"WebSocket text message is not valid UTF-8");
+        }
+
+      message = AUTORELEASE([[NSURLSessionWebSocketMessage alloc]
+        initWithString: string]);
+    }
+  else
+    {
+      NSData *data;
+
+      data = [NSData dataWithData: buffer];
+      message = AUTORELEASE([[NSURLSessionWebSocketMessage alloc]
+        initWithData: data]);
+    }
+
+  handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
+  if (handler == nil)
+    {
+      [task->_pendingReceivedMessages addObject: message];
+    }
+  GSURLSessionWebSocketResetReceiveStateLocked(task);
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  if (handler != nil)
+    {
+      GSURLSessionWebSocketCompleteReceive(task, handler, message, nil);
+    }
+
+  return bytesInChunk;
 }
 
 static size_t
 ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 {
-  (void)buffer;
-  (void)size;
-  (void)nitems;
-  (void)userdata;
+  NSURLSessionWebSocketTask *task;
+  GSURLSessionWebSocketSendQueueEntry *entry;
+  NSData *payload;
+  size_t bytesAvailable;
+  size_t bytesToWrite;
+  size_t payloadLength;
+  unsigned int flags;
+  CURLcode result;
 
-  /* TODO(WS): Serialize queued websocket frames onto the libcurl transport. */
-  return CURL_READFUNC_PAUSE;
+  task = (NSURLSessionWebSocketTask *)userdata;
+  bytesAvailable = size * nitems;
+
+  if (0 == bytesAvailable)
+    {
+      return 0;
+    }
+
+  GS_MUTEX_LOCK(task->_mutex);
+  entry = GSURLSessionWebSocketPopNextSendEntryLocked(task);
+  if (NULL == entry)
+    {
+      GS_MUTEX_UNLOCK(task->_mutex);
+      return CURL_READFUNC_PAUSE;
+    }
+
+  payload = entry->payload;
+  if (nil == payload)
+    {
+      NSError *error;
+      NSException *exception;
+
+      GS_MUTEX_UNLOCK(task->_mutex);
+      exception = [NSException exceptionWithName: NSInternalInconsistencyException
+                                          reason: @"Websocket send queue entry is missing payload"
+                                        userInfo: nil];
+      error = GSURLSessionWebSocketErrorFromException(exception);
+      return GSURLSessionWebSocketFailSend(task, entry, error);
+    }
+
+  payloadLength = [payload length];
+  if (task->_messageSendState.payloadOffset > payloadLength)
+    {
+      NSError *error;
+      NSException *exception;
+
+      GS_MUTEX_UNLOCK(task->_mutex);
+      exception = [NSException exceptionWithName: NSInternalInconsistencyException
+                                          reason: @"Websocket payload offset exceeds payload length"
+                                        userInfo: nil];
+      error = GSURLSessionWebSocketErrorFromException(exception);
+      return GSURLSessionWebSocketFailSend(task, entry, error);
+    }
+
+  if (NO == task->_messageSendState.frameStarted)
+    {
+      if (entry->kind != GSURLSessionWebSocketSendQueueEntryKindData)
+        {
+          GS_MUTEX_UNLOCK(task->_mutex);
+          return CURL_READFUNC_PAUSE;
+        }
+
+      switch (entry->dataType)
+        {
+          case NSURLSessionWebSocketMessageTypeString:
+            flags = CURLWS_TEXT;
+            break;
+          case NSURLSessionWebSocketMessageTypeData:
+            flags = CURLWS_BINARY;
+            break;
+          default:
+            {
+              NSError *error;
+              NSException *exception;
+
+              GS_MUTEX_UNLOCK(task->_mutex);
+              exception = [NSException exceptionWithName: NSInternalInconsistencyException
+                                                  reason: [NSString stringWithFormat:
+                                                      @"Queued websocket send has unsupported type %ld",
+                                                      (long)entry->dataType]
+                                                userInfo: nil];
+              error = GSURLSessionWebSocketErrorFromException(exception);
+              return GSURLSessionWebSocketFailSend(task, entry, error);
+            }
+        }
+
+      [task _clearErrorBuffer];
+      result = curl_ws_start_frame([task _easyHandle],
+                                   flags,
+                                   (curl_off_t)payloadLength);
+      if (result == CURLE_AGAIN)
+        {
+          task->_sendFrameStartRetryPending = YES;
+          GS_MUTEX_UNLOCK(task->_mutex);
+          return CURL_READFUNC_PAUSE;
+        }
+      if (result != CURLE_OK)
+        {
+          NSError *error;
+
+          GS_MUTEX_UNLOCK(task->_mutex);
+          error = [task _errorForCURLcode: result];
+          if (error == nil)
+            {
+              error = GSURLSessionWebSocketError(NSURLErrorUnknown,
+                [NSString stringWithFormat:
+                            @"curl_ws_start_frame failed with CURLcode %d",
+                            (int)result]);
+            }
+          return GSURLSessionWebSocketFailSend(task, entry, error);
+        }
+
+      task->_messageSendState.frameStarted = YES;
+    }
+
+  bytesToWrite = MIN(bytesAvailable,
+                     payloadLength - task->_messageSendState.payloadOffset);
+  memcpy(buffer,
+         ((const char *)[payload bytes]) + task->_messageSendState.payloadOffset,
+         bytesToWrite);
+
+  task->_messageSendState.payloadOffset += bytesToWrite;
+  if (task->_messageSendState.payloadOffset == payloadLength)
+    {
+      GSURLSessionWebSocketClearActiveSendEntryLocked(task);
+      GS_MUTEX_UNLOCK(task->_mutex);
+      GSURLSessionWebSocketCompleteSend(task, entry->completionHandler, nil);
+      GSURLSessionWebSocketSendQueueEntryDestroy(entry);
+      return bytesToWrite;
+    }
+
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  return bytesToWrite;
 }
 
 @implementation  NSURLSessionWebSocketTask
@@ -2170,7 +2642,20 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 
 - (void) _resumeSendIfWaitingForReadableSocket
 {
-  /* TODO(WS): Resume a paused websocket write once a queued frame can continue. */
+  BOOL shouldResume;
+
+  GS_MUTEX_LOCK(_mutex);
+  shouldResume = _sendFrameStartRetryPending;
+  if (YES == shouldResume)
+    {
+      _sendFrameStartRetryPending = NO;
+    }
+  GS_MUTEX_UNLOCK(_mutex);
+
+  if (YES == shouldResume)
+    {
+      curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
+    }
 }
 
 - (void) _transferFinishedWithCode: (CURLcode)code
@@ -2199,11 +2684,21 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   GS_MUTEX_LOCK(_mutex);
   [_sendQueue addObject: [NSValue valueWithPointer: entry]];
   GS_MUTEX_UNLOCK(_mutex);
+
+  if ([self state] == NSURLSessionTaskStateRunning)
+    {
+      dispatch_async(
+        [[self _session] _workQueue],
+        ^{
+          curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
+        });
+    }
 }
 
 - (void) receiveMessageWithCompletionHandler:(void (^)(NSURLSessionWebSocketMessage *message, NSError *error)) completionHandler
 {
   id handler;
+  NSURLSessionWebSocketMessage *pendingMessage;
 
   if (completionHandler == NULL)
     {
@@ -2211,10 +2706,36 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     }
 
   handler = (id)_Block_copy(completionHandler);
+  pendingMessage = nil;
 
   GS_MUTEX_LOCK(_mutex);
-  [_recvQueue addObject: handler];
+  if ([_pendingReceivedMessages count] > 0)
+    {
+      pendingMessage = RETAIN([_pendingReceivedMessages objectAtIndex: 0]);
+      [_pendingReceivedMessages removeObjectAtIndex: 0];
+    }
+  else
+    {
+      [_recvQueue addObject: handler];
+    }
   GS_MUTEX_UNLOCK(_mutex);
+
+  if (nil != pendingMessage)
+    {
+      GSURLSessionWebSocketCompleteReceive(self, handler, pendingMessage, nil);
+      [pendingMessage release];
+      [handler release];
+      return;
+    }
+
+  if ([self state] == NSURLSessionTaskStateRunning)
+    {
+      dispatch_async(
+        [[self _session] _workQueue],
+        ^{
+          curl_easy_pause([self _easyHandle], CURLPAUSE_RECV_CONT);
+        });
+    }
 
   [handler release];
 }
