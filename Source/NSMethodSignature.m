@@ -266,6 +266,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  unsigned int def_align = objc_alignof_type(typePtr-1);
 	  unsigned int acc_align = def_align;
 	  const char	*ptr = typePtr;
+	  BOOL		hasBitField = NO;
 
 	  /*
 	   *	Skip "<name>=" stuff.
@@ -287,6 +288,9 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	      acc_size = ROUND(acc_size, local.align);
 	      acc_size += local.size;
 	      acc_align = MAX(local.align, def_align);
+#if	defined(_C_BFLD)
+	      if (*local.type == _C_BFLD) hasBitField = YES;
+#endif
 	    }
 	  /*
 	   *	Continue accumulating structure size
@@ -302,6 +306,9 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	      acc_size = ROUND(acc_size, local.align);
 	      acc_size += local.size;
 	      acc_align = MAX(local.align, acc_align);
+#if	defined(_C_BFLD)
+	      if (*local.type == _C_BFLD) hasBitField = YES;
+#endif
 	    }
 	  /*
 	   * Size must be a multiple of alignment
@@ -312,6 +319,13 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	    }
 	  info->size = acc_size;
 	  info->align = acc_align;
+	  /* Bit-fields share a storage unit, so their individual byte sizes
+	   * cannot be summed; take the whole structure's size from the runtime.
+	   */
+	  if (hasBitField)
+	    {
+	      info->size = objc_sizeof_type(info->type);
+	    }
 	  typePtr++;	/* Skip end-of-struct	*/
 	}
 	break;
@@ -360,12 +374,33 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 #endif
 #if     defined(_C_BFLD)
       case _C_BFLD:
-        /* Rely on the runtime to either provide the info or bomb out.
-         * Nowadays we ought to be able to expect modern enough runtimes.
+        /* The gnu runtime encodes a bit-field as b<pos><type><width> and its
+         * objc_alignof_type() aborts on that encoding, so work the alignment
+         * out directly from the field's underlying type.  A bit-field shares
+         * a storage unit with its neighbours and so contributes no separate
+         * byte size of its own; the enclosing structure takes its size from
+         * the runtime once (see the _C_BFLD handling under _C_STRUCT_B).
          */
         typePtr--;
-        info->size = objc_sizeof_type(typePtr);
-        info->align = objc_alignof_type(typePtr);
+        {
+          const char	*p = typePtr + 1;
+
+          while (isdigit(*p)) p++;	/* skip the starting bit position */
+          switch (*p)
+            {
+              case _C_CHR: case _C_UCHR:
+                info->align = __alignof__(char); break;
+              case _C_SHT: case _C_USHT:
+                info->align = __alignof__(short); break;
+              case _C_LNG: case _C_ULNG:
+                info->align = __alignof__(long); break;
+              case _C_LNG_LNG: case _C_ULNG_LNG:
+                info->align = __alignof__(long long); break;
+              default:
+                info->align = __alignof__(int); break;
+            }
+        }
+        info->size = 0;
         typePtr = objc_skip_typespec(typePtr);
         break;
 #endif

@@ -8,6 +8,13 @@
 	* Source/NSHost.m (-[NSHost(Private) _addHostName:withNames:addresses:]):
 	Use the 5-argument gethostbyname_r, which returns the struct hostent*
 	directly, on systems that provide that form.
+	* Source/GSSocketStream.m (-[GSSocketInputStream _dispatch],
+	-[GSSocketOutputStream _dispatch]): Do not send a
+	NSStreamEventHasSpaceAvailable event while the socket event set
+	includes FD_CLOSE.  On winsock the socket reports space available
+	even once the peer has closed the connection, so the stream kept
+	offering space for writing after the close and a write was attempted
+	on the closed connection.
 
 2026-07-06 Todd White <todd.white@thalion.global>
 
@@ -35,6 +42,20 @@
 	* Headers/Foundation/NSKeyedArchiver.h: Add the _allowedClasses
 	instance variable.
 	* Tests/base/NSKeyedArchiver/secure_coding.m: New test.
+	* Source/cifframe.m (cifframe_type): Handle the _C_BFLD type encoding.
+	Passing or returning a structure that contains a bitfield through an
+	NSInvocation aborted with "Unknown type in sig".  Coalesce each run of
+	bitfields into the storage units of their underlying type so the
+	enclosing structure gets the correct libffi layout.
+	* Source/NSMethodSignature.m (next_arg): Take the size of a structure
+	that contains bitfields from the runtime.  Bitfields share a storage
+	unit and report a byte size of zero individually, so summing the member
+	sizes gave such a structure a size of zero and its return value was lost.
+	Work out a bitfield's alignment from its underlying type rather than
+	from objc_alignof_type, whose gnu runtime implementation aborts on a
+	bitfield encoding.
+	* Tests/base/NSInvocation/bitfield.m: New test.
+
 2026-07-05 Todd White <todd.white@thalion.global>
 
 	* Source/NSScanner.m (-[NSScanner scanDecimal:]): Implement; it
