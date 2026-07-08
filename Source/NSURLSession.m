@@ -904,6 +904,7 @@ socket_callback(CURL * easy,           /* easy handle */
   return [self notImplemented: _cmd];
 }
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
 {
   NSURLRequest * request;
@@ -942,6 +943,7 @@ socket_callback(CURL * easy,           /* easy handle */
 
   return AUTORELEASE(task);
 }
+#endif
 
 - (void) getTasksWithCompletionHandler:
   (void (^)(
