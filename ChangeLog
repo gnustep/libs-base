@@ -1,5 +1,13 @@
 2026-07-07  Todd White <todd.white@thalion.global>
 
+	* configure.ac: Detect the 5-argument (Solaris) form of
+	gethostbyname_r in addition to the 6-argument (glibc) form, and
+	record the argument count in GS_GETHOSTBYNAME_R_ARGS.
+	* configure: Regenerate.
+	* Headers/GNUstepBase/config.h.in: Regenerate.
+	* Source/NSHost.m (-[NSHost(Private) _addHostName:withNames:addresses:]):
+	Use the 5-argument gethostbyname_r, which returns the struct hostent*
+	directly, on systems that provide that form.
 	* Source/GSSocketStream.m (-[GSSocketInputStream _dispatch],
 	-[GSSocketOutputStream _dispatch]): Do not send a
 	NSStreamEventHasSpaceAvailable event while the socket event set

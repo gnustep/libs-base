@@ -551,8 +551,13 @@ etcHosts(BOOL flush)
       int		err;
 
       [names addObject: name];
+#if	GS_GETHOSTBYNAME_R_ARGS == 5
+      entry = gethostbyname_r(n, &entry_buf, buf, sizeof(buf), &err);
+      if (entry != NULL)
+#else
       if (0 == gethostbyname_r(n, &entry_buf, buf, sizeof(buf), &entry, &err)
 	&& entry != NULL)
+#endif
 	{
 	  [self _addEntry: entry withNames: names addresses: addresses];
 	}

@@ -1700,16 +1700,34 @@ if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
   # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
   AC_SEARCH_LIBS(gethostbyname_r, [socket nsl])
 
-  #we check for 6 argument version, 5 argument version exists in the wild but we don't support it
+  # The glibc form takes 6 arguments, returns an int and yields the result
+  # through a struct hostent** parameter.  The Solaris form takes 5 arguments
+  # and returns the struct hostent* directly.
+  gs_gethostbyname_r_args=0
   AC_MSG_CHECKING(for gethostbyname_r with 6 arguments)
   AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM([#include <stdlib.h>
                           #include <netdb.h>],
                          [int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);])],
-         AC_MSG_RESULT(yes)
-         AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has gethostbyname_r with 6 arguments.]),
-         AC_MSG_RESULT(no)
+         [AC_MSG_RESULT(yes)
+          gs_gethostbyname_r_args=6],
+         [AC_MSG_RESULT(no)]
   )
+  if test "$gs_gethostbyname_r_args" = "0"; then
+    AC_MSG_CHECKING(for gethostbyname_r with 5 arguments)
+    AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [struct hostent *r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (int *)NULL);])],
+           [AC_MSG_RESULT(yes)
+            gs_gethostbyname_r_args=5],
+           [AC_MSG_RESULT(no)]
+    )
+  fi
+  if test "$gs_gethostbyname_r_args" != "0"; then
+    AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has a reentrant gethostbyname_r.])
+    AC_DEFINE_UNQUOTED([GS_GETHOSTBYNAME_R_ARGS], $gs_gethostbyname_r_args, [Number of arguments taken by gethostbyname_r (5 or 6).])
+  fi
 fi
 
 if test "x$ac_cv_func_gethostbyname_r" = "xno"; then

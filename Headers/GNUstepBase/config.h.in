@@ -195,6 +195,9 @@
 /* Built in default value for GNUstep user_dir web apps */
 #undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
+/* Number of arguments taken by gethostbyname_r (5 or 6). */
+#undef GS_GETHOSTBYNAME_R_ARGS
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
@@ -314,7 +317,7 @@
 /* Define to 1 if you have the `gethostbyname' function. */
 #undef HAVE_GETHOSTBYNAME
 
-/* Define to 1 if your system has gethostbyname_r with 6 arguments. */
+/* Define to 1 if your system has a reentrant gethostbyname_r. */
 #undef HAVE_GETHOSTBYNAME_R
 
 /* Define to 1 if you have the `getlogin' function. */
