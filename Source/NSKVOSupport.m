@@ -77,16 +77,16 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 @synthesize affectedObservers = _affectedObservers;
 @synthesize root = _root;
 
-- (instancetype)initWithObject: (id)object
-               keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
-                           key: (NSString *)key
-                 restOfKeypath: (NSString *)restOfKeypath
-             affectedObservers: (NSArray *)affectedObservers
+- (instancetype) initWithObject: (id)object
+                keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
+                            key: (NSString *)key
+                  restOfKeypath: (NSString *)restOfKeypath
+              affectedObservers: (NSArray *)affectedObservers
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
       _object = object;
-      _keypathObserver = [keypathObserver retain];
+      _keypathObserver = RETAIN(keypathObserver);
       _key = [key copy];
       _restOfKeypath = [restOfKeypath copy];
       _affectedObservers = [affectedObservers copy];
@@ -132,7 +132,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
                         options: (NSKeyValueObservingOptions)options
                         context: (void *)context
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
       _object = object;
       _observer = observer;
@@ -166,9 +166,9 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 @implementation _NSKVOObservationInfo
 - (instancetype) init
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
-      _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity:1];
+      _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity: 1];
       GS_MUTEX_INIT(_lock);
     }
   return self;
@@ -344,7 +344,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   return result;
 }
 
-- (bool) isEmpty
+- (BOOL) isEmpty
 {
   BOOL result;
 
@@ -379,7 +379,7 @@ _removeKeyObserver(_NSKVOKeyObserver *keyObserver);
 // * The head of the remaining keypath.
 static void
 _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
-                                           bool               dependents)
+                                           BOOL               dependents)
 {
   id                     object;
   NSString              *key;
@@ -551,7 +551,7 @@ _addKeypathObserver(id object, NSString *keypath,
 #pragma region Observer / Key Deregistration
 static void
 _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
-  bool dependents)
+  BOOL dependents)
 {
   /* Fast path: a simple (non-keypath) observer with no dependents and no
    * affected observers has no nested work here. */
@@ -785,7 +785,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           // most keyPaths are short
           char selectorName[sc_bufferSize];
 
-	  strncpy(selectorName, "keyPathsForValuesAffecting", 26);
+	  strncpy(selectorName, "keyPathsForValuesAffecting", sc_prefixLength);
 
           selectorName[sc_prefixLength] = toupper(rawKey[0]);
           // Copy the rest of the key, including the null terminator
@@ -835,17 +835,17 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   return emptySet;
 }
 
-- (void) addObserver: (id)observer
-          forKeyPath: (NSString *)keyPath
+- (void) addObserver: (NSObject*)observer
+          forKeyPath: (NSString*)keyPath
              options: (NSKeyValueObservingOptions)options
-             context: (void *)context
+             context: (void*)context
 {
   _NSKVOKeypathObserver *keypathObserver =
-    [[[_NSKVOKeypathObserver alloc] initWithObject:self
-                                          observer:observer
-                                           keyPath:keyPath
-                                           options:options
-                                           context:context] autorelease];
+    [[[_NSKVOKeypathObserver alloc] initWithObject: self
+                                          observer: observer
+                                           keyPath: keyPath
+                                           options: options
+                                           context: context] autorelease];
   _NSKVOKeyObserver *rootObserver
     = _addKeypathObserver(self, keyPath, keypathObserver, nil);
   rootObserver.root = true;
@@ -869,9 +869,9 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-- (void) removeObserver: (id)observer
-             forKeyPath: (NSString *)keyPath
-                context: (void *)context
+- (void) removeObserver: (NSObject*)observer
+             forKeyPath: (NSString*)keyPath
+                context: (void*)context
 {
   _NSKVOObservationInfo *observationInfo;
 
@@ -884,7 +884,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-- (void) removeObserver: (id)observer forKeyPath:(NSString *)keyPath
+- (void) removeObserver: (NSObject*)observer forKeyPath: (NSString*)keyPath
 {
   [self removeObserver:observer forKeyPath:keyPath context:NULL];
 }
@@ -1434,11 +1434,11 @@ NSArray (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-- (void)addObserver: (id)observer
-  toObjectsAtIndexes: (NSIndexSet *)indexes
-          forKeyPath: (NSString *)keyPath
+- (void) addObserver: (NSObject*)observer
+  toObjectsAtIndexes: (NSIndexSet*)indexes
+          forKeyPath: (NSString*)keyPath
              options: (NSKeyValueObservingOptions)options
-             context: (void *)context
+             context: (void*)context
 {
   NSUInteger index = [indexes firstIndex];
 
@@ -1452,10 +1452,10 @@ NSArray (NSKeyValueObserving)
     }
 }
 
-- (void)removeObserver: (id)observer
-  fromObjectsAtIndexes: (NSIndexSet *)indexes
-            forKeyPath: (NSString *)keyPath
-               context: (void *)context
+- (void) removeObserver: (NSObject*)observer
+   fromObjectsAtIndexes: (NSIndexSet*)indexes
+             forKeyPath: (NSString*)keyPath
+                context: (void*)context
 {
   NSUInteger index = [indexes firstIndex];
 

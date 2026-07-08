@@ -71,7 +71,7 @@
 
 @interface _NSKVOKeyObserver : NSObject
 {
-  _NSKVOKeypathObserver *_keypathObserver;
+  _NSKVOKeypathObserver	*_keypathObserver;
   _NSKVOKeyObserver     *_restOfKeypathObserver;
   NSArray               *_dependentObservers;
   id                     _object;
@@ -83,37 +83,37 @@
    * the _Atomic type qualifier on an Objective-C instance variable. */
   BOOL                   _isRemoved;
 }
-- (instancetype)initWithObject:(id)object
-               keypathObserver:(_NSKVOKeypathObserver *)keypathObserver
-                           key:(NSString *)key
-                 restOfKeypath:(NSString *)restOfKeypath
-             affectedObservers:(NSArray *)affectedObservers;
-@property (nonatomic, retain) _NSKVOKeypathObserver *keypathObserver;
-@property (nonatomic, retain) _NSKVOKeyObserver     *restOfKeypathObserver;
-@property (nonatomic, retain) NSArray               *dependentObservers;
-@property (nonatomic, assign) id                     object;
-@property (nonatomic, copy) NSString                *key;
-@property (nonatomic, copy) NSString                *restOfKeypath;
-@property (nonatomic, retain) NSArray               *affectedObservers;
-@property (nonatomic, assign) BOOL                   root;
-@property (nonatomic, readonly) BOOL                 isRemoved;
+- (instancetype) initWithObject: (id)object
+                keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
+                            key: (NSString *)key
+                  restOfKeypath: (NSString *)restOfKeypath
+              affectedObservers: (NSArray *)affectedObservers;
+@property (nonatomic, retain) _NSKVOKeypathObserver	*keypathObserver;
+@property (nonatomic, retain) _NSKVOKeyObserver     	*restOfKeypathObserver;
+@property (nonatomic, retain) NSArray               	*dependentObservers;
+@property (nonatomic, assign) id                     	object;
+@property (nonatomic, copy) NSString                	*key;
+@property (nonatomic, copy) NSString                	*restOfKeypath;
+@property (nonatomic, retain) NSArray               	*affectedObservers;
+@property (nonatomic, assign) BOOL                   	root;
+@property (nonatomic, readonly) BOOL                 	isRemoved;
 @end
 
 @interface _NSKVOKeypathObserver : NSObject
 {
-  id                         _object;
-  id                         _observer;
-  NSString                  *_keypath;
-  NSKeyValueObservingOptions _options;
-  void                      *_context;
-  NSMutableDictionary       *_pendingChange;
-  int                        _changeDepth;
+  id                         	_object;
+  id                         	_observer;
+  NSString                  	*_keypath;
+  NSKeyValueObservingOptions	_options;
+  void                      	*_context;
+  NSMutableDictionary       	*_pendingChange;
+  int                        	_changeDepth;
 }
-- (instancetype)initWithObject:(id)object
-                      observer:(id)observer
-                       keyPath:(NSString *)keypath
-                       options:(NSKeyValueObservingOptions)options
-                       context:(void *)context;
+- (instancetype) initWithObject: (id)object
+                       observer: (id)observer
+                        keyPath: (NSString *)keypath
+                        options: (NSKeyValueObservingOptions)options
+                        context: (void *)context;
 @property (nonatomic, assign) id                         object;
 @property (nonatomic, assign) id                         observer;
 @property (nonatomic, copy) NSString                    *keypath;
@@ -125,15 +125,16 @@
 
 @interface _NSKVOObservationInfo : NSObject
 {
-  NSMutableDictionary      *_keyObserverMap;
-  NSInteger                 _dependencyDepth;
-  NSMutableSet             *_existingDependentKeys;
-  NSMutableSet             *_dependencyAncestorKeys;
-  gs_mutex_t                _lock;
+  NSMutableDictionary	*_keyObserverMap;
+  NSInteger             _dependencyDepth;
+  NSMutableSet          *_existingDependentKeys;
+  NSMutableSet          *_dependencyAncestorKeys;
+  gs_mutex_t            _lock;
 }
-- (instancetype)init;
-- (NSArray *)observersForKey:(NSString *)key;
-- (void)addObserver:(_NSKVOKeyObserver *)observer;
+- (void) addObserver: (_NSKVOKeyObserver *)observer;
+- (instancetype) init;
+- (BOOL) isEmpty;
+- (NSArray *) observersForKey: (NSString *)key;
 @end
 
 // From NSKVOSwizzling
@@ -145,10 +146,9 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key) GS_ATTRIB_PRIVATE;
 /* Implementation in NSKVOSupport.m for ObjC2 and NSKeyValueObserving
  * respectively
  */
-@interface
-NSObject (NSKeyValueObservingPrivate)
-- (Class)_underlyingClass;
-- (void)_notifyObserversOfChangeForKey:(NSString *)key
-                              oldValue:(id)oldValue
-                              newValue:(id)newValue;
+@interface NSObject (NSKeyValueObservingPrivate)
+- (Class) _underlyingClass;
+- (void) _notifyObserversOfChangeForKey: (NSString *)key
+                               oldValue: (id)oldValue
+                               newValue: (id)newValue;
 @end
