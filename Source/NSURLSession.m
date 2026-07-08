@@ -41,6 +41,10 @@
 #import "GSPThread.h"                        /* For nextSessionIdentifier() */
 #import "GSDispatch.h"                       /* For dispatch compatibility */
 
+#if !GS_HAVE_NSURLSESSION_WEBSOCKETS
+#warning NSURLSession WebSocket APIs are unavailable because libcurl is older than 8.16.0
+#endif
+
 NSString * GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
 
 /* We need a globably unique label for the NSURLSession workQueues.
@@ -541,6 +545,17 @@ socket_callback(CURL * easy,           /* easy handle */
         ^{
       int action;
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+      for (NSURLSessionTask * task in _tasks)
+        {
+          if ([task isKindOfClass: [NSURLSessionWebSocketTask class]])
+            {
+              [(NSURLSessionWebSocketTask *)task
+                _resumeSendIfWaitingForReadableSocket];
+            }
+        }
+#endif
+
       action = CURL_CSELECT_IN;
       curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
 
@@ -666,7 +681,7 @@ socket_callback(CURL * easy,           /* easy handle */
             eff_url,
             curl_easy_strerror(res));
 
-          [self _removeHandle easy: easyHandle];
+          [self _removeHandle: easyHandle];
 
           /* This session might be released in _transferFinishedWithCode. Better
            * retain it first. */
@@ -756,7 +771,7 @@ socket_callback(CURL * easy,           /* easy handle */
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDataTask alloc] initWithSession: self
+  task = [[NSURLSessionDataTask alloc] initRequestTask: self
                                                request: request
                                         taskIdentifier: identifier];
 
@@ -789,7 +804,7 @@ socket_callback(CURL * easy,           /* easy handle */
 
   identifier = [self _nextTaskIdentifier];
   stream = [NSInputStream inputStreamWithURL: fileURL];
-  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+  task = [[NSURLSessionUploadTask alloc] initRequestTask: self
                                                  request: request
                                           taskIdentifier: identifier];
 
@@ -814,7 +829,7 @@ socket_callback(CURL * easy,           /* easy handle */
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+  task = [[NSURLSessionUploadTask alloc] initRequestTask: self
                                                  request: request
                                           taskIdentifier: identifier];
 
@@ -837,7 +852,7 @@ socket_callback(CURL * easy,           /* easy handle */
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+  task = [[NSURLSessionUploadTask alloc] initRequestTask: self
                                                  request: request
                                           taskIdentifier: identifier];
 
@@ -860,7 +875,7 @@ socket_callback(CURL * easy,           /* easy handle */
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDownloadTask alloc] initWithSession: self
+  task = [[NSURLSessionDownloadTask alloc] initRequestTask: self
                                                    request: request
                                             taskIdentifier: identifier];
 
@@ -915,9 +930,9 @@ socket_callback(CURL * easy,           /* easy handle */
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionWebSocketTask alloc] initWithSession: self
-                                                    request: request
-                                             taskIdentifier: identifier];
+  task = [[NSURLSessionWebSocketTask alloc] initWebSocketTask: self
+                                                      request: request
+                                               taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task _setProperties: GSURLSessionUpdatesDelegate];
 
@@ -1047,7 +1062,7 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDataTask alloc] initWithSession: self
+  task = [[NSURLSessionDataTask alloc] initRequestTask: self
                                                request: request
                                         taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
@@ -1081,7 +1096,7 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
 
   identifier = [self _nextTaskIdentifier];
   stream = [NSInputStream inputStreamWithURL: fileURL];
-  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+  task = [[NSURLSessionUploadTask alloc] initRequestTask: self
                                                  request: request
                                           taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
@@ -1108,7 +1123,7 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+  task = [[NSURLSessionUploadTask alloc] initRequestTask: self
                                                  request: request
                                           taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
@@ -1133,7 +1148,7 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDownloadTask alloc] initWithSession: self
+  task = [[NSURLSessionDownloadTask alloc] initRequestTask: self
                                                    request: request
                                             taskIdentifier: identifier];
 

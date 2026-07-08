@@ -29,6 +29,7 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSURLSession.h"
 #import "NSURLSessionPrivate.h"
+#import "GSPThread.h"
 #import "GSDispatch.h"
 #include <curl/curl.h>
 #import "NSURLSessionTaskPrivate.h"
@@ -48,6 +49,7 @@
 #import "Foundation/NSURLResponse.h"
 #import "Foundation/NSHTTPCookie.h"
 #import "Foundation/NSStream.h"
+#import "Foundation/NSException.h"
 
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
@@ -82,6 +84,7 @@ static NSString *taskTemporaryFileLocationKey = @"tempFileLocation";
 static NSString *taskTemporaryFileHandleKey = @"tempFileHandle";
 static NSString *taskInputStreamKey = @"inputStream";
 static NSString *taskUploadData = @"uploadData";
+static NSString *taskStoredErrorKey = @"storedError";
 
 /* Translate WinSock2 Error Codes */
 #ifdef _WIN32
@@ -937,7 +940,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   httpMethod = [[request HTTPMethod] lowercaseString];
   url = [request URL];
 
-  _easyHandle = curl_easy_init();
+  [self _setEasyHandle: curl_easy_init()];
 
   if ([@"head" isEqualToString: httpMethod])
     {
@@ -989,7 +992,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
 }
 
-- (void) _configureEasyhandleForRequestBody
+- (void) _configureTransferCallbacks
 {
   /* This callback function gets called by libcurl as soon as there is data
    * received that needs to be saved. For most transfers, this callback gets
@@ -1155,9 +1158,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   curl_easy_setopt(_easyHandle, CURLOPT_HTTPHEADER, _headerList);
 }
 
-- (instancetype) initWithSession: (NSURLSession *)session
-  request: (NSURLRequest *)request
-  taskIdentifier: (NSUInteger)identifier
+- (instancetype) initRequestTask: (NSURLSession *)session
+                         request: (NSURLRequest *)request
+                  taskIdentifier: (NSUInteger)identifier
 {
   self = [super init];
 
@@ -1171,9 +1174,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   NSURLSessionConfiguration *configuration;
   NSMutableDictionary		*requestHeaders = nil;
   
-  [self _initializeTaskStateWithSession: session
-                                request: request
-                         taskIdentifier: identifier];
+  [self _initTaskStateWithSession: session
+                          request: request
+                   taskIdentifier: identifier];
 
   url = [request URL];
   configuration = [session configuration];
@@ -1190,7 +1193,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   LEAVE_POOL
 
   return self;
-} /* initWithSession */
+} /* initRequestTask */
 
 - (void) _enableAutomaticRedirects: (BOOL)flag
 {
@@ -1240,6 +1243,26 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (CURL *) _easyHandle
 {
   return _easyHandle;
+}
+
+- (void) _setEasyHandle: (CURL *)handle
+{
+  _easyHandle = handle;
+}
+
+- (char *) _errorBuffer
+{
+  return _curlErrorBuffer;
+}
+
+- (struct curl_slist *) _headerList
+{
+  return _headerList;
+}
+
+- (void) _setHeaderList: (struct curl_slist *)headerList
+{
+  _headerList = headerList;
 }
 
 - (void) _setVerbose: (BOOL)flag
@@ -1377,10 +1400,45 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return handle;
 } /* _createTemporaryFileHandleWithError */
 
+- (NSError *) _errorForCURLcode: (CURLcode)code
+{
+  NSError *storedError;
+
+  storedError = [self _storedTaskError];
+  if (storedError != nil)
+    {
+      return storedError;
+    }
+
+  return errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
+}
+
+- (NSError *) _storedTaskError
+{
+  return [_taskData objectForKey: taskStoredErrorKey];
+}
+
+- (void) _setStoredTaskError: (NSError *)error
+{
+  if (error != nil)
+    {
+      [_taskData setObject: error forKey: taskStoredErrorKey];
+    }
+  else
+    {
+      [_taskData removeObjectForKey: taskStoredErrorKey];
+    }
+}
+
+- (void) _clearErrorBuffer
+{
+  _curlErrorBuffer[0] = '\0';
+}
+
 /* Called in _checkForCompletion */
 - (void) _transferFinishedWithCode: (CURLcode)code
 {
-  NSError	*error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
+  NSError	*error = [self _errorForCURLcode: code];
 
   if (_properties & GSURLSessionWritesDataToFile)
     {
@@ -1740,6 +1798,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 @implementation NSURLSessionStreamTask
 @end
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 @implementation NSURLSessionWebSocketMessage
 
 - (instancetype) initWithData: (NSData *)data
@@ -1791,7 +1850,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 }
 
 @end
+#endif
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 typedef struct
 {
   NSURLSessionWebSocketMessage *message;
@@ -1827,11 +1888,11 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
 
 @implementation  NSURLSessionWebSocketTask
 
-- (instancetype) initWithSession: (NSURLSession *)session
-                         request: (NSURLRequest *)request
-                  taskIdentifier: (NSUInteger)identifier
+- (instancetype) initWebSocketTask: (NSURLSession *)session
+                           request: (NSURLRequest *)request
+                    taskIdentifier: (NSUInteger)identifier
 {
-  self = [super initWithSession: session
+  self = [super initRequestTask: session
                         request: request
                  taskIdentifier: identifier];
   if (self != nil)
@@ -1842,6 +1903,10 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
     }
 
   return self;
+}
+
+- (void) _resumeSendIfWaitingForReadableSocket
+{
 }
 
 - (NSInteger) maximumMessageSize
@@ -1930,3 +1995,4 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
 }
 
 @end
+#endif
