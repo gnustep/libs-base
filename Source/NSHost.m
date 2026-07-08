@@ -506,8 +506,14 @@ etcHosts(BOOL flush)
 	  return;
 	}
 
+#if	GS_GETHOSTBYNAME_R_ARGS == 5
+      entry = gethostbyaddr_r((const char *)&ip_addr, sizeof(ip_addr), AF_INET,
+	&entry_buf, buf, sizeof(buf), &err);
+      if (entry != NULL)
+#else
       if (0 == gethostbyaddr_r(&ip_addr, sizeof(ip_addr), AF_INET,
 	&entry_buf, buf, sizeof(buf), &entry, &err) && entry != NULL)
+#endif
 	{
 	  [self _addEntry: entry withNames: names addresses: addresses];
 	}
