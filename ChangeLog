@@ -1,5 +1,16 @@
 2026-07-08  Todd White <todd.white@thalion.global>
 
+	* Source/NSNumber.m (GSHashDouble, -[NSNumber hash]): Derive the hash
+	from -doubleValue by reducing the value modulo a Mersenne prime, so
+	that equal numbers held in different types hash equally (as -isEqual:
+	requires) and fractional values no longer collide on their integral
+	part.
+	* Tests/base/NSNumber/NSNumber_hash.m: New test for the -hash /
+	-isEqual: contract, for fractional scattering and for non-finite
+	values.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
 	* Headers/Foundation/NSString.h, Headers/Foundation/NSData.h,
 	Headers/Foundation/NSDate.h, Headers/Foundation/NSValue.h,
 	Headers/Foundation/NSArray.h, Headers/Foundation/NSDictionary.h,
