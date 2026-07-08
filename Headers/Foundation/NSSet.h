@@ -43,7 +43,7 @@ extern "C" {
 @class NSString;
 
 GS_EXPORT_CLASS
-@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding,
+@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding, NSSecureCoding,
                                                              NSCopying,
                                                              NSMutableCopying,
                                                              NSFastEnumeration>

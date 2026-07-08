@@ -674,6 +674,11 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 - (const char *) objCType
 {
   /* All concrete NSNumber types must implement this so we know which one

@@ -1281,6 +1281,11 @@ register_printf_atsign ()
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSStringClass)

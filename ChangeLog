@@ -1,5 +1,16 @@
 2026-07-08  Todd White <todd.white@thalion.global>
 
+	* Headers/Foundation/NSString.h, Headers/Foundation/NSData.h,
+	Headers/Foundation/NSDate.h, Headers/Foundation/NSValue.h,
+	Headers/Foundation/NSArray.h, Headers/Foundation/NSDictionary.h,
+	Headers/Foundation/NSSet.h: Declare NSSecureCoding conformance on the
+	plist substrate classes.
+	* Source/NSString.m, Source/NSData.m, Source/NSDate.m,
+	Source/NSNumber.m, Source/NSArray.m, Source/NSDictionary.m,
+	Source/NSSet.m (+[... supportsSecureCoding]): Implement, returning YES,
+	so a container of secure classes can be decoded securely.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: Add cases for decoding a
+	plist container (array, dictionary) of a secure class.
 	* Source/NSHost.m
 	(-[NSHost(Private) _addHostAddress:withNames:addresses:]): Call the
 	5-argument gethostbyaddr_r, which returns the struct hostent* directly,
