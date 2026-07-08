@@ -1048,6 +1048,32 @@ GENERATE_PORTABLE_SETDISPATCH(portableMinusSet, NSKeyValueMinusSetMutation);
 GENERATE_PORTABLE_SETDISPATCH(portableIntersectSet,
   NSKeyValueIntersectSetMutation);
 
+/* Dictionary (arbitrary-key) mutation notifiers.  Unlike the setters above,
+ * the key is the runtime argument rather than one derived from the selector,
+ * so the cached key from the lookup is unused. */
+static void
+portableSetObjectForKey(id self, SEL _cmd, id object, NSString *key)
+{
+  NSString	*unused;
+  IMP		orig;
+
+  _NSKVOPortableLookup(self, _cmd, &unused, &orig);
+  [self willChangeValueForKey: key];
+  ((void (*)(id, SEL, id, NSString *)) orig)(self, _cmd, object, key);
+  [self didChangeValueForKey: key];
+}
+static void
+portableRemoveObjectForKey(id self, SEL _cmd, NSString *key)
+{
+  NSString	*unused;
+  IMP		orig;
+
+  _NSKVOPortableLookup(self, _cmd, &unused, &orig);
+  [self willChangeValueForKey: key];
+  ((void (*)(id, SEL, NSString *)) orig)(self, _cmd, key);
+  [self didChangeValueForKey: key];
+}
+
 static SEL
 formatSelector(NSString *format, ...)
 {
@@ -1206,6 +1232,17 @@ _NSKVOEnsureUnorderedCollectionWillNotify(id object, _NSKVOSwizzledClass *info,
     }
 }
 
+/* Make the object notify for arbitrary-key mutations, as NSMutableDictionary
+ * does, by overriding setObject:forKey: and removeObjectForKey: when present. */
+static inline void
+_NSKVOEnsureObjectIsKVOAware(id object, _NSKVOSwizzledClass *info)
+{
+  _NSKVOInstallOverride(object, info, @selector(setObject:forKey:),
+    @"", (IMP) portableSetObjectForKey);
+  _NSKVOInstallOverride(object, info, @selector(removeObjectForKey:),
+    @"", (IMP) portableRemoveObjectForKey);
+}
+
 /* NSKVOEnsureKeyWillNotify is the main entrypoint into the swizzling code. */
 void
 _NSKVOEnsureKeyWillNotify(id object, NSString *key)
@@ -1237,6 +1274,7 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key)
     _NSKVOEnsureSimpleKeyWillNotify(object, info, key, rawKey);
     _NSKVOEnsureOrderedCollectionWillNotify(object, info, key, rawKey);
     _NSKVOEnsureUnorderedCollectionWillNotify(object, info, key, rawKey);
+    _NSKVOEnsureObjectIsKVOAware(object, info);
     if (object_getClass(object) != info->subclass)
       {
 	object_setClass(object, info->subclass);

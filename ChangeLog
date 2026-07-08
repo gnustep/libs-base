@@ -31,8 +31,19 @@
 	prototype takes the address as char*, so it is cast; it is still the
 	binary address rather than an ascii string.
 
-2026-07-07  Todd White <todd.white@thalion.global>
+2026-07-08  Todd White <todd.white@thalion.global>
 
+	* Source/NSKVOSwizzling.m: On runtimes without libobjc2 per-object
+	method addition, make an observed object notify for arbitrary-key
+	mutation, as NSMutableDictionary does, by overriding setObject:forKey:
+	and removeObjectForKey: on the notifying subclass.  This was done only
+	for the libobjc2 backend, so key-value observing of a mutable
+	dictionary fired no notifications on the GNU runtime.
+	* Tests/base/NSKVOSupport/general.m,
+	Tests/base/NSKVOSupport/newoldvalues.m: Remove the FLAKY_ON_GCC markers
+	that made the affected cases hopeful on the GNU runtime; they now pass.
+
+2026-07-07  Todd White <todd.white@thalion.global>
 	* Tests/base/NSKVOSupport/kvoToMany.m: Rework to avoid Objective-C
 	blocks and other constructs unavailable with the GNU runtime
 	(property auto-synthesis, the strong attribute, object subscripting),

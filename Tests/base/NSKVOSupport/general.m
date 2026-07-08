@@ -49,15 +49,6 @@
  [NSMutableDictionary dictionaryWithObjectsAndKeys: V, K, nil]
 #define BOXBOOL(V) [NSNumber numberWithBool: (V)]
 
-#if defined (__OBJC2__)
-#define FLAKY_ON_GCC_START
-#define FLAKY_ON_GCC_END
-#else
-#define FLAKY_ON_GCC_START \
-  testHopeful = YES;
-#define FLAKY_ON_GCC_END \
-  testHopeful = NO;
-#endif
 
 @interface TestKVOSelfObserver : NSObject
 {
@@ -565,7 +556,6 @@ static void
 BasicChangeNotification()
 {
   START_SET("BasicChangeNotification");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -601,7 +591,6 @@ BasicChangeNotification()
                           forKeyPath:@"basicObjectProperty"],
             "remove observer should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("BasicChangeNotification");
 }
 
@@ -709,7 +698,6 @@ static void
 CascadingNotificationWithEmptyLeaf()
 {
   START_SET("CascadingNotificationWithEmptyLeaf");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -763,7 +751,6 @@ CascadingNotificationWithEmptyLeaf()
                           forKeyPath:@"cascadableKey.basicObjectProperty"],
             "remove observer should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("CascadingNotificationWithEmptyLeaf");
 }
 
@@ -803,7 +790,6 @@ static void
 DependentKeyNotification()
 {
   START_SET("DependentKeyNotification");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -835,7 +821,6 @@ DependentKeyNotification()
              "The new value stored in the change notification should be "
              "!!!Hello!!! (the derived object).");
 
-  FLAKY_ON_GCC_END
   END_SET("DependentKeyNotification");
 }
 
@@ -916,7 +901,6 @@ static void
 DisabledNotification()
 { // No notification for non-notifying keypaths.
   START_SET("DisabledNotification");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -938,7 +922,6 @@ DisabledNotification()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DisabledNotification");
 }
 
@@ -946,7 +929,6 @@ static void
 DisabledInitialNotification()
 { // Initial notification for non-notifying keypaths.
   START_SET("DisabledInitialNotification");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -977,7 +959,6 @@ DisabledInitialNotification()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DisabledInitialNotification");
 }
 
@@ -1018,7 +999,6 @@ DictionaryNotification()
 { // Basic notification on a dictionary, which does not have properties or
   // ivars.
   START_SET("DictionaryNotification");
-  FLAKY_ON_GCC_START
 
   NSMutableDictionary *observed = [NSMutableDictionary dictionary];
   TestKVOObserver     *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1058,7 +1038,6 @@ DictionaryNotification()
                           forKeyPath:@"subKey.basicObjectProperty"],
             "remove observer should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DictionaryNotification");
 }
 
@@ -1066,7 +1045,6 @@ static void
 BasicDeregistration()
 { // Deregistration test
   START_SET("BasicDeregistration");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1102,7 +1080,6 @@ BasicDeregistration()
 
   PASS([changes count] == 0, "No changes on cascadableKey.basicObjectProperty should have fired.");
 
-  FLAKY_ON_GCC_END
   END_SET("BasicDeregistration");
 }
 
@@ -1290,7 +1267,6 @@ static void
 SubpathWithMultipleReplacement()
 { // Test key value replacement and re-registration (3)
   START_SET("SubpathWithMultipleReplacement");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1318,7 +1294,6 @@ SubpathWithMultipleReplacement()
   [observer release];
   [observed release];
 
-  FLAKY_ON_GCC_END
   END_SET("SubpathWithMultipleReplacement");
 }
 
@@ -1429,7 +1404,6 @@ static void
 CyclicDependency()
 { // Make sure that dependency loops don't cause crashes.
   START_SET("CyclicDependency");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1458,7 +1432,6 @@ CyclicDependency()
   [observer release];
   [observed release];
 
-  FLAKY_ON_GCC_END
   END_SET("CyclicDependency");
 }
 
@@ -1466,7 +1439,6 @@ static void
 ObserveAllProperties()
 {
   START_SET("ObserveAllProperties");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = AUTORELEASE([[TestKVOObject alloc] init]);
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1526,7 +1498,6 @@ ObserveAllProperties()
             "remove observer for keyPath cascadableKey.basicObjectProperty "
             "should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("ObserveAllProperties");
 }
 
@@ -1534,7 +1505,6 @@ static void
 RemoveWithoutContext()
 { // Test removal without specifying context.
   START_SET("RemoveWithoutContext");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1565,7 +1535,6 @@ RemoveWithoutContext()
   [observer release];
   [observed release];
 
-  FLAKY_ON_GCC_END
   END_SET("RemoveWithoutContext");
 }
 
@@ -1573,7 +1542,6 @@ static void
 RemoveWithDuplicateContext()
 { // Test adding duplicate contexts
   START_SET("RemoveWithDuplicateContext");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1610,7 +1578,6 @@ RemoveWithDuplicateContext()
                              context:(void *) (1)],
             "removing observer forKeyPath=basicObjectProperty does not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("RemoveWithDuplicateContext");
 }
 
@@ -1618,7 +1585,6 @@ static void
 RemoveOneOfTwoObservers()
 { // Test adding duplicate contexts
   START_SET("RemoveOneOfTwoObservers");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1657,7 +1623,6 @@ RemoveOneOfTwoObservers()
                           forKeyPath:@"basicObjectProperty"],
             "removing observer should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("RemoveOneOfTwoObservers");
 }
 
@@ -1665,7 +1630,6 @@ static void
 RemoveUnregistered()
 { // Test removing an urnegistered observer
   START_SET("RemoveUnregistered");
-  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1677,7 +1641,6 @@ RemoveUnregistered()
     (NSString*)nil,
     "Removing an unregistered observer should throw an exception.")
 
-  FLAKY_ON_GCC_END
   END_SET("RemoveUnregistered");
 }
 
@@ -1764,7 +1727,6 @@ static void
 SubpathOnDerivedKey()
 {
   START_SET("SubpathOnDerivedKey");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1795,7 +1757,6 @@ SubpathOnDerivedKey()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("SubpathOnDerivedKey");
 }
 
@@ -1803,7 +1764,6 @@ static void
 SubpathWithDerivedKeyBasedOnSubpath()
 {
   START_SET("SubpathWithDerivedKeyBasedOnSubpath");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1840,7 +1800,6 @@ SubpathWithDerivedKeyBasedOnSubpath()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("SubpathWithDerivedKeyBasedOnSubpath");
 }
 
@@ -1848,7 +1807,6 @@ static void
 MultipleObservers()
 {
   START_SET("MultipleObservers");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1908,7 +1866,6 @@ MultipleObservers()
 
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("MultipleObservers");
 }
 
@@ -1916,7 +1873,6 @@ static void
 DerivedKeyDependentOnDerivedKey()
 {
   START_SET("DerivedKeyDependentOnDerivedKey");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1954,7 +1910,6 @@ DerivedKeyDependentOnDerivedKey()
             "should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnDerivedKey");
 }
 
@@ -1962,7 +1917,6 @@ static void
 DerivedKeyDependentOnTwoKeys()
 {
   START_SET("DerivedKeyDependentOnTwoKeys");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -2000,7 +1954,6 @@ DerivedKeyDependentOnTwoKeys()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnTwoKeys");
 }
 
@@ -2008,7 +1961,6 @@ static void
 DerivedKeyDependentOnTwoSubKeys()
 {
   START_SET("DerivedKeyDependentOnTwoSubKeys");
-  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -2056,7 +2008,6 @@ DerivedKeyDependentOnTwoSubKeys()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
-  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnTwoSubKeys");
 }
 
