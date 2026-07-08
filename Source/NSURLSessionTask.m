@@ -27,7 +27,6 @@
  */
 
 #import "NSURLSessionPrivate.h"
-#import "GSDispatch.h"
 #include <curl/curl.h>
 #import "NSURLSessionTaskPrivate.h"
 
@@ -519,10 +518,8 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                   [[session delegateQueue] addOperationWithBlock:^{
                      void (^completionHandler)(NSURLRequest *) = ^(
                        NSURLRequest *userRequest) {
-                       /* Changes are dispatched onto workqueue */
-                       dispatch_async(
-                         [session _workQueue],
-                         ^{
+                       /* Changes are performed on the work thread */
+                       [session _performOnWorkThread: ^{
                            if (NULL == userRequest)
                            {
                              curl_easy_pause(handle, CURLPAUSE_CONT);
@@ -568,7 +565,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
                              [session _addHandle: handle];
                            }
-                         });
+                         }];
                      };
 
                      [delegate URLSession: session
@@ -650,9 +647,6 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 	&& [task isKindOfClass: dataTaskClass]
 	&& [delegate respondsToSelector: didReceiveResponseSel])
         {
-          dispatch_queue_t queue;
-
-          queue = [session _workQueue];
           /* Pause until the completion handler is called */
           curl_easy_pause(handle, CURLPAUSE_ALL);
 
@@ -669,11 +663,9 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 		  }
 
                 /* Unpause easy handle */
-                dispatch_async(
-                  queue,
-                  ^{
+                [session _performOnWorkThread: ^{
                     curl_easy_pause(handle, CURLPAUSE_CONT);
-                  });
+                  }];
               }];
            }];
         }
@@ -1193,11 +1185,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setVerbose: (BOOL)flag
 {
-  dispatch_async(
-    [_session _workQueue],
-    ^{
+  [_session _performOnWorkThread: ^{
     curl_easy_setopt(_easyHandle, CURLOPT_VERBOSE, flag ? 1L : 0L);
-  });
+  }];
 }
 
 - (void) _setBodyStream: (NSInputStream *)stream
@@ -1469,15 +1459,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    * URLSession:task:didCompleteWithError: is called after receiving
    * CURLMSG_DONE in -[NSURLSessionTask _checkForCompletion].
    */
-  dispatch_async(
-    [_session _workQueue],
-    ^{
+  [_session _performOnWorkThread: ^{
     /* Unpause the easy handle if previously paused */
     curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
 
     _shouldStopTransfer = YES;
     _state = NSURLSessionTaskStateCanceling;
-  });
+  }];
 }
 
 - (float) priority

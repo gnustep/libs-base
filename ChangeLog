@@ -21,6 +21,32 @@
 
 2026-07-08  Todd White <todd.white@thalion.global>
 
+	* Source/NSURLSession.m, Source/NSURLSessionTask.m,
+	Source/NSURLSessionPrivate.h: Drive the libcurl multi handle from a
+	dedicated work thread running an NSRunLoop rather than libdispatch, so
+	the class no longer depends on libdispatch.  The serial work queue
+	becomes an NSThread, the timer source an NSTimer, and the per-socket
+	read and write sources become run loop descriptor watchers (ET_RDESC
+	and ET_WDESC on unix, a WSAEVENT registered as ET_HANDLE on Windows).
+	A socket watcher is now added or removed only on an actual direction
+	change rather than torn down and recreated.  dispatch_once is replaced
+	by a static gs_mutex.
+	* configure.ac, Source/GNUmakefile: Build NSURLSession whenever the ng
+	runtime, blocks and libcurl are present, no longer requiring libdispatch,
+	so the class is available (and its tests run) on systems without
+	libdispatch installed.
+	* Tests/base/NSURLSession/Helpers/HTTPServer.m,
+	Tests/base/NSURLSession/Helpers/GNUmakefile: Rewrite the test HTTP
+	server to serve each connection on its own thread rather than with
+	libdispatch queues and sources, so the tests no longer depend on
+	libdispatch either.
+	* Tests/base/NSURLSession/simpleTaskTests.m: Re-enable the suite, which
+	was disabled (except under MSVC, where pre-existing transfer failures
+	are tracked separately), and add tests for invalidateAndCancel and for
+	deallocating a session without invalidating it.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
 	* Source/NSNumber.m (GSHashDouble, -[NSNumber hash]): Derive the hash
 	from -doubleValue by reducing the value modulo a Mersenne prime, so
 	that equal numbers held in different types hash equally (as -isEqual:
