@@ -734,6 +734,11 @@ otherTime(NSDate* other)
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 + (id) alloc
 {
   if (self == abstractClass)

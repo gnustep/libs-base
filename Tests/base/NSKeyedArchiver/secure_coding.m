@@ -4,10 +4,10 @@
  * allowed-class set and NSSecureCoding conformance, returning nil and an
  * NSError on a violation rather than instantiating an arbitrary class.
  *
- * These use a purpose-built NSSecureCoding class: the standard Foundation
- * classes do not yet adopt NSSecureCoding, so an archive of, say, an NSArray
- * cannot yet be decoded securely.  The enforcement itself is what is tested
- * here.
+ * The enforcement uses a purpose-built NSSecureCoding class, and the plist
+ * substrate classes (NSString, NSNumber, NSData, NSDate, NSArray,
+ * NSDictionary, NSSet) adopt NSSecureCoding so that containers of secure
+ * classes can be decoded securely.
  */
 
 #import <Foundation/Foundation.h>
@@ -135,6 +135,103 @@ int main(void)
     PASS_EQUAL(obj, @"hello",
       "a plist primitive is decoded even when its class is not listed");
   END_SET("plist primitives are implicitly allowed")
+
+  START_SET("a plist container adopting NSSecureCoding is decoded")
+    /* An array of a custom secure class.  Before the plist classes
+     * adopted NSSecureCoding this failed, because NSArray was not
+     * marked as supporting it. */
+    SCWidget	*w = [[SCWidget alloc] init];
+    NSData	*data;
+    NSError	*err = nil;
+    id		obj;
+
+    [w setName: @"in-array"];
+    data = archive([NSArray arrayWithObject: w]);
+    [w release];
+
+    /* The dedicated array entry point permits NSArray implicitly. */
+    obj = [NSKeyedUnarchiver
+      unarchivedArrayOfObjectsOfClasses: [NSSet setWithObject: [SCWidget class]]
+                               fromData: data error: &err];
+    PASS(obj != nil && [obj isKindOfClass: [NSArray class]] && [obj count] == 1
+      && [[obj objectAtIndex: 0] isKindOfClass: [SCWidget class]] && err == nil,
+      "unarchivedArrayOfObjectsOfClasses: decodes an array of a secure class");
+
+    /* The general entry point requires NSArray to be listed as well. */
+    err = nil;
+    obj = [NSKeyedUnarchiver
+      unarchivedObjectOfClasses: [NSSet setWithObjects:
+        [NSArray class], [SCWidget class], nil]
+                       fromData: data error: &err];
+    PASS(obj != nil && [obj isKindOfClass: [NSArray class]] && err == nil,
+      "an array is decoded when NSArray and the element class are listed");
+
+    /* A container is not implicit: without NSArray the decode fails. */
+    err = nil;
+    obj = [NSKeyedUnarchiver
+      unarchivedObjectOfClasses: [NSSet setWithObject: [SCWidget class]]
+                       fromData: data error: &err];
+    PASS(obj == nil && err != nil,
+      "an array is rejected when NSArray is not in the allowed set");
+
+    /* The allowed set applies tree-wide: the element class must be listed. */
+    err = nil;
+    obj = [NSKeyedUnarchiver
+      unarchivedObjectOfClasses: [NSSet setWithObject: [NSArray class]]
+                       fromData: data error: &err];
+    PASS(obj == nil && err != nil,
+      "an array is rejected when its element class is not in the allowed set");
+  END_SET("a plist container adopting NSSecureCoding is decoded")
+
+  START_SET("a dictionary of a secure class is decoded")
+    SCWidget	*w = [[SCWidget alloc] init];
+    NSData	*data;
+    NSError	*err = nil;
+    id		obj;
+
+    [w setName: @"in-dict"];
+    data = archive([NSDictionary dictionaryWithObject: w forKey: @"k"]);
+    [w release];
+
+    obj = [NSKeyedUnarchiver
+      unarchivedDictionaryWithKeysOfClasses: [NSSet setWithObject: [NSString class]]
+                             objectsOfClasses: [NSSet setWithObject: [SCWidget class]]
+                                     fromData: data error: &err];
+    PASS(obj != nil && [obj isKindOfClass: [NSDictionary class]]
+      && [[obj objectForKey: @"k"] isKindOfClass: [SCWidget class]] && err == nil,
+      "unarchivedDictionaryWithKeysOfClasses:objectsOfClasses: decodes a dictionary");
+  END_SET("a dictionary of a secure class is decoded")
+
+  START_SET("mutable variants inherit NSSecureCoding")
+    /* The mutable classes are not changed directly; they inherit both the
+     * protocol conformance and +supportsSecureCoding from their immutable
+     * superclass. */
+    PASS([NSMutableString conformsToProtocol: @protocol(NSSecureCoding)]
+      && [NSMutableString supportsSecureCoding]
+      && [NSMutableData conformsToProtocol: @protocol(NSSecureCoding)]
+      && [NSMutableArray conformsToProtocol: @protocol(NSSecureCoding)]
+      && [NSMutableDictionary conformsToProtocol: @protocol(NSSecureCoding)]
+      && [NSMutableSet conformsToProtocol: @protocol(NSSecureCoding)]
+      && [NSMutableSet supportsSecureCoding],
+      "the mutable variants inherit NSSecureCoding conformance");
+
+    SCWidget		*w = [[SCWidget alloc] init];
+    NSMutableArray	*ma;
+    NSData		*data;
+    NSError		*err = nil;
+    id			obj;
+
+    [w setName: @"mutable"];
+    ma = [NSMutableArray arrayWithObject: w];
+    [w release];
+    data = archive(ma);
+    obj = [NSKeyedUnarchiver
+      unarchivedArrayOfObjectsOfClasses: [NSSet setWithObject: [SCWidget class]]
+                               fromData: data error: &err];
+    PASS(obj != nil && [obj count] == 1
+      && [[obj objectAtIndex: 0] isKindOfClass: [SCWidget class]] && err == nil,
+      "a mutable array of a secure class is decoded");
+  END_SET("mutable variants inherit NSSecureCoding")
 
   return 0;
 }

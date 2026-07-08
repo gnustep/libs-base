@@ -514,7 +514,7 @@ DEFINE_BLOCK_TYPE(GSNSStringLineEnumerationBlock, void, NSString *line, BOOL *st
  */
 
 GS_EXPORT_CLASS
-@interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSString :NSObject <NSCoding, NSSecureCoding, NSCopying, NSMutableCopying>
 
 + (instancetype) string;
 + (instancetype) stringWithCharacters: (const unichar*)chars

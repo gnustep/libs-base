@@ -1,3 +1,17 @@
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Headers/Foundation/NSString.h, Headers/Foundation/NSData.h,
+	Headers/Foundation/NSDate.h, Headers/Foundation/NSValue.h,
+	Headers/Foundation/NSArray.h, Headers/Foundation/NSDictionary.h,
+	Headers/Foundation/NSSet.h: Declare NSSecureCoding conformance on the
+	plist substrate classes.
+	* Source/NSString.m, Source/NSData.m, Source/NSDate.m,
+	Source/NSNumber.m, Source/NSArray.m, Source/NSDictionary.m,
+	Source/NSSet.m (+[... supportsSecureCoding]): Implement, returning YES,
+	so a container of secure classes can be decoded securely.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: Add cases for decoding a
+	plist container (array, dictionary) of a secure class.
+
 2026-07-07  Todd White <todd.white@thalion.global>
 
 	* configure.ac: Detect the 5-argument (Solaris) form of

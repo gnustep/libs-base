@@ -39,7 +39,7 @@ extern "C" {
 GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSDictionary,
   __covariant KeyT:id<NSCopying>, __covariant ValT)
-  : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
+  : NSObject <NSCoding, NSSecureCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (instancetype) dictionary;
 + (instancetype) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
