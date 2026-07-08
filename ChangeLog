@@ -1,3 +1,13 @@
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* Source/GSSocketStream.m (-[GSSocketInputStream _dispatch],
+	-[GSSocketOutputStream _dispatch]): Do not send a
+	NSStreamEventHasSpaceAvailable event while the socket event set
+	includes FD_CLOSE.  On winsock the socket reports space available
+	even once the peer has closed the connection, so the stream kept
+	offering space for writing after the close and a write was attempted
+	on the closed connection.
+
 2026-07-06 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendar.m
