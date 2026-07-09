@@ -154,7 +154,8 @@ NSString (ServerAdditions)
 
   int rc;
   int yes = 1;
-  rc = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+  rc = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&yes,
+    sizeof(int));
   if (rc == -1)
     {
       NSLog(@"Error setting socket options %s", strerror(errno));
