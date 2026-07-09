@@ -23,8 +23,9 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSData.h"
 #import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSError.h"
@@ -33,6 +34,7 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
+#import "Foundation/NSTimeZone.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSXMLParser.h"
 #import "AGSParser.h"
@@ -2584,11 +2586,23 @@ fail:
 
       if (nil == generated)
 	{
-	  NSCalendarDate	*now = [NSCalendarDate date];
+	  NSCalendarDate	*when;
+	  NSTimeInterval	sde;
 
-	  [now setCalendarFormat: @"%Y-%m-%d"];
+	  sde = [[[[NSProcessInfo processInfo] environment]
+	    objectForKey: @"SOURCE_DATE_EPOCH"] floatValue];
+	  if (sde > 0.0)
+	    {
+	      when = [NSCalendarDate dateWithTimeIntervalSince1970: sde];
+	    }
+	  else
+	    {
+	      when = [NSCalendarDate date];
+	    }
+	  [when setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT: 0]];
+	  [when setCalendarFormat: @"%Y-%m-%d UTC"];
 	  generated = [[NSString alloc] initWithFormat:
-	    @"<date>Generated at %@</date>", now];
+	    @"<date>Generated at %@</date>", when];
 	}
       [info setObject: generated forKey: @"date"];
     }

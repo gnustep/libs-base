@@ -11,6 +11,13 @@
 	threads in different orders. GSMimeParser no longer cached the
 	document class (a performance optimisation targetted at very very
 	old versions of the ObjC runtime).
+	* Tools/AGSParser.m: Use SOURCE_DATE_EPOCH env variable if provided.
+	* Tools/AGSOutput.h: Add +authorCredit method.
+	* Tools/AGSOutput.m: Add +authorCredit method and use it.
+	* Tools/AGSHtml.m: Use +authorCredit method.
+	For issue make it easy for poackagers to produce consistent
+	documentation using the SOURCE_DATE_EPOCH and SOURCE_AUTHOR_CREDIT
+	environment variables to override current timestamp and user.
 
 2026-07-08  Todd White <todd.white@thalion.global>
 
