@@ -9,7 +9,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("western locale")
   NSMutableArray 	*tmpArray;
   NSMutableDictionary 	*myLocale;
   NSCalendarDate 	*myBirthday; 
@@ -210,6 +210,7 @@ int main()
                      locale: myLocale] isEqualToString: @"01:00:00 PM"],
        "%%r format works in description");
   
-  [arp release]; arp = nil;
+  END_SET("western locale")
+
   return 0;
 }

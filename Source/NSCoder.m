@@ -501,17 +501,18 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 - (void) dealloc
 {
   DESTROY(_d);
-  [super dealloc];
+  DEALLOC
 }
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   if (nil != (self = [super init]))
     {
-      id		o;
-      void		*address;
+      id	o;
+      void	*address;
+      unsigned	c;
       unsigned	i;
 
-      _c = [aCoder decodeIntForKey: @"NS.count"];
+      _c = c = [aCoder decodeIntForKey: @"NS.count"];
       _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
       _t[1] = '\0';
 
@@ -534,8 +535,9 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 	&& NO == [(NSKeyedUnarchiver*)aCoder _containsRawKey:
 	  [NSString stringWithFormat: @"$%u", _c - 1]])
 	{
+	  RELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
-		      format: @"invalid array count (%u) in archive", _c];
+		      format: @"invalid array count (%u) in archive", c];
 	}
       _d = o = [[NSMutableData alloc] initWithLength: (NSUInteger)_c * _s];
       _a = address = [o mutableBytes];

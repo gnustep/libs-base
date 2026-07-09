@@ -1601,7 +1601,7 @@ static int		uninitialisedOffset = 100000;
 	     is a symlink to the time zone. Getting the actual data (which
 	     is easier) doesn't help, since we won't know the name itself.  */
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
-	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
+	  ASSIGN(tzdir, [NSString stringWithUTF8String: TZDIR]);
 	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
           localZoneSource = [NSString stringWithFormat:
 	    @"file (TZDEFAULT): '%@'", localZoneString];
@@ -1615,6 +1615,7 @@ static int		uninitialisedOffset = 100000;
 	      localZoneString
 		= [localZoneString stringByResolvingSymlinksInPath];
 	      /* Guess what tzdir is */
+	      DESTROY(tzdir);
 	      tzdir = [localZoneString stringByDeletingLastPathComponent];
 	      while ([tzdir length] > 2
 		&& [dflt fileExistsAtPath:
@@ -2520,7 +2521,7 @@ static NSString *zoneDirs[] = {
 		&& [mgr fileExistsAtPath: zonedir isDirectory: &isDir]
 		&& isDir)
 		{
-		  tzdir = RETAIN(zonedir);
+		  ASSIGN(tzdir, zonedir);
 		  break;  // use first one
 		}
 	    }

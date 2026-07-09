@@ -224,7 +224,6 @@ static NSMapTable	*globalClassMap = 0;
       NSArray		*classes;
       Class		c;
       id		r;
-      id		s;
       NSDictionary	*savedKeyMap;
       unsigned		savedCursor;
 
@@ -276,56 +275,51 @@ static NSMapTable	*globalClassMap = 0;
       // Store object in map so that decoding of it can be self referential.
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 
-      s = RETAIN(o);
       r = [o initWithCoder: self];
-      if (s != r)
+      if (o != r)
 	{
+	  /* The -initWithCoder: method released o when it provided a
+	   * replacement object, but o is still in the array.  When we
+	   * store the replacement the original gets deallocated.
+	   */
 	  [_delegate unarchiver: self
-	      willReplaceObject: s
+	      willReplaceObject: o
 		     withObject: r];
 	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
+	  RELEASE(r);			// Retained in array
+	  o = r;
 	}
-      o = r;
-      DESTROY(s);
+      else
+	{
+	  RELEASE(o);			// Retained in array
+	}
 
-      s = RETAIN(o);
       r = [o awakeAfterUsingCoder: self];
-      if (s != r)
+      if (o != r)
 	{
 	  [_delegate unarchiver: self
-	      willReplaceObject: s
+	      willReplaceObject: o
 		     withObject: r];
 	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
+	  o = r;
 	}
-      o = r;
-      DESTROY(s);
 
       if (_delegate != nil)
 	{
-	  s = RETAIN(o);
 	  r = [_delegate unarchiver: self didDecodeObject: o];
 	  /* Apple documentation says that the delegate may return nil to
 	   * indicate that the decoded objects should not be changed.
 	   */
-	  if (nil == r)
+	  if (o != r && r != nil)
 	    {
-	      o = s;
-	    }
-	  else
-	    {
-	      if (s != r)
-		{
-		  [_delegate unarchiver: self
-		      willReplaceObject: s
-			     withObject: r];
-		  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
-		}
+	      [_delegate unarchiver: self
+		  willReplaceObject: o
+			 withObject: r];
+	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
 	      o = r;
-	      DESTROY(s);
 	    }
 	}
 
-      RELEASE(o);	// Retained in array
       obj = o;
       _keyMap = savedKeyMap;
       _cursor = savedCursor;

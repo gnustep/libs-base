@@ -1,3 +1,11 @@
+2026-07-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: fix tiny memory leak.
+	* Source/NSCoder.m: fix memory leak on exception.
+	* Source/NSKeyedUnarchiver.m: fix memory leak on exception.
+	* Tests/base/NSKeyedArchiver/arrayoverflow.m: fix memory leak
+	* Tests/base/NSCalendarDate/test02.m: tidy a little
+
 2026-07-08  Todd White <todd.white@thalion.global>
 
 	* Source/NSNumber.m (GSHashDouble, -[NSNumber hash]): Derive the hash

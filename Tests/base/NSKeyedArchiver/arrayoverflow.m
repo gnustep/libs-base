@@ -33,7 +33,12 @@
 {
   double	a[3];
 
+  NS_DURING
   [c decodeArrayOfObjCType: @encode(double) count: 3 at: a];
+  NS_HANDLER
+  DESTROY(self);
+  [localException raise];
+  NS_ENDHANDLER
   return self;
 }
 @end
