@@ -15027,21 +15027,12 @@ if test ${enable_newkvo+y}
 then :
   enableval=$enable_newkvo;
 else $as_nop
-
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
   enable_newkvo=yes
-else
-  enable_newkvo=no
-fi
 fi
 
 if test "x$enable_newkvo" = "xyes"
 then
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    HAVE_NEWKVO=1
-  else
-    echo "You are not using the new runtime ... newkvo not available"
-  fi
+  HAVE_NEWKVO=1
 fi
 
 

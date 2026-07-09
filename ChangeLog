@@ -31,6 +31,60 @@
 	prototype takes the address as char*, so it is cast; it is still the
 	binary address rather than an ascii string.
 
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Source/NSKVOSwizzling.m: On runtimes without libobjc2 per-object
+	method addition, make an observed object notify for arbitrary-key
+	mutation, as NSMutableDictionary does, by overriding setObject:forKey:
+	and removeObjectForKey: on the notifying subclass.  This was done only
+	for the libobjc2 backend, so key-value observing of a mutable
+	dictionary fired no notifications on the GNU runtime.
+	* Tests/base/NSKVOSupport/general.m,
+	Tests/base/NSKVOSupport/newoldvalues.m: Remove the FLAKY_ON_GCC markers
+	that made the affected cases hopeful on the GNU runtime; they now pass.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSKVOSupport/kvoToMany.m: Rework to avoid Objective-C
+	blocks and other constructs unavailable with the GNU runtime
+	(property auto-synthesis, the strong attribute, object subscripting),
+	and drop the objc-2 build guard, so the to-many key-value observing
+	tests build and run on the GNU runtime as well.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* configure.ac: Build the new key-value observing implementation on
+	every Objective-C runtime rather than only the next-generation one.
+	Add --disable-newkvo to fall back to the old implementation.
+	* configure: Regenerate.
+	* Source/GNUmakefile: Define GNUSTEP_BASE_NEW_KVO when the new KVO is
+	compiled so the swizzling code can select a backend.
+	* Source/NSKVOInternal.h: Guard on GNUSTEP_BASE_NEW_KVO as well as
+	__OBJC2__.  Declare the _NSKVOKeyObserver and _NSKVOKeypathObserver
+	instance variables explicitly; gcc does not synthesise them from the
+	property declarations.
+	* Source/NSKVOSwizzling.m: Add a per-class swizzling backend, using an
+	NSKVONotifying_<Class> subclass and object_setClass, for runtimes that
+	lack the libobjc2 object_addMethod_np extension.
+	(KVCSetterForPropertyName): Correct the buffer offset; it dropped the
+	second character of every key, so no setter selector resolved.
+	(_NSKVOInfoForClass, _NSKVOInstallOverride, _NSKVOEnsureKeyWillNotify):
+	Use a recursive gs_mutex instead of @synchronized, which needs
+	Objective-C exceptions that the GNU runtime does not enable on Windows.
+	(notifyingSetImpl*): Call straight through to the original setter when
+	the object has no observation info.
+	* Source/NSKVOSupport.m: Replace the block-based change dispatch with
+	plain functions.
+	(-[_NSKVOObservationInfo addObserver:], removeObserver:,
+	observersForKey:): Hold the per-key observer arrays copy-on-write so a
+	notification does not copy them.
+	(_kvoWillSetChange, _dispatchDidChange): Reuse the change dictionary
+	across notifications and iterate observers in reverse with an index
+	loop.
+	(_addNestedObserversAndOptionallyDependents,
+	_removeNestedObserversAndOptionallyDependents): Return early for a
+	simple key that has no dependents.
+
 2026-07-07  Todd White <todd.white@thalion.global>
 
 	* configure.ac: Detect the 5-argument (Solaris) form of
