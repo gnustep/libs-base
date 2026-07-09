@@ -100,7 +100,7 @@ testLargeUploadWithBlock(NSURL *baseURL)
 
   /* The completion handler for the two requests */
   handler = ^(NSData *data, NSURLResponse *response, NSError *error) {
-    NSHTTPURLResponse *httpResponse = response;
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 
     PASS([data length] == 0, "Received empty data object");
     PASS(nil != response, "Response is not nil");
