@@ -439,12 +439,27 @@ static NSURLSession * sharedSession = nil;
       [task _easyHandle],
       multiHandle,
       code);
+
+    /* Kick the transfer off now rather than waiting for the timer callback
+     * (see -_addHandle:). */
+    curl_multi_socket_action(multiHandle, CURL_SOCKET_TIMEOUT, 0,
+      &_stillRunning);
+    [self _checkForCompletion];
   }];
 }
 
 - (void) _addHandle: (CURL *)easy
 {
   curl_multi_add_handle(_multiHandle, easy);
+
+  /* Kick the added transfer off now rather than waiting for libcurl to fire
+   * the timer callback.  Relying on the timer alone races with the run loop,
+   * which shows up most on a handle that is re-added after a redirect: the
+   * transfer can stall until an unrelated event drives the multi handle.
+   * See https://curl.se/libcurl/c/curl_multi_socket_action.html . */
+  curl_multi_socket_action(_multiHandle, CURL_SOCKET_TIMEOUT, 0,
+    &_stillRunning);
+  [self _checkForCompletion];
 }
 - (void) _removeHandle: (CURL *)easy
 {
