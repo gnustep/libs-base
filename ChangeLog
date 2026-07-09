@@ -5,6 +5,12 @@
 	* Source/NSKeyedUnarchiver.m: fix memory leak on exception.
 	* Tests/base/NSKeyedArchiver/arrayoverflow.m: fix memory leak
 	* Tests/base/NSCalendarDate/test02.m: tidy a little
+	* Source/Additions/GSMime.m: break interdependency between the
+	GSMimeParser and GSMimeDocument classes in +initialize since that
+	could cause a deadlock if the classes were first used in different
+	threads in different orders. GSMimeParser no longer cached the
+	document class (a performance optimisation targetted at very very
+	old versions of the ObjC runtime).
 
 2026-07-08  Todd White <todd.white@thalion.global>
 
