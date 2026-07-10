@@ -98,6 +98,15 @@
 -(BOOL)_redirectInProgress;
 -(void)_setRedirectInProgress: (BOOL)flag;
 
+/* Set while the handle is paused awaiting a didReceiveResponse disposition.
+ * Checked in -_checkForCompletion so a completion that libcurl reports before
+ * the delegate answers is held (its code stored via -_setHeldCompletionCode:)
+ * rather than delivered early. */
+-(BOOL)_awaitingResponseDisposition;
+-(void)_setAwaitingResponseDisposition: (BOOL)flag;
+-(int)_heldCompletionCode;
+-(void)_setHeldCompletionCode: (int)code;
+
 -(NSInteger)_numberOfRedirects;
 -(void)_setNumberOfRedirects: (NSInteger)redirects;
 

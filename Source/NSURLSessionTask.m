@@ -538,7 +538,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                               * intercepted transfer (whose completion was held
                               * back) and deliver a cancellation for it. */
                              [task _setRedirectInProgress: NO];
-                             [session _cancelRedirectForTask: task];
+                             [session _cancelTaskFromDelegate: task];
                              NSDebugLLog(
                                GS_NSURLSESSION_DEBUG_KEY,
                                @"task=%@ willPerformHTTPRedirection "
@@ -662,7 +662,11 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 	&& [task isKindOfClass: dataTaskClass]
 	&& [delegate respondsToSelector: didReceiveResponseSel])
         {
-          /* Pause until the completion handler is called */
+          /* Pause until the completion handler is called.  libcurl may report
+           * the buffered response as complete before the delegate answers, so
+           * hold that completion back (see -_checkForCompletion) until we know
+           * the disposition. */
+          [task _setAwaitingResponseDisposition: YES];
           curl_easy_pause(handle, CURLPAUSE_ALL);
 
           [[session delegateQueue] addOperationWithBlock:^{
@@ -675,12 +679,23 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                 if (disposition == NSURLSessionResponseCancel)
 		  {
 		    [task _setShouldStopTransfer: YES];
+		    [session _performOnWorkThread: ^{
+			/* Deliver a cancellation (any held completion is
+			 * discarded in favour of it). */
+			[task _setAwaitingResponseDisposition: NO];
+			[session _cancelTaskFromDelegate: task];
+		      }];
 		  }
-
-                /* Unpause easy handle */
-                [session _performOnWorkThread: ^{
-                    curl_easy_pause(handle, CURLPAUSE_CONT);
-                  }];
+                else
+		  {
+		    [session _performOnWorkThread: ^{
+			[task _setAwaitingResponseDisposition: NO];
+			/* Unpause to flush the buffered body, then deliver any
+			 * completion that was held while awaiting the delegate. */
+			curl_easy_pause(handle, CURLPAUSE_CONT);
+			[session _deliverHeldCompletionForTask: task];
+		      }];
+		  }
               }];
            }];
         }
@@ -875,6 +890,16 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    * early -URLSession:task:didCompleteWithError:. */
   _Atomic(BOOL) _redirectInProgress;
 
+  /* Set while the handle is paused waiting for the delegate to answer
+   * -URLSession:dataTask:didReceiveResponse:completionHandler:.  libcurl can
+   * report the already-buffered response as complete before the delegate
+   * answers, so completion is held back (its CURLcode saved in
+   * _heldCompletionCode) and delivered once the disposition is known. */
+  _Atomic(BOOL) _awaitingResponseDisposition;
+  /* The CURLcode of a completion held back while _awaitingResponseDisposition,
+   * or -1 if none has been held. */
+  int _heldCompletionCode;
+
   /* Opaque value for storing task specific properties */
   NSInteger _properties;
 
@@ -932,6 +957,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       _taskData = [[NSMutableDictionary alloc] init];
       _shouldStopTransfer = NO;
       _redirectInProgress = NO;
+      _awaitingResponseDisposition = NO;
+      _heldCompletionCode = -1;
       _numberOfRedirects = -1;
       _headerCallbackCount = 0;
 
@@ -1293,6 +1320,26 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   _redirectInProgress = flag;
 }
 
+- (BOOL) _awaitingResponseDisposition
+{
+  return _awaitingResponseDisposition;
+}
+
+- (void) _setAwaitingResponseDisposition: (BOOL)flag
+{
+  _awaitingResponseDisposition = flag;
+}
+
+- (int) _heldCompletionCode
+{
+  return _heldCompletionCode;
+}
+
+- (void) _setHeldCompletionCode: (int)code
+{
+  _heldCompletionCode = code;
+}
+
 - (NSInteger) _numberOfRedirects
 {
   return _numberOfRedirects;
@@ -1353,7 +1400,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 /* Called in _checkForCompletion */
 - (void) _transferFinishedWithCode: (CURLcode)code
 {
-  NSError	*error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
+  NSError	*error;
+
+  /* The delegate cancelled this task from a callback (a redirect refusal or a
+   * NSURLSessionResponseCancel disposition).  libcurl can still report the
+   * already-buffered response as completing successfully before the cancel
+   * takes effect, so deliver a cancellation rather than that spurious success. */
+  if (CURLE_OK == code && [self _shouldStopTransfer])
+    {
+      code = CURLE_ABORTED_BY_CALLBACK;
+    }
+
+  error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
 
   if (_properties & GSURLSessionWritesDataToFile)
     {
@@ -1499,6 +1557,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
     _shouldStopTransfer = YES;
     _state = NSURLSessionTaskStateCanceling;
+
+    /* If the task was awaiting a didReceiveResponse disposition its completion
+     * was being held back; resolve that state so the cancellation is delivered
+     * (as a cancellation, since _shouldStopTransfer is set) rather than left
+     * pending a disposition that will never arrive. */
+    _awaitingResponseDisposition = NO;
+    [_session _deliverHeldCompletionForTask: self];
   }];
 }
 

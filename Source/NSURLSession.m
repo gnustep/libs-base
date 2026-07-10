@@ -466,11 +466,19 @@ static NSURLSession * sharedSession = nil;
   curl_multi_remove_handle(_multiHandle, easy);
 }
 
-/* Called on the work thread when the delegate refuses a redirect.  The
- * intercepted transfer's completion was held back in -_checkForCompletion, so
- * finish the task here with a cancellation. */
-- (void) _cancelRedirectForTask: (NSURLSessionTask *)task
+/* The single point at which a task's transfer is finished.  Every completion
+ * path (normal completion in -_checkForCompletion, a delegate cancellation, or
+ * a held completion delivered once a disposition is known) funnels through
+ * here so the easy handle removal, the -_transferFinishedWithCode: delivery
+ * and the didBecomeInvalidWithError bookkeeping happen exactly once and
+ * identically regardless of which path finished the task.  A no-op if the task
+ * has already been finished by another path. */
+- (void) _finishTask: (NSURLSessionTask *)task withCode: (CURLcode)code
 {
+  if (![_tasks containsObject: task])
+    {
+      return;
+    }
   curl_multi_remove_handle(_multiHandle, [task _easyHandle]);
 
   /* -_transferFinishedWithCode: may release the last reference to the
@@ -478,9 +486,44 @@ static NSURLSession * sharedSession = nil;
   RETAIN(self);
   RETAIN(task);
   [_tasks removeObject: task];
-  [task _transferFinishedWithCode: CURLE_ABORTED_BY_CALLBACK];
+  [task _transferFinishedWithCode: code];
   RELEASE(task);
+
+  /* Send URLSession:didBecomeInvalidWithError: to the delegate once the last
+   * task of an invalidated session has finished. */
+  if (_invalidated && [_tasks count] == 0 &&
+      [_delegate respondsToSelector: @selector(URLSession:
+                                               didBecomeInvalidWithError:)])
+    {
+      [_delegateQueue addOperationWithBlock:^{
+         /* We only support explicit invalidation for now, so error is nil. */
+         [_delegate URLSession: self didBecomeInvalidWithError: nil];
+       }];
+    }
   RELEASE(self);
+}
+
+/* Called on the work thread when the delegate cancels a task from a callback
+ * (refusing a redirect, or returning NSURLSessionResponseCancel from
+ * URLSession:dataTask:didReceiveResponse:completionHandler:).  The response is
+ * already buffered in libcurl, so relying on the progress or write callback to
+ * abort races with the transfer completing normally; finish it as cancelled. */
+- (void) _cancelTaskFromDelegate: (NSURLSessionTask *)task
+{
+  [self _finishTask: task withCode: CURLE_ABORTED_BY_CALLBACK];
+}
+
+/* Called on the work thread after the delegate allows a response.  If libcurl
+ * completed the transfer while the delegate was answering didReceiveResponse
+ * its completion was held back in -_checkForCompletion; deliver it now.  If
+ * nothing was held, the transfer is still running and completes normally. */
+- (void) _deliverHeldCompletionForTask: (NSURLSessionTask *)task
+{
+  if ([task _heldCompletionCode] < 0)
+    {
+      return;
+    }
+  [self _finishTask: task withCode: (CURLcode)[task _heldCompletionCode]];
 }
 
 /* Called on the work thread from libcurl's timer_callback.  Schedules a
@@ -833,32 +876,22 @@ static NSURLSession * sharedSession = nil;
               continue;
             }
 
-          curl_multi_remove_handle(_multiHandle, easyHandle);
-
-          /* This session might be released in _transferFinishedWithCode. Better
-           * retain it first. */
-          RETAIN(self);
-
-          RETAIN(task);
-          [_tasks removeObject: task];
-          [task _transferFinishedWithCode: res];
-          RELEASE(task);
-
-          /* Send URLSession: didBecomeInvalidWithError: to delegate if this
-           * session was invalidated */
-          if (_invalidated && [_tasks count] == 0 &&
-              [_delegate respondsToSelector: @selector(URLSession:
-                                                       didBecomeInvalidWithError
-                                                       :)])
+          /* Similarly, libcurl may report the buffered response as complete
+           * before the delegate answers didReceiveResponse.  Remember the
+           * result and hold the completion back; the disposition handler
+           * delivers it (or a cancellation) once the delegate replies. */
+          if ([task _awaitingResponseDisposition])
             {
-              [_delegateQueue addOperationWithBlock:^{
-                 /* We only support explicit Invalidation for now. Error is set
-                  * to nil in this case. */
-                 [_delegate URLSession: self didBecomeInvalidWithError: nil];
-               }];
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Holding back completion (code %d) for task %@ awaiting a "
+                @"didReceiveResponse disposition",
+                (int)res, task);
+              [task _setHeldCompletionCode: (int)res];
+              continue;
             }
 
-          RELEASE(self);
+          [self _finishTask: task withCode: res];
         }
     }
 } /* _checkForCompletion */

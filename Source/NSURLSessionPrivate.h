@@ -97,10 +97,21 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
 -(void)_addHandle: (CURL *)easy;
 -(void)_removeHandle: (CURL *)easy;
 
-/* Remove a task whose redirect was refused by the delegate and deliver a
- * cancellation completion for it.
+/* Remove a task the delegate cancelled from a callback (redirect refusal or a
+ * NSURLSessionResponseCancel disposition) and deliver a cancellation
+ * completion for it.
  */
--(void)_cancelRedirectForTask: (NSURLSessionTask *)task;
+/* The single completion point for a task: removes the easy handle, delivers
+ * -_transferFinishedWithCode:, and performs the didBecomeInvalidWithError
+ * bookkeeping.  A no-op if the task was already finished. */
+-(void)_finishTask: (NSURLSessionTask *)task withCode: (CURLcode)code;
+
+-(void)_cancelTaskFromDelegate: (NSURLSessionTask *)task;
+
+/* Deliver a completion that was held back while the task awaited a
+ * didReceiveResponse disposition (see -[NSURLSessionTask _heldCompletionCode]).
+ * A no-op if no completion was held. */
+-(void)_deliverHeldCompletionForTask: (NSURLSessionTask *)task;
 
 -(void)_removeSocket: (struct SourceInfo *)sources;
 -(int)_addSocket: (curl_socket_t)socket easyHandle: (CURL *)easy what: (int)what;
