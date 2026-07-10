@@ -24,6 +24,17 @@ static NSTimeInterval expectedCountOfTasksToComplete = 0;
 static _Atomic(NSInteger) currentCountOfCompletedTasks = 0;
 static NSLock            *countLock;
 
+/* All sessions share this single serial delegate queue so that delegate and
+ * completion-handler callbacks are delivered one at a time on a single thread.
+ * The tests emit their PASS/PASS_EQUAL results from those callbacks; without a
+ * shared serial queue the callbacks from the several sessions run on separate
+ * threads at once and their interleaved output is misparsed by the test
+ * harness. */
+static NSOperationQueue *serialDelegateQueue;
+/* Used where a test previously used +[NSURLSession sharedSession]; a dedicated
+ * session lets those transfers use the shared serial delegate queue too. */
+static NSURLSession     *sharedTestSession;
+
 static NSDictionary *requestCookieProperties;
 
 static NSArray<Route *> *
@@ -329,7 +340,7 @@ testSimpleDownloadTransfer(NSURL *baseURL)
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   task = [session downloadTaskWithURL:contentOKURL];
   PASS(nil != task, "%s Session created a valid download task", prefix);
@@ -367,7 +378,7 @@ testDownloadTransferWithRedirect(NSURL *baseURL)
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   task = [session downloadTaskWithURL:contentOKURL];
   PASS(nil != task, "%s Session created a valid download task", prefix);
@@ -392,7 +403,7 @@ testDataTransferWithRedirectAndBlock(NSURL *baseURL)
 
   expectedCountOfTasksToComplete += 1;
 
-  session = [NSURLSession sharedSession];
+  session = sharedTestSession;
   url = [baseURL URLByAppendingPathComponent:@"tmpRedirectToOK"];
   task = [session
       dataTaskWithURL:url
@@ -444,7 +455,7 @@ testDataTransferWithCanceledRedirect(NSURL *baseURL)
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   task = [session dataTaskWithURL:contentOKURL];
   PASS(nil != task, "%s Session created a valid download task", prefix);
@@ -473,12 +484,12 @@ testDataTransferWithRelativeRedirect(NSURL *baseURL)
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   expectedCountOfTasksToComplete += 1;
 
-  session = [NSURLSession sharedSession];
+  session = sharedTestSession;
   url = [baseURL URLByAppendingPathComponent:@"tmpRelativeRedirectToOK"];
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   task = [session dataTaskWithURL:url];
   PASS(nil != task, "%s Session created a valid download task", prefix);
@@ -500,7 +511,7 @@ testDownloadTransferWithBlock(NSURL *baseURL)
 
   expectedCountOfTasksToComplete += 1;
 
-  session = [NSURLSession sharedSession];
+  session = sharedTestSession;
   url = [baseURL URLByAppendingPathComponent:@"contentOK"];
   task = [session
     downloadTaskWithURL:url
@@ -559,7 +570,7 @@ testParallelDataTransfer(NSURL *baseURL)
   [configuration setHTTPMaximumConnectionsPerHost:0]; // Unlimited
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   /* Setup Check Block */
   [mgr setCheckBlock:^(URLManager *mgr) {
@@ -602,7 +613,7 @@ testDataTaskWithBlock(NSURL *baseURL)
   expectedCountOfTasksToComplete += 1;
 
   url = [baseURL URLByAppendingPathComponent:@"contentOK"];
-  session = [NSURLSession sharedSession];
+  session = sharedTestSession;
   task = [session
       dataTaskWithURL:url
     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -717,7 +728,7 @@ foldedHeaderDataTaskTest(NSURL *baseURL)
   expectedCountOfTasksToComplete += 1;
 
   url = [baseURL URLByAppendingPathComponent:@"foldedHeaders"];
-  session = [NSURLSession sharedSession];
+  session = sharedTestSession;
   task = [session
       dataTaskWithURL:url
     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -783,7 +794,7 @@ testAbortAfterDidReceiveResponse(NSURL *baseURL)
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
-                                     delegateQueue:nil];
+                                     delegateQueue:serialDelegateQueue];
 
   task = [session dataTaskWithURL:contentOKURL];
   PASS(nil != task, "%s Session created a valid download task", prefix);
@@ -813,6 +824,8 @@ testInvalidateAndCancel(NSURL *baseURL)
   contentOKURL = [baseURL URLByAppendingPathComponent:@"contentOK"];
 
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  /* Lifecycle test: own delegate queue (no test output emitted from the
+   * callback, and it waits on its own run loop). */
   session = [NSURLSession sessionWithConfiguration:configuration
                                           delegate:mgr
                                      delegateQueue:nil];
@@ -859,6 +872,9 @@ testSessionTeardownWithoutInvalidate(NSURL *baseURL)
         __block BOOL               finished = NO;
 
         configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        /* Lifecycle tests use their own delegate queue: they wait on their own
+         * run loop and do not emit test output from the callback, so they need
+         * not share the serial output queue (and must not block on it). */
         session = [NSURLSession sessionWithConfiguration:configuration
                                                 delegate:nil
                                            delegateQueue:nil];
@@ -910,6 +926,15 @@ main(int argc, char *argv[])
     helperPath = [[fm currentDirectoryPath]
       stringByAppendingString:@"/Helpers/HTTPServer.bundle"];
     countLock = [[NSLock alloc] init];
+
+    serialDelegateQueue = [[NSOperationQueue alloc] init];
+    [serialDelegateQueue setMaxConcurrentOperationCount: 1];
+    sharedTestSession = [NSURLSession
+      sessionWithConfiguration: [NSURLSessionConfiguration
+                                  defaultSessionConfiguration]
+                      delegate: nil
+                 delegateQueue: serialDelegateQueue];
+    RETAIN(sharedTestSession);
 
     bundle = [NSBundle bundleWithPath:helperPath];
     if (![bundle load])
