@@ -28,6 +28,8 @@
 @class NSInputStream;
 @class NSOutputStream;
 
+NS_ASSUME_NONNULL_BEGIN
+
 enum
 {
   /**
@@ -87,18 +89,20 @@ typedef NSUInteger NSJSONReadingOptions;
  */
 GS_EXPORT_CLASS
 @interface NSJSONSerialization : NSObject
-+ (NSData*) dataWithJSONObject: (id)obj
-                       options: (NSJSONWritingOptions)opt
-                         error: (NSError **)error;
++ (NSData *_Nullable) dataWithJSONObject: (id)obj
+                                 options: (NSJSONWritingOptions)opt
+                                   error: (NSError *_Nullable *_Nullable)error;
 + (BOOL) isValidJSONObject: (id)obj;
-+ (id) JSONObjectWithData: (NSData *)data
-                  options: (NSJSONReadingOptions)opt
-                    error: (NSError **)error;
-+ (id) JSONObjectWithStream: (NSInputStream *)stream
-                    options: (NSJSONReadingOptions)opt
-                      error: (NSError **)error;
++ (id _Nullable) JSONObjectWithData: (NSData *)data
+                            options: (NSJSONReadingOptions)opt
+                              error: (NSError *_Nullable *_Nullable)error;
++ (id _Nullable) JSONObjectWithStream: (NSInputStream *)stream
+                              options: (NSJSONReadingOptions)opt
+                                error: (NSError *_Nullable *_Nullable)error;
 + (NSInteger) writeJSONObject: (id)obj
                      toStream: (NSOutputStream *)stream
                       options: (NSJSONWritingOptions)opt
-                        error: (NSError **)error;
+                        error: (NSError *_Nullable *_Nullable)error;
 @end
+
+NS_ASSUME_NONNULL_END
