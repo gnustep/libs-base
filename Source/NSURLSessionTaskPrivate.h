@@ -92,6 +92,12 @@
 -(BOOL)_shouldStopTransfer;
 -(void)_setShouldStopTransfer: (BOOL)flag;
 
+/* Set while an intercepted 3xx response is being resolved (delegate redirect
+ * decision or automatic re-add).  Checked in -_checkForCompletion so the
+ * completed intermediate transfer does not deliver an early completion. */
+-(BOOL)_redirectInProgress;
+-(void)_setRedirectInProgress: (BOOL)flag;
+
 -(NSInteger)_numberOfRedirects;
 -(void)_setNumberOfRedirects: (NSInteger)redirects;
 

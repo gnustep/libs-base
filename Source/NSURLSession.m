@@ -466,6 +466,23 @@ static NSURLSession * sharedSession = nil;
   curl_multi_remove_handle(_multiHandle, easy);
 }
 
+/* Called on the work thread when the delegate refuses a redirect.  The
+ * intercepted transfer's completion was held back in -_checkForCompletion, so
+ * finish the task here with a cancellation. */
+- (void) _cancelRedirectForTask: (NSURLSessionTask *)task
+{
+  curl_multi_remove_handle(_multiHandle, [task _easyHandle]);
+
+  /* -_transferFinishedWithCode: may release the last reference to the
+   * session, so keep both alive across the call. */
+  RETAIN(self);
+  RETAIN(task);
+  [_tasks removeObject: task];
+  [task _transferFinishedWithCode: CURLE_ABORTED_BY_CALLBACK];
+  RELEASE(task);
+  RELEASE(self);
+}
+
 /* Called on the work thread from libcurl's timer_callback.  Schedules a
  * one-shot timer on the work thread run loop; libcurl re-arms it as needed.
  */
@@ -801,6 +818,20 @@ static NSURLSession * sharedSession = nil;
             task,
             eff_url,
             curl_easy_strerror(res));
+
+          /* With CURLOPT_FOLLOWLOCATION disabled libcurl reports an
+           * intercepted 3xx response as a completed transfer.  When the task
+           * is being redirected the easy handle is about to be re-added for
+           * the new location (or cancelled by the delegate), so hold back the
+           * completion instead of delivering it for the intermediate leg. */
+          if ([task _redirectInProgress])
+            {
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Holding back completion for redirecting task %@",
+                task);
+              continue;
+            }
 
           curl_multi_remove_handle(_multiHandle, easyHandle);
 

@@ -97,6 +97,11 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
 -(void)_addHandle: (CURL *)easy;
 -(void)_removeHandle: (CURL *)easy;
 
+/* Remove a task whose redirect was refused by the delegate and deliver a
+ * cancellation completion for it.
+ */
+-(void)_cancelRedirectForTask: (NSURLSessionTask *)task;
+
 -(void)_removeSocket: (struct SourceInfo *)sources;
 -(int)_addSocket: (curl_socket_t)socket easyHandle: (CURL *)easy what: (int)what;
 -(int)_setSocket: (curl_socket_t)socket

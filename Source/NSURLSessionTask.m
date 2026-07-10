@@ -465,6 +465,10 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       [task _setCookiesFromHeaders: headerFields];
       [task _setResponse: response];
 
+      /* Assume this response is final; the redirection handling below sets
+       * this again if the handle is going to be re-added for a new location. */
+      [task _setRedirectInProgress: NO];
+
       /* URL redirection handling for 3xx status codes, if delegate updates are
        * enabled.
        *
@@ -515,6 +519,11 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
                   curl_easy_pause(handle, CURLPAUSE_ALL);
 
+                  /* libcurl treats the intercepted 3xx as a finished transfer
+                   * (CURLOPT_FOLLOWLOCATION is off), so hold back completion
+                   * until the delegate resolves the redirect. */
+                  [task _setRedirectInProgress: YES];
+
                   [[session delegateQueue] addOperationWithBlock:^{
                      void (^completionHandler)(NSURLRequest *) = ^(
                        NSURLRequest *userRequest) {
@@ -522,8 +531,11 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                        [session _performOnWorkThread: ^{
                            if (NULL == userRequest)
                            {
-                             curl_easy_pause(handle, CURLPAUSE_CONT);
-                             [task _setShouldStopTransfer: YES];
+                             /* The delegate refused the redirect.  Remove the
+                              * intercepted transfer (whose completion was held
+                              * back) and deliver a cancellation for it. */
+                             [task _setRedirectInProgress: NO];
+                             [session _cancelRedirectForTask: task];
                              NSDebugLLog(
                                GS_NSURLSESSION_DEBUG_KEY,
                                @"task=%@ willPerformHTTPRedirection "
@@ -852,6 +864,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   _Atomic(BOOL) _shouldStopTransfer;
 
+  /* Set while an intercepted 3xx response is being handled by the delegate
+   * (or automatically) and the easy handle is about to be re-added for the
+   * new location.  libcurl reports the intercepted response as a completed
+   * transfer (CURLOPT_FOLLOWLOCATION is off), so completion must be held
+   * back until the redirect resolves; otherwise the task delivers a spurious
+   * early -URLSession:task:didCompleteWithError:. */
+  _Atomic(BOOL) _redirectInProgress;
+
   /* Opaque value for storing task specific properties */
   NSInteger _properties;
 
@@ -908,6 +928,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       _taskIdentifier = identifier;
       _taskData = [[NSMutableDictionary alloc] init];
       _shouldStopTransfer = NO;
+      _redirectInProgress = NO;
       _numberOfRedirects = -1;
       _headerCallbackCount = 0;
 
@@ -1257,6 +1278,16 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (void) _setShouldStopTransfer: (BOOL)flag
 {
   _shouldStopTransfer = flag;
+}
+
+- (BOOL) _redirectInProgress
+{
+  return _redirectInProgress;
+}
+
+- (void) _setRedirectInProgress: (BOOL)flag
+{
+  _redirectInProgress = flag;
 }
 
 - (NSInteger) _numberOfRedirects
