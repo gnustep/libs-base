@@ -739,9 +739,13 @@ foldedHeaderDataTaskTest(NSURL *baseURL)
       PASS_EQUAL(string, @"Hello World!", "%s received data is correct",
                  prefix);
 
-      PASS_EQUAL([headerDict objectForKey:@"Folded-Header-SP"], @"Testing",
+      /* RFC 7230 (3.2.4): a folded header is unfolded by replacing the fold
+       * with a single SP, so both the space- and tab-folded values become
+       * "Test ing".  This holds whether libcurl passes the raw folded lines
+       * (older libcurl) or unfolds them itself (newer libcurl). */
+      PASS_EQUAL([headerDict objectForKey:@"Folded-Header-SP"], @"Test ing",
                  "Folded header with continuation space is parsed correctly");
-      PASS_EQUAL([headerDict objectForKey:@"Folded-Header-TAB"], @"Testing",
+      PASS_EQUAL([headerDict objectForKey:@"Folded-Header-TAB"], @"Test ing",
                  "Folded header with continuation tab is parsed correctly");
 
       [string release];

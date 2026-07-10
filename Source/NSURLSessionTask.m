@@ -342,10 +342,13 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
     }
 
   /* Header fields can be extended over multiple lines by preceding
-   * each extra line with at least one SP or HT (RFC 2616).
+   * each extra line with at least one SP or HT (RFC 2616 line folding).
    *
-   * This is known as line folding. We append the value to the
-   * previous header's value.
+   * RFC 7230 (3.2.4) requires a recipient to replace each such fold with a
+   * single SP before interpreting the value, so append the continuation to
+   * the previous header's value separated by one space.  This also matches
+   * newer libcurl, which unfolds the header to a single space before the
+   * callback sees it.
    */
   if ((ptr[0] == ' ') || (ptr[0] == '\t'))
     {
@@ -380,7 +383,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
             }
 
           trimmedLine = [headerLine stringByTrimmingCharactersInSet: set];
-          value = [value stringByAppendingString: trimmedLine];
+          value = [value stringByAppendingFormat: @" %@", trimmedLine];
 
           [headerFields setObject: value forKey: key];
         }
