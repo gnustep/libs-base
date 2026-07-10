@@ -36,6 +36,7 @@
 #import "AGSOutput.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "GNUstepBase/GSXML.h"
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup
