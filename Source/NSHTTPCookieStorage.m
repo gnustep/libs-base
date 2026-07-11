@@ -201,10 +201,7 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 
 	  props = [properties objectAtIndex: i];
 	  cookie = [NSHTTPCookie cookieWithProperties: props];
-	  if (NO == [this->_cookies containsObject: cookie])
-	    {
-	      [this->_cookies addObject: cookie];
-	    }
+	  [self _setCookieNoNotify: cookie];
 	}
       [this->_lock unlock];
     }

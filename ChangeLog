@@ -7,6 +7,7 @@
 	Also simplify the cleanup coede on thread exit.
 	* Source/NSHTTPCookieStorage.m: add a lock as an instancve variable
 	to make cookie storage objects thread-safe.
+	Fix loading from disk to avoid duplicate cookies in store.
 
 2026-07-09 Richard Frith-Macdonald <rfm@gnu.org>
 
