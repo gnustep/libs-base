@@ -262,10 +262,6 @@
 /* Define to 1 if you have the <dispatch/private.h> header file. */
 #undef HAVE_DISPATCH_PRIVATE_H
 
-/* Define to 1 if you have the `dispatch_queue_create_with_target' function.
-   */
-#undef HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET
-
 /* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
 

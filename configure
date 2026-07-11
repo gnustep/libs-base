@@ -15146,7 +15146,7 @@ fi
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBDISPATCH = 1 -a $HAVE_LIBCURL = 1; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
@@ -15166,17 +15166,6 @@ if test $enable_nsurlsession = yes; then
   if test $HAVE_BLOCKS = 0; then
     as_fn_error $? "Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi
-  if test $HAVE_LIBDISPATCH = 0; then
-    as_fn_error $? "Missing libdispatch (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
-   fi
-  # Check for dispatch_queue_create_with_target needed for NSURLSession
-  ac_fn_c_check_func "$LINENO" "dispatch_queue_create_with_target" "ac_cv_func_dispatch_queue_create_with_target"
-if test "x$ac_cv_func_dispatch_queue_create_with_target" = xyes
-then :
-  printf "%s\n" "#define HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET 1" >>confdefs.h
-
-fi
-
   if test $HAVE_LIBCURL = 0; then
     as_fn_error $? "Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi

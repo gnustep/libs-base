@@ -1,7 +1,5 @@
 #import <Foundation/Foundation.h>
 
-#import <dispatch/dispatch.h>
-
 #ifdef _WIN32
 #import <winsock2.h>
 #import <WS2tcpip.h>
@@ -11,6 +9,7 @@
 
 #import <netinet/in.h>
 #import <sys/socket.h>
+#import <unistd.h>
 
 #endif
 
@@ -60,22 +59,6 @@ NSString (ServerAdditions)
     }
 }
 @end
-
-/* We don't need this once toll-free bridging works */
-NSData *
-copyDispatchDataToNSData(dispatch_data_t dispatchData)
-{
-  NSMutableData *mutableData =
-    [NSMutableData dataWithCapacity:dispatch_data_get_size(dispatchData)];
-
-  dispatch_data_apply(dispatchData, ^bool(dispatch_data_t region, size_t offset,
-                                          const void *buffer, size_t size) {
-    [mutableData appendBytes:buffer length:size];
-    return true; // Continue iterating
-  });
-
-  return [mutableData copy];
-}
 
 @implementation Route
 {
@@ -132,8 +115,6 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
   int               _socket;
   NSInteger         _port;
   NSArray<Route *> *_routes;
-  dispatch_queue_t  _queue;
-  dispatch_queue_t  _acceptQueue;
 }
 
 - initWithPort:(NSInteger)port routes:(NSArray<Route *> *)routes
@@ -174,7 +155,8 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
 
   int rc;
   int yes = 1;
-  rc = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+  rc = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&yes,
+    sizeof(int));
   if (rc == -1)
     {
       NSLog(@"Error setting socket options %s", strerror(errno));
@@ -203,75 +185,80 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
       return nil;
     }
 
-  _queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-  _acceptQueue = dispatch_queue_create("org.gnustep.HTTPServer.AcceptQueue",
-                                       DISPATCH_QUEUE_CONCURRENT);
-
   return self;
 }
 
-- (void) acceptConnection
+/* The accept loop runs on its own thread (see -resume).  It blocks in
+ * accept() and hands each accepted connection to its own handler thread, so
+ * several connections can be served at once without libdispatch. */
+- (void) acceptLoop
 {
-  struct sockaddr_in	clientAddr;
-  dispatch_source_t	clientSource;
-  socklen_t      	sin_size;
-  int                	clientSocket;
-
-  sin_size = sizeof(struct sockaddr_in);
-  clientSocket = accept(_socket, (struct sockaddr *) &clientAddr, &sin_size);
-  if (clientSocket < 0)
+  while (!_stop)
     {
-      NSLog(@"Error accepting connection %s", strerror(errno));
-      return;
+      @autoreleasepool
+        {
+          struct sockaddr_in	clientAddr;
+          socklen_t      	sin_size = sizeof(struct sockaddr_in);
+          int                	clientSocket;
+
+          clientSocket = accept(_socket, (struct sockaddr *) &clientAddr,
+            &sin_size);
+          if (clientSocket < 0)
+            {
+              if (_stop)
+                {
+                  break;
+                }
+              NSLog(@"Error accepting connection %s", strerror(errno));
+              continue;
+            }
+
+          [NSThread detachNewThreadSelector: @selector(handleClientSocket:)
+                                   toTarget: self
+                                 withObject: [NSNumber numberWithInt:
+                                   clientSocket]];
+        }
     }
-  
-  clientSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ,
-                                         clientSocket, 0, _queue);
-  
-  dispatch_source_set_cancel_handler(clientSource, ^{
-    close(clientSocket);
-  });
+}
 
-  dispatch_source_set_event_handler(clientSource, ^{
-    while (1)
-      {
-        char buffer[4096];
-        NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-        if (bytesRead < 0)
-          {
-            #ifdef _WIN32
-            int error = WSAGetLastError();
-            if (error == WSAEWOULDBLOCK)
-              {
-                break;
-              }
-            #else
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-              {
-                break;
-              }
-            #endif
-            else
-              {
-                NSLog(@"Error reading data %s", strerror(errno));
-                dispatch_source_cancel(clientSource);
-                return;
-              }
-          }
-        else if (bytesRead == 0)
-          {
-            dispatch_source_cancel(clientSource);
-            return;
-          }
-        else
-          {
-            NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
-            [self handleConnectionData:data forSocket:clientSocket];
-          }
-      }
-  });
+/* One handler thread per connection: block reading requests and answer them
+ * until the peer closes or an error occurs. */
+- (void) handleClientSocket: (NSNumber *)clientSocketNumber
+{
+  int clientSocket = [clientSocketNumber intValue];
 
-  dispatch_resume(clientSource);
+  while (!_stop)
+    {
+      BOOL done = NO;
+
+      @autoreleasepool
+        {
+          char      buffer[4096];
+          NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+
+          if (bytesRead > 0)
+            {
+              NSData *data = [NSData dataWithBytes: buffer length: bytesRead];
+              [self handleConnectionData: data forSocket: clientSocket];
+            }
+          else
+            {
+              /* 0 means the peer closed the connection; < 0 is an error. */
+              if (bytesRead < 0)
+                {
+                  NSLog(@"Error reading data %s", strerror(errno));
+                }
+              done = YES;
+            }
+        }
+
+      if (done)
+        {
+          break;
+        }
+    }
+
+  close(clientSocket);
 }
 
 - (void)handleConnectionData:(NSData *)reqData forSocket:(int)sock
@@ -388,12 +375,9 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
   if (_stop)
     {
       _stop = NO;
-      dispatch_async(_acceptQueue, ^{
-        while (!_stop)
-          {
-            [self acceptConnection];
-          }
-      });
+      [NSThread detachNewThreadSelector: @selector(acceptLoop)
+                               toTarget: self
+                             withObject: nil];
     }
 }
 - (void)suspend
@@ -403,10 +387,6 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
 
 - (void)dealloc
 {
-#ifndef __APPLE__
-  dispatch_release(_acceptQueue);
-#endif
-
   close(_socket);
 #ifdef _WIN32
   WSACleanup();

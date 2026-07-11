@@ -31,22 +31,35 @@
 
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSDictionary.h"
-#import "GSDispatch.h"
 #import <curl/curl.h>
+
+#if	defined(_WIN32)
+#import <winsock2.h>
+#endif
 
 extern NSString * GS_NSURLSESSION_DEBUG_KEY;
 
-/* libcurl may request a full-duplex socket configuration with
- * CURL_POLL_INOUT, but libdispatch distinguishes between a read and write
- * socket source.
+/* A block executed on the session work thread. */
+typedef void (^GSURLSessionWorkBlock)(void);
+
+/* libcurl asks us to monitor a socket for reading, writing or both
+ * (CURL_POLL_INOUT).  We integrate this with the NSRunLoop of the session
+ * work thread rather than libdispatch, so this structure records what we
+ * currently have registered for a socket.
  *
- * We thus need to keep track of two dispatch sources. One may be set to NULL
- * if not used.
+ * On unix the run loop watches the descriptor directly (ET_RDESC/ET_WDESC).
+ * On Windows the run loop has no descriptor events, so we associate a
+ * WSAEVENT with the socket using WSAEventSelect and watch that (ET_HANDLE).
  */
 struct SourceInfo
 {
-  dispatch_source_t readSocket;
-  dispatch_source_t writeSocket;
+  curl_socket_t	socket;
+  BOOL		readReady;	/* An ET_RDESC watcher is installed.	*/
+  BOOL		writeReady;	/* An ET_WDESC watcher is installed.	*/
+#if	defined(_WIN32)
+  WSAEVENT	event;		/* Registered with the loop as ET_HANDLE. */
+  long		networkEvents;	/* Currently selected FD_* mask.		*/
+#endif
 };
 
 typedef NS_ENUM(NSInteger, GSURLSessionProperties)
@@ -61,7 +74,10 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
 @interface
   NSURLSession(Private)
 
-- (dispatch_queue_t)_workQueue;
+/* Schedule a block to run on the session work thread's run loop.  If the
+ * caller is already on the work thread the block runs immediately.
+ */
+- (void)_performOnWorkThread: (GSURLSessionWorkBlock)block;
 
 -(NSData *)_certificateBlob;
 -(NSString *)_certificatePath;
@@ -80,6 +96,22 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
  */
 -(void)_addHandle: (CURL *)easy;
 -(void)_removeHandle: (CURL *)easy;
+
+/* Remove a task the delegate cancelled from a callback (redirect refusal or a
+ * NSURLSessionResponseCancel disposition) and deliver a cancellation
+ * completion for it.
+ */
+/* The single completion point for a task: removes the easy handle, delivers
+ * -_transferFinishedWithCode:, and performs the didBecomeInvalidWithError
+ * bookkeeping.  A no-op if the task was already finished. */
+-(void)_finishTask: (NSURLSessionTask *)task withCode: (CURLcode)code;
+
+-(void)_cancelTaskFromDelegate: (NSURLSessionTask *)task;
+
+/* Deliver a completion that was held back while the task awaited a
+ * didReceiveResponse disposition (see -[NSURLSessionTask _heldCompletionCode]).
+ * A no-op if no completion was held. */
+-(void)_deliverHeldCompletionForTask: (NSURLSessionTask *)task;
 
 -(void)_removeSocket: (struct SourceInfo *)sources;
 -(int)_addSocket: (curl_socket_t)socket easyHandle: (CURL *)easy what: (int)what;

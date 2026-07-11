@@ -31,7 +31,13 @@
 #import "NSURLSessionTaskPrivate.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSTimer.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSData.h"
@@ -39,7 +45,6 @@
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -notImplemented */
 #import "GSPThread.h"                        /* For nextSessionIdentifier() */
-#import "GSDispatch.h"                       /* For dispatch compatibility */
 
 NSString * GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
 
@@ -125,22 +130,80 @@ socket_callback(CURL * easy,           /* easy handle */
     }
 } /* socket_callback */
 
+#pragma mark - Work thread trampoline
+
+/* Runs the run loop for an NSURLSession's work thread.  It deliberately
+ * holds no reference to the session, so that the session's lifetime is not
+ * extended by the running thread; -[NSURLSession dealloc] stops and joins
+ * the thread before releasing anything the thread might touch.
+ */
+@interface GSURLSessionWorkThread : NSObject
+{
+@public
+  NSThread * thread;
+  NSPort * port;
+  BOOL shouldExit;
+}
+- (void) run;
+- (void) stop;
+@end
+
+@implementation GSURLSessionWorkThread
+- (void) run
+{
+  NSAutoreleasePool * pool = [NSAutoreleasePool new];
+  NSRunLoop * rl = [NSRunLoop currentRunLoop];
+
+  [rl addPort: port forMode: NSDefaultRunLoopMode];
+  while (!shouldExit)
+    {
+      NSAutoreleasePool * inner = [NSAutoreleasePool new];
+
+      [rl runMode: NSDefaultRunLoopMode beforeDate: [NSDate distantFuture]];
+      [inner release];
+    }
+  [rl removePort: port forMode: NSDefaultRunLoopMode];
+  [pool release];
+}
+
+- (void) stop
+{
+  shouldExit = YES;
+}
+@end
+
 #pragma mark - NSURLSession Implementation
+
+/* The session acts as its own run loop watcher for the sockets libcurl
+ * asks us to monitor. */
+@interface NSURLSession () <RunLoopEvents>
+@end
 
 @implementation NSURLSession
 {
   /* The libcurl multi handle associated with this session.
    * We use the curl_multi_socket_action API as we utilise our
-   * own event-handling system based on libdispatch.
+   * own event-handling system integrated with the work thread run loop.
    *
    * Event creation and deletion is driven by the various callbacks
    * registered during initialisation of the multi handle.
    */
   CURLM * _multiHandle;
-  /* A serial work queue for timer and socket sources
-   * created on libcurl's behalf.
+  /* Drives a dedicated thread running an NSRunLoop.  All libcurl multi
+   * handle activity (adding handles, socket events and the timer) happens on
+   * that thread, which serialises access in place of a dispatch queue and
+   * keeps GNUstep free of a libdispatch dependency.  The helper holds the
+   * session unretained so that it does not keep the session alive.
    */
-  dispatch_queue_t _workQueue;
+  GSURLSessionWorkThread * _workHelper;
+
+#if	defined(_WIN32)
+  /* Maps a registered WSAEVENT back to its socket, since the run loop only
+   * hands the event handle back to -receivedEvent:type:extra:forMode:.
+   */
+  NSMapTable * _socketForEvent;
+#endif
+
   /* This timer is driven by libcurl and used by
    * libcurl's multi API.
    *
@@ -150,13 +213,9 @@ socket_callback(CURL * easy,           /* easy handle */
    *
    * See https://curl.se/libcurl/c/CURLMOPT_TIMERFUNCTION.html
    * and https://curl.se/libcurl/c/curl_multi_socket_action.html
-   * respectively.
+   * respectively.  It is scheduled on the work thread run loop.
    */
-  dispatch_source_t _timer;
-
-  /* The timer may be suspended upon request by libcurl.
-   */
-  BOOL _isTimerSuspended;
+  NSTimer * _timer;
 
   /* Only set when session originates from +[NSURLSession sharedSession] */
   BOOL _isSharedSession;
@@ -169,7 +228,7 @@ socket_callback(CURL * easy,           /* easy handle */
    */
   int _stillRunning;
 
-  /* List of active tasks. Access is synchronised via the _workQueue.
+  /* List of active tasks. Access is synchronised via the work thread.
    */
   NSMutableArray<NSURLSessionTask *> * _tasks;
 
@@ -189,23 +248,27 @@ socket_callback(CURL * easy,           /* easy handle */
   gs_mutex_t _taskLock;
 }
 
+static NSURLSession * sharedSession = nil;
+
 + (NSURLSession *) sharedSession
 {
-  static NSURLSession * session = nil;
-  static dispatch_once_t predicate;
+  static gs_mutex_t lock = GS_MUTEX_INIT_STATIC;
 
-  dispatch_once(
-    &predicate,
-    ^{
-    NSURLSessionConfiguration * configuration =
-      [NSURLSessionConfiguration defaultSessionConfiguration];
-    session = [[NSURLSession alloc] initWithConfiguration: configuration
-                                                 delegate: nil
-                                            delegateQueue: nil];
-    [session _setSharedSession: YES];
-  });
+  GS_MUTEX_LOCK(lock);
+  if (nil == sharedSession)
+    {
+      NSURLSessionConfiguration * configuration =
+        [NSURLSessionConfiguration defaultSessionConfiguration];
 
-  return session;
+      sharedSession
+        = [[NSURLSession alloc] initWithConfiguration: configuration
+                                             delegate: nil
+                                        delegateQueue: nil];
+      [sharedSession _setSharedSession: YES];
+    }
+  GS_MUTEX_UNLOCK(lock);
+
+  return sharedSession;
 }
 
 + (NSURLSession *) sessionWithConfiguration:
@@ -247,9 +310,6 @@ socket_callback(CURL * easy,           /* easy handle */
       NSString * caPath;
       NSUInteger sessionIdentifier;
 
-      /* To avoid a retain cycle in blocks referencing this object */
-      __block typeof(self) this = self;
-
       sessionIdentifier = nextSessionIdentifier();
       queueLabel = [[NSString alloc]
                     initWithFormat: @"org.gnustep.NSURLSession.WorkQueue%ld",
@@ -260,39 +320,21 @@ socket_callback(CURL * easy,           /* easy handle */
       _tasks = [[NSMutableArray alloc] init];
       GS_MUTEX_INIT(_taskLock);
 
-      /* label is strdup'ed by libdispatch */
-      _workQueue
-        = dispatch_queue_create([queueLabel UTF8String], DISPATCH_QUEUE_SERIAL);
+      _timer = nil;
+#if	defined(_WIN32)
+      _socketForEvent = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+        NSIntegerMapValueCallBacks, 0);
+#endif
+      /* A port keeps the work thread run loop from exiting when it has no
+       * other input sources. */
+      _workHelper = [[GSURLSessionWorkThread alloc] init];
+      _workHelper->port = [[NSPort port] retain];
+      _workHelper->thread = [[NSThread alloc] initWithTarget: _workHelper
+                                                    selector: @selector(run)
+                                                      object: nil];
+      [_workHelper->thread setName: queueLabel];
       [queueLabel release];
-      if (!_workQueue)
-        return nil;
-
-      _isTimerSuspended = YES;
-      _timer
-        = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _workQueue);
-      if (!_timer)
-        {
-          return nil;
-        }
-
-      dispatch_source_set_cancel_handler(
-        _timer,
-        ^{
-      dispatch_release(this->_timer);
-    });
-
-      // Called after timeout set by libcurl is reached
-      dispatch_source_set_event_handler(
-        _timer,
-        ^{
-      // TODO: Check for return values
-      curl_multi_socket_action(
-        this->_multiHandle,
-        CURL_SOCKET_TIMEOUT,
-        0,
-        &this->_stillRunning);
-      [this _checkForCompletion];
-    });
+      [_workHelper->thread start];
 
       /* Use the provided delegateQueue if available */
       if (queue)
@@ -384,9 +426,7 @@ socket_callback(CURL * easy,           /* easy handle */
 
 - (void) _resumeTask: (NSURLSessionTask *)task
 {
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     CURLMcode code;
     CURLM * multiHandle = _multiHandle;
 
@@ -399,70 +439,195 @@ socket_callback(CURL * easy,           /* easy handle */
       [task _easyHandle],
       multiHandle,
       code);
-  });
+
+    /* Kick the transfer off now rather than waiting for the timer callback
+     * (see -_addHandle:). */
+    curl_multi_socket_action(multiHandle, CURL_SOCKET_TIMEOUT, 0,
+      &_stillRunning);
+    [self _checkForCompletion];
+  }];
 }
 
 - (void) _addHandle: (CURL *)easy
 {
   curl_multi_add_handle(_multiHandle, easy);
+
+  /* Kick the added transfer off now rather than waiting for libcurl to fire
+   * the timer callback.  Relying on the timer alone races with the run loop,
+   * which shows up most on a handle that is re-added after a redirect: the
+   * transfer can stall until an unrelated event drives the multi handle.
+   * See https://curl.se/libcurl/c/curl_multi_socket_action.html . */
+  curl_multi_socket_action(_multiHandle, CURL_SOCKET_TIMEOUT, 0,
+    &_stillRunning);
+  [self _checkForCompletion];
 }
 - (void) _removeHandle: (CURL *)easy
 {
   curl_multi_remove_handle(_multiHandle, easy);
 }
 
+/* The single point at which a task's transfer is finished.  Every completion
+ * path (normal completion in -_checkForCompletion, a delegate cancellation, or
+ * a held completion delivered once a disposition is known) funnels through
+ * here so the easy handle removal, the -_transferFinishedWithCode: delivery
+ * and the didBecomeInvalidWithError bookkeeping happen exactly once and
+ * identically regardless of which path finished the task.  A no-op if the task
+ * has already been finished by another path. */
+- (void) _finishTask: (NSURLSessionTask *)task withCode: (CURLcode)code
+{
+  if (![_tasks containsObject: task])
+    {
+      return;
+    }
+  curl_multi_remove_handle(_multiHandle, [task _easyHandle]);
+
+  /* -_transferFinishedWithCode: may release the last reference to the
+   * session, so keep both alive across the call. */
+  RETAIN(self);
+  RETAIN(task);
+  [_tasks removeObject: task];
+  [task _transferFinishedWithCode: code];
+  RELEASE(task);
+
+  /* Send URLSession:didBecomeInvalidWithError: to the delegate once the last
+   * task of an invalidated session has finished. */
+  if (_invalidated && [_tasks count] == 0 &&
+      [_delegate respondsToSelector: @selector(URLSession:
+                                               didBecomeInvalidWithError:)])
+    {
+      [_delegateQueue addOperationWithBlock:^{
+         /* We only support explicit invalidation for now, so error is nil. */
+         [_delegate URLSession: self didBecomeInvalidWithError: nil];
+       }];
+    }
+  RELEASE(self);
+}
+
+/* Called on the work thread when the delegate cancels a task from a callback
+ * (refusing a redirect, or returning NSURLSessionResponseCancel from
+ * URLSession:dataTask:didReceiveResponse:completionHandler:).  The response is
+ * already buffered in libcurl, so relying on the progress or write callback to
+ * abort races with the transfer completing normally; finish it as cancelled. */
+- (void) _cancelTaskFromDelegate: (NSURLSessionTask *)task
+{
+  [self _finishTask: task withCode: CURLE_ABORTED_BY_CALLBACK];
+}
+
+/* Called on the work thread after the delegate allows a response.  If libcurl
+ * completed the transfer while the delegate was answering didReceiveResponse
+ * its completion was held back in -_checkForCompletion; deliver it now.  If
+ * nothing was held, the transfer is still running and completes normally. */
+- (void) _deliverHeldCompletionForTask: (NSURLSessionTask *)task
+{
+  if ([task _heldCompletionCode] < 0)
+    {
+      return;
+    }
+  [self _finishTask: task withCode: (CURLcode)[task _heldCompletionCode]];
+}
+
+/* Called on the work thread from libcurl's timer_callback.  Schedules a
+ * one-shot timer on the work thread run loop; libcurl re-arms it as needed.
+ */
 - (void) _setTimer: (NSInteger)timeoutMs
 {
-  dispatch_source_set_timer(
-    _timer,
-    dispatch_time(
-      DISPATCH_TIME_NOW,
-      timeoutMs * NSEC_PER_MSEC),
-    DISPATCH_TIME_FOREVER,                         // don't repeat
-    timeoutMs * 0.05);                             // 5% leeway
-
-  if (_isTimerSuspended)
-    {
-      _isTimerSuspended = NO;
-      dispatch_resume(_timer);
-    }
+  [_timer invalidate];
+  _timer = [NSTimer scheduledTimerWithTimeInterval: (double)timeoutMs / 1000.0
+                                            target: self
+                                          selector: @selector(_timerFired:)
+                                          userInfo: nil
+                                           repeats: NO];
 }
 
 - (void) _suspendTimer
 {
-  if (!_isTimerSuspended)
+  [_timer invalidate];
+  _timer = nil;
+}
+
+- (void) _timerFired: (NSTimer *)timer
+{
+  /* The run loop releases the fired non-repeating timer. */
+  _timer = nil;
+
+  curl_multi_socket_action(
+    _multiHandle,
+    CURL_SOCKET_TIMEOUT,
+    0,
+    &_stillRunning);
+  [self _checkForCompletion];
+}
+
+#pragma mark - Work thread
+
+- (void) _runWorkBlock: (id)block
+{
+  ((GSURLSessionWorkBlock)block)();
+}
+
+- (void) _performOnWorkThread: (GSURLSessionWorkBlock)block
+{
+  /* Run immediately if we are already on the work thread (e.g. called from
+   * a libcurl callback), otherwise schedule on its run loop. */
+  if ([NSThread currentThread] == _workHelper->thread)
     {
-      _isTimerSuspended = YES;
-      dispatch_suspend(_timer);
+      block();
+    }
+  else
+    {
+      id copy = [block copy];
+
+      [self performSelector: @selector(_runWorkBlock:)
+                   onThread: _workHelper->thread
+                 withObject: copy
+              waitUntilDone: NO];
+      [copy release];
     }
 }
 
-- (dispatch_queue_t) _workQueue
-{
-  return _workQueue;
-}
+#pragma mark - Socket monitoring
 
 /* This method is called when receiving CURL_POLL_REMOVE in socket_callback.
- * We cancel all active dispatch sources and release the SourceInfo structure
- * previously allocated in _addSocket: easyHandle: what:
+ * We remove any run loop watchers and release the SourceInfo structure
+ * previously allocated in _addSocket:easyHandle:what:
  */
 - (void) _removeSocket: (struct SourceInfo *)sources
 {
+  NSRunLoop * rl = [NSRunLoop currentRunLoop];
+
   NSDebugMLLog(
     GS_NSURLSESSION_DEBUG_KEY,
     @"Remove socket with SourceInfo: %p",
     sources);
 
-  if (sources->readSocket)
+#if	defined(_WIN32)
+  if (WSA_INVALID_EVENT != sources->event)
     {
-      dispatch_source_cancel(sources->readSocket);
-      dispatch_release(sources->readSocket);
+      [rl removeEvent: (void*)sources->event
+                 type: ET_HANDLE
+              forMode: NSDefaultRunLoopMode
+                  all: YES];
+      WSAEventSelect(sources->socket, sources->event, 0);
+      NSMapRemove(_socketForEvent, (void*)sources->event);
+      WSACloseEvent(sources->event);
+      sources->event = WSA_INVALID_EVENT;
     }
-  if (sources->writeSocket)
+#else
+  if (sources->readReady)
     {
-      dispatch_source_cancel(sources->writeSocket);
-      dispatch_release(sources->writeSocket);
+      [rl removeEvent: (void*)(intptr_t)sources->socket
+                 type: ET_RDESC
+              forMode: NSDefaultRunLoopMode
+                  all: YES];
     }
+  if (sources->writeReady)
+    {
+      [rl removeEvent: (void*)(intptr_t)sources->socket
+                 type: ET_WDESC
+              forMode: NSDefaultRunLoopMode
+                  all: YES];
+    }
+#endif
 
   free(sources);
 }
@@ -490,11 +655,16 @@ socket_callback(CURL * easy,           /* easy handle */
         @"Failed to allocate SourceInfo structure!");
       return -1;
     }
+  info->socket = socket;
+#if	defined(_WIN32)
+  info->event = WSA_INVALID_EVENT;
+#endif
 
-  /* We can now configure the dispatch sources */
+  /* We can now configure the run loop watchers */
   if (-1 == [self _setSocket: socket sources: info what: what])
     {
       NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY, @"Failed to setup sockets!");
+      free(info);
       return -1;
     }
   /* Assign the SourceInfo for access in subsequent socket_callback calls */
@@ -502,118 +672,144 @@ socket_callback(CURL * easy,           /* easy handle */
   return 0;
 } /* _addSocket */
 
+/* Register or update run loop watchers for the socket according to the
+ * direction(s) libcurl requests.  We only add or remove a watcher on an
+ * actual transition, so a still-wanted watcher is left in place rather
+ * than being torn down and recreated.
+ */
 - (int) _setSocket: (curl_socket_t)socket
   sources: (struct SourceInfo *)sources
   what: (int)what
 {
-  /* Create a Reading Dispatch Source that listens on socket */
-  if (CURL_POLL_IN == what || CURL_POLL_INOUT == what)
-    {
-      /* Reset Dispatch Source if previously initialised */
-      if (sources->readSocket)
-        {
-          dispatch_source_cancel(sources->readSocket);
-          dispatch_release(sources->readSocket);
-          sources->readSocket = NULL;
-        }
+  NSRunLoop * rl = [NSRunLoop currentRunLoop];
+  BOOL wantRead = (CURL_POLL_IN == what || CURL_POLL_INOUT == what);
+  BOOL wantWrite = (CURL_POLL_OUT == what || CURL_POLL_INOUT == what);
 
-      NSDebugMLLog(
-        GS_NSURLSESSION_DEBUG_KEY,
-        @"Creating a reading dispatch source: socket=%d sources=%p what=%d",
-        socket,
-        sources,
-        what);
+  sources->socket = socket;
 
-      sources->readSocket = dispatch_source_create(
-        DISPATCH_SOURCE_TYPE_READ,
-        socket,
-        0,
-        _workQueue);
-      if (!sources->readSocket)
-        {
-          NSDebugMLLog(
-            GS_NSURLSESSION_DEBUG_KEY,
-            @"Unable to create dispatch source for read socket!");
-          return -1;
-        }
-      dispatch_source_set_event_handler(
-        sources->readSocket,
-        ^{
-      int action;
+  NSDebugMLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Set socket=%d sources=%p what=%d",
+    socket,
+    sources,
+    what);
 
-      action = CURL_CSELECT_IN;
-      curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
+#if	defined(_WIN32)
+  {
+    long mask = FD_CLOSE;
 
-      /* Check if the transfer is complete */
-      [self _checkForCompletion];
-      /* When _stillRunning reaches zero, all transfers are complete/done */
-      if (_stillRunning <= 0)
+    if (wantRead)
+      mask |= FD_READ | FD_ACCEPT | FD_OOB;
+    if (wantWrite)
+      mask |= FD_WRITE | FD_CONNECT;
+
+    if (mask != sources->networkEvents)
       {
-        [self _suspendTimer];
+        if (WSA_INVALID_EVENT == sources->event)
+          {
+            sources->event = WSACreateEvent();
+            if (WSA_INVALID_EVENT == sources->event)
+              {
+                return -1;
+              }
+            [rl addEvent: (void*)sources->event
+                    type: ET_HANDLE
+                 watcher: self
+                 forMode: NSDefaultRunLoopMode];
+            NSMapInsert(_socketForEvent, (void*)sources->event,
+              (void*)(intptr_t)socket);
+          }
+        if (SOCKET_ERROR == WSAEventSelect(socket, sources->event, mask))
+          {
+            return -1;
+          }
+        sources->networkEvents = mask;
       }
-    });
-
-      dispatch_resume(sources->readSocket);
+  }
+#else
+  if (wantRead && !sources->readReady)
+    {
+      [rl addEvent: (void*)(intptr_t)socket
+              type: ET_RDESC
+           watcher: self
+           forMode: NSDefaultRunLoopMode];
+      sources->readReady = YES;
+    }
+  else if (!wantRead && sources->readReady)
+    {
+      [rl removeEvent: (void*)(intptr_t)socket
+                 type: ET_RDESC
+              forMode: NSDefaultRunLoopMode
+                  all: YES];
+      sources->readReady = NO;
     }
 
-  /* Create a Writing Dispatch Source that listens on socket */
-  if (CURL_POLL_OUT == what || CURL_POLL_INOUT == what)
+  if (wantWrite && !sources->writeReady)
     {
-      /* Reset Dispatch Source if previously initialised */
-      if (sources->writeSocket)
-        {
-          dispatch_source_cancel(sources->writeSocket);
-          dispatch_release(sources->writeSocket);
-          sources->writeSocket = NULL;
-        }
-
-      NSDebugMLLog(
-        GS_NSURLSESSION_DEBUG_KEY,
-        @"Creating a writing dispatch source: socket=%d sources=%p what=%d",
-        socket,
-        sources,
-        what);
-
-      sources->writeSocket = dispatch_source_create(
-        DISPATCH_SOURCE_TYPE_WRITE,
-        socket,
-        0,
-        _workQueue);
-      if (!sources->writeSocket)
-        {
-          NSDebugMLLog(
-            GS_NSURLSESSION_DEBUG_KEY,
-            @"Unable to create dispatch source for write socket!");
-          return -1;
-        }
-
-      dispatch_source_set_event_handler(
-        sources->writeSocket,
-        ^{
-      int action;
-
-      action = CURL_CSELECT_OUT;
-      curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
-
-      /* Check if the tranfer is complete */
-      [self _checkForCompletion];
-
-      /* When _stillRunning reaches zero, all transfers are complete/done */
-      if (_stillRunning <= 0)
-      {
-        [self _suspendTimer];
-      }
-    });
-
-      dispatch_resume(sources->writeSocket);
+      [rl addEvent: (void*)(intptr_t)socket
+              type: ET_WDESC
+           watcher: self
+           forMode: NSDefaultRunLoopMode];
+      sources->writeReady = YES;
     }
+  else if (!wantWrite && sources->writeReady)
+    {
+      [rl removeEvent: (void*)(intptr_t)socket
+                 type: ET_WDESC
+              forMode: NSDefaultRunLoopMode
+                  all: YES];
+      sources->writeReady = NO;
+    }
+#endif
 
   return 0;
 } /* _setSocket */
 
+/* Run loop callback: a watched socket became ready.  Notify libcurl and
+ * check whether any transfers have completed.  Runs on the work thread.
+ */
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+                 extra: (void*)extra
+               forMode: (NSString*)mode
+{
+  curl_socket_t socket;
+  int action = 0;
+
+#if	defined(_WIN32)
+  WSANETWORKEVENTS occurred;
+
+  socket = (curl_socket_t)(intptr_t)NSMapGet(_socketForEvent, data);
+  if (0 == WSAEnumNetworkEvents(socket, (WSAEVENT)data, &occurred))
+    {
+      if (occurred.lNetworkEvents & (FD_READ | FD_ACCEPT | FD_OOB))
+        action |= CURL_CSELECT_IN;
+      if (occurred.lNetworkEvents & (FD_WRITE | FD_CONNECT))
+        action |= CURL_CSELECT_OUT;
+      if (occurred.lNetworkEvents & FD_CLOSE)
+        action |= CURL_CSELECT_IN;
+    }
+#else
+  socket = (curl_socket_t)(intptr_t)data;
+  if (ET_WDESC == type)
+    action = CURL_CSELECT_OUT;
+  else
+    action = CURL_CSELECT_IN;
+#endif
+
+  curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
+  [self _checkForCompletion];
+
+  /* When _stillRunning reaches zero, all transfers are complete/done */
+  if (_stillRunning <= 0)
+    {
+      [self _suspendTimer];
+    }
+}
+
 /* Called by a socket event handler or by a firing timer set by timer_callback.
  *
- * The socket event handler is executed on the _workQueue.
+ * The socket event handler is executed on the work thread.
  */
 - (void) _checkForCompletion
 {
@@ -666,32 +862,36 @@ socket_callback(CURL * easy,           /* easy handle */
             eff_url,
             curl_easy_strerror(res));
 
-          curl_multi_remove_handle(_multiHandle, easyHandle);
-
-          /* This session might be released in _transferFinishedWithCode. Better
-           * retain it first. */
-          RETAIN(self);
-
-          RETAIN(task);
-          [_tasks removeObject: task];
-          [task _transferFinishedWithCode: res];
-          RELEASE(task);
-
-          /* Send URLSession: didBecomeInvalidWithError: to delegate if this
-           * session was invalidated */
-          if (_invalidated && [_tasks count] == 0 &&
-              [_delegate respondsToSelector: @selector(URLSession:
-                                                       didBecomeInvalidWithError
-                                                       :)])
+          /* With CURLOPT_FOLLOWLOCATION disabled libcurl reports an
+           * intercepted 3xx response as a completed transfer.  When the task
+           * is being redirected the easy handle is about to be re-added for
+           * the new location (or cancelled by the delegate), so hold back the
+           * completion instead of delivering it for the intermediate leg. */
+          if ([task _redirectInProgress])
             {
-              [_delegateQueue addOperationWithBlock:^{
-                 /* We only support explicit Invalidation for now. Error is set
-                  * to nil in this case. */
-                 [_delegate URLSession: self didBecomeInvalidWithError: nil];
-               }];
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Holding back completion for redirecting task %@",
+                task);
+              continue;
             }
 
-          RELEASE(self);
+          /* Similarly, libcurl may report the buffered response as complete
+           * before the delegate answers didReceiveResponse.  Remember the
+           * result and hold the completion back; the disposition handler
+           * delivers it (or a cancellation) once the delegate replies. */
+          if ([task _awaitingResponseDisposition])
+            {
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Holding back completion (code %d) for task %@ awaiting a "
+                @"didReceiveResponse disposition",
+                (int)res, task);
+              [task _setHeldCompletionCode: (int)res];
+              continue;
+            }
+
+          [self _finishTask: task withCode: res];
         }
     }
 } /* _checkForCompletion */
@@ -699,11 +899,9 @@ socket_callback(CURL * easy,           /* easy handle */
 /* Adds task to _tasks and updates the delegate */
 - (void) _didCreateTask: (NSURLSessionTask *)task
 {
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     [_tasks addObject: task];
-  });
+  }];
 
   if ([_delegate respondsToSelector: @selector(URLSession:didCreateTask:)])
     {
@@ -723,11 +921,9 @@ socket_callback(CURL * easy,           /* easy handle */
       return;
     }
 
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     _invalidated = YES;
-  });
+  }];
 }
 
 - (void) invalidateAndCancel
@@ -737,9 +933,7 @@ socket_callback(CURL * easy,           /* easy handle */
       return;
     }
 
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     _invalidated = YES;
 
     /* Cancel all tasks */
@@ -747,7 +941,7 @@ socket_callback(CURL * easy,           /* easy handle */
     {
       [task cancel];
     }
-  });
+  }];
 }
 
 - (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
@@ -896,9 +1090,7 @@ socket_callback(CURL * easy,           /* easy handle */
      NSArray<NSURLSessionDownloadTask *> * downloadTasks))
   completionHandler
 {
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     NSMutableArray<NSURLSessionDataTask *> * dataTasks;
     NSMutableArray<NSURLSessionUploadTask *> * uploadTasks;
     NSMutableArray<NSURLSessionDownloadTask *> * downloadTasks;
@@ -934,17 +1126,15 @@ socket_callback(CURL * easy,           /* easy handle */
     }
 
     completionHandler(dataTasks, uploadTasks, downloadTasks);
-  });
+  }];
 } /* getTasksWithCompletionHandler */
 
 - (void) getAllTasksWithCompletionHandler:
   (void (^)(NSArray<__kindof NSURLSessionTask *> * tasks))completionHandler
 {
-  dispatch_async(
-    _workQueue,
-    ^{
+  [self _performOnWorkThread: ^{
     completionHandler(_tasks);
-  });
+  }];
 }
 
 #pragma mark - Getter and Setter
@@ -976,6 +1166,27 @@ socket_callback(CURL * easy,           /* easy handle */
 
 - (void) dealloc
 {
+  /* Stop the work thread and wait for it to finish before releasing state
+   * it might touch.  We target the helper (not self) so this does not
+   * transiently resurrect a session already at zero retain count.  A
+   * pending timer would retain self and defer dealloc, so none is pending
+   * here.
+   */
+  if (_workHelper != nil)
+    {
+      [_workHelper performSelector: @selector(stop)
+                          onThread: _workHelper->thread
+                        withObject: nil
+                     waitUntilDone: YES];
+      while (![_workHelper->thread isFinished])
+        {
+          [NSThread sleepForTimeInterval: 0.001];
+        }
+      RELEASE(_workHelper->thread);
+      RELEASE(_workHelper->port);
+      RELEASE(_workHelper);
+    }
+
   RELEASE(_delegateQueue);
   RELEASE(_delegate);
   RELEASE(_configuration);
@@ -985,12 +1196,12 @@ socket_callback(CURL * easy,           /* easy handle */
 
   curl_multi_cleanup(_multiHandle);
 
-#if     defined(HAVE_DISPATCH_CANCEL)
-  dispatch_cancel(_timer);
-#else
-  dispatch_source_cancel(_timer);
+#if	defined(_WIN32)
+  if (_socketForEvent != NULL)
+    {
+      NSFreeMapTable(_socketForEvent);
+    }
 #endif
-  dispatch_release(_workQueue);
 
   [super dealloc];
 }

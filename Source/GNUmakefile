@@ -386,15 +386,11 @@ ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   endif
 endif
 
-ifeq ($(HAVE_BLOCKS), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
+ifeq ($(GNUSTEP_BASE_WITH_NSURLSESSION), 1)
   BASE_MFILES += \
 	NSURLSession.m \
 	NSURLSessionTask.m \
 	NSURLSessionConfiguration.m
-endif
-endif
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
