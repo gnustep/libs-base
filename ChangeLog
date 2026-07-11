@@ -1,3 +1,13 @@
+2026-07-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: Changes to pass the thread autorelease
+	variables around as a parameter to function/methods which are called
+	on thread exit.  This is to handle situations where the thread exit
+	means that we can't get to the variables via thread-local data.
+	Also simplify the cleanup coede on thread exit.
+	* Source/NSHTTPCookieStorage.m: add a lock as an instancve variable
+	to make cookie storage objects thread-safe.
+
 2026-07-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: fix tiny memory leak.

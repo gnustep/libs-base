@@ -67,8 +67,9 @@ static unsigned pool_number_warning_threshold = 10000;
 
 @interface NSAutoreleasePool (Private)
 - (void) _connect;
-- (void) _disconnect;
-- (void) _emptyChild;
+- (void) _disconnect: (struct autorelease_thread_vars*)tv;
+- (void) _emptyChild: (struct autorelease_thread_vars*)tv;
+- (void) _emptyPool: (struct autorelease_thread_vars*)tv;
 - (void) _emptySelf;
 - (void) _reallyDealloc;
 @end
@@ -81,7 +82,7 @@ static unsigned pool_number_warning_threshold = 10000;
 static id pop_pool_from_cache(struct autorelease_thread_vars *tv);
 
 static inline void
-free_pool_cache(struct autorelease_thread_vars *tv)
+empty_pool_cache(struct autorelease_thread_vars *tv)
 {
   while (tv->pool_cache_count)
     {
@@ -89,7 +90,12 @@ free_pool_cache(struct autorelease_thread_vars *tv)
 
       [pool _reallyDealloc];
     }
+}
 
+static inline void
+free_pool_cache(struct autorelease_thread_vars *tv)
+{
+  empty_pool_cache(tv);
   if (tv->pool_cache)
     {
       NSZoneFree(NSDefaultMallocZone(), tv->pool_cache);
@@ -146,7 +152,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
 /* Install ourselves as the current pool.
  * The only other place where the parent/child linked list is modified
- * should be in -_disconnect
+ * should be in -_disconnect:
  */
 - (void) _connect
 {
@@ -181,10 +187,8 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
  * The only other place where the parent/child linked list is modified
  * should be in the -_connect method.
  */
-- (void) _disconnect
+- (void) _disconnect: (struct autorelease_thread_vars*)tv;
 {
-  struct autorelease_thread_vars *tv;
-
   if (UINT_MAX == _released_count)
     {
       return;		// Re-entrant call - already disconnected.
@@ -196,8 +200,6 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
       [NSException raise: NSInternalInconsistencyException
 		  format: @"NSAutoreleasePool still contains objects"];
     }
-
-  tv = ARP_THREAD_VARS;
   if (tv->current_pool == self)
     {
       tv->current_pool = _parent;
@@ -224,7 +226,7 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
   push_pool_to_cache(tv, self);
 }
 
-- (void) _emptyChild
+- (void) _emptyChild: (struct autorelease_thread_vars*)tv
 {
   /* If there are NSAutoreleasePool instances below us in the list,
    * then we must deallocate them when deallocating this instance.
@@ -243,16 +245,51 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
       while (pool->_child) pool = pool->_child;
       [pool _emptySelf];
-      [pool _disconnect];
+      [pool _disconnect: tv];
     }
 }
 
 #ifdef ARC_RUNTIME
+- (void) _emptyPool: (struct autorelease_thread_vars*)tv
+{
+  /* Emptying the pool releases its contents, and the deallocation of those
+   * objects may create new child pools, so we may need to empty children
+   * afterwards.  We always empty children first so that we know
+   * there are no children to cause re-entrancy issues during the
+   * deallocation of objects in popped pools.
+   */
+  if (nil != _child)
+    {
+      [self _emptyChild: tv];
+    }
+  [self _emptySelf];
+  if (nil != _child)
+    {
+      [self _emptyChild: tv];
+    }
+}
 - (void) _emptySelf
 {
   objc_autoreleasePoolPop(_released);
 }
 #else
+- (void) _emptyPool: (struct autorelease_thread_vars*)tv;
+{
+  /* Loop through the deallocation code repeatedly ... since we deallocate
+   * objects in the receiver while the receiver remains set as the current
+   * autorelease pool ... so if any object which is being deallocated adds
+   * any object to the current autorelease pool, we may need to release it
+   * again.
+   */
+  while (_child != nil || (_released_count > 0 && _released_count != UINT_MAX))
+    {
+      if (nil != _child)
+	{
+	  [self _emptyChild: tv];
+	}
+      [self _emptySelf];
+    }
+}
 - (void) _emptySelf
 {
   unsigned	i;
@@ -449,25 +486,6 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
     objc_autorelease(anObj);
 }
 
-- (void) emptyPool
-{
-  /* Emptying the pool releases its contents, and the deallocation of those
-   * objects may create new child pools, so we may need to empty children
-   * afterwards.  We always empty children first so that we know
-   * there are no children to cause re-entrancy issues during the
-   * deallocation of objects in popped pools.
-   */
-  if (nil != _child)
-    {
-      [self _emptyChild];
-    }
-  [self _emptySelf];
-  if (nil != _child)
-    {
-      [self _emptyChild];
-    }
-}
-
 #else
 
 - (id) init
@@ -621,24 +639,6 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
   _released_count++;
 }
 
-- (void) emptyPool
-{
-  /* Loop through the deallocation code repeatedly ... since we deallocate
-   * objects in the receiver while the receiver remains set as the current
-   * autorelease pool ... so if any object which is being deallocated adds
-   * any object to the current autorelease pool, we may need to release it
-   * again.
-   */
-  while (_child != nil || (_released_count > 0 && _released_count != UINT_MAX))
-    {
-      if (nil != _child)
-	{
-	  [self _emptyChild];
-	}
-      [self _emptySelf];
-    }
-}
-
 #endif // ARC_RUNTIME
 
 + (id) currentPool
@@ -646,12 +646,16 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
   return ARP_THREAD_VARS->current_pool;
 }
 
-
 - (void) drain
 {
   // Don't call -release, make both -release and -drain have the same cost in
   // non-GC mode.
   [self dealloc];
+}
+
+- (void) emptyPool
+{
+  [self _emptyPool: ARP_THREAD_VARS]; 
 }
 
 - (id) retain
@@ -668,13 +672,16 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
 - (void) dealloc
 {
+  struct autorelease_thread_vars *tv;
+
   if (UINT_MAX == _released_count)
     {
       [NSException raise: NSInternalInconsistencyException
                   format: @"NSAutoreleasePool -dealloc of deallocated pool"];
     }
-  [self emptyPool];
-  [self _disconnect];
+  tv = ARP_THREAD_VARS;
+  [self _emptyPool: tv];
+  [self _disconnect: tv];
   GSNOSUPERDEALLOC;
 }
 
@@ -685,36 +692,24 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
   return self;
 }
 
+/* This method is called when the thread ends.  At that point we can't
+ * get the thread storage information by using thread-local storage so
+ * we must take care to access it via the thread parameter.
+ */
 + (void) _endThread: (NSThread*)thread
 {
-  struct autorelease_thread_vars *tv;
+  struct autorelease_thread_vars *tv = &((thread)->_autorelease_vars);
   NSAutoreleasePool *pool;
 
-  tv = &((thread)->_autorelease_vars);
-
-  /* First release any objects in the pool... bearing in mind that
-   * releasing any object could cause other objects to be added to
-   * the pool.
-   */
-  pool = tv->current_pool;
-  while (pool)
+  while ((pool = tv->current_pool) != nil)
     {
-      [pool emptyPool];
-      pool = pool->_parent;
+      /* Empty the current pool (getting rid of children tool), then
+       * disconnect it from the thread linked lists, leaving it in
+       * the cache.
+       */
+      [pool _emptyPool: tv];
+      [pool _disconnect: tv];
     }
-
-  /* Now free the memory (we have finished usingthe pool).
-   */
-  pool = tv->current_pool;
-  tv->current_pool = nil;
-  while (pool)
-    {
-      NSAutoreleasePool *p = pool->_parent;
-
-      [pool _reallyDealloc];
-      pool = p;
-    }
-
   free_pool_cache(tv);
 }
 
