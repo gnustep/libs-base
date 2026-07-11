@@ -286,7 +286,6 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 	  [a addObject: cookie];
 	}
     }
-NSLog(@"Search of %@ for %@ finds %@", this->_cookies, receive_domain, a);
   [this->_lock unlock];
   return a;
 }
@@ -341,12 +340,10 @@ NSLog(@"Search of %@ for %@ finds %@", this->_cookies, receive_domain, a);
   if (remove_ck != nil && cookie != remove_ck)
     {
       [this->_cookies removeObject: remove_ck];
-NSLog(@"Removed %@ from %@", remove_ck, self);
     }
   if (cookie != remove_ck)
     {
       [this->_cookies addObject: cookie];
-NSLog(@"Added %@ to %@", cookie, self);
     }
   [this->_lock unlock];
 }
