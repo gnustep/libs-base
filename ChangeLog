@@ -8,6 +8,8 @@
 	* Source/NSHTTPCookieStorage.m: add a lock as an instancve variable
 	to make cookie storage objects thread-safe.
 	Fix loading from disk to avoid duplicate cookies in store.
+	* Source/NSMethodSignature.m: check for end of type encoding string
+	where the array or union end character is missing.
 
 2026-07-09 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -172,6 +172,48 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
   return changed;
 }
 
+- (void) _setCookieNoNotify: (NSHTTPCookie *)cookie
+{
+  NSEnumerator 	*ckenum;
+  NSHTTPCookie	*ck;
+  NSHTTPCookie	*remove_ck;
+  NSString 	*name = [cookie name];
+  NSString	*path = [cookie path];
+  NSString	*domain = [cookie domain];
+
+  NSAssert([cookie isKindOfClass: [NSHTTPCookie class]] == YES,
+    NSInvalidArgumentException);
+  
+  [this->_lock lock];
+  ckenum = [this->_cookies objectEnumerator];
+  remove_ck = nil;
+  while ((ck = [ckenum nextObject]))
+    {
+      if ([name isEqual: [ck name]] && [path isEqual: [ck path]])
+        {
+	  /* The Apple documentation says the domain should match and 
+	  RFC 2965 says they should match, though the original Netscape docs 
+	  doesn't mention that the domain should match, so here, if the
+	  version is explicitely set to 0, we don't require it */
+	  id ckv = [[ck properties] objectForKey: NSHTTPCookieVersion];
+	  if ((ckv && [ckv intValue] == 0) || [domain isEqual: [ck domain]])
+	    {
+	      remove_ck = ck;
+	      break;
+	    }
+	}
+    }
+  if (remove_ck != nil && cookie != remove_ck)
+    {
+      [this->_cookies removeObject: remove_ck];
+    }
+  if (cookie != remove_ck)
+    {
+      [this->_cookies addObject: cookie];
+    }
+  [this->_lock unlock];
+}
+
 - (void) _updateFromCookieStore
 {
   int 		i;
@@ -299,48 +341,6 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
     {
       NSDebugMLog(@"NSHTTPCookieStorage:"
 	@" trying to delete a cookie that is not in the storage");
-    }
-  [this->_lock unlock];
-}
-
-- (void) _setCookieNoNotify: (NSHTTPCookie *)cookie
-{
-  NSEnumerator 	*ckenum;
-  NSHTTPCookie	*ck;
-  NSHTTPCookie	*remove_ck;
-  NSString 	*name = [cookie name];
-  NSString	*path = [cookie path];
-  NSString	*domain = [cookie domain];
-
-  NSAssert([cookie isKindOfClass: [NSHTTPCookie class]] == YES,
-    NSInvalidArgumentException);
-  
-  [this->_lock lock];
-  ckenum = [this->_cookies objectEnumerator];
-  remove_ck = nil;
-  while ((ck = [ckenum nextObject]))
-    {
-      if ([name isEqual: [ck name]] && [path isEqual: [ck path]])
-        {
-	  /* The Apple documentation says the domain should match and 
-	  RFC 2965 says they should match, though the original Netscape docs 
-	  doesn't mention that the domain should match, so here, if the
-	  version is explicitely set to 0, we don't require it */
-	  id ckv = [[ck properties] objectForKey: NSHTTPCookieVersion];
-	  if ((ckv && [ckv intValue] == 0) || [domain isEqual: [ck domain]])
-	    {
-	      remove_ck = ck;
-	      break;
-	    }
-	}
-    }
-  if (remove_ck != nil && cookie != remove_ck)
-    {
-      [this->_cookies removeObject: remove_ck];
-    }
-  if (cookie != remove_ck)
-    {
-      [this->_cookies addObject: cookie];
     }
   [this->_lock unlock];
 }

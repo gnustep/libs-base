@@ -262,18 +262,27 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 
       case _C_STRUCT_B:
 	{
-	  unsigned int acc_size = 0;
-	  unsigned int def_align = objc_alignof_type(typePtr-1);
-	  unsigned int acc_align = def_align;
+	  unsigned int	acc_size = 0;
+	  unsigned int	def_align = objc_alignof_type(typePtr-1);
+	  unsigned int	acc_align = def_align;
 	  const char	*ptr = typePtr;
 	  BOOL		hasBitField = NO;
 
 	  /*
 	   *	Skip "<name>=" stuff.
 	   */
-	  while (*ptr != _C_STRUCT_E && *ptr != '=') ptr++;
-	  if (*ptr == '=') typePtr = ptr;
-	  typePtr++;
+	  while (*ptr != _C_STRUCT_E)
+	    {
+	      if (*ptr == '\0')
+		{
+		  return 0;		/* error	*/
+		}
+	      if (*ptr++ == '=')
+		{
+		  typePtr = ptr;
+		  break;
+		}
+	    }
 
 	  /*
 	   *	Base structure alignment on first element.
@@ -334,14 +343,20 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	{
 	  unsigned int	max_size = 0;
 	  unsigned int	max_align = 0;
+	  const char	*ptr = typePtr;
 
 	  /*
 	   *	Skip "<name>=" stuff.
 	   */
-	  while (*typePtr != _C_UNION_E)
+	  while (*ptr != _C_UNION_E)
 	    {
-	      if (*typePtr++ == '=')
+	      if (*ptr == '\0')
 		{
+		  return 0;		/* error	*/
+		}
+	      if (*ptr++ == '=')
+		{
+		  typePtr = ptr;
 		  break;
 		}
 	    }
