@@ -97,21 +97,6 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #define UNICODE_INT "UNICODELITTLE"
 #endif
 
-static inline uint16_t
-GSUnicodeSwap16(uint16_t codePoint)
-{
-  return (codePoint << 8) | (codePoint >> 8);
-}
-
-static inline uint32_t
-GSUnicodeSwap32(uint32_t codePoint)
-{
-  return ((codePoint & 0xFF) << 24)
-    | ((codePoint & 0xFF00) << 8)
-    | ((codePoint & 0xFF0000) >> 8)
-    | (codePoint >> 24);
-}
-
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
 static const char *unicode_enc = NULL;
@@ -742,6 +727,21 @@ static inline int
 octdigit(int c)
 {
   return (c >= '0' && c < '8');
+}
+
+static inline uint16_t
+GSUnicodeSwap16(uint16_t codePoint)
+{
+  return (codePoint << 8) | (codePoint >> 8);
+}
+
+static inline uint32_t
+GSUnicodeSwap32(uint32_t codePoint)
+{
+  return ((codePoint & 0xFF) << 24)
+    | ((codePoint & 0xFF00) << 8)
+    | ((codePoint & 0xFF0000) >> 8)
+    | (codePoint >> 24);
 }
 
 /**
