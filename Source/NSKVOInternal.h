@@ -120,7 +120,7 @@
 @property (nonatomic, assign) NSKeyValueObservingOptions options;
 @property (nonatomic, assign) void                      *context;
 
-@property (atomic, retain) NSMutableDictionary *pendingChange;
+@property (retain) NSMutableDictionary *pendingChange;
 @end
 
 @interface _NSKVOObservationInfo : NSObject
