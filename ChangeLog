@@ -1,3 +1,10 @@
+2026-07-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSMinHeap.h:
+	* Source/GSMinHeap.m:
+	* Tests/base/GSMinHeap/test00.m:
+	Implementation and tests for a minheap implementation.
+
 2026-07-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Changes to pass the thread autorelease
