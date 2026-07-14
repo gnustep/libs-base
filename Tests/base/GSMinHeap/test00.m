@@ -57,11 +57,12 @@ main(void)
   END_SET("GSMinHeap")
 
   START_SET("capacity growth")
+  int		i;
 
   heap = [[GSMinHeap alloc] initWithCapacity: 1
                                andComparator: NULL];
 
-  for (int i = 100; i >= 0; i--)
+  for (i = 100; i >= 0; i--)
     {
       PASS([heap push: [NSNumber numberWithInt: i]] == YES,
         "push succeeds");
@@ -70,7 +71,7 @@ main(void)
   PASS_EQUAL([[heap peek] stringValue], @"0",
     "minimum survives resizing");
 
-  for (int i = 0; i <= 100; i++)
+  for (i = 0; i <= 100; i++)
     {
       NSNumber *n = [heap pop];
       PASS([n intValue] == i, "pop returns values in ascending order");
