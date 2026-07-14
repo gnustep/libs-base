@@ -203,7 +203,9 @@ heap_push(MinHeapInternal *h, id value)
 
 - (void) empty
 {
-  for (size_t i = 0; i < internal->size; i++)
+  size_t	i;
+
+  for (i = 0; i < internal->size; i++)
     {
       DESTROY(internal->data[i]);
     }
@@ -236,19 +238,3 @@ heap_push(MinHeapInternal *h, id value)
 
 @end
 
-/*
-int main(void) {
-    MinHeapInternal *h = heap_create(16);
-
-    int values[] = {7, 3, 10, 1, 5, 2};
-
-    for (size_t i = 0; i < 6; i++)
-        heap_push_fast(h, values[i]);
-
-    while (h->size)
-        printf("%d\n", heap_pop(h));
-
-    heap_destroy(h);
-    return 0;
-}
-*/
