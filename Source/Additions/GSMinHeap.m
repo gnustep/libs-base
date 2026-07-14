@@ -150,7 +150,115 @@ heap_push(MinHeapInternal *h, id value)
   return YES;
 }
 
+static id
+heap_remove(MinHeapInternal *h, size_t index)
+{
+  id	result;
+
+  if (index >= h->size)
+    {
+      return nil;
+    }
+
+  result = h->data[index];
+
+  if (--h->size == index)
+    {
+      /* Removed the last element. */
+      h->data[index] = nil;
+      return result;
+    }
+  else
+    {
+      id	value = h->data[h->size];
+      size_t	i = index;
+
+      h->data[h->size] = nil;
+
+      /* First try moving the replacement upwards. */
+      while (i > 0)
+        {
+          size_t parent = (i - 1) / 2;
+
+          if (h->compare(h->data[parent], value) != NSOrderedDescending)
+            {
+              break;
+            }
+          h->data[i] = h->data[parent];
+          i = parent;
+        }
+
+      if (i != index)
+        {
+          h->data[i] = value;
+        }
+      else
+        {
+          /* Didn't move up, so sift down instead. */
+          while (1)
+            {
+              size_t	left = (i << 1) + 1;
+              size_t	right;
+              size_t	child;
+
+              if (left >= h->size)
+                {
+                  break;
+                }
+
+              right = left + 1;
+              child = left;
+
+              if (right < h->size
+                && h->compare(h->data[right], h->data[left]) == NSOrderedAscending)
+                {
+                  child = right;
+                }
+
+              if (h->compare(h->data[child], value) != NSOrderedAscending)
+                {
+                  break;
+                }
+
+              h->data[i] = h->data[child];
+              i = child;
+            }
+          h->data[i] = value;
+        }
+    }
+
+  return result;
+}
+
 @implementation	GSMinHeap
+
+- (BOOL) containsObject: (id)obj
+{
+  size_t	index = internal->size;
+
+  while (index-- > 0)
+    {
+      if ([obj isEqual: internal->data[index]])
+        {
+          return YES;
+	}
+    }
+  return NO;
+}
+
+- (BOOL) containsObjectIdenticalTo: (id)obj
+{
+  size_t	index = internal->size;
+
+  while (index-- > 0)
+    {
+      if (obj == internal->data[index])
+        {
+          return YES;
+	}
+    }
+  return NO;
+}
 
 - (NSUInteger) count
 {
@@ -239,6 +347,58 @@ heap_push(MinHeapInternal *h, id value)
     }
   RELEASE(obj);
   return NO;
+}
+
+- (void) removeObject: (id)obj
+{
+  size_t	index = internal->size;
+
+  while (index-- > 0)
+    {
+      if ([obj isEqual: internal->data[index]])
+        {
+          RELEASE(heap_remove(internal, index));
+	}
+    }
+}
+
+- (void) removeObjectIdenticalTo: (id)obj
+{
+  size_t	index = internal->size;
+
+  while (index-- > 0)
+    {
+      if (obj == internal->data[index])
+        {
+          RELEASE(heap_remove(internal, index));
+	}
+    }
+}
+
+- (id) repositionObject: (id)obj
+{
+  size_t	index = internal->size;
+  id		found = nil;
+
+  while (index-- > 0)
+    {
+      if (obj == internal->data[index])
+        {
+	  if (nil == found)
+	    {
+              found = heap_remove(internal, index);
+	    }
+	  else
+	    {
+              RELEASE(heap_remove(internal, index));
+	    }
+	}
+    }
+  if (found)
+    {
+      heap_push(internal, found);
+    }
+  return found;
 }
 
 @end

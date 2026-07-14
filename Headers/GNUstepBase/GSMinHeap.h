@@ -47,8 +47,6 @@ typedef NSComparisonResult (*GSMinHeapComparator)(id a, id b);
 /** The GSMinHeap class provides a container for objects which are pushed into
  * it, from which objects can be popped out such that the popped object is
  * the lowest in the sort order provided by the comparator function.<br />
- * Random access to objects in the collection is not permitted (either for
- * read or to remove them).<br />
  * Popping the lowest object removes it, but you can also peek to see the
  * lowest object without removing it.<br />
  * This class is fast, but not thread-safe.<br />
@@ -60,6 +58,14 @@ GS_EXPORT_CLASS
 {
   void	*_internal;
 }
+
+/** Returns YES if any objects in the heap matches obj using the -isEqual: method.
+ */
+- (BOOL) containsObject: (id)obj;
+
+/** Returns YES if obj is present in the heap.
+ */
+- (BOOL) containsObjectIdenticalTo: (id)obj;
 
 /** Returns the number of objects in the heap.
  */
@@ -89,8 +95,25 @@ GS_EXPORT_CLASS
 /** Adds obj to the heap and returns YES on success.  May return NO on failure
  * (of obj was nil or if there is insufficient memory for the heap to grow).
  * The heap takes ownership of (retains) obj on success, but not on failure.
+ * It is possible to push the same object ot the heap more than once.
  */
 - (BOOL) push: (id)obj;
+
+/** Removes all objects matching obj using the -isEqual: method.
+ */
+- (void) removeObject: (id)obj;
+
+/** Removes all occurrences of obj from the heap.
+ */
+- (void) removeObjectIdenticalTo: (id)obj;
+
+/** If obj (as determined by pointer equality) is present in the heap, removes duplicates
+ * and are-establishes obj at its correct location on the heap.  Use this if obj is mutable
+ * and has changed its value in the comparator ordering. <br />
+ * Returns obj if it was present, nil otherwise.
+ */
+- (id) repositionObject: (id)obj;
+
 @end
 
 
