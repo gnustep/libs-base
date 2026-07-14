@@ -35,61 +35,10 @@ typedef struct {
 
 #define	internal	((MinHeapInternal*)_internal)
 
-@implementation	GSMinHeap
-
-- (void) dealloc
-{
-  [self empty];
-  if (_internal)
-    {
-      free(internal->data);
-      free(_internal);
-    }
-  DEALLOC
-}
-
 static NSComparisonResult
 GSMinHeapDefaultComparator(id a, id b)
 {         
   return [a compare: b];
-}
-
-- (instancetype) init
-{
-  return [self initWithCapacity: 0 andComparator: NULL];
-}
-
-- (instancetype) initWithCapacity: (size_t)cap
-		    andComparator: (GSMinHeapComparator)cmp
-{
-  if (nil != (self = [super init]))
-    {
-      _internal
-	= NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(MinHeapInternal));
-      if (NULL == _internal)
-	{
-	  DESTROY(self);
-	  return nil;
-	}
-      internal->size = 0;
-      if (cap < 1)
-	{
-	  cap = 1;
-	}
-      internal->capacity = cap;
-      if (NULL == cmp)
-	{
-	  cmp = GSMinHeapDefaultComparator;
-	}
-      internal->compare = cmp;
-      internal->data = NSZoneCalloc(NSDefaultMallocZone(), sizeof(id), cap);
-      if (NULL == internal->data)
-	{
-	  DESTROY(self);
-	  return nil;
-	}
-    }
-  return self;
 }
 
 static BOOL
@@ -201,6 +150,24 @@ heap_push(MinHeapInternal *h, id value)
   return YES;
 }
 
+@implementation	GSMinHeap
+
+- (NSUInteger) count
+{
+  return internal->size;
+}
+
+- (void) dealloc
+{
+  if (_internal)
+    {
+      [self empty];
+      free(internal->data);
+      free(_internal);
+    }
+  DEALLOC
+}
+
 - (void) empty
 {
   size_t	i;
@@ -210,6 +177,44 @@ heap_push(MinHeapInternal *h, id value)
       DESTROY(internal->data[i]);
     }
   internal->size = 0;
+}
+
+- (instancetype) init
+{
+  return [self initWithCapacity: 0 andComparator: NULL];
+}
+
+- (instancetype) initWithCapacity: (size_t)cap
+		    andComparator: (GSMinHeapComparator)cmp
+{
+  if (nil != (self = [super init]))
+    {
+      _internal
+	= NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(MinHeapInternal));
+      if (NULL == _internal)
+	{
+	  DESTROY(self);
+	  return nil;
+	}
+      internal->size = 0;
+      if (cap < 1)
+	{
+	  cap = 1;
+	}
+      internal->capacity = cap;
+      if (NULL == cmp)
+	{
+	  cmp = GSMinHeapDefaultComparator;
+	}
+      internal->compare = cmp;
+      internal->data = NSZoneCalloc(NSDefaultMallocZone(), sizeof(id), cap);
+      if (NULL == internal->data)
+	{
+	  DESTROY(self);
+	  return nil;
+	}
+    }
+  return self;
 }
 
 - (id) peek

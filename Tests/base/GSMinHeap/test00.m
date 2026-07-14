@@ -11,8 +11,8 @@ ReverseComparator(id a, id b)
 int
 main(void)
 {
-  GSMinHeap *heap;
-  id obj;
+  GSMinHeap	*heap;
+  id		obj;
 
   START_SET("GSMinHeap")
 
@@ -24,24 +24,31 @@ main(void)
   PASS([heap pop] == nil, "pop on empty heap returns nil");
 
   PASS([heap push: nil] == NO, "cannot push nil");
+  PASS([heap count] == 0, "heap count zero after push:nil");
   PASS([heap peek] == nil, "heap still empty after push:nil");
 
   PASS([heap push: @"c"] == YES, "push first object");
+  PASS([heap count] == 1, "heap count one after push first object");
   PASS([[heap peek] isEqual: @"c"], "peek returns first object");
 
   PASS([heap push: @"a"] == YES, "push smaller object");
+  PASS([heap count] == 2, "heap count two after push second object");
   PASS([[heap peek] isEqual: @"a"], "peek returns minimum object");
 
   PASS([heap push: @"b"] == YES, "push third object");
+  PASS([heap count] == 3, "heap count three after push third object");
 
   obj = [heap pop];
   PASS([obj isEqual: @"a"], "first pop returns smallest object");
+  PASS([heap count] == 2, "heap count two after pop one object");
 
   obj = [heap pop];
   PASS([obj isEqual: @"b"], "second pop returns second smallest object");
+  PASS([heap count] == 1, "heap count two after pop two objects");
 
   obj = [heap pop];
   PASS([obj isEqual: @"c"], "third pop returns largest object");
+  PASS([heap count] == 0, "heap count two after pop three objects");
 
   PASS([heap pop] == nil, "heap empty after removing all objects");
 
@@ -60,7 +67,7 @@ main(void)
         "push succeeds");
     }
 
-  PASS([[[heap peek] stringValue] isEqual: @"0"],
+  PASS_EQUAL([[heap peek] stringValue], @"0",
     "minimum survives resizing");
 
   for (int i = 0; i <= 100; i++)

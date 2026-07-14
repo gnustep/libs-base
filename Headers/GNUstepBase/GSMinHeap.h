@@ -37,12 +37,33 @@
 extern "C" {
 #endif
 
+/* Comparator for GSMinHeap contents.  This is called on apirs of objects and
+ * must return NSOrderedAscending if b is greater than a, NSOrderedDescending
+ * if b is less than a, or NSOrderedSame if the two objects are to be ordered
+ * identically.
+ */
 typedef NSComparisonResult (*GSMinHeapComparator)(id a, id b);
 
+/** The GSMinHeap class provides a container for objects which are pushed into
+ * it, from which objects can be popped out such that the popped object is
+ * the lowest in the sort order provided by the comparator function.<br />
+ * Random access to objects in the collection is not permitted (either for
+ * read or to remove them).<br />
+ * Popping the lowest object removes it, but you can also peek to see the
+ * lowest object without removing it.<br />
+ * This class is fast, but not thread-safe.<br />
+ * NB. objects with the same value may be popped in any order.  You must not
+ * assume that they will be popped in the same order in which they were pushed.
+ */
 @interface GSMinHeap : NSObject
 {
   void	*_internal;
 }
+
+/** Returns the number of objects in the heap.
+ */
+- (NSUInteger) count;
+
 /** Removes all objects from the heap.
  */
 - (void) empty;
@@ -60,12 +81,13 @@ typedef NSComparisonResult (*GSMinHeapComparator)(id a, id b);
 - (id) peek;
 
 /** Removes the first object from the heap and returns it.  Returns nil
- * if the heap was already empty.
+ * if the heap was already empty.  The returned object is autoreleased.
  */
 - (id) pop;
 
 /** Adds obj to the heap and returns YES on success.  May return NO on failure
  * (of obj was nil or if there is insufficient memory for the heap to grow).
+ * The heap takes ownership of (retains) obj on success, but not on failure.
  */
 - (BOOL) push: (id)obj;
 @end
