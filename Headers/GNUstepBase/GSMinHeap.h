@@ -55,6 +55,7 @@ typedef NSComparisonResult (*GSMinHeapComparator)(id a, id b);
  * NB. objects with the same value may be popped in any order.  You must not
  * assume that they will be popped in the same order in which they were pushed.
  */
+GS_EXPORT_CLASS
 @interface GSMinHeap : NSObject
 {
   void	*_internal;
