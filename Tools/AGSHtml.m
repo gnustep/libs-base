@@ -1743,17 +1743,7 @@ static NSMutableSet	*textNodes = nil;
 		}
 	      if ([ms isEqual: @""])
 		{
-		  static NSString	*generated = nil;
-
-		  if (nil == generated)
-		    {
-		      NSCalendarDate	*now = [NSCalendarDate date];
-
-		      [now setCalendarFormat: @"%Y-%m-%d"];
-		      generated = [[NSString alloc] initWithFormat:
-			@"<date>Generated at %@</date>", now];
-		    }
-		  [ms appendString: generated];
+		  [ms appendString: [AGSOutput generatedDate]];
 	        }
 	      [buf appendString: ms];
 	      [buf appendString: @"</p>\n"];

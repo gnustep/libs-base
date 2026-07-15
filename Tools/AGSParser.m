@@ -38,6 +38,7 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSXMLParser.h"
 #import "AGSParser.h"
+#import "AGSOutput.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
@@ -2582,29 +2583,7 @@ fail:
    */
   if ([info objectForKey: @"date"] == nil)
     {
-      static NSString	*generated = nil;
-
-      if (nil == generated)
-	{
-	  NSCalendarDate	*when;
-	  NSTimeInterval	sde;
-
-	  sde = [[[[NSProcessInfo processInfo] environment]
-	    objectForKey: @"SOURCE_DATE_EPOCH"] floatValue];
-	  if (sde > 0.0)
-	    {
-	      when = [NSCalendarDate dateWithTimeIntervalSince1970: sde];
-	    }
-	  else
-	    {
-	      when = [NSCalendarDate date];
-	    }
-	  [when setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT: 0]];
-	  [when setCalendarFormat: @"%Y-%m-%d UTC"];
-	  generated = [[NSString alloc] initWithFormat:
-	    @"<date>Generated at %@</date>", when];
-	}
-      [info setObject: generated forKey: @"date"];
+      [info setObject: [AGSOutput generatedDate] forKey: @"date"];
     }
 
   return info;

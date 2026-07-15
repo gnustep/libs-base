@@ -32,6 +32,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "AGSOutput.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -120,6 +121,33 @@ static BOOL snuggleStart(NSString *t)
       saved = [s copy];
     }
   return saved;
+}
+
++ (NSString *) generatedDate
+{
+  static NSString	*generated = nil;
+
+  if (nil == generated)
+    {
+      NSCalendarDate	*when;
+      NSTimeInterval	sde;
+
+      sde = [[[[NSProcessInfo processInfo] environment]
+	objectForKey: @"SOURCE_DATE_EPOCH"] floatValue];
+      if (sde > 0.0)
+	{
+	  when = [NSCalendarDate dateWithTimeIntervalSince1970: sde];
+	}
+      else
+	{
+	  when = [NSCalendarDate date];
+	}
+      [when setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT: 0]];
+      [when setCalendarFormat: @"%Y-%m-%d UTC"];
+      generated = [[NSString alloc] initWithFormat:
+	@"<date>Generated at %@</date>", when];
+    }
+  return generated;
 }
 
 - (void) appendVersions: (NSString*)versions to: (NSMutableString*)str

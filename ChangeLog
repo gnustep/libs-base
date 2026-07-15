@@ -1,3 +1,11 @@
+2026-07-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.h: Add +generatedDate method.
+	* Tools/AGSOutput.m: Add +generatedDate method and use it.
+	* Tools/AGSHtml.m: Use +generatedDate method.
+	* Tools/AGSParser.m: Use +generatedDate method.
+	Should complete issue #697
+
 2026-07-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSMinHeap.h:
