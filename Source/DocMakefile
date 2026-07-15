@@ -222,6 +222,7 @@ GSIMap.h \
 GSLocale.h \
 GSFunctions.h \
 GSMime.h \
+GSMinHeap.h \
 GSTLS.h \
 GSURITemplate.h \
 GSXML.h \
