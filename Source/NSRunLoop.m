@@ -887,7 +887,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 {
   const void	*loop = (const void*)self;
   GSRunLoopCtxt	*context;
-  GSIArray	timers;
+  GSMinHeap	*timers;
   unsigned      i;
 
   if ([timer isKindOfClass: [NSTimer class]] == NO
@@ -901,6 +901,12 @@ static GSMainQueueDrainer 	*drainer = nil;
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@] timer already scheduled in another runloop",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (255 == timer->_scheduled)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] timer already scheduled in too many modes",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   if ([mode isKindOfClass: [NSString class]] == NO)
@@ -927,40 +933,22 @@ static GSMainQueueDrainer 	*drainer = nil;
     {
       /* Timer was already scheduled: check whether it is in this mode.
        */
-      i = GSIArrayCount(timers);
-      while (i-- > 0)
+      if ([timers containsObjectIdenticalTo: timer])
 	{
-	  if (timer == GSIArrayItemAtIndex(timers, i).obj)
-	    {
-	      return;       /* Timer already present */
-	    }
+	  return;	/* Timer already present in this mode */
 	}
     }
 
-  /* Count scheduling of timer (skip counts too large to fit field).
+  /* Timers can be scheduled in more than one mode, and if a timer fires
+   * and repeats it will have updated its fire date.  That will leave it
+   * incorrectly positioned in the min heap in other modes.  To handle
+   * that we must track whether it is scheduled in more than one mode to
+   * know if we need to check other modes for repositionng.
    */
-  if (timer->_scheduled < 255)
-    {
-      timer->_scheduled++;
-    }
+  timer->_scheduled++;
+  [timers push: timer];
 
-  /*
-   * NB. A previous version of the timer code maintained an ordered
-   * array on the theory that we could improve performance by only
-   * checking the first few timers (up to the first one whose fire
-   * date is in the future) each time -limitDateForMode: is called.
-   * The problem with this was that it's possible for one timer to
-   * be added in multiple modes (or to different run loops) and for
-   * a repeated timer this could mean that the firing of the timer
-   * in one mode/loop adjusts its date ... without changing the
-   * ordering of the timers in the other modes/loops which contain
-   * the timer.  When the ordering of timers in an array was broken
-   * we could get delays in processing timeouts, so we reverted to
-   * simply having timers in an unordered array and checking them
-   * all each time -limitDateForMode: is called.
-   */
-  GSIArrayAddItem(timers, (GSIArrayItem)((id)timer));
-  i = GSIArrayCount(timers);
+  i = [timers count];
   if (i % 1000 == 0 && i > context->maxTimers)
     {
       context->maxTimers = i;
@@ -1029,20 +1017,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
   NSDate		*when = nil;
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  GSIArray		timers = context->timers;
+  GSMinHeap		*timers = context->timers;
   NSTimeInterval	now;
   NSDate                *earliest;
   NSDate		*d;
   NSTimer		*t;
   NSTimeInterval	ti;
-  NSTimeInterval	ei;
-  unsigned              c;
-  unsigned              i;
 
-  ei = 0.0;	// Only needed to avoid compiler warning
-
-  /*
-   * Save current time so we don't keep redoing system call to
+  /* Save current time so we don't keep redoing system call to
    * get it and so that we check timer fire dates against a known
    * value at the point when the method was called.
    * If we refetched the date after firing each timer, the time
@@ -1054,67 +1036,76 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   /* Fire the oldest/first valid timer whose fire date has passed
    * and fire it.
-   * We fire timers in the order in which they were added to the
-   * run loop rather than in date order.  This prevents code
-   * from blocking other timers by adding timers whose fire date
-   * is some time in the past... we guarantee fair handling.
    */
-  c = GSIArrayCount(timers);
-  for (i = 0; i < c; i++)
+  t = [timers peek];
+  while (t != nil)
     {
-      t = GSIArrayItemAtIndex(timers, i).obj;
-      if (timerInvalidated(t) == NO)
+      if (timerInvalidated(t))
+	{
+	  t = [timers next];
+	}
+      else
         {
           d = timerDate(t);
           ti = [d timeIntervalSinceReferenceDate];
           if (ti < now)
             {
-              GSIArrayRemoveItemAtIndexNoRelease(timers, i);
+              t = [timers popRetained];
               [t fire];
               GSPrivateNotifyASAP(_currentMode);
               IF_NO_ARC([arp emptyPool];)
               if (updateTimer(t, d, now) == YES)
                 {
-                  /* Updated ... replace in array.
+                  /* Updated ... replace in heap.
                    */
-                  GSIArrayAddItemNoRetain(timers,
-                    (GSIArrayItem)((id)t));
+		  [timers push: t];
+		  if (t->_scheduled > 1)
+		    {
+		      uint8_t	n = t->_scheduled - 1;
+
+		      /* The timer was scheduled in more than one mode,
+		       * so we must reposition it (for the new fire date)
+		       * in any other mode it is in.
+		       */
+		      GS_FOR_IN(NSString*, m, _contextMap)
+			{
+			  GSRunLoopCtxt	*c = NSMapGet(_contextMap, m);
+
+			  if (c != context)
+			    {
+			      if ([context->timers repositionObject: t] != nil)
+				{
+				  if (--n == 0)
+				    {
+				      break;
+				    }
+				}
+			    }
+			}
+		      GS_END_FOR(_contextMap)
+		    }
                 }
-              else
-                {
-                  /* The timer was invalidated, so we can
-                   * release it as we aren't putting it back
-                   * in the array.
-                   */
-                  RELEASE(t);
-                }
-              break;
+	      RELEASE(t);
             }
+	  break;
         }
     }
 
   /* Now, find the earliest remaining timer date while removing
-   * any invalidated timers.  We iterate from the end of the
-   * array to minimise the amount of array alteration needed.
+   * any invalidated timers.
    */
   earliest = nil;
-  i = GSIArrayCount(timers);
-  while (i-- > 0)
+  t = [timers peek];
+  while (t != nil)
     {
-      t = GSIArrayItemAtIndex(timers, i).obj;
-      if (timerInvalidated(t) == YES)
+      if (timerInvalidated(t))
         {
-          GSIArrayRemoveItemAtIndex(timers, i);
+          t = [timers next];
         }
       else
         {
-          d = timerDate(t);
-          ti = [d timeIntervalSinceReferenceDate];
-          if (earliest == nil || ti < ei)
-            {
-              earliest = d;
-              ei = ti;
-            }
+          earliest = timerDate(t);
+	  break;
         }
     }
   [arp drain];

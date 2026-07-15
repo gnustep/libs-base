@@ -101,6 +101,11 @@ GS_EXPORT_CLASS
  */
 - (id) pop;
 
+/** Removes the first object from the heap and returns it.  Returns nil
+ * if the heap was already empty.  The returned object is not autoreleased.
+ */
+- (id) popRetained NS_RETURNS_RETAINED;
+
 /** Adds obj to the heap and returns YES on success.  May return NO on failure
  * (if obj was nil or if there is insufficient memory for the heap to grow).
  * The heap takes ownership of (retains) obj on success, but not on failure.
