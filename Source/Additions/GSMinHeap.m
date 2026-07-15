@@ -276,6 +276,14 @@ heap_remove(MinHeapInternal *h, size_t index)
   DEALLOC
 }
 
+- (void) drop
+{
+  if (internal->size > 0)
+    {
+      RELEASE(heap_pop(internal));
+    }
+}
+
 - (void) empty
 {
   size_t	i;
@@ -323,6 +331,19 @@ heap_remove(MinHeapInternal *h, size_t index)
 	}
     }
   return self;
+}
+
+- (id) next
+{
+  if (internal->size > 0)
+    {
+      RELEASE(heap_pop(internal));
+    }
+  if (0 == internal->size)
+    {
+      return nil;
+    }
+  return internal->data[0];
 }
 
 - (id) peek

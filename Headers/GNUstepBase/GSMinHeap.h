@@ -71,6 +71,10 @@ GS_EXPORT_CLASS
  */
 - (NSUInteger) count;
 
+/** Removes the first object from the heap.
+ */
+- (void) drop;
+
 /** Removes all objects from the heap.
  */
 - (void) empty;
@@ -83,7 +87,12 @@ GS_EXPORT_CLASS
 - (instancetype) initWithCapacity: (size_t)cap
 		    andComparator: (GSMinHeapComparator)cmp;
 
-/** Returns the first object on the heap or nil if it is empty.
+/** Discards the first object from the heap and returns the next object.
+ * (equivalent to -drop followed by -peek).
+ */
+- (id) next;
+
+/** Returns the first object on the heap or nil if it is empty
  */
 - (id) peek;
 

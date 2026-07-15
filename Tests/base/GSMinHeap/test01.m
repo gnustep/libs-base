@@ -21,19 +21,19 @@ main(void)
   [heap push: b];
 
   PASS([heap containsObject: a1] == YES,
-    "containsObject finds identical object");
+    "containsObject finds identical object")
 
   PASS([heap containsObject: a2] == YES,
-    "containsObject uses isEqual:");
+    "containsObject uses isEqual:")
 
   PASS([heap containsObjectIdenticalTo: a1] == YES,
-    "containsObjectIdenticalTo finds same pointer");
+    "containsObjectIdenticalTo finds same pointer")
 
   PASS([heap containsObjectIdenticalTo: a2] == NO,
-    "containsObjectIdenticalTo distinguishes equal objects");
+    "containsObjectIdenticalTo distinguishes equal objects")
 
   PASS([heap containsObject: @"zzz"] == NO,
-    "containsObject returns NO when absent");
+    "containsObject returns NO when absent")
 
   DESTROY(heap);
 
@@ -43,24 +43,24 @@ main(void)
 
   heap = [[GSMinHeap alloc] init];
 
-  NSMutableString *a1 = [NSMutableString stringWithString:@"a"];
-  NSMutableString *a2 = [NSMutableString stringWithString:@"a"];
-  NSMutableString *b  = [NSMutableString stringWithString:@"b"];
+  NSMutableString *a1 = [NSMutableString stringWithString: @"a"];
+  NSMutableString *a2 = [NSMutableString stringWithString: @"a"];
+  NSMutableString *b  = [NSMutableString stringWithString: @"b"];
 
-  [heap push:a1];
-  [heap push:a2];
-  [heap push:b];
+  [heap push: a1];
+  [heap push: a2];
+  [heap push: b];
 
-  [heap removeObject:@"a"];
+  [heap removeObject: @"a"];
 
   PASS([heap count] == 1,
-    "removeObject removes all equal objects");
+    "removeObject removes all equal objects")
 
-  PASS([[heap pop] isEqual:@"b"],
-    "remaining object correct");
+  PASS([[heap pop] isEqual: @"b"],
+    "remaining object correct")
 
   PASS([heap pop] == nil,
-    "heap empty after removal");
+    "heap empty after removal")
 
   DESTROY(heap);
 
@@ -71,22 +71,22 @@ main(void)
 
   heap = [[GSMinHeap alloc] init];
 
-  NSMutableString *a1 = [NSMutableString stringWithString:@"a"];
-  NSMutableString *a2 = [NSMutableString stringWithString:@"a"];
+  NSMutableString *a1 = [NSMutableString stringWithString: @"a"];
+  NSMutableString *a2 = [NSMutableString stringWithString: @"a"];
 
-  [heap push:a1];
-  [heap push:a2];
+  [heap push: a1];
+  [heap push: a2];
 
-  [heap removeObjectIdenticalTo:a1];
+  [heap removeObjectIdenticalTo: a1];
 
   PASS([heap count] == 1,
-    "removeObjectIdenticalTo removes only identical object");
+    "removeObjectIdenticalTo removes only identical object")
 
-  PASS([heap containsObjectIdenticalTo:a1] == NO,
-    "removed identical object absent");
+  PASS([heap containsObjectIdenticalTo: a1] == NO,
+    "removed identical object absent")
 
-  PASS([heap containsObjectIdenticalTo:a2] == YES,
-    "equal but different object remains");
+  PASS([heap containsObjectIdenticalTo: a2] == YES,
+    "equal but different object remains")
 
   DESTROY(heap);
 

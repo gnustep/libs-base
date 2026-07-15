@@ -19,18 +19,18 @@ main(void)
   [heap push: b];
 
   PASS([[heap peek] isEqual: @"b"],
-    "'b' orders beforew 'm'");
+    "'b' orders beforew 'm'")
 
   [a setString: @"a"];
 
   PASS([[heap peek] isEqual: @"b"],
-    "heap unchanged before reposition");
+    "heap unchanged before reposition")
 
   PASS([heap repositionObject: a] == a,
-    "reposition returns object");
+    "reposition returns object")
 
   PASS([[heap peek] isEqual: @"a"],
-    "object moved to root after becoming smaller");
+    "object moved to root after becoming smaller")
 
   DESTROY(heap);
 
@@ -44,26 +44,26 @@ main(void)
   NSMutableString *b = [NSMutableString stringWithString: @"b"];
   NSMutableString *c = [NSMutableString stringWithString: @"c"];
 
-  [heap push:a];
-  [heap push:b];
-  [heap push:c];
+  [heap push: a];
+  [heap push: b];
+  [heap push: c];
 
   [a setString: @"z"];
 
-  PASS([heap repositionObject:a] == a,
-    "reposition succeeds");
+  PASS([heap repositionObject: a] == a,
+    "reposition succeeds")
 
   PASS([[heap peek] isEqual: @"b"],
-    "next smallest promoted");
+    "next smallest promoted")
 
   PASS([[[heap pop] description] isEqual: @"b"],
-    "first pop correct");
+    "first pop correct")
 
   PASS([[[heap pop] description] isEqual: @"c"],
-    "second pop correct");
+    "second pop correct")
 
   PASS([[[heap pop] description] isEqual: @"z"],
-    "modified object now last");
+    "modified object now last")
 
   DESTROY(heap);
 
@@ -75,8 +75,8 @@ main(void)
 
   NSMutableString *a = [NSMutableString stringWithString: @"a"];
 
-  PASS([heap repositionObject:a] == nil,
-    "reposition absent object returns nil");
+  PASS([heap repositionObject: a] == nil,
+    "reposition absent object returns nil")
 
   DESTROY(heap);
 
@@ -89,22 +89,22 @@ main(void)
 
   NSMutableString *a = [NSMutableString stringWithString: @"b"];
 
-  [heap push:a];
-  [heap push:a];
-  [heap push:a];
+  [heap push: a];
+  [heap push: a];
+  [heap push: a];
 
   PASS([heap count] == 3,
-    "same object may be inserted repeatedly");
+    "same object may be inserted repeatedly")
 
   [a setString: @"a"];
 
-  [heap repositionObject:a];
+  [heap repositionObject: a];
 
   PASS([heap count] == 1,
-    "reposition removes duplicate identities");
+    "reposition removes duplicate identities")
 
   PASS([[heap pop] isEqual: @"a"],
-    "single repositioned object remains");
+    "single repositioned object remains")
 
   DESTROY(heap);
 
@@ -118,28 +118,28 @@ main(void)
 
   [heap push: @"a"];
   [heap push: @"c"];
-  [heap push:m];
+  [heap push: m];
   [heap push: @"x"];
   [heap push: @"z"];
 
   [m setString: @"b"];
 
-  [heap repositionObject:m];
+  [heap repositionObject: m];
 
   PASS([[[heap pop] description] isEqual: @"a"],
-    "first pop correct");
+    "first pop correct")
 
   PASS([[[heap pop] description] isEqual: @"b"],
-    "repositioned object in correct position");
+    "repositioned object in correct position")
 
   PASS([[[heap pop] description] isEqual: @"c"],
-    "remaining heap still ordered");
+    "remaining heap still ordered")
 
   PASS([[[heap pop] description] isEqual: @"x"],
-    "heap property maintained");
+    "heap property maintained")
 
   PASS([[[heap pop] description] isEqual: @"z"],
-    "heap property maintained");
+    "heap property maintained")
 
   DESTROY(heap);
 
