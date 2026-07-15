@@ -3472,7 +3472,7 @@ IF_NO_ARC(
   return path;
 }
 
-- (void)cleanPathCache
+- (void) cleanPathCache
 {
   NSUInteger	plen = [_path length];
   NSEnumerator	*enumerator;
@@ -3481,34 +3481,34 @@ IF_NO_ARC(
   [pathCacheLock lock];
   enumerator = [pathCache keyEnumerator];
   while (nil != (path = [enumerator nextObject]))
-  {
-    if (YES == [path hasPrefix: _path])
-      {
-        if ([path length] == plen)
-        {
-          /* Remove the bundle directory path from the cache.
-           */
-          [pathCache removeObjectForKey: path];
-        }
-        else
-        {
-          unichar	c = [path characterAtIndex: plen];
+    {
+      if (YES == [path hasPrefix: _path])
+	{
+	  if ([path length] == plen)
+	    {
+	      /* Remove the bundle directory path from the cache.
+	       */
+	      [pathCache removeObjectForKey: path];
+	    }
+	  else
+	    {
+	      unichar	c = [path characterAtIndex: plen];
 
-          /* if the directory is inside the bundle, remove from cache.
-           */
-          if ('/' == c)
-          {
-            [pathCache removeObjectForKey: path];
-          }
+	      /* if the directory is inside the bundle, remove from cache.
+	       */
+	      if ('/' == c)
+		{
+		  [pathCache removeObjectForKey: path];
+		}
 #if defined(_WIN32)
-          else if ('\\' == c)
-          {
-            [pathCache removeObjectForKey: path];
-          }
+	      else if ('\\' == c)
+		{
+		  [pathCache removeObjectForKey: path];
+		}
 #endif
-        }
-      }
-  }
+	    }
+	}
+    }
   [pathCacheLock unlock];
   
   /* also destroy cached variables depending on bundle paths */
