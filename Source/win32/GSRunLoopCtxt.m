@@ -85,7 +85,7 @@
       handleMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);
       winMsgMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
-	[self WatcherCallbacks], 0);
+	[self watcherCallbacks], 0);
     }
   return self;
 }
