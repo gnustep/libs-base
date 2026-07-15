@@ -1,9 +1,6 @@
 /**
- * The GSRunLoopCtxt stores context information to handle polling for
- * events.  This information is associated with a particular runloop
- * mode, and persists throughout the life of the runloop instance.
- *
- *	NB.  This class is private to NSRunLoop and must not be subclassed.
+ * MS-Windows subclass of the GSRunLoopCtxt class.
+ * NB.  This class is private to NSRunLoop
  */
 
 #import "common.h"
@@ -19,49 +16,17 @@
 
 #define	FDCOUNT	1024
 
-static SEL	wRelSel;
-static SEL	wRetSel;
-static IMP	wRelImp;
-static IMP	wRetImp;
-
-static void
-wRelease(NSMapTable* t, void* w)
+@interface	GSRunLoopCtxtWin32: GSRunLoopCtxt
 {
-  (*wRelImp)((id)w, wRelSel);
+  NSMapTable    *handleMap;     
+  NSMapTable    *winMsgMap;
 }
+@end
 
-static void
-wRetain(NSMapTable* t, const void* w)
-{
-  (*wRetImp)((id)w, wRetSel);
-}
-
-static const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
-{
-  wRetain,
-  wRelease,
-  0
-};
-
-@implementation	GSRunLoopCtxt
-
-+ (void) initialize
-{
-  wRelSel = @selector(release);
-  wRetSel = @selector(retain);
-  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
-  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
-}
+@implementation	GSRunLoopCtxtWin32
 
 - (void) dealloc
 {
-  RELEASE(mode);
-  GSIArrayEmpty(performers);
-  NSZoneFree(performers->zone, (void*)performers);
-  GSIArrayEmpty(timers);
-  NSZoneFree(timers->zone, (void*)timers);
-  GSIArrayEmpty(watchers);
-  NSZoneFree(watchers->zone, (void*)watchers);
   if (handleMap != 0)
     {
       NSFreeMapTable(handleMap);
@@ -70,9 +35,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSFreeMapTable(winMsgMap);
     }
-  GSIArrayEmpty(_trigger);
-  NSZoneFree(_trigger->zone, (void*)_trigger);
-  [super dealloc];
+  DEALLOC
 }
 
 /**
@@ -88,17 +51,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 {
   if (completed == NO)
     {
-      unsigned i = GSIArrayCount(_trigger);
-
-      while (i-- > 0)
-	{
-	  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
-
-	  if (item.obj == (id)watcher)
-	    {
-	      GSIArrayRemoveItemAtIndex(_trigger, i);
-	    }
-	}
+      [super endEvent: data for: watcher];
       switch (watcher->type)
 	{
 	  case ET_RPORT:
@@ -118,17 +71,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 }
 
-/**
- * Mark this poll context as having completed, so that if we are
- * executing a re-entrant poll, the enclosing poll operations
- * know they can stop what they are doing because an inner
- * operation has done the job.
- */
-- (void) endPoll
-{
-  completed = YES;
-}
-
 - (id) init
 {
   [NSException raise: NSInternalInconsistencyException
@@ -138,27 +80,12 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 - (id) initWithMode: (NSString*)theMode extra: (void*)e
 {
-  self = [super init];
-  if (self != nil)
+  if (nil != (self = [super initWithMode: theMode extra: e]))
     {
-      NSZone	*z;
-
-      mode = [theMode copy];
-      extra = e;
-      z = [self zone];
-      performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
-
       handleMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
-              WatcherMapValueCallBacks, 0);
+	[self watcherCallbacks], 0);
       winMsgMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
-              WatcherMapValueCallBacks, 0);
+	[self WatcherCallbacks], 0);
     }
   return self;
 }

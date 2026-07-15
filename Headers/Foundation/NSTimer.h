@@ -34,10 +34,8 @@ DEFINE_BLOCK_TYPE(GSTimerBlock, void, NSTimer*);
 extern "C" {
 #endif
 
-/*
- *	NB. NSRunLoop is optimised using a hack that knows about the
- *	class layout for the fire date and invialidation flag in NSTimer.
- *	These MUST remain the first two items in the class.
+/*	NB. NSRunLoop is optimised using a hack that knows about the
+ *	class layout for relevant information in NSTimer.
  *	Other classes must not attempt to use instance variables as
  *	they are subject to change.
  */
@@ -46,23 +44,16 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSTimer)
 @public
-  NSDate 	 *_date;	/* Must be 1st - for NSRunLoop optimisation */
-  BOOL		 _invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
-  BOOL		 _repeats;
-  NSTimeInterval _interval;
-  id		 _target;
-  SEL		 _selector;
-  id		 _info;
-  GSTimerBlock   _block;
-#endif
-#if     GS_NONFRAGILE
-#else
-  /* Pointer to private additional data used to avoid breaking ABI
-   * when we don't have the non-fragile ABI available.
-   * Use this mechanism rather than changing the instance variable
-   * layout (see Source/GSInternal.h for details).
-   */
-  @private id _internal GS_UNUSED_IVAR;
+  NSDate 		*_date;		/* Must match NSRunLoop.m */
+  const void		*_loop;		/* Must match NSRunLoop.m */
+  BOOL		 	_invalidated;	/* Must match NSRunLoop.m */
+  uint8_t		_scheduled;	/* Must match NSRunLoop.m */
+  BOOL		 	_repeats;
+  NSTimeInterval 	_interval;
+  id		 	_target;
+  SEL		 	_selector;
+  id		 	_info;
+  GSTimerBlock   	_block;
 #endif
 }
 

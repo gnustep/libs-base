@@ -1,7 +1,7 @@
 #ifndef __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE
 #define __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE
 /** 
-   Copyright (C) 2008-2009 Free Software Foundation, Inc.
+   Copyright (C) 2008-2026 Free Software Foundation, Inc.
 
    By: Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
@@ -21,13 +21,13 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
-   $Date$ $Revision$
 */
 
 #import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSRunLoop.h"
+#import "GNUstepBase/GSMinHeap.h"
 
 /*
  *      Setup for inline operation of arrays.
@@ -57,27 +57,14 @@ typedef struct{
   NSString	*mode;		/** The mode for this context.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
   unsigned	maxPerformers;
-  GSIArray	timers;		/** The timers set for the runloop mode */
+  GSIArray	timers;
   unsigned	maxTimers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
   unsigned	maxWatchers;
-@private
-#if	defined(_WIN32)
-  NSMapTable    *handleMap;     
-  NSMapTable	*winMsgMap;
-#else
-  NSMapTable	*_efdMap;
-  NSMapTable	*_rfdMap;
-  NSMapTable	*_wfdMap;
-#endif
+@protected
   GSIArray	_trigger;	// Watchers to trigger unconditionally.
   int		fairStart;	// For trying to ensure fair handling.
   BOOL		completed;	// To mark operation as completed.
-#ifdef	HAVE_POLL
-  unsigned int	pollfds_capacity;
-  unsigned int	pollfds_count;
-  struct pollfd	*pollfds;
-#endif
 }
 /* Check to see of the thread has been awakened, blocking until it
  * does get awakened or until the limit date has been reached.
@@ -85,11 +72,25 @@ typedef struct{
  * immediate return.
  */
 + (BOOL) awakenedBefore: (NSDate*)when;
+
+/* Remove any callback for the specified event which is set for an
+ * uncompleted poll operation.<br />
+ * This is called by nested event loops on contexts in outer loops
+ * when they handle an event ... removing the event from the outer
+ * loop ensures that it won't get handled twice, once by the inner
+ * loop and once by the outer one.
+ */
 - (void) endEvent: (void*)data
               for: (GSRunLoopWatcher*)watcher;
+
 - (void) endPoll;
 - (id) initWithMode: (NSString*)theMode extra: (void*)e;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
+
+/* Callbacks for a map table whose values are watchers.
+ */
+- (const NSMapTableValueCallBacks) watcherCallbacks;
+
 @end
 
 #endif /* __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE */

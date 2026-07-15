@@ -1,9 +1,6 @@
 /**
- * The GSRunLoopCtxt stores context information to handle polling for
- * events.  This information is associated with a particular runloop
- * mode, and persists throughout the life of the runloop instance.
- *
- *	NB.  This class is private to NSRunLoop and must not be subclassed.
+ * Unix/Linux subclasss of the GSRunLoopCtxt class.
+ * NB.  This class is private to NSRunLoop
  */
 
 #import "common.h"
@@ -29,49 +26,23 @@
 
 #define	FDCOUNT	1024
 
-static SEL	wRelSel;
-static SEL	wRetSel;
-static IMP	wRelImp;
-static IMP	wRetImp;
-
-static void
-wRelease(NSMapTable* t, void* w)
+@interface	GSRunLoopCtxtUnix: GSRunLoopCtxt
 {
-  (*wRelImp)((id)w, wRelSel);
+  NSMapTable    *_efdMap;
+  NSMapTable    *_rfdMap;
+  NSMapTable    *_wfdMap;
+#ifdef  HAVE_POLL_F
+  unsigned int  pollfds_capacity;
+  unsigned int  pollfds_count;
+  struct pollfd *pollfds;
+#endif
 }
+@end
 
-static void
-wRetain(NSMapTable* t, const void* w)
-{
-  (*wRetImp)((id)w, wRetSel);
-}
-
-static const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
-{
-  wRetain,
-  wRelease,
-  0
-};
-
-@implementation	GSRunLoopCtxt
-
-+ (void) initialize
-{
-  wRelSel = @selector(release);
-  wRetSel = @selector(retain);
-  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
-  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
-}
+@implementation	GSRunLoopCtxtUnix
 
 - (void) dealloc
 {
-  RELEASE(mode);
-  GSIArrayEmpty(performers);
-  NSZoneFree(performers->zone, (void*)performers);
-  GSIArrayEmpty(timers);
-  NSZoneFree(timers->zone, (void*)timers);
-  GSIArrayEmpty(watchers);
-  NSZoneFree(watchers->zone, (void*)watchers);
   if (_efdMap != 0)
     {
       NSFreeMapTable(_efdMap);
@@ -84,15 +55,13 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSFreeMapTable(_wfdMap);
     }
-  GSIArrayEmpty(_trigger);
-  NSZoneFree(_trigger->zone, (void*)_trigger);
-#ifdef	HAVE_POLL_F
+#ifdef  HAVE_POLL_F
   if (pollfds != 0)
     {
       NSZoneFree(NSDefaultMallocZone(), pollfds);
     }
 #endif
-  [super dealloc];
+  DEALLOC
 }
 
 /**
@@ -143,56 +112,23 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 }
 
-/**
- * Mark this poll context as having completed, so that if we are
- * executing a re-entrant poll, the enclosing poll operations
- * know they can stop what they are doing because an inner
- * operation has done the job.
- */
-- (void) endPoll
-{
-  completed = YES;
-}
-
-- (id) init
-{
-  [NSException raise: NSInternalInconsistencyException
-	      format: @"-init may not be called for GSRunLoopCtxt"];
-  return nil;
-}
-
 - (id) initWithMode: (NSString*)theMode extra: (void*)e
 {
-  self = [super init];
-  if (self != nil)
+  if (nil != (self = [super initWithMode: theMode extra: e]))
     {
-      NSZone	*z;
-
-      mode = [theMode copy];
-      extra = e;
-      z = [self zone];
-      performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
-
       _efdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
-				      WatcherMapValueCallBacks, 0);
+	[self watcherCallbacks], 0);
       _rfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
-				      WatcherMapValueCallBacks, 0);
+	[self watcherCallbacks], 0);
       _wfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
-				      WatcherMapValueCallBacks, 0);
+	[self watcherCallbacks], 0);
     }
   return self;
 }
 
 #ifdef	HAVE_POLL_F
 
-static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
+static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 {
   int		index;
   struct pollfd *pollfds = ctxt->pollfds;

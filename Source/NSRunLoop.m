@@ -885,6 +885,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 - (void) addTimer: (NSTimer*)timer
 	  forMode: (NSString*)mode
 {
+  const void	*loop = (const void*)self;
   GSRunLoopCtxt	*context;
   GSIArray	timers;
   unsigned      i;
@@ -894,6 +895,12 @@ static GSMainQueueDrainer 	*drainer = nil;
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@] not a valid timer",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (timer->_loop != loop && timer->_loop != nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] timer already scheduled in another runloop",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   if ([mode isKindOfClass: [NSString class]] == NO)
@@ -906,6 +913,8 @@ static GSMainQueueDrainer 	*drainer = nil;
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
 
+  timer->_loop = loop;	// Not retained.
+
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
@@ -914,14 +923,27 @@ static GSMainQueueDrainer 	*drainer = nil;
       RELEASE(context);
     }
   timers = context->timers;
-  i = GSIArrayCount(timers);
-  while (i-- > 0)
+  if (timer->_scheduled > 0)
     {
-      if (timer == GSIArrayItemAtIndex(timers, i).obj)
-        {
-          return;       /* Timer already present */
-        }
+      /* Timer was already scheduled: check whether it is in this mode.
+       */
+      i = GSIArrayCount(timers);
+      while (i-- > 0)
+	{
+	  if (timer == GSIArrayItemAtIndex(timers, i).obj)
+	    {
+	      return;       /* Timer already present */
+	    }
+	}
     }
+
+  /* Count scheduling of timer (skip counts too large to fit field).
+   */
+  if (timer->_scheduled < 255)
+    {
+      timer->_scheduled++;
+    }
+
   /*
    * NB. A previous version of the timer code maintained an ordered
    * array on the theory that we could improve performance by only
@@ -956,7 +978,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 static BOOL
 updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
-  if (timerInvalidated(t) == YES)
+  if (timerInvalidated(t))
     {
       return NO;
     }
