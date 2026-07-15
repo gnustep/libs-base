@@ -61,6 +61,14 @@ main(void)
   PASS_EQUAL([heap next], @"b", "heap -next of a,b returns b")
   PASS([heap count] == 1, "heap count 1 after push push next")
 
+  PASS([heap pushIfNotPresent: @"a"] == YES, "-pushIfNotPresent: reports a added to heap")
+  PASS([heap count] == 2, "heap count 2 after -pushIfNotPresent: added a")
+  PASS([heap pushIfNotPresent: @"a"] == YES, "-pushIfNotPresent: reports a already in heap")
+  PASS([heap count] == 2, "heap count 2 after -pushIfNotPresent: added a again")
+
+  PASS([heap pushIfNotPresent: nil] == NO, "-pushIfNotPresent: refuses to add nil")
+  PASS([heap count] == 2, "heap count 2 after -pushIfNotPresent: refused to add nil")
+
   DESTROY(heap);
 
   END_SET("GSMinHeap")

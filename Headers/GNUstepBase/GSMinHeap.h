@@ -102,11 +102,19 @@ GS_EXPORT_CLASS
 - (id) pop;
 
 /** Adds obj to the heap and returns YES on success.  May return NO on failure
- * (of obj was nil or if there is insufficient memory for the heap to grow).
+ * (if obj was nil or if there is insufficient memory for the heap to grow).
  * The heap takes ownership of (retains) obj on success, but not on failure.
  * It is possible to push the same object ot the heap more than once.
  */
 - (BOOL) push: (id)obj;
+
+/** Adds obj to the heap if (and only if) it is not already present.
+ * Returns YES on success (the object was present or was added).
+ * May return NO on failure (if obj was nil or if there is insufficient
+ * memory for the heap to grow).
+ * The heap takes ownership of (retains) obj on success if it was added.
+ */
+- (BOOL) pushIfNotPresent: (id)obj;
 
 /** Removes all objects matching obj using the -isEqual: method.
  */

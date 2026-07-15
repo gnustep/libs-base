@@ -362,11 +362,36 @@ heap_remove(MinHeapInternal *h, size_t index)
 
 - (BOOL) push: (id)obj
 {
-  if (obj != nil && heap_push(internal, RETAIN(obj)))
+  if (obj != nil)
     {
-      return YES;
+      if (heap_push(internal, obj))
+	{
+	  RETAIN(obj);
+	  return YES;
+	}
     }
-  RELEASE(obj);
+  return NO;
+}
+
+- (BOOL) pushIfNotPresent: (id)obj
+{
+  if (obj != nil)
+    {
+      size_t	index = internal->size;
+
+      while (index-- > 0)
+	{
+	  if (obj == internal->data[index])
+	    {
+	      return YES;
+	    }
+	}
+      if (heap_push(internal, obj))
+	{
+	  RETAIN(obj);
+	  return YES;
+	}
+    }
   return NO;
 }
 
