@@ -1,3 +1,8 @@
+2026-07-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLSessionTask.m: Do not bother trying to unfold headers
+	when using a version of libcurl recent enough to do it for us.
+
 2026-07-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSOutput.h: Add +generatedDate method.
