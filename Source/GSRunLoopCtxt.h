@@ -40,20 +40,13 @@
 
 #include "GNUstepBase/GSIArray.h"
 
-#ifdef  HAVE_POLL
-typedef struct{
-  int   limit;
-  short *index;
-}pollextra;
-#endif
-
 @class NSString;
 @class GSRunLoopWatcher;
 
 @interface	GSRunLoopCtxt : NSObject
 {
 @public
-  void		*extra;		/** Copy of the RunLoop ivar.		*/
+  void		*extra;		/** Common data for contexts in a loop  */
   NSString	*mode;		/** The mode for this context.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
   unsigned	maxPerformers;
@@ -84,7 +77,7 @@ typedef struct{
               for: (GSRunLoopWatcher*)watcher;
 
 - (void) endPoll;
-- (id) initWithMode: (NSString*)theMode extra: (void*)e;
+- (id) initWithMode: (NSString*)theMode extra: (void**)e;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
 
 /* Callbacks for a map table whose values are watchers.

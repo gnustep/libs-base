@@ -55,9 +55,6 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_POLL_F
-#include <poll.h>
-#endif
 #include <math.h>
 #include <time.h>
 
@@ -71,10 +68,6 @@ NSRunLoopMode const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 NSRunLoopMode const NSRunLoopCommonModes = @"NSRunLoopCommonModes";
 
 static NSDate	*theFuture = nil;
-
-@interface NSObject (OptionalPortRunLoop)
-- (void) getFds: (NSInteger*)fds count: (NSInteger*)count;
-@end
 
 
 
@@ -436,6 +429,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 #endif
 
+typedef struct {
+  void                  *sharedContextInfo;
+} RunLoopInternal;
+                               
+#define internal        ((RunLoopInternal*)_internal)
+                                              
+
 @interface NSRunLoop (Private)
 
 - (void) _addWatcher: (GSRunLoopWatcher*)item
@@ -464,7 +464,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
-      context = [[GSRunLoopCtxt alloc] initWithMode: mode extra: _extra];
+      context = [[GSRunLoopCtxt alloc] initWithMode: mode
+	extra: &internal->sharedContextInfo];
       NSMapInsert(_contextMap, context->mode, context);
       RELEASE(context);
     }
@@ -594,17 +595,14 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (id) _init
 {
-  self = [super init];
-  if (self != nil)
+  if (nil != (self = [super init]))
     {
       _contextStack = [NSMutableArray new];
       _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-#ifdef	HAVE_POLL_F
-      _extra = NSZoneMalloc(NSDefaultMallocZone(), sizeof(pollextra));
-      memset(_extra, '\0', sizeof(pollextra));
-#endif
+      _internal = (RunLoopInternal*)
+	NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(RunLoopInternal));
     }
   return self;
 }
@@ -850,15 +848,11 @@ static GSMainQueueDrainer 	*drainer = nil;
 
 - (void) dealloc
 {
-#ifdef	HAVE_POLL_F
-  if (_extra != 0)
-    {
-      pollextra	*e = (pollextra*)_extra;
-      if (e->index != 0)
-	NSZoneFree(NSDefaultMallocZone(), e->index);
-      NSZoneFree(NSDefaultMallocZone(), e);
+  if (internal)
+    {   
+      NSZoneFree(NSDefaultMallocZone(), internal);
+      _internal = NULL;
     }
-#endif
   RELEASE(_contextStack);
   if (_contextMap != 0)
     {
@@ -924,7 +918,8 @@ static GSMainQueueDrainer 	*drainer = nil;
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
-      context = [[GSRunLoopCtxt alloc] initWithMode: mode extra: _extra];
+      context = [[GSRunLoopCtxt alloc] initWithMode: mode
+	extra: &internal->sharedContextInfo];
       NSMapInsert(_contextMap, context->mode, context);
       RELEASE(context);
     }
@@ -1550,7 +1545,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  if (context == nil)
 	    {
 	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
-						      extra: _extra];
+		extra: &internal->sharedContextInfo];
 	      NSMapInsert(_contextMap, context->mode, context);
 	      RELEASE(context);
 	    }

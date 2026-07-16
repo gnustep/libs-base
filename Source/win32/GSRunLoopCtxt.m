@@ -78,7 +78,7 @@
   return nil;
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void*)e
+- (id) initWithMode: (NSString*)theMode extra: (void**)e
 {
   if (nil != (self = [super initWithMode: theMode extra: e]))
     {

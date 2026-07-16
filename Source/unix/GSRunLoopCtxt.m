@@ -24,6 +24,14 @@
 #include <poll.h>
 #endif
 
+#ifdef  HAVE_POLL
+typedef struct {
+  int   	limit;
+  short 	*index;
+  unsigned	refcount;
+} pollextra;
+#endif
+
 #define	FDCOUNT	1024
 
 @interface	GSRunLoopCtxtUnix: GSRunLoopCtxt
@@ -59,6 +67,19 @@
   if (pollfds != 0)
     {
       NSZoneFree(NSDefaultMallocZone(), pollfds);
+    }
+  if (extra)
+    {
+      pollextra	*pe = (pollextra*)extra;
+
+      if (--pe->refcount == 0)
+	{
+	  if (pe->index != 0)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), pe->index);
+	    }
+	  NSZoneFree(NSDefaultMallocZone(), pe);
+	}
     }
 #endif
   DEALLOC
@@ -112,7 +133,7 @@
     }
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void*)e
+- (id) initWithMode: (NSString*)theMode extra: (void**)e
 {
   if (nil != (self = [super initWithMode: theMode extra: e]))
     {
@@ -122,6 +143,14 @@
 	[self watcherCallbacks], 0);
       _wfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);
+#ifdef	HAVE_POLL_F
+      if (NULL == *e)
+	{
+          *e = extra
+	    = NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(pollextra));
+	}
+      ((pollextra*)extra)->refcount++;
+#endif
     }
   return self;
 }

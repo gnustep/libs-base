@@ -52,7 +52,7 @@ GS_EXPORT_CLASS
   NSMapTable		*_contextMap;
   NSMutableArray	*_contextStack;
   NSMutableArray	*_timedPerformers;
-  void			*_extra;
+  void			*_internal;
 #endif
 }
 
