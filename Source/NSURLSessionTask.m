@@ -298,7 +298,7 @@ progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow,
  * This function is called for each header line and is called
  * again when a redirect or authentication occurs.
  *
- * libcurl does not unfold HTTP "folded headers" (deprecated since RFC 7230).
+ * Prior to 8.18.0 libcurl did not unfold HTTP "folded headers".
  */
 static size_t
 header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
@@ -341,6 +341,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       return size * nitems;
     }
 
+#if !CURL_AT_LEAST_VERSION(8, 18, 0)
   /* Header fields can be extended over multiple lines by preceding
    * each extra line with at least one SP or HT (RFC 2616 line folding).
    *
@@ -390,6 +391,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
       return size * nitems;
     }
+#endif
 
   range = [headerLine rangeOfString: @":"];
   if (NSNotFound != range.location)
@@ -405,9 +407,10 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       value = [value stringByTrimmingCharactersInSet: set];
 
       [headerFields setObject: value forKey: key];
+#if !CURL_AT_LEAST_VERSION(8, 18, 0)
       /* Used for line unfolding */
       [taskData setObject: key forKey: @"lastHeaderKey"];
-
+#endif
       return size * nitems;
     }
 
