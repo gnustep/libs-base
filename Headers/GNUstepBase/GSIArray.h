@@ -1,5 +1,5 @@
 /* A fast (Inline) array implementation without objc method overhead.
- * Copyright (C) 1998,1999  Free Software Foundation, Inc.
+ * Copyright (C) 1998,2026  Free Software Foundation, Inc.
  * 
  * Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
  * Created:	Nov 1998
@@ -28,17 +28,23 @@
 #if	defined(GNUSTEP_BASE_INTERNAL)
 #import "Foundation/NSObject.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSZone.h"
 #else
 #import <Foundation/NSObject.h>
 #import <Foundation/NSException.h>
-#import <Foundation/NSGarbageCollector.h>
 #import <Foundation/NSZone.h>
 #endif
 
-/* To turn assertions on, define GSI_ARRAY_CHECKS */
-#define GSI_ARRAY_CHECKS 1
+/** To turn assertions on, define GSI_ARRAY_CHECKS */
+//#define GSI_ARRAY_CHECKS 1
+
+#if	!defined(GSI_ARRAY_MEMMOVE)
+/** From this threshold number of items to be moved in an array, the macro
+ * will use the memmove() function rather than a loop of assignments.
+ * If you do not define a value, the default threshold is used.
+ */
+#define	GSI_ARRAY_MEMMOVE	8
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -274,7 +280,7 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 GS_STATIC_INLINE void
 GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
-  unsigned int	i;
+  unsigned	i;
 
   GSI_ARRAY_CHECK;
   GSI_ARRAY_RETAIN(array, item);
@@ -282,32 +288,58 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
     {
       GSIArrayGrow(array);
     }
-  for (i = array->count++; i > index; i--)
+  if ((i = array->count - index) >= GSI_ARRAY_MEMMOVE)
     {
-      array->ptr[i] = array->ptr[i-1];
+      if (index < array->count)
+	{
+	  memmove(array->ptr + (index+1), array->ptr + index,
+	    i * sizeof(GSIArrayItem));
+	}
+      array->count++;
     }
-  array->ptr[i] = item;
+  else
+    {
+      for (i = array->count++; i > index; i--)
+	{
+	  array->ptr[i] = array->ptr[i-1];
+	}
+    }
+  array->ptr[index] = item;
   GSI_ARRAY_CHECK;
 }
 
 GS_STATIC_INLINE void
 GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 {
-  unsigned int	i;
+  unsigned	i;
 
   GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
       GSIArrayGrow(array);
     }
-  for (i = array->count++; i > index; i--)
+  if ((i = array->count - index) >= GSI_ARRAY_MEMMOVE)
     {
-      array->ptr[i] = array->ptr[i-1];
+      if (index < array->count)
+	{
+	  memmove(array->ptr + (index+1), array->ptr + index,
+	    i * sizeof(GSIArrayItem));
+	}
+      array->count++;
     }
-  array->ptr[i] = item;
+  else
+    {
+      for (i = array->count++; i > index; i--)
+	{
+	  array->ptr[i] = array->ptr[i-1];
+	}
+    }
+  array->ptr[index] = item;
   GSI_ARRAY_CHECK;
 }
 
+/** Adds an item to the end of the array.
+ */
 GS_STATIC_INLINE void
 GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
@@ -321,6 +353,8 @@ GSIArrayAddItem(GSIArray array, GSIArrayItem item)
   GSI_ARRAY_CHECK;
 }
 
+/** Adds an item to the end of the array without retaining it.
+ */
 GS_STATIC_INLINE void
 GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
 {
@@ -333,15 +367,23 @@ GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
   GSI_ARRAY_CHECK;
 }
 
-/*
- *	The comparator function takes two items as arguments, the first is the
- *	item to be added, the second is the item already in the array.
- *      The function should return NSOrderedAscending if the item to be
- *      added is 'less than' the item in the array, NSOrderedDescending
- *      if it is greater, and NSOrderedSame if it is equal.
+/** Searches the array for an item using the supplied sorter function which
+ * must provide the same sort relationship between the item argument and the
+ * items in the array that was used to create the array.<br />
+ * This will return either the index of a matching item (if more than one
+ * item matches it is indeterminate which item's index is returned) or the
+ * index of the first item greater than the one being searched for if no
+ * match is found (this may be the index of the end of the array if the
+ * array only contains smaller items than the one being searched for).<br />
+ *
+ * The comparator function takes two items as arguments, the first is the
+ * item to be matched, the second is the item already in the array.
+ * The function should return NSOrderedAscending if the item to be
+ * matched is 'less than' the item in the array, NSOrderedDescending
+ * if it is greater, and NSOrderedSame if it is equal.
  */
 GS_STATIC_INLINE unsigned
-GSIArraySearch(GSIArray array, GSIArrayItem item, 
+GSIArraySearch(GSIArray array, GSIArrayItem elem, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	upper = array->count;
@@ -356,7 +398,7 @@ GSIArraySearch(GSIArray array, GSIArrayItem item,
     {
       NSComparisonResult comparison;
 
-      comparison = (*sorter)(item, (array->ptr[index]));
+      comparison = (*sorter)(elem, (array->ptr[index]));
       if (comparison == NSOrderedAscending)
         {
           upper = index;
@@ -373,13 +415,46 @@ GSIArraySearch(GSIArray array, GSIArrayItem item,
   return index;
 }
 
+/** Returns the index of the first item in the array matching elem and also
+ * returns the count of matching items.  If the returned count is zero then
+ * no matches were found.
+ */
+GS_STATIC_INLINE unsigned
+GSIArraySearchCount(GSIArray array, GSIArrayItem elem, 
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem), unsigned *count)
+{
+  unsigned	start = GSIArraySearch(array, elem, sorter);
+  unsigned	end = start;
+
+  while (start > 0
+    && (*sorter)(elem, (array->ptr[start - 1])) == NSOrderedSame)
+    {
+      start--;
+    }
+  while (end < array->count
+    && (*sorter)(elem, (array->ptr[end])) != NSOrderedAscending)
+    {
+      end++;
+    }
+  if (count)
+    {
+      *count = end - start;
+    }
+  return start;
+}
+
+/** Returns the insertion position for elem in array.  If the array contains
+ * one or more items equal to elem, the returned position will be immediately
+ * after the last of these (so the order of equal items in the array is
+ * the order in which those items were added using this method).
+ */
 GS_STATIC_INLINE unsigned
 GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	index;
 
-  index = GSIArraySearch(array,item,sorter);
+  index = GSIArraySearch(array, item, sorter);
   /*
    *	Now skip past any equal items so the insertion point is AFTER any
    *	items that are equal to the new one.
@@ -412,6 +487,9 @@ GSIArrayCheckSort(GSIArray array,
 }
 #endif
 
+/** Inserts an item into a sorted array at the correct position to maintain
+ * equal items in insertion order.
+ */
 GS_STATIC_INLINE void
 GSIArrayInsertSorted(GSIArray array, GSIArrayItem item, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
@@ -428,6 +506,9 @@ GSIArrayInsertSorted(GSIArray array, GSIArrayItem item,
 #endif
 }
 
+/** Inserts an item into a sorted array at the correct position to maintain
+ * equal items in insertion order.  Does not retain the inserted item.
+ */
 GS_STATIC_INLINE void
 GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
@@ -447,63 +528,108 @@ GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
 GS_STATIC_INLINE void
 GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 {
-#if	defined(GSI_ARRAY_NO_RELEASE)
+  unsigned	remainder;
+#if	!defined(GSI_ARRAY_NO_RELEASE)
+  GSIArrayItem	tmp;
+#endif
+
 # ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
 # endif
-  while (++index < array->count)
-    array->ptr[index-1] = array->ptr[index];
+
+  remainder = array->count - index - 1;
+#if	defined(GSI_ARRAY_NO_RELEASE)
+  if (remainder >= GSI_ARRAY_MEMMOVE)
+    {
+      memmove(array->ptr + index, array->ptr + (index + 1),
+	remainder * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      while (++index < array->count)
+	{
+	  array->ptr[index-1] = array->ptr[index];
+	}
+    }
   array->count--;
 #else
-  GSIArrayItem	tmp;
-# ifdef	GSI_ARRAY_CHECKS
-  NSCAssert(index < array->count, NSInvalidArgumentException);
-# endif
   tmp = array->ptr[index];
-  while (++index < array->count)
-    array->ptr[index-1] = array->ptr[index];
+  if (remainder >= GSI_ARRAY_MEMMOVE)
+    {
+      memmove(array->ptr + index, array->ptr + (index + 1),
+	remainder * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      while (++index < array->count)
+	{
+	  array->ptr[index-1] = array->ptr[index];
+	}
+    }
   array->count--;
   GSI_ARRAY_RELEASE(array, tmp);
 #endif
 }
 
 GS_STATIC_INLINE void
-GSIArrayRemoveLastItem(GSIArray array)
-{
-#ifdef	GSI_ARRAY_CHECKS
-  NSCAssert(array->count, NSInvalidArgumentException);
-#endif
-  array->count--;
-#if	!defined(GSI_ARRAY_NO_RELEASE)
-  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-#endif
-}
-
-GS_STATIC_INLINE void
 GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 {
+  unsigned	remainder;
 #ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
 #endif
-  while (++index < array->count)
-    array->ptr[index-1] = array->ptr[index];
+  remainder = array->count - index - 1;
+  if (remainder >= GSI_ARRAY_MEMMOVE)
+    {
+      memmove(array->ptr + index, array->ptr + (index + 1),
+	remainder * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      while (++index < array->count)
+	{
+	  array->ptr[index-1] = array->ptr[index];
+	}
+    }
   array->count--;
+}
+
+GS_STATIC_INLINE void
+GSIArrayRemoveLastItem(GSIArray array)
+{
+  if (array->count > 0)
+    {
+      array->count--;
+#if	!defined(GSI_ARRAY_NO_RELEASE)
+      GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#endif
+    }
+}
+
+GS_STATIC_INLINE void
+GSIArrayRemoveLastItemNoRelease(GSIArray array)
+{
+  if (array->count > 0)
+    {
+      array->count--;
+    }
 }
 
 GS_STATIC_INLINE void
 GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
 {
-#if	defined(GSI_ARRAY_NO_RELEASE)
+#if	!defined(GSI_ARRAY_NO_RELEASE)
+  GSIArrayItem	tmp;
+#endif
+
 # ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
 # endif
+
+#if	defined(GSI_ARRAY_NO_RELEASE)
   GSI_ARRAY_RETAIN(array, item);
   array->ptr[index] = item;
 #else
-  GSIArrayItem	tmp;
-# ifdef	GSI_ARRAY_CHECKS
-  NSCAssert(index < array->count, NSInvalidArgumentException);
-# endif
   tmp = array->ptr[index];
   GSI_ARRAY_RETAIN(array, item);
   array->ptr[index] = item;
@@ -556,31 +682,115 @@ GSIArrayClear(GSIArray array)
     }
 }
 
+/** Removes up to count items from the specified index onwards.
+ * If the index is outside the array, this does nothing.
+ * If the count is greater than the available items from the index,
+ * items to the end of the array are removed.<br />
+ *
+ */
 GS_STATIC_INLINE void
-GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
+GSIArrayRemoveItems(GSIArray array, unsigned index, unsigned count)
 {
   if (index < array->count)
     {
-#ifndef	GSI_ARRAY_NO_RELEASE
-      while (array->count-- > index)
+      unsigned	removeFrom = index;
+      unsigned	removeTo;
+      unsigned	remainder;
+
+      if (array->count - index < count)
 	{
-	  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+	  count = array->count - index;
+	}
+      removeTo = index + count;
+      remainder = array->count - removeTo;
+      array->count -= count;
+#ifndef	GSI_ARRAY_NO_RELEASE
+      for (index = removeFrom; index < removeTo; index++)
+	{
+	  GSI_ARRAY_RELEASE(array, array->ptr[index]);
 	}
 #endif
-      array->count = index;
+      if (remainder >= GSI_ARRAY_MEMMOVE)
+	{
+	  memmove(array->ptr + removeFrom, array->ptr + removeTo,
+	    remainder * sizeof(GSIArrayItem));
+	}
+      else
+	{
+	  while (remainder-- > 0)
+	    {
+	      array->ptr[removeFrom] = array->ptr[removeFrom+1];
+	      removeFrom++;
+	    }
+	}
     }
 }
 
+/** Acts as GSIArrayRemoveItemsNoRelease() but without releasing removed items.
+ */
+GS_STATIC_INLINE void
+GSIArrayRemoveItemsNoRelease(GSIArray array, unsigned index, unsigned count)
+{
+  if (index < array->count)
+    {
+      unsigned	removeFrom = index;
+      unsigned	removeTo;
+      unsigned	remainder;
+
+      if (array->count - index < count)
+	{
+	  count = array->count - index;
+	}
+      removeTo = index + count;
+      remainder = array->count - removeTo;
+      array->count -= count;
+      if (remainder >= GSI_ARRAY_MEMMOVE)
+	{
+	  memmove(array->ptr + removeFrom, array->ptr + removeTo,
+	    remainder * sizeof(GSIArrayItem));
+	}
+      else
+	{
+	  while (remainder-- > 0)
+	    {
+	      array->ptr[removeFrom] = array->ptr[removeFrom+1];
+	      removeFrom++;
+	    }
+	}
+    }
+}
+
+/** Removes all items from the specified index onwards.
+ * If the index is outside the array, this does nothing.
+ */
+GS_STATIC_INLINE void
+GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
+{
+  GSIArrayRemoveItems(array, index, array->count);
+}
+
+/** Removes all items from the specified index onwards without releasing them.
+ */
+GS_STATIC_INLINE void
+GSIArrayRemoveItemsFromIndexNoRelease(GSIArray array, unsigned index)
+{
+  GSIArrayRemoveItemsNoRelease(array, index, array->count);
+}
+
+/** Removes all items from index zero onwards.
+ */
 GS_STATIC_INLINE void
 GSIArrayRemoveAllItems(GSIArray array)
 {
-#ifndef	GSI_ARRAY_NO_RELEASE
-  while (array->count--)
-    {
-      GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-    }
-#endif
-  array->count = 0;
+  GSIArrayRemoveItemsFromIndex(array, 0);
+}
+
+/** Removes all items from index zero onwards without releasing them.
+ */
+GS_STATIC_INLINE void
+GSIArrayRemoveAllItemsNoRelease(GSIArray array)
+{
+  GSIArrayRemoveItemsFromIndexNoRelease(array, 0);
 }
 
 GS_STATIC_INLINE void

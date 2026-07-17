@@ -52,7 +52,8 @@
   unsigned	maxPerformers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
   unsigned	maxWatchers;
-  GSMinHeap	*timers;
+  GSMinHeap	*timerHeap;
+  GSIArray      timers;         /** The timers set for the runloop mode */
   unsigned	maxTimers;
 @protected
   GSIArray	_trigger;	// Watchers to trigger unconditionally.
