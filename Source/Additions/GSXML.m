@@ -1974,7 +1974,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 /**
  * If called by a SAX callback routine, this method will terminate
- * the parsiong process.
+ * the parsing process.
  */
 - (void) abortParsing
 {
@@ -1982,12 +1982,16 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       xmlParserCtxtPtr	ctxt = (xmlParserCtxtPtr)lib;
 
+#ifdef	HAVE_XMLSTOPPARSER
+      xmlStopParser(ctxt);
+#else
       // Stop SAX callbacks
       ctxt->disableSAX = 1;
       // Stop incoming data being parsed.
       ctxt->instate = XML_PARSER_EOF;
       // Pretend we are at end of file (nul byte).
       if (ctxt->input != NULL) ctxt->input->cur = (const unsigned char*)"";
+#endif
     }
 }
 

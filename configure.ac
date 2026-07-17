@@ -3518,6 +3518,8 @@ if test $enable_xml = yes; then
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
 
+    AC_CHECK_FUNCS(xmlStopParser)
+
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
