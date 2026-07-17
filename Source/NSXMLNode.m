@@ -274,7 +274,9 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
       case XML_ELEMENT_NODE:
         {
           /* Update attributes */
-          xmlAttrPtr attr = node->properties;
+          xmlAttrPtr	attr = node->properties;
+          xmlNsPtr	ns;
+
           while (attr != NULL)
             {
               attr->doc = doc;
@@ -292,7 +294,7 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
             }
           
           /* Update namespace declarations */
-          xmlNsPtr ns = node->nsDef;
+          ns = node->nsDef;
           while (ns != NULL)
             {
               ns->context = doc;
@@ -958,7 +960,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
        */
       if (childNode->type == XML_TEXT_NODE && childNode->name != NULL)
         {
-          const xmlChar *oldName = childNode->name;
           childNode->name = xmlStrdup((const xmlChar*)"text");
         }
       
@@ -2398,7 +2399,12 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       return nil;
     }
 
+#if LIBXML_VERSION >= 21300
+  string
+    = StringFromXMLString(xmlBufferContent(buffer), xmlBufferLength(buffer));
+#else
   string = StringFromXMLString(buffer->content, buffer->use);
+#endif
   xmlBufferFree(buffer);
 
   if ([self kind] == NSXMLTextKind)
