@@ -1009,7 +1009,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           curl_easy_setopt(
             _easyHandle,
             CURLOPT_POSTFIELDSIZE_LARGE,
-            [body length]);
+            (curl_off_t)[body length]);
           curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDS, [body bytes]);
         }
       else if (nil != [_originalRequest HTTPBodyStream])
@@ -1022,7 +1022,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           curl_easy_setopt(_easyHandle, CURLOPT_READDATA, self);
 
           curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
-          curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, -1);
+          curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
         }
 
       /* Configure HTTP method and URL */
@@ -1091,7 +1091,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       curl_easy_setopt(
         _easyHandle,
         CURLOPT_TIMEOUT,
-        [configuration timeoutIntervalForResource]);
+        (curl_off_t)[configuration timeoutIntervalForResource]);
 
       /* Set to HTTP/3 if requested */
       if ([request assumesHTTP3Capable])
@@ -1199,7 +1199,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   /* Retain data */
   [_taskData setObject: data forKey: taskUploadData];
 
-  curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE, [data length]);
+  curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE,
+    (curl_off_t)[data length]);
   curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDS, [data bytes]);
 
   /* The method is overwritten by CURLOPT_UPLOAD. Change it back. */
@@ -1222,7 +1223,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
   else
     {
-      curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, -1);
+      curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
     }
 
   /* The method is overwritten by CURLOPT_UPLOAD. Change it back. */
