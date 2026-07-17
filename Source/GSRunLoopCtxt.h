@@ -48,6 +48,7 @@
 @public
   void		*extra;		/** Common data for contexts in a loop  */
   NSString	*mode;		/** The mode for this context.		*/
+  unsigned	modeIndex;	/** Position of mode within run loop    */
   GSIArray	performers;	/** The actions to perform regularly.	*/
   unsigned	maxPerformers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
