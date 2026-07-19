@@ -985,6 +985,12 @@ sorter(GSIArrayItem a, GSIArrayItem b)
   return [(NSTimer*)a.obj compare: (NSTimer*)b.obj];
 }
 
+static BOOL
+timerToTrim(GSIArrayItem item)
+{
+  return ((NSTimer*)(item.obj))->_invalidated;
+}
+
 #if 0
 static NSString *
 logTimers(GSIArray timers)
@@ -1202,6 +1208,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
   NSDate		*when = nil;
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  uint64_t		contextModeMask = ~(1<<context->modeIndex);
   GSMinHeap		*timerHeap;
   GSIArray		timers;
   unsigned		count;
@@ -1240,7 +1247,20 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	      ti = [d timeIntervalSinceReferenceDate];
 	      if (ti < now)
 		{
+		  int		modeIndex;
+		  uint64_t	mask;
+		  GSRunLoopCtxt	*c;
+
 		  timer = [timerHeap popRetained];
+		  mask = timer->_modeMask;
+		  mask &= contextModeMask;
+		  while (mask)
+		    {
+		      modeIndex = __builtin_clz(mask);	// Get next index
+		      mask &= (mask - 1);		// Clear lowest bit
+		      c = internal->contexts[modeIndex];
+		      [c->timerHeap removeObjectIdenticalTo: timer];
+		    }
 		  [timer fire];
 		  GSPrivateNotifyASAP(_currentMode);
 		  IF_NO_ARC([arp emptyPool];)
@@ -1249,31 +1269,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		      /* Updated ... replace in heap.
 		       */
 		      [timerHeap push: timer];
-		      if (timer->_scheduled > 1)
+		      mask = timer->_modeMask;
+		      mask &= contextModeMask;
+		      while (mask)
 			{
-			  uint8_t	n = timer->_scheduled - 1;
-
-			  /* The timer was scheduled in more than one mode,
-			   * so we must reposition it (for the new fire date)
-			   * in any other mode it is in.
-			   */
-			  GS_FOR_IN(NSString*, m, _contextMap)
-			    {
-			      GSRunLoopCtxt	*c = NSMapGet(_contextMap, m);
-
-			      if (c != context)
-				{
-				  if ([context->timerHeap
-				    repositionObject: timer])
-				    {
-				      if (--n == 0)
-					{
-					  break;
-					}
-				    }
-				}
-			    }
-			  GS_END_FOR(_contextMap)
+			  modeIndex = __builtin_clz(mask);
+			  mask &= (mask - 1);
+			  c = internal->contexts[modeIndex];
+			  [c->timerHeap push: timer];
 			}
 		    }
 		  RELEASE(timer);
@@ -1304,28 +1307,11 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     {
       uint64_t	bit = (UINT64_C(1) << context->modeIndex);
       unsigned	index;
-      unsigned	valid;
-
+   
       /* Find and remove blocks of invalidated timers
        */ 
       timers = internal->timers;
-      valid = count = index = GSIArrayCount(timers);
-      while (index > 0)
-	{
-	  timer = (NSTimer*)GSIArrayItemAtIndex(timers, --index).obj;
-	  if (!timerInvalidated(timer))
-	    {
-	      if (valid > index + 1)
-		{
-		  GSIArrayRemoveItems(timers, index+1, valid);
-		}
-	      valid = index;
-	    }
-	}
-      if (valid > 0)
-	{
-	  GSIArrayRemoveItems(timers, 0, valid);
-	}
+      GSIArrayTrim(timers, timerToTrim);
 
       count = GSIArrayCount(timers);
       for (index = 0; index < count; index++)
@@ -1378,97 +1364,70 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     }
   else
     {
-      timers = context->timers;
-      timer = nil;
-      count = GSIArrayCount(timers);
-      if (count > 0)
-	{
-	  unsigned	index;
+      GSIArrayItem	item;
 
-	  /* Skip past and remove any leading invalidated items,
-	   * leaving timer set to the first valid one.
-	   */
-	  for (index = 0; index < count; index++)
-	    {
-	      timer = (NSTimer*)GSIArrayItemAtIndex(timers, index).obj;
-	      if (timerInvalidated(timer))
-		{
-		  timer = nil;
-		}
-	      else
-		{
-		  break;
-		}
-	    }
-	  if (index > 0)
-	    {
-	      GSIArrayRemoveItems(timers, 0, index);
-	    }
-	}
-      if (timer)
+      timers = context->timers;
+      GSIArrayTrim(timers, timerToTrim);
+      if (GSIArrayCount(timers) > 0)
 	{
+	  item = GSIArrayItemAtIndex(timers, 0);
+	  timer = item.obj;
 	  d = timerDate(timer);
 	  ti = [d timeIntervalSinceReferenceDate];
 	  if (ti < now)
 	    {
+	      int		modeIndex;
+	      uint64_t		mask;
+	      GSRunLoopCtxt	*c;
+
 	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
+	      mask = timer->_modeMask;
+	      mask &= contextModeMask;	// Remove current mode from mask
+
+	      while (mask != 0)
+		{
+		  unsigned	location;
+		  unsigned	length;
+
+		  modeIndex = __builtin_clz(mask);	// Get next index
+		  mask &= (mask - 1);			// Clear lowest bit
+		  c = internal->contexts[modeIndex];
+
+		  /* Find the timers matching our fire date.
+		   */
+		  GSIArrayTrim(c->timers, timerToTrim);
+		  location = GSIArraySearchCount(c->timers,
+		    item, sorter, &length);
+
+		  /* Find our exact timer, and remove it.
+		   */
+		  while (length-- > 0)
+		    {
+		      if (GSIArrayItemAtIndex(c->timers,
+			location + length).obj == timer)
+			{
+			  GSIArrayRemoveItemAtIndex(
+			    c->timers, location + length);
+			  break;
+			}
+		    }
+		}
 	      [timer fire];
 	      GSPrivateNotifyASAP(_currentMode);
 	      IF_NO_ARC([arp emptyPool];)
 	      if (updateTimer(timer, d, now) == YES)
 		{
-		  GSIArrayItem	item;
-
-		  /* Updated ... replace in array.
+		  /* Updated ... replace in array(s).
 		   */
-		  item.obj = timer;
 		  GSIArrayInsertSortedNoRetain(timers, item, sorter);
-		  if (timer->_scheduled > 1)
+		  mask = timer->_modeMask;
+		  mask &= contextModeMask;
+		  while (mask)
 		    {
-		      uint8_t	n = timer->_scheduled - 1;
-
-		      /* The timer was scheduled in more than one mode,
-		       * so we must reposition it (for the new fire date)
-		       * in any other mode it is in.
-		       */
-		      GS_FOR_IN(NSString*, m, _contextMap)
-			{
-			  GSRunLoopCtxt	*c = NSMapGet(_contextMap, m);
-
-			  if (c != context)
-			    {
-			      GSIArray	timers = context->timers;
-			      GSIArrayItem	item;
-			      unsigned	i;
-
-			      item.obj = d;	// search for old date
-			      count = GSIArrayCount(timers);
-			      for (i = 0; i < count; i++)
-				{
-				  item = GSIArrayItemAtIndex(timers, i);
-
-				  if (item.obj == (id)timer)
-				    {
-				      GSIArrayRemoveItemAtIndexNoRelease(
-					timers, i);
-				      GSIArrayInsertSortedNoRetain(
-					timers, item, sorter);
-				      n--;
-				      break;
-				    }
-				  else if ([timerDate(item.obj) compare: d]
-				    == NSOrderedAscending)
-				    {
-				      break;	// No more to check
-				    }
-				}
-			      if (0 == n)
-				{
-				  break;	// Updated all.
-				}
-			    }
-			}
-		      GS_END_FOR(_contextMap)
+		      modeIndex = __builtin_clz(mask);
+		      mask &= (mask - 1);
+		      c = internal->contexts[modeIndex];
+		      GSIArrayInsertSorted(c->timers, item, sorter);
 		    }
 		}
 	      else

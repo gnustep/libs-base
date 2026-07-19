@@ -793,6 +793,43 @@ GSIArrayRemoveAllItemsNoRelease(GSIArray array)
   GSIArrayRemoveItemsFromIndexNoRelease(array, 0);
 }
 
+/** Remove leading and trailing items matching some criterion.
+ * The checker function takes an item as an argument and returns
+ * YES if it is to be trimmed.
+ */
+GS_STATIC_INLINE void
+GSIArrayTrim(GSIArray array, BOOL (*checker)(GSIArrayItem arg))
+{
+  unsigned	count = array->count;
+  unsigned	index = count;
+
+  /* Remove trailing items matching the criterion.
+   */
+  while (index > 0 && checker(array->ptr[index-1]))
+    {
+      index--;
+    }
+  if (index != count)
+    {
+      GSIArrayRemoveItems(array, index, count - index);
+      count = array->count;
+    }
+
+  /* Skip past and remove any leading items, matching the criterion
+   */
+  for (index = 0; index < count; index++)
+    {
+      if (NO == checker(array->ptr[index]))
+	{
+	  break;
+	}
+    }
+  if (index > 0)
+    {
+      GSIArrayRemoveItems(array, 0, index);
+    }
+}
+
 GS_STATIC_INLINE void
 GSIArrayEmpty(GSIArray array)
 {
