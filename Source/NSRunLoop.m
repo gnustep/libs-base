@@ -1020,6 +1020,7 @@ logTimers(GSIArray timers)
   GSMinHeap	*timerHeap;
   GSIArray      timers;
   int		modeIndex;
+  uint64_t	mask;
   unsigned      i;
 
   if ([timer isKindOfClass: [NSTimer class]] == NO
@@ -1059,18 +1060,16 @@ logTimers(GSIArray timers)
       context = [self _contextForMode: mode createIfNeeded: YES];
     }
 
+  mask = (UINT64_C(1) << modeIndex);
+  if ((timer->_modeMask & mask) != 0)
+    {
+      return;	// Already present in this mode
+    }
+  timer->_modeMask |= mask;
+  timer->_scheduled++;
   if (TS_MINHEAP == timerStyle)
     {
       timerHeap = context->timerHeap;
-      if (timer->_scheduled > 0)
-	{
-	  /* Timer was already scheduled: check whether it is in this mode.
-	   */
-	  if ([timerHeap containsObjectIdenticalTo: timer])
-	    {
-	      return;	/* Timer already present in this mode */
-	    }
-	}
 
       /* Timers can be scheduled in more than one mode, and if a timer fires
        * and repeats it will have updated its fire date.  That will leave it
@@ -1078,9 +1077,7 @@ logTimers(GSIArray timers)
        * that we must track whether it is scheduled in more than one mode to
        * know if we need to check other modes for repositionng.
        */
-      timer->_scheduled++;
       [timerHeap push: timer];
-
       i = [timerHeap count];
       if (i % 1000 == 0 && i > context->maxTimers)
 	{
@@ -1091,24 +1088,12 @@ logTimers(GSIArray timers)
     }
   else if (TS_SHAREDA == timerStyle)
     {
-      uint64_t	bit = (UINT64_C(1) << modeIndex);
-
-      if ((bit & timer->_modeMask) != 0)
-	{
-	  return;	/* Timer already present in this mode */
-	}
       timers = internal->timers;
-      if (0 == timer->_scheduled)
-	{
-	  /* When the timer is first scheduled, we must add to the shared
-	   * sorted array.
-	   */
-	  i = GSIArrayInsertionPosition(timers, (GSIArrayItem)((id)timer),
-	    sorter);
-	  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
-	}
-      timer->_scheduled++;
-      timer->_modeMask |= bit;
+      /* When the timer is first scheduled, we must add to the shared
+       * sorted array.
+       */
+      i = GSIArrayInsertionPosition(timers, (GSIArrayItem)((id)timer), sorter);
+      GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
       i = GSIArrayCount(timers);
       if (i % 1000 == 0 && i > context->maxTimers)
 	{
@@ -1120,24 +1105,8 @@ logTimers(GSIArray timers)
   else
     {
       timers = context->timers;
-
       i = GSIArrayInsertionPosition(timers, (GSIArrayItem)((id)timer), sorter);
-      while (i > 0)
-	{
-	  NSTimer	*t = GSIArrayItemAtIndex(timers, --i).obj;
-
-	  if (t == timer)
-	    {
-	      return;	/* Timer already present in this mode */
-	    }
-	  if ([t compare: timer] == NSOrderedAscending)
-	    {
-	      break;	/* No more timers with dates equal to the new one */
-	    }
-	}
-      timer->_scheduled++;
       GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
-
       i = GSIArrayCount(timers);
       if (i % 1000 == 0 && i > context->maxTimers)
 	{
@@ -1208,7 +1177,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
   NSDate		*when = nil;
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  uint64_t		contextModeMask = ~(1<<context->modeIndex);
+  uint64_t		contextModeMask = ~(UINT64_C(1)<<context->modeIndex);
   GSMinHeap		*timerHeap;
   GSIArray		timers;
   unsigned		count;
@@ -1382,7 +1351,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
 	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	      mask = timer->_modeMask;
-	      mask &= contextModeMask;	// Remove current mode from mask
+	      mask &= contextModeMask;
 
 	      while (mask != 0)
 		{
