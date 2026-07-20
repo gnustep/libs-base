@@ -1138,7 +1138,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  * not be zero), clearing the bits as they are processed.
  */
 #define	GET_INDEX_AND_CLEAR_BIT(mask) ({\
-  int	index = __builtin_clz(mask); \
+  int	index = __builtin_clzll((unsigned long long)mask); \
   mask &= (mask - 1); \
   index; \
 })
