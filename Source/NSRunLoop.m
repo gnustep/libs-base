@@ -471,7 +471,7 @@ typedef struct {
  * Returns nil if it does not exist and was not created.
  */
 - (GSRunLoopCtxt*) _contextForMode: (NSString*)mode
-		    createIfNeeded: (BOOL)shouldCreate
+		      shouldCreate: (BOOL)shouldCreate
 {
   GSRunLoopCtxt	*c;
   unsigned	index;
@@ -511,14 +511,7 @@ typedef struct {
   GSIArray	watchers;
   unsigned	i;
 
-  context = NSMapGet(_contextMap, mode);
-  if (context == nil)
-    {
-      context = [[GSRunLoopCtxt alloc] initWithMode: mode
-	extra: &internal->sharedContextInfo];
-      NSMapInsert(_contextMap, context->mode, context);
-      RELEASE(context);
-    }
+  context = [self _contextForMode: mode shouldCreate: YES];
   watchers = context->watchers;
   GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
   i = GSIArrayCount(watchers);
@@ -532,7 +525,7 @@ typedef struct {
 
 - (BOOL) _checkPerformers: (GSRunLoopCtxt*)context
 {
-  BOOL                  found = NO;
+  BOOL	found = NO;
 
   if (context != nil)
     {
@@ -543,9 +536,8 @@ typedef struct {
 	{
           NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 	  GSRunLoopPerformer	*array[count];
-	  NSMapEnumerator	enumerator;
 	  GSRunLoopCtxt		*original;
-	  void			*mode;
+	  unsigned		modeIndex;
 	  unsigned		i;
 
           found = YES;
@@ -564,10 +556,11 @@ typedef struct {
 	  /* Remove the requests that we are about to fire from all modes.
 	   */
           original = context;
-	  enumerator = NSEnumerateMapTable(_contextMap);
-	  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
+	  modeIndex = internal->modeCount;
+	  while (modeIndex-- > 0)
 	    {
-	      if (context != nil && context != original)
+	      context = internal->contexts[modeIndex];
+	      if (context != original)
 		{
 		  GSIArray	performers = context->performers;
 		  unsigned	tmpCount = GSIArrayCount(performers);
@@ -587,7 +580,6 @@ typedef struct {
 		    }
 		}
 	    }
-	  NSEndMapTableEnumeration(&enumerator);
 
 	  /* Finally, fire the requests and release them.
 	   */
@@ -623,7 +615,7 @@ typedef struct {
 	}
     }
 
-  context = NSMapGet(_contextMap, mode);
+  context = [self _contextForMode: mode shouldCreate: NO];
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -657,7 +649,7 @@ typedef struct {
       internal->timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(internal->timers, z, 8);
       // The first mode must be NSDefaultRunLoopMode
-      [self _contextForMode: NSDefaultRunLoopMode createIfNeeded: YES];
+      [self _contextForMode: NSDefaultRunLoopMode shouldCreate: YES];
       internal->commonModeMask |= UINT64_C(1);
     }
   return self;
@@ -683,7 +675,7 @@ typedef struct {
 	}
     }
 
-  context = NSMapGet(_contextMap, mode);
+  context = [self _contextForMode: mode shouldCreate: NO];
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -830,7 +822,7 @@ typedef struct {
 	}
       else
 	{
-	  timerStyle = TS_SORTARY;
+	  timerStyle = TS_MINHEAP;
 	}
     }
 }
@@ -1021,7 +1013,7 @@ logTimers(GSIArray timers)
 		  format: @"[%@-%@] not a valid mode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  context = [self _contextForMode: mode createIfNeeded: YES];
+  context = [self _contextForMode: mode shouldCreate: YES];
 
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
@@ -1455,7 +1447,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   GSRunLoopCtxt		*context;
   NSDate		*when = nil;
 
-  context = NSMapGet(_contextMap, mode);
+  context = [self _contextForMode: mode shouldCreate: NO];
   if (context != nil)
     {
       NSString		*savedMode = _currentMode;
@@ -1502,7 +1494,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     {
       mode = NSDefaultRunLoopMode;
     }
-  context = NSMapGet(_contextMap, mode);
+  context = [self _contextForMode: mode shouldCreate: NO];
   if (nil == context)
     {
       return;
@@ -1630,7 +1622,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    * another thread.
    */
   _currentMode = mode;
-  context = NSMapGet(_contextMap, mode);
+  context = [self _contextForMode: mode shouldCreate: NO];
   [self _checkPerformers: context];
   _currentMode = savedMode;
 
@@ -1722,32 +1714,25 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  */
 - (void) cancelPerformSelectorsWithTarget: (id) target
 {
-  NSMapEnumerator	enumerator;
-  GSRunLoopCtxt		*context;
-  void			*mode;
+  unsigned	modeIndex = internal->modeCount;
 
-  enumerator = NSEnumerateMapTable(_contextMap);
-
-  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
+  while (modeIndex-- > 0)
     {
-      if (context != nil)
+      GSRunLoopCtxt	*context = internal->contexts[modeIndex];
+      GSIArray		performers = context->performers;
+      unsigned		count = GSIArrayCount(performers);
+
+      while (count--)
 	{
-	  GSIArray	performers = context->performers;
-	  unsigned	count = GSIArrayCount(performers);
+	  GSRunLoopPerformer	*p;
 
-	  while (count--)
+	  p = GSIArrayItemAtIndex(performers, count).obj;
+	  if (p->target == target)
 	    {
-	      GSRunLoopPerformer	*p;
-
-	      p = GSIArrayItemAtIndex(performers, count).obj;
-	      if (p->target == target)
-		{
-		  GSIArrayRemoveItemAtIndex(performers, count);
-		}
+	      GSIArrayRemoveItemAtIndex(performers, count);
 	    }
 	}
     }
-  NSEndMapTableEnumeration(&enumerator);
 }
 
 /**
@@ -1761,33 +1746,26 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 			target: (id) target
 		      argument: (id) argument
 {
-  NSMapEnumerator	enumerator;
-  GSRunLoopCtxt		*context;
-  void			*mode;
+  unsigned	modeIndex = internal->modeCount;
 
-  enumerator = NSEnumerateMapTable(_contextMap);
-
-  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
+  while (modeIndex-- > 0)
     {
-      if (context != nil)
+      GSRunLoopCtxt	*context = internal->contexts[modeIndex];
+      GSIArray		performers = context->performers;
+      unsigned		count = GSIArrayCount(performers);
+
+      while (count--)
 	{
-	  GSIArray	performers = context->performers;
-	  unsigned	count = GSIArrayCount(performers);
+	  GSRunLoopPerformer	*p;
 
-	  while (count--)
+	  p = GSIArrayItemAtIndex(performers, count).obj;
+	  if (p->target == target && sel_isEqual(p->selector, aSelector)
+	    && (p->argument == argument || [p->argument isEqual: argument]))
 	    {
-	      GSRunLoopPerformer	*p;
-
-	      p = GSIArrayItemAtIndex(performers, count).obj;
-	      if (p->target == target && sel_isEqual(p->selector, aSelector)
-		&& (p->argument == argument || [p->argument isEqual: argument]))
-		{
-		  GSIArrayRemoveItemAtIndex(performers, count);
-		}
+	      GSIArrayRemoveItemAtIndex(performers, count);
 	    }
 	}
     }
-  NSEndMapTableEnumeration(&enumerator);
 }
 
 /**
@@ -1848,14 +1826,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  GSRunLoopCtxt	*context;
 	  GSIArray	performers;
 
-	  context = NSMapGet(_contextMap, mode);
-	  if (context == nil)
-	    {
-	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
-		extra: &internal->sharedContextInfo];
-	      NSMapInsert(_contextMap, context->mode, context);
-	      RELEASE(context);
-	    }
+	  context = [self _contextForMode: mode shouldCreate: YES];
 	  performers = context->performers;
 
 	  end = GSIArrayCount(performers);
