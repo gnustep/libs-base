@@ -46,14 +46,14 @@ GS_EXPORT_CLASS
  * Getting the Shared Instance
  */
 + (NSUbiquitousKeyValueStore *) defaultStore;
-  
+
 // Getting Values
 
 /**
  * Returns the array associated with the specified key.
  */
 - (NSArray *) arrayForKey: (NSString *)key;
-  
+
 /**
  * Returns the Boolean value associated with the specified key.
  */
@@ -63,7 +63,7 @@ GS_EXPORT_CLASS
  * Returns the data object associated with the specified key.
  */
 - (NSData*) dataForKey: (NSString *)key;
-  
+
 /**
  * Returns the dictionary object associated with the specified key.
  */
@@ -156,6 +156,12 @@ GS_EXPORT_CLASS
 // Notifications & constants
 GS_EXPORT NSString* const NSUbiquitousKeyValueStoreDidChangeExternallyNotification;
 GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
+
+// Change reason values
+GS_EXPORT NSString* const NSUbiquitousKeyValueStoreServerChange;
+GS_EXPORT NSString* const NSUbiquitousKeyValueStoreInitialSyncChange;
+GS_EXPORT NSString* const NSUbiquitousKeyValueStoreQuotaViolationChange;
+GS_EXPORT NSString* const NSUbiquitousKeyValueStoreAccountChange;
 
 #if	defined(__cplusplus)
 }
