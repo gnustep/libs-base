@@ -46,9 +46,8 @@ GS_EXPORT_CLASS
 @public
   NSDate 		*_date;		/* Must match NSRunLoop.m */
   const void		*_loop;		/* Must match NSRunLoop.m */
-  BOOL		 	_invalidated;	/* Must match NSRunLoop.m */
-  uint8_t		_scheduled;	/* Must match NSRunLoop.m */
   uint64_t		_modeMask;	/* Must match NSRunLoop.m */
+  BOOL		 	_invalidated;	/* Must match NSRunLoop.m */
   BOOL		 	_repeats;
   NSTimeInterval 	_interval;
   id		 	_target;

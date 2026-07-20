@@ -717,10 +717,9 @@ GSIArrayRemoveItems(GSIArray array, unsigned index, unsigned count)
 	}
       else
 	{
-	  while (remainder-- > 0)
+	  for (index = 0; index < remainder; index++)
 	    {
-	      array->ptr[removeFrom] = array->ptr[removeFrom+1];
-	      removeFrom++;
+	      array->ptr[removeFrom + index] = array->ptr[removeTo + index];
 	    }
 	}
     }
@@ -751,10 +750,9 @@ GSIArrayRemoveItemsNoRelease(GSIArray array, unsigned index, unsigned count)
 	}
       else
 	{
-	  while (remainder-- > 0)
+	  for (index = 0; index < remainder; index++)
 	    {
-	      array->ptr[removeFrom] = array->ptr[removeFrom+1];
-	      removeFrom++;
+	      array->ptr[removeFrom + index] = array->ptr[removeTo + index];
 	    }
 	}
     }

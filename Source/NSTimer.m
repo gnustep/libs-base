@@ -81,10 +81,10 @@ static Class	NSDate_class;
           s = [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
             s, [self fireDate], NSStringFromSelector(_selector), _target];
         }
-      if (_scheduled)
+      if (_modeMask)
 	{
-	  s = [s stringByAppendingFormat: @", scheduled in %u modes: %"PRIx64,
-	    _scheduled, _modeMask];
+	  s = [s stringByAppendingFormat: @", scheduled in modes: 0x%0"PRIx64,
+	    _modeMask];
 	}
     }
   else

@@ -467,61 +467,40 @@ typedef struct {
 
 @implementation NSRunLoop (Private)
 
-/** Get the index of the mode name in the current run loop.
- * Returns -1 if it does not exist and was not created.
- */
-- (int) _indexForMode: (NSString*)mode createIfNeeded: (BOOL)shouldCreate
-{
-  int	index;
-
-  for (index = 0; index < internal->modeCount; index++)
-    {
-      if ([internal->modeNames[index] isEqualToString: mode])
-	{
-	  return index;
-	}
-    }
-  if (NO == shouldCreate)
-    {
-      return -1;
-    }
-  if (internal->modeCount > 63)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Too many nodes added to run loop"];
-    }
-  internal->modeNames[internal->modeCount++] = [mode copy];
-  return index;
-}
-
 /** Get the context for the mode name in the current run loop.
  * Returns nil if it does not exist and was not created.
  */
 - (GSRunLoopCtxt*) _contextForMode: (NSString*)mode
 		    createIfNeeded: (BOOL)shouldCreate
 {
-  int	index = [self _indexForMode: mode createIfNeeded: shouldCreate];
+  GSRunLoopCtxt	*c;
+  unsigned	index;
 
-  if (index >= 0)
+  for (index = 0; index < internal->modeCount; index++)
     {
-      GSRunLoopCtxt	*context = internal->contexts[index];
-
-      if (nil == context)
+      c = internal->contexts[index];
+      if ([c->mode isEqualToString: mode])
 	{
-	  mode = internal->modeNames[index];
-	  if (nil == (context = NSMapGet(_contextMap, mode)))
-	    {
-	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
-		extra: &internal->sharedContextInfo];
-	      context->modeIndex = index;
-	      NSMapInsert(_contextMap, context->mode, context);
-	      internal->contexts[index] = context;
-	      RELEASE(context);
-	    }
+	  return c;
 	}
-      return context;
     }
-  return nil;
+  if (NO == shouldCreate)
+    {
+      return nil;
+    }
+  if (internal->modeCount > 63)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Too many nodes added to run loop"];
+    }
+  c = [[GSRunLoopCtxt alloc] initWithMode: mode
+				    extra: &internal->sharedContextInfo];
+  c->modeIndex = internal->modeCount;
+  internal->contexts[internal->modeCount] = c;
+  internal->modeCount++;
+  NSMapInsert(_contextMap, c->mode, c);
+  RELEASE(c);
+  return c;
 }
 
 /* Add a watcher to the list for the specified mode.  Keep the list in
@@ -677,8 +656,9 @@ typedef struct {
       _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
       internal->timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(internal->timers, z, 8);
-      internal->commonModeMask |= (UINT64_C(1) <<
-	[self _indexForMode: NSDefaultRunLoopMode createIfNeeded: YES]);
+      // The first mode must be NSDefaultRunLoopMode
+      [self _contextForMode: NSDefaultRunLoopMode createIfNeeded: YES];
+      internal->commonModeMask |= UINT64_C(1);
     }
   return self;
 }
@@ -1019,8 +999,7 @@ logTimers(GSIArray timers)
   GSRunLoopCtxt	*context;
   GSMinHeap	*timerHeap;
   GSIArray      timers;
-  int		modeIndex;
-  uint64_t	mask;
+  uint64_t	modeBit;
   unsigned      i;
 
   if ([timer isKindOfClass: [NSTimer class]] == NO
@@ -1036,37 +1015,25 @@ logTimers(GSIArray timers)
 		  format: @"[%@-%@] timer already scheduled in another runloop",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  if (64 == timer->_scheduled)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@] timer already scheduled in too many modes",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-    }
   if ([mode isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@] not a valid mode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  modeIndex = [self _indexForMode: mode createIfNeeded: YES];
+  context = [self _contextForMode: mode createIfNeeded: YES];
 
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
 
   timer->_loop = loop;	// Not retained.
 
-  if ((context = internal->contexts[modeIndex]) == nil)
-    {
-      context = [self _contextForMode: mode createIfNeeded: YES];
-    }
+  modeBit = (UINT64_C(1) << context->modeIndex);
 
-  mask = (UINT64_C(1) << modeIndex);
-  if ((timer->_modeMask & mask) != 0)
+  if ((timer->_modeMask & modeBit) != 0)
     {
       return;	// Already present in this mode
     }
-  timer->_modeMask |= mask;
-  timer->_scheduled++;
   if (TS_MINHEAP == timerStyle)
     {
       timerHeap = context->timerHeap;
@@ -1088,24 +1055,25 @@ logTimers(GSIArray timers)
     }
   else if (TS_SHAREDA == timerStyle)
     {
-      timers = internal->timers;
-      /* When the timer is first scheduled, we must add to the shared
-       * sorted array.
-       */
-      i = GSIArrayInsertionPosition(timers, (GSIArrayItem)((id)timer), sorter);
-      GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
-      i = GSIArrayCount(timers);
-      if (i % 1000 == 0 && i > context->maxTimers)
+      if (0 == timer->_modeMask)
 	{
-	  context->maxTimers = i;
-	  NSLog(@"WARNING ... there are %u timers scheduled in %@",
-	    i, self);
+	  timers = internal->timers;
+	  /* When the timer is first scheduled, we must add to the shared
+	   * sorted array.
+	   */
+	  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
+	  i = GSIArrayCount(timers);
+	  if (i % 1000 == 0 && i > context->maxTimers)
+	    {
+	      context->maxTimers = i;
+	      NSLog(@"WARNING ... there are %u timers scheduled in %@",
+		i, self);
+	    }
 	}
     }
   else
     {
       timers = context->timers;
-      i = GSIArrayInsertionPosition(timers, (GSIArrayItem)((id)timer), sorter);
       GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
       i = GSIArrayCount(timers);
       if (i % 1000 == 0 && i > context->maxTimers)
@@ -1115,6 +1083,7 @@ logTimers(GSIArray timers)
 	    i, mode, self);
 	}
     }
+  timer->_modeMask |= modeBit;
 }
 
 
@@ -1173,6 +1142,15 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   return YES;
 }
 
+/* Efficient code to find the indices of bits in a bitmask (which must
+ * not be zero), clearing the bits as they are processed.
+ */
+#define	GET_INDEX_AND_CLEAR_BIT(mask) ({\
+  int	index = __builtin_clz(mask); \
+  mask &= (mask - 1); \
+  index; \
+})
+
 - (NSDate*) _limitDateForContext: (GSRunLoopCtxt *)context
 {
   NSDate		*when = nil;
@@ -1218,15 +1196,16 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		{
 		  int		modeIndex;
 		  uint64_t	mask;
+		  uint64_t	save;
 		  GSRunLoopCtxt	*c;
 
 		  timer = [timerHeap popRetained];
 		  mask = timer->_modeMask;
 		  mask &= contextModeMask;
+		  save = mask;
 		  while (mask)
 		    {
-		      modeIndex = __builtin_clz(mask);	// Get next index
-		      mask &= (mask - 1);		// Clear lowest bit
+		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 		      c = internal->contexts[modeIndex];
 		      [c->timerHeap removeObjectIdenticalTo: timer];
 		    }
@@ -1238,12 +1217,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		      /* Updated ... replace in heap.
 		       */
 		      [timerHeap push: timer];
-		      mask = timer->_modeMask;
-		      mask &= contextModeMask;
+		      mask = save;
 		      while (mask)
 			{
-			  modeIndex = __builtin_clz(mask);
-			  mask &= (mask - 1);
+			  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 			  c = internal->contexts[modeIndex];
 			  [c->timerHeap push: timer];
 			}
@@ -1274,8 +1251,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     }
   else if (TS_SHAREDA == timerStyle)
     {
-      uint64_t	bit = (UINT64_C(1) << context->modeIndex);
-      unsigned	index;
+      uint64_t		bit = (UINT64_C(1) << context->modeIndex);
+      unsigned		index;
+      GSIArrayItem	item;
+
    
       /* Find and remove blocks of invalidated timers
        */ 
@@ -1285,7 +1264,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       count = GSIArrayCount(timers);
       for (index = 0; index < count; index++)
 	{
-	  timer = (NSTimer*)GSIArrayItemAtIndex(timers, index).obj;
+	  item = GSIArrayItemAtIndex(timers, index);
+	  timer = (NSTimer*)item.obj;
 	  if (timer->_modeMask & bit)
 	    {
 	      break;	// First timer in current mode
@@ -1303,11 +1283,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	      IF_NO_ARC([arp emptyPool];)
 	      if (updateTimer(timer, d, now) == YES)
 		{
-		  GSIArrayItem	item;
-
 		  /* Updated ... replace in array.
 		   */
-		  item.obj = timer;
 		  GSIArrayInsertSortedNoRetain(timers, item, sorter);
 		}
 	      else
@@ -1336,6 +1313,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       GSIArrayItem	item;
 
       timers = context->timers;
+
       GSIArrayTrim(timers, timerToTrim);
       if (GSIArrayCount(timers) > 0)
 	{
@@ -1347,19 +1325,20 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	    {
 	      int		modeIndex;
 	      uint64_t		mask;
+	      uint64_t		save;
 	      GSRunLoopCtxt	*c;
 
 	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	      mask = timer->_modeMask;
 	      mask &= contextModeMask;
+	      save = mask;
 
 	      while (mask != 0)
 		{
 		  unsigned	location;
 		  unsigned	length;
 
-		  modeIndex = __builtin_clz(mask);	// Get next index
-		  mask &= (mask - 1);			// Clear lowest bit
+		  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 		  c = internal->contexts[modeIndex];
 
 		  /* Find the timers matching our fire date.
@@ -1389,12 +1368,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		  /* Updated ... replace in array(s).
 		   */
 		  GSIArrayInsertSortedNoRetain(timers, item, sorter);
-		  mask = timer->_modeMask;
-		  mask &= contextModeMask;
+		  mask = save;
 		  while (mask)
 		    {
-		      modeIndex = __builtin_clz(mask);
-		      mask &= (mask - 1);
+		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 		      c = internal->contexts[modeIndex];
 		      GSIArrayInsertSorted(c->timers, item, sorter);
 		    }
