@@ -3745,11 +3745,16 @@ AC_SUBST(HAVE_ICU)
 #--------------------------------------------------------------------
 
 HAVE_LIBDISPATCH=0
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  blocks=yes
+else
+  blocks=no
+fi
 AC_ARG_ENABLE(libdispatch,
   [AS_HELP_STRING([--disable-libdispatch],
   [Disable dispatching blocks via libdispatch])],
   enable_libdispatch=$enableval,
-  enable_libdispatch=yes)
+  enable_libdispatch=$blocks)
 
 if test $enable_libdispatch = yes; then
   AC_ARG_WITH(dispatch-include,
