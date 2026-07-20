@@ -15373,12 +15373,17 @@ fi
 #--------------------------------------------------------------------
 
 HAVE_LIBDISPATCH=0
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  blocks=yes
+else
+  blocks=no
+fi
 # Check whether --enable-libdispatch was given.
 if test ${enable_libdispatch+y}
 then :
   enableval=$enable_libdispatch; enable_libdispatch=$enableval
 else case e in #(
-  e) enable_libdispatch=yes ;;
+  e) enable_libdispatch=$blocks ;;
 esac
 fi
 
