@@ -803,9 +803,6 @@ typedef struct {
     {
       NSString	*s;
 
-      [self currentRunLoop];
-      theFuture = RETAIN([NSDate distantFuture]);
-      RELEASE([NSObject leakAt: &theFuture]);
       s = [[[NSProcessInfo processInfo] environment]
 	objectForKey: @"TimerStyle"];
       if (s && [s caseInsensitiveCompare: @"SortAry"] == NSOrderedSame)
@@ -824,6 +821,10 @@ typedef struct {
 	{
 	  timerStyle = TS_MINHEAP;
 	}
+
+      [self currentRunLoop];
+      theFuture = RETAIN([NSDate distantFuture]);
+      RELEASE([NSObject leakAt: &theFuture]);
     }
 }
 
