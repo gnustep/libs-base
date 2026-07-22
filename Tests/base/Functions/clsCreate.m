@@ -12,21 +12,22 @@ myObjectDescription(id self, SEL _cmd)
 int
 main(void)
 {
+  ENTER_POOL
   id obj;
   Class cls;
-  NSAutoreleasePool *pool;
 
-  pool = [NSAutoreleasePool new];
   cls = (Class)objc_allocateClassPair([NSObject class], "MyObject", 0);
   if (cls != Nil)
     {
       objc_registerClassPair(cls);
       class_addMethod(cls, @selector(description),
-		      (IMP)myObjectDescription, "@@:");
+	(IMP)myObjectDescription, "@@:");
       obj = [cls new];
-      pass([obj description] == desc, "New class's description method is called correctly");
-      [obj release];
+      PASS([obj description] == desc,
+	"New class's description method is called correctly")
+      RELEASE(obj);
     }
 
+  LEAVE_POOL
   return 0;
 }

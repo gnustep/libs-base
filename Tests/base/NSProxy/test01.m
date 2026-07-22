@@ -205,14 +205,14 @@ main(int argc, char *argv[])
     "Proxy signed long")
   PASS([obj uLongPuLong: ULONG_MAX] == (ULONG_MAX - 1UL),
     "Proxy unsigned long")
-  pass([obj longlongPlonglong: LLONG_MAX] == (LLONG_MAX - 1LL),
-    "Proxy signed long long");
+  PASS([obj longlongPlonglong: LLONG_MAX] == (LLONG_MAX - 1LL),
+    "Proxy signed long long")
   PASS([obj ulonglongPulonglong: ULLONG_MAX] == (ULLONG_MAX - 1ULL),
     "Proxy unsigned long long")
-  pass([obj floatPfloat: (float)3.14] == ((float)3.14 - (float)1.0),
-    "Proxy float");
-  pass([obj doublePdouble: (double)3.14] == ((double)3.14 - (double)1.0),
-    "Proxy double");
+  PASS([obj floatPfloat: (float)3.14] == ((float)3.14 - (float)1.0),
+    "Proxy float")
+  PASS([obj doublePdouble: (double)3.14] == ((double)3.14 - (double)1.0),
+    "Proxy double")
 
   PASS([obj idPid: [NSProcessInfo processInfo]] == [NSNull null],
     "Proxy id")
