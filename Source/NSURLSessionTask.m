@@ -78,6 +78,8 @@ static SEL didFinishDownloadingToURLSel;
 static SEL didWriteDataSel;
 static SEL needNewBodyStreamSel;
 static SEL willPerformHTTPRedirectionSel;
+static SEL didOpenWebSocketSel;
+static SEL didCloseWebSocketSel;
 
 static NSString *taskTransferDataKey = @"transferData";
 static NSString *taskTemporaryFileLocationKey = @"tempFileLocation";
@@ -85,6 +87,8 @@ static NSString *taskTemporaryFileHandleKey = @"tempFileHandle";
 static NSString *taskInputStreamKey = @"inputStream";
 static NSString *taskUploadData = @"uploadData";
 static NSString *taskStoredErrorKey = @"storedError";
+static NSString *taskWebSocketDidOpenKey = @"webSocketDidOpen";
+static NSString *taskWebSocketDidCloseKey = @"webSocketDidClose";
 
 /* Translate WinSock2 Error Codes */
 #ifdef _WIN32
@@ -470,6 +474,29 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
       [task _setCookiesFromHeaders: headerFields];
       [task _setResponse: response];
+
+      if ([task isKindOfClass: [NSURLSessionWebSocketTask class]]
+          && statusCode == 101
+          && [delegate respondsToSelector: didOpenWebSocketSel])
+        {
+          NSString *protocol;
+          BOOL shouldNotify;
+
+          protocol = [headerFields objectForKey: @"Sec-WebSocket-Protocol"];
+          shouldNotify = GSURLSessionWebSocketMarkDelegateCallback(
+            (NSURLSessionWebSocketTask *)task,
+            taskWebSocketDidOpenKey);
+          if (YES == shouldNotify)
+            {
+              [[session delegateQueue] addOperationWithBlock:^{
+                [(id<NSURLSessionWebSocketDelegate>)delegate URLSession: session
+                                                          webSocketTask:
+                                                            (NSURLSessionWebSocketTask *)task
+                                                       didOpenWithProtocol:
+                                                         protocol];
+              }];
+            }
+        }
 
       /* URL redirection handling for 3xx status codes, if delegate updates are
        * enabled.
@@ -902,6 +929,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   needNewBodyStreamSel = @selector(URLSession:task:needNewBodyStream:);
   willPerformHTTPRedirectionSel = @selector
     (URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:);
+  didOpenWebSocketSel = @selector(URLSession:webSocketTask:didOpenWithProtocol:);
+  didCloseWebSocketSel = @selector(URLSession:webSocketTask:didCloseWithCode:reason:);
 }
 
 - (void) _initTaskStateWithSession: (NSURLSession *)session
@@ -1964,6 +1993,55 @@ typedef void (^GSURLSessionWebSocketPingHandler)(NSError *error);
 
 static NSString *GSURLSessionWebSocketExceptionKey = @"GSWebSocketException";
 
+static BOOL
+GSURLSessionWebSocketMarkDelegateCallback(
+  NSURLSessionWebSocketTask *task,
+  NSString *key)
+{
+  NSMutableDictionary *taskData;
+
+  taskData = [task _taskData];
+  if ([[taskData objectForKey: key] boolValue])
+    {
+      return NO;
+    }
+
+  [taskData setObject: [NSNumber numberWithBool: YES] forKey: key];
+  return YES;
+}
+
+static void
+GSURLSessionWebSocketNotifyDidClose(
+  NSURLSessionWebSocketTask *task,
+  NSURLSessionWebSocketCloseCode closeCode,
+  NSData *reason)
+{
+  id delegate;
+  NSURLSession *session;
+  BOOL shouldNotify;
+
+  delegate = [task delegate];
+  session = [task _session];
+  shouldNotify = NO;
+
+  GS_MUTEX_LOCK(task->_mutex);
+  shouldNotify = GSURLSessionWebSocketMarkDelegateCallback(task,
+    taskWebSocketDidCloseKey);
+  GS_MUTEX_UNLOCK(task->_mutex);
+
+  if (NO == shouldNotify || ![delegate respondsToSelector: didCloseWebSocketSel])
+    {
+      return;
+    }
+
+  [[session delegateQueue] addOperationWithBlock:^{
+    [(id<NSURLSessionWebSocketDelegate>)delegate URLSession: session
+                                              webSocketTask: task
+                                           didCloseWithCode: closeCode
+                                                     reason: reason];
+  }];
+}
+
 static NSError *
 GSURLSessionWebSocketError(NSInteger code, NSString *description)
 {
@@ -2620,6 +2698,8 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           curl_easy_pause([task _easyHandle], CURLPAUSE_SEND_CONT);
         }
 
+      GSURLSessionWebSocketNotifyDidClose(task, closeCode, closeReason);
+
       return bytesInCallback;
     }
 
@@ -3229,8 +3309,14 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   NSArray *pingHandlers;
   NSError *error;
   BOOL hasOutstandingWork;
+  NSURLSessionWebSocketCloseCode closeCode;
+  NSData *closeReason;
+  BOOL shouldNotifyClose;
 
   error = [self _errorForCURLcode: code];
+  closeCode = NSURLSessionWebSocketCloseCodeInvalid;
+  closeReason = nil;
+  shouldNotifyClose = NO;
 
   GS_MUTEX_LOCK(_mutex);
   hasOutstandingWork = ([_sendQueue count] > 0
@@ -3252,6 +3338,10 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     {
       _lifecycleState = GSURLSessionWebSocketLifecycleStateFailed;
     }
+  closeCode = _closeCode;
+  closeReason = RETAIN(_closeReason);
+  shouldNotifyClose = (error == nil
+    && _lifecycleState == GSURLSessionWebSocketLifecycleStateClosed);
   GSURLSessionWebSocketDrainOutstandingWorkLocked(self,
                                                   &sendEntries,
                                                   &receiveHandlers,
@@ -3265,12 +3355,24 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   [receiveHandlers release];
   [pingHandlers release];
 
+  if (YES == shouldNotifyClose)
+    {
+      GSURLSessionWebSocketNotifyDidClose(self, closeCode, closeReason);
+    }
+  [closeReason release];
+
   [super _transferFinishedWithCode: code];
 }
 
 - (NSURLSessionWebSocketCloseCode) closeCode
 {
   return _closeCode;
+}
+
+- (void) cancel
+{
+  [self cancelWithCloseCode: NSURLSessionWebSocketCloseCodeInvalid
+                     reason: nil];
 }
 
 - (NSData *) closeReason
@@ -3429,6 +3531,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   closeEntry = NULL;
   shouldResumeSend = NO;
 
+  _state = NSURLSessionTaskStateCanceling;
   _closeCode = closeCode;
   ASSIGNCOPY(_closeReason, reason);
   GS_MUTEX_LOCK(_mutex);
