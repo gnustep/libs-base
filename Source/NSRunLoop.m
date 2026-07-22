@@ -442,13 +442,75 @@ typedef struct {
   void                  *sharedContextInfo;
   uint8_t		modeCount;		/* Number of known modes */
   uint64_t		commonModeMask;		/* Common modes as mask */
-  NSString		*modeNames[64];		/* Names of known modes */
+  NSMapTable		*contextMap;		/* Hash lookup by mode */
   GSRunLoopCtxt		*contexts[64];		/* Context for each mode */
   GSIArray		timers;			/* Timers not in contexts */
 } RunLoopInternal;
                                
-#define internal        ((RunLoopInternal*)_internal)
+#define myvars	((RunLoopInternal*)_internal)
                                               
+/* Get the context for the mode name in the current run loop.
+ * Returns nil if it does not exist and was not created.
+ */
+static GSRunLoopCtxt*
+contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
+{
+  unsigned	limit = (loop->modeCount < 8) ? loop->modeCount : 8;
+  unsigned	index;
+  GSRunLoopCtxt	*c;
+
+  if (limit > 0)
+    {
+      BOOL	(*eq)(id, SEL, id);
+
+      /* The vast majority of applications almost exclusively use just a few
+       * modes and use standard constants (mostly NSRunLoopDefaultMode).
+       *
+       * For efficiency, try the first using direct pointer comparison.
+       * If that doesn't work, try more using the -isEqualtoString: method
+       * (we can cache the implementation of the mode we are looking for).
+       * Only when both strategies fail do we resort to a hash table lookup
+       * (which is more efficient when we have a lot of modes).
+       */
+      if (loop->contexts[0]->mode == mode)
+	{
+	  return loop->contexts[0];	// NSDefaultRunLoopMode
+	}
+
+      eq = (BOOL (*)(id, SEL, id))
+	[mode methodForSelector: @selector(isEqualToString:)];
+      for (index = 0; index < limit; index++)
+	{
+	  c = loop->contexts[index];
+	  if ((*eq)(mode, @selector(isEqualToString:), c->mode))
+	    {
+	      return c;
+	    }
+	}
+      if ((c = (GSRunLoopCtxt*)NSMapGet(loop->contextMap, (void*)mode)) != nil)
+	{
+	  return c;
+	}
+    }
+
+  if (NO == shouldCreate)
+    {
+      return nil;
+    }
+  if (loop->modeCount > 63)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Too many nodes added to run loop"];
+    }
+  c = [[GSRunLoopCtxt alloc] initWithMode: mode
+				    extra: &loop->sharedContextInfo];
+  c->modeIndex = loop->modeCount;
+  loop->contexts[loop->modeCount] = c;
+  loop->modeCount++;
+  NSMapInsert(loop->contextMap, c->mode, c);
+  RELEASE(c);
+  return c;
+}
 
 @interface NSRunLoop (Private)
 
@@ -467,42 +529,6 @@ typedef struct {
 
 @implementation NSRunLoop (Private)
 
-/** Get the context for the mode name in the current run loop.
- * Returns nil if it does not exist and was not created.
- */
-- (GSRunLoopCtxt*) _contextForMode: (NSString*)mode
-		      shouldCreate: (BOOL)shouldCreate
-{
-  GSRunLoopCtxt	*c;
-  unsigned	index;
-
-  for (index = 0; index < internal->modeCount; index++)
-    {
-      c = internal->contexts[index];
-      if ([c->mode isEqualToString: mode])
-	{
-	  return c;
-	}
-    }
-  if (NO == shouldCreate)
-    {
-      return nil;
-    }
-  if (internal->modeCount > 63)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Too many nodes added to run loop"];
-    }
-  c = [[GSRunLoopCtxt alloc] initWithMode: mode
-				    extra: &internal->sharedContextInfo];
-  c->modeIndex = internal->modeCount;
-  internal->contexts[internal->modeCount] = c;
-  internal->modeCount++;
-  NSMapInsert(_contextMap, c->mode, c);
-  RELEASE(c);
-  return c;
-}
-
 /* Add a watcher to the list for the specified mode.  Keep the list in
    limit-date order. */
 - (void) _addWatcher: (GSRunLoopWatcher*) item forMode: (NSString*)mode
@@ -511,7 +537,7 @@ typedef struct {
   GSIArray	watchers;
   unsigned	i;
 
-  context = [self _contextForMode: mode shouldCreate: YES];
+  context = contextForMode(myvars, mode, YES);
   watchers = context->watchers;
   GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
   i = GSIArrayCount(watchers);
@@ -556,10 +582,10 @@ typedef struct {
 	  /* Remove the requests that we are about to fire from all modes.
 	   */
           original = context;
-	  modeIndex = internal->modeCount;
+	  modeIndex = myvars->modeCount;
 	  while (modeIndex-- > 0)
 	    {
-	      context = internal->contexts[modeIndex];
+	      context = myvars->contexts[modeIndex];
 	      if (context != original)
 		{
 		  GSIArray	performers = context->performers;
@@ -615,7 +641,7 @@ typedef struct {
 	}
     }
 
-  context = [self _contextForMode: mode shouldCreate: NO];
+  context = contextForMode(myvars, mode, NO);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -635,6 +661,13 @@ typedef struct {
   return nil;
 }
 
+/* Just for debugging ... get at internals
+ */
+- (RunLoopInternal*) internal
+{
+  return myvars;
+}
+
 - (id) _init
 {
   if (nil != (self = [super init]))
@@ -642,15 +675,15 @@ typedef struct {
       NSZone	*z = NSDefaultMallocZone();
 
       _contextStack = [NSMutableArray new];
-      _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
-					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
       _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
-      internal->timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(internal->timers, z, 8);
+      myvars->contextMap = NSCreateMapTable(
+	NSNonRetainedObjectMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
+      myvars->timers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(myvars->timers, z, 8);
       // The first mode must be NSDefaultRunLoopMode
-      [self _contextForMode: NSDefaultRunLoopMode shouldCreate: YES];
-      internal->commonModeMask |= UINT64_C(1);
+      contextForMode(myvars, NSDefaultRunLoopMode, YES);
+      myvars->commonModeMask |= UINT64_C(1);
     }
   return self;
 }
@@ -675,7 +708,7 @@ typedef struct {
 	}
     }
 
-  context = [self _contextForMode: mode shouldCreate: NO];
+  context = contextForMode(myvars, mode, NO);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -918,22 +951,17 @@ static GSMainQueueDrainer 	*drainer = nil;
 - (void) dealloc
 {
   RELEASE(_contextStack);
-  if (_contextMap != 0)
-    {
-      NSFreeMapTable(_contextMap);
-    }
   RELEASE(_timedPerformers);
-  if (internal)
+  if (myvars)
     {
-      while (internal->modeCount-- > 0)
+      if (myvars->contextMap != 0)
 	{
-	  internal->contexts[internal->modeCount] = nil;
-	  DESTROY(internal->modeNames[internal->modeCount]);
+	  NSFreeMapTable(myvars->contextMap);
 	}
-      GSIArrayEmpty(internal->timers);
-      NSZoneFree(internal->timers->zone, (void*)internal->timers);
+      GSIArrayEmpty(myvars->timers);
+      NSZoneFree(myvars->timers->zone, (void*)myvars->timers);
 
-      NSZoneFree(NSDefaultMallocZone(), internal);
+      NSZoneFree(NSDefaultMallocZone(), myvars);
       _internal = NULL;
     }
   DEALLOC
@@ -1014,7 +1042,7 @@ logTimers(GSIArray timers)
 		  format: @"[%@-%@] not a valid mode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  context = [self _contextForMode: mode shouldCreate: YES];
+  context = contextForMode(myvars, mode, YES);
 
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
@@ -1050,7 +1078,7 @@ logTimers(GSIArray timers)
     {
       if (0 == timer->_modeMask)
 	{
-	  timers = internal->timers;
+	  timers = myvars->timers;
 	  /* When the timer is first scheduled, we must add to the shared
 	   * sorted array.
 	   */
@@ -1199,7 +1227,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		  while (mask)
 		    {
 		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-		      c = internal->contexts[modeIndex];
+		      c = myvars->contexts[modeIndex];
 		      [c->timerHeap removeObjectIdenticalTo: timer];
 		    }
 		  [timer fire];
@@ -1214,7 +1242,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		      while (mask)
 			{
 			  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-			  c = internal->contexts[modeIndex];
+			  c = myvars->contexts[modeIndex];
 			  [c->timerHeap push: timer];
 			}
 		    }
@@ -1251,7 +1279,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    
       /* Find and remove blocks of invalidated timers
        */ 
-      timers = internal->timers;
+      timers = myvars->timers;
       GSIArrayTrim(timers, timerToTrim);
 
       count = GSIArrayCount(timers);
@@ -1332,7 +1360,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		  unsigned	length;
 
 		  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-		  c = internal->contexts[modeIndex];
+		  c = myvars->contexts[modeIndex];
 
 		  /* Find the timers matching our fire date.
 		   */
@@ -1365,7 +1393,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		  while (mask)
 		    {
 		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-		      c = internal->contexts[modeIndex];
+		      c = myvars->contexts[modeIndex];
 		      GSIArrayInsertSorted(c->timers, item, sorter);
 		    }
 		}
@@ -1448,7 +1476,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   GSRunLoopCtxt		*context;
   NSDate		*when = nil;
 
-  context = [self _contextForMode: mode shouldCreate: NO];
+  context = contextForMode(myvars, mode, NO);
   if (context != nil)
     {
       NSString		*savedMode = _currentMode;
@@ -1495,7 +1523,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     {
       mode = NSDefaultRunLoopMode;
     }
-  context = [self _contextForMode: mode shouldCreate: NO];
+  context = contextForMode(myvars, mode, NO);
   if (nil == context)
     {
       return;
@@ -1623,7 +1651,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    * another thread.
    */
   _currentMode = mode;
-  context = [self _contextForMode: mode shouldCreate: NO];
+  context = contextForMode(myvars, mode, NO);
   [self _checkPerformers: context];
   _currentMode = savedMode;
 
@@ -1715,11 +1743,11 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  */
 - (void) cancelPerformSelectorsWithTarget: (id) target
 {
-  unsigned	modeIndex = internal->modeCount;
+  unsigned	modeIndex = myvars->modeCount;
 
   while (modeIndex-- > 0)
     {
-      GSRunLoopCtxt	*context = internal->contexts[modeIndex];
+      GSRunLoopCtxt	*context = myvars->contexts[modeIndex];
       GSIArray		performers = context->performers;
       unsigned		count = GSIArrayCount(performers);
 
@@ -1747,11 +1775,11 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 			target: (id) target
 		      argument: (id) argument
 {
-  unsigned	modeIndex = internal->modeCount;
+  unsigned	modeIndex = myvars->modeCount;
 
   while (modeIndex-- > 0)
     {
-      GSRunLoopCtxt	*context = internal->contexts[modeIndex];
+      GSRunLoopCtxt	*context = myvars->contexts[modeIndex];
       GSIArray		performers = context->performers;
       unsigned		count = GSIArrayCount(performers);
 
@@ -1827,7 +1855,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  GSRunLoopCtxt	*context;
 	  GSIArray	performers;
 
-	  context = [self _contextForMode: mode shouldCreate: YES];
+	  context = contextForMode(myvars, mode, YES);
 	  performers = context->performers;
 
 	  end = GSIArrayCount(performers);

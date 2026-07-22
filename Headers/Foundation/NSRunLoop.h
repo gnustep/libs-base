@@ -49,7 +49,6 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSRunLoop)
   @private
   NSString		*_currentMode;
-  NSMapTable		*_contextMap;
   NSMutableArray	*_contextStack;
   NSMutableArray	*_timedPerformers;
   void			*_internal;
