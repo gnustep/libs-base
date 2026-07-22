@@ -3,6 +3,8 @@
 	* Headers/Foundation/NSZone.h: Remove old garbage collection
 	documentation and make documentation consistent and say that
 	allocation failure is indicated by a NULL return value.
+	* Source/NSZone.m: Make allocation functions consistently return
+	NULL on failure rather than raising exception.
 
 2026-07-16 Richard Frith-Macdonald <rfm@gnu.org>
 

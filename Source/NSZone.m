@@ -555,12 +555,7 @@ fmalloc (NSZone *zone, size_t size)
       if (chunkhead == NULL)
         {
           GS_MUTEX_UNLOCK(zptr->lock);
-          if (zone->name != nil)
-            [NSException raise: NSMallocException
-                        format: @"Zone %@ has run out of memory", zone->name];
-          else
-            [NSException raise: NSMallocException
-                        format: @"Out of memory"];
+	  return NULL;
         }
 
 #if	!defined(NS_BLOCK_ASSERTIONS)
@@ -598,15 +593,27 @@ static void*
 frealloc (NSZone *zone, void *ptr, size_t size)
 {
   size_t realsize;
-  size_t chunksize = roundupto(size+FBSZ+1, MINCHUNK);
-  ffree_zone *zptr = (ffree_zone*)zone;
+  size_t chunksize;
+  ffree_zone *zptr;
   ff_block *chunkhead, *slack;
   void *result;
 
-  NSCAssert(ptr == NULL || NSZoneFromPointer(ptr) == zone,
-    NSInternalInconsistencyException);
-  if (ptr == NULL)
-    return fmalloc(zone, size);
+  if (NULL == ptr)
+    {
+      return fmalloc(zone, size);
+    }
+  if (0 == size)
+    {
+      if (ptr)
+	{
+	  ffree(zone, ptr);
+	}
+      return NULL;
+    }
+  NSCAssert(NSZoneFromPointer(ptr) == zone, NSInternalInconsistencyException);
+
+  zptr = (ffree_zone*)zone;
+  chunksize = roundupto(size+FBSZ+1, MINCHUNK);
   chunkhead = pointerToChunk(ptr);
   GS_MUTEX_LOCK(zptr->lock);
   realsize = chunkSize(chunkhead);
@@ -665,13 +672,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
           if (newchunk == NULL)
             {
               GS_MUTEX_UNLOCK(zptr->lock);
-              if (zone->name != nil)
-                [NSException raise: NSMallocException
-                            format: @"Zone %@ has run out of memory",
-                             zone->name];
-              else
-                [NSException raise: NSMallocException
-                            format: @"Out of memory"];
+	      return NULL;
             }
           memcpy((void*)(&newchunk[1]), (void*)(&chunkhead[1]), realsize-FBSZ);
           add_buf(zptr, chunkhead);
@@ -695,9 +696,17 @@ ffree (NSZone *zone, void *ptr)
   GS_MUTEX_LOCK(((ffree_zone*)zone)->lock);
   chunk = pointerToChunk(ptr);
   if (chunkIsLive(chunk) == 0)
-    [NSException raise: NSMallocException
-	        format: @"Attempt to free freed memory"];
-  NSCAssert(*((char*)chunk->next) == (char)42, NSInternalInconsistencyException);
+    {
+      GS_MUTEX_UNLOCK(((ffree_zone*)zone)->lock);
+      [NSException raise: NSMallocException
+	          format: @"Attempt to free freed memory"];
+    }
+  if (*((char*)chunk->next) != (char)42)
+    {
+      GS_MUTEX_UNLOCK(((ffree_zone*)zone)->lock);
+      [NSException raise: NSInternalInconsistencyException
+	          format: @"Freeing corrupt chunk"];
+    }
   add_buf((ffree_zone*)zone, chunk);
   GS_MUTEX_UNLOCK(((ffree_zone*)zone)->lock);
 }
@@ -1313,13 +1322,7 @@ nmalloc (NSZone *zone, size_t size)
           if (block == NULL)
             {
               GS_MUTEX_UNLOCK(zptr->lock);
-              if (zone->name != nil)
-                [NSException raise: NSMallocException
-                            format: @"Zone %@ has run out of memory",
-                             zone->name];
-              else
-                [NSException raise: NSMallocException
-                            format: @"Out of memory"];
+	      return NULL;
             }
           block->next = zptr->blocks;
           block->size = blocksize;
@@ -1390,11 +1393,25 @@ nrecycle (NSZone *zone)
 static void*
 nrealloc (NSZone *zone, void *ptr, size_t size)
 {
-  nfree_zone *zptr = (nfree_zone*)zone;
-  void *tmp = nmalloc(zone, size);
+  void	*tmp;
 
-  if (ptr != 0)
+  if (NULL == ptr)
     {
+      return nmalloc(zone, size);
+    }
+  if (0 == size)
+    {
+      if (ptr)
+	{
+	  nfree(zone, ptr);
+	}
+      return NULL;
+    }
+  tmp = nmalloc(zone, size);
+  if (tmp != 0)
+    {
+      nfree_zone *zptr = (nfree_zone*)zone;
+
       GS_MUTEX_LOCK(zptr->lock);
       if (tmp)
 	{
@@ -1701,19 +1718,20 @@ NSCreateZone(NSUInteger start, NSUInteger gran, BOOL canFree)
 GS_DECLARE void*
 NSZoneCalloc(NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
-  void *mem;
-
   if (NULL == zone || &defaultZone == zone)
     {
-      mem = calloc(elems, bytes);
-      if (mem != NULL)
-        {
-          return mem;
-        }
-      [NSException raise: NSMallocException
-                  format: @"Default zone has run out of memory"];
+      return calloc(elems, bytes);
     }
-  return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
+  else
+    {
+      void	*mem = NSZoneMalloc(zone, elems*bytes);
+
+      if (mem != NULL)
+	{
+	  memset(mem, 0, elems*bytes);
+	}
+      return mem;
+    }
 }
 
 GS_DECLARE void*
@@ -1745,15 +1763,7 @@ NSZoneMalloc(NSZone *zone, NSUInteger size)
 {
   if (NULL == zone || &defaultZone == zone)
     {
-      void	*mem = malloc(size);
-
-      if (mem != NULL)
-	{
-	  return mem;
-	}
-      [NSException raise: NSMallocException
-		  format: @"Default zone has run out of memory"];
-      return 0;
+      return malloc(size);
     }
   return (zone->malloc)(zone, size);
 }
@@ -1763,15 +1773,7 @@ NSZoneRealloc(NSZone *zone, void *ptr, NSUInteger size)
 {
   if (NULL == zone || &defaultZone == zone)
     {
-      void	*mem = realloc(ptr, size);
-
-      if (mem != NULL)
-	{
-	  return mem;
-	}
-      [NSException raise: NSMallocException
-		  format: @"Default zone has run out of memory"];
-      return 0;
+      return realloc(ptr, size);
     }
   return (zone->realloc)(zone, ptr, size);
 }
