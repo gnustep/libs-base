@@ -1,3 +1,9 @@
+2026-07-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSRunLoopWatcher.m: use weak pointer for receiver so that,
+	if an object fails to remove a watcher from a run loop properly we
+	avoid a crash.
+
 2026-07-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSZone.h: Remove old garbage collection

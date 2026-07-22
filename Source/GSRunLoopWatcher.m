@@ -32,7 +32,8 @@
 
 - (void) dealloc
 {
-  [super dealloc];
+  objc_destroyWeak(&receiver);
+  DEALLOC;
 }
 
 - (id) initWithType: (RunLoopEventType)aType
@@ -40,7 +41,7 @@
 	       data: (void*)item
 {
   _invalidated = NO;
-  receiver = anObj;
+  objc_storeWeak(&receiver, anObj);
   data = item;
   switch (aType)
     {
@@ -76,10 +77,26 @@
 
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
+  if (_invalidated)
+    {
+      return NO;
+    }
   if (checkBlocking == YES)
     {
-      BOOL result = [(id)receiver runLoopShouldBlock: trigger];
-      return result;
+      id 	r = objc_loadWeakRetained(&receiver);
+
+      if (nil == r)
+	{
+	  _invalidated = YES;	// Receiver has gone away
+	  return NO;
+	}
+      else
+	{
+	  BOOL	result = [r runLoopShouldBlock: trigger];
+
+          RELEASE(r);
+	  return result;
+	}
     }
   else if (type == ET_TRIGGER)
     {
