@@ -665,7 +665,13 @@ frealloc (NSZone *zone, void *ptr, size_t size)
           if (newchunk == NULL)
             {
               GS_MUTEX_UNLOCK(zptr->lock);
-	      return NULL;
+              if (zone->name != nil)
+                [NSException raise: NSMallocException
+                            format: @"Zone %@ has run out of memory",
+                             zone->name];
+              else
+                [NSException raise: NSMallocException
+                            format: @"Out of memory"];
             }
           memcpy((void*)(&newchunk[1]), (void*)(&chunkhead[1]), realsize-FBSZ);
           add_buf(zptr, chunkhead);
@@ -1307,7 +1313,13 @@ nmalloc (NSZone *zone, size_t size)
           if (block == NULL)
             {
               GS_MUTEX_UNLOCK(zptr->lock);
-	      return NULL;
+              if (zone->name != nil)
+                [NSException raise: NSMallocException
+                            format: @"Zone %@ has run out of memory",
+                             zone->name];
+              else
+                [NSException raise: NSMallocException
+                            format: @"Out of memory"];
             }
           block->next = zptr->blocks;
           block->size = blocksize;
@@ -1689,9 +1701,17 @@ NSCreateZone(NSUInteger start, NSUInteger gran, BOOL canFree)
 GS_DECLARE void*
 NSZoneCalloc(NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
+  void *mem;
+
   if (NULL == zone || &defaultZone == zone)
     {
-      return calloc(elems, bytes);
+      mem = calloc(elems, bytes);
+      if (mem != NULL)
+        {
+          return mem;
+        }
+      [NSException raise: NSMallocException
+                  format: @"Default zone has run out of memory"];
     }
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
@@ -1723,13 +1743,17 @@ GSAtomicMallocZone(void)
 GS_DECLARE void*
 NSZoneMalloc(NSZone *zone, NSUInteger size)
 {
-  if (0 == size)
-    {
-      return NULL;
-    }
   if (NULL == zone || &defaultZone == zone)
     {
-      return malloc(size);
+      void	*mem = malloc(size);
+
+      if (mem != NULL)
+	{
+	  return mem;
+	}
+      [NSException raise: NSMallocException
+		  format: @"Default zone has run out of memory"];
+      return 0;
     }
   return (zone->malloc)(zone, size);
 }
@@ -1737,14 +1761,17 @@ NSZoneMalloc(NSZone *zone, NSUInteger size)
 GS_DECLARE void*
 NSZoneRealloc(NSZone *zone, void *ptr, NSUInteger size)
 {
-  if (0 == size)
-    {
-      NSZoneFree(zone, ptr);
-      return NULL;
-    }
   if (NULL == zone || &defaultZone == zone)
     {
-      return realloc(ptr, size);
+      void	*mem = realloc(ptr, size);
+
+      if (mem != NULL)
+	{
+	  return mem;
+	}
+      [NSException raise: NSMallocException
+		  format: @"Default zone has run out of memory"];
+      return 0;
     }
   return (zone->realloc)(zone, ptr, size);
 }
