@@ -1094,7 +1094,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return (GSI_MAP_READ_KEY(table, &node->key).obj);
 }
 
 - (void) dealloc
