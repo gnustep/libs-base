@@ -1443,7 +1443,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return GSI_MAP_READ_KEY(table, &node->key).obj;
 }
 
 - (void) dealloc
@@ -1465,7 +1465,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     {
       return nil;
     }
-  return node->value.obj;
+  return GSI_MAP_READ_VALUE(table, &node->value).obj;
 }
 
 @end
