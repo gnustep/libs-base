@@ -1191,6 +1191,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     }
 }
 
+- (void) compact
+{
+  GSIMapRemoveWeak(self);
+}
+
 - (id) copyWithZone: (NSZone*)aZone
 {
   return NSCopyMapTableWithZone(self, aZone);

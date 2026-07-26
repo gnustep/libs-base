@@ -629,22 +629,20 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
     }
   if (enumerator->map != 0)		// Got a GSIMapTable enumerator
     {
+      NSConcreteHashTable *map = enumerator->map;
       GSIMapNode    n;
 
       /* The 'map' field is non-null, so this NSHashEnumerator is actually
        * a GSIMapEnumerator.
        */
-      n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-      if (n == 0)
+      while ((n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator)) != 0)
 	{
-	  return 0;
-	}
-      else
-	{
-          NSConcreteHashTable *map = enumerator->map;
+	  void	*v = GSI_MAP_READ_KEY(map, &n->key).ptr;
 
-          return GSI_MAP_READ_KEY(map, &n->key).ptr;
+
+	  return v;
 	}
+      return 0;
     }
   else if (enumerator->node != 0)	// Got an enumerator object
     {
@@ -908,7 +906,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 }
 
 - (BOOL) containsObject: (id)anObject
@@ -923,6 +921,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 	}
     }
   return NO;
+}
+
+- (void) compact
+{
+  GSIMapRemoveWeak(self);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -1028,7 +1031,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
       if (node)
 	{
-	  return node->key.obj;
+	  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 	}
     }
   return nil;
@@ -1088,13 +1091,13 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (id) nextObject
 {
-  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+  GSIMapKey	key;
 
-  if (node == 0)
+  if (GSIMapEnumeratorNext(&enumerator, &key))
     {
-      return nil;
+      return key.obj;
     }
-  return (GSI_MAP_READ_KEY(table, &node->key).obj);
+  return nil;
 }
 
 - (void) dealloc

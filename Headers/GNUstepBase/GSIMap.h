@@ -130,8 +130,8 @@ extern "C" {
  *              memory when working with garbage collection.
  *
  *      GSI_MAP_ZEROED()
- *              Define this macro to check whether a map uses keys which may
- *              be zeroed weak pointers.  
+ *              Define this macro to check whether a map uses keys or values
+ *		which may be zeroed weak pointers.  
  *
  *	GSI_MAP_NODE_CLASS
  *		If defined, each node in the map has an 'isa' field at the
@@ -680,6 +680,10 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 
   if (GSI_MAP_ZEROED(map))
     {
+      if (0 == key.addr)
+	{
+	  return 0;	// Can't use a nil key in a weak map
+	}
       while ((node != 0)
 	&& GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
 	{
@@ -863,7 +867,7 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 /** Enumerating **/
 
 /* IMPORTANT WARNING: Enumerators have a wonderous property.
- * Once a node has been returned by `GSIMapEnumeratorNextNode()', it may be
+ * Once a node has been returned by `GSIMapEnumeratorNext()', it may be
  * removed from the map without effecting the rest of the current
  * enumeration. */
 
@@ -897,7 +901,7 @@ GSIMapEnumeratorForMap(GSIMapTable map)
 	{
 	  GSIMapNode	node = map->buckets[enumerator.bucket].firstNode;
 
-	  while (node != 0 && GSI_MAP_READ_KEY(map, &node->key).addr == 0)
+	  while (node != 0 && GSI_MAP_NODE_IS_EMPTY(map, node))
 	    {
 	      node = GSIMapRemoveAndFreeNode(map, enumerator.bucket, node);
 	    }
@@ -950,7 +954,98 @@ GSIMapEnumeratorBucket(GSIMapEnumerator enumerator)
   return 0;
 }
 
-/**
+#if	GSI_MAP_HAS_VALUE
+/** Returns YES and the key and value of the next valid node in the map,
+ * or NO if there are no more valid nodes.  Does not compact maps with
+ * empty nodes.
+ */
+GS_STATIC_INLINE BOOL 
+GSIMapEnumeratorNext(GSIMapEnumerator enumerator,
+  GSIMapKey *keyPtr, GSIMapVal *valPtr)
+{
+  GSIMapNode	node = ((_GSIE)enumerator)->node;
+  GSIMapTable	map = ((_GSIE)enumerator)->map;
+
+  /* Find the frst available non-zeroed node.
+   */
+  while (node != 0)
+    {
+      GSIMapNode	next;
+      GSIMapKey		key;
+      GSIMapVal		val;
+
+      if ((next = node->nextInBucket) == 0)
+	{
+	  uintptr_t	bucketCount = map->bucketCount;
+	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
+
+	  while (next == 0 && ++bucket < bucketCount)
+	    {
+	      next = (map->buckets[bucket]).firstNode;
+	    }
+	  ((_GSIE)enumerator)->bucket = bucket;
+	}
+      ((_GSIE)enumerator)->node = next;
+
+      key = GSI_MAP_READ_KEY(map, &node->key);
+      val = GSI_MAP_READ_KEY(map, &node->value);
+      if (!GSI_MAP_ZEROED(map) || (key.addr != 0 && val.addr != 0))
+	{
+	  *keyPtr = key;
+	  *valPtr = val;
+	  return YES;
+	}
+      node = next;
+    }
+  return NO;
+}
+
+#else
+
+/** Returns YES and the key and value of the next valid node in the map,
+ * or NO if there are no more valid nodes.  Does not compact maps with
+ * empty nodes.
+ */
+GS_STATIC_INLINE BOOL 
+GSIMapEnumeratorNext(GSIMapEnumerator enumerator, GSIMapKey *keyPtr)
+{
+  GSIMapNode	node = ((_GSIE)enumerator)->node;
+  GSIMapTable	map = ((_GSIE)enumerator)->map;
+
+  /* Find the frst available non-zeroed node.
+   */
+  while (node != 0)
+    {
+      GSIMapNode	next;
+      GSIMapKey		key;
+
+      if ((next = node->nextInBucket) == 0)
+	{
+	  uintptr_t	bucketCount = map->bucketCount;
+	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
+
+	  while (next == 0 && ++bucket < bucketCount)
+	    {
+	      next = (map->buckets[bucket]).firstNode;
+	    }
+	  ((_GSIE)enumerator)->bucket = bucket;
+	}
+      ((_GSIE)enumerator)->node = next;
+
+      key = GSI_MAP_READ_KEY(map, &node->key);
+      if (!GSI_MAP_ZEROED(map) || key.addr != 0)
+	{
+	  *keyPtr = key;
+	  return YES;
+	}
+      node = next;
+    }
+  return NO;
+}
+
+#endif
+
+/** Do not use ... use GSIMapEnumeratorNext() instead.
  * Returns the next node in the map, or a nul pointer if at the end.
  */
 GS_STATIC_INLINE GSIMapNode 
@@ -1035,7 +1130,6 @@ GS_STATIC_INLINE NSUInteger
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   NSFastEnumerationState *state, id *stackbuf, NSUInteger len)
 {
-  NSInteger count;
   NSInteger i;
 
   /* We can store a GSIMapEnumerator inside the extra buffer in state, but we
@@ -1051,8 +1145,6 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
 #define GS_PART_MAP_ENUMERATOR(state) ((struct GSPartMapEnumerator*)(uintptr_t)((state)->extra))
   GSIMapEnumerator_t enumerator;
 
-  count = MIN(len, map->nodeCount - state->state);
-
   /* Construct the real enumerator */
   if (0 == state->state)
     {
@@ -1064,26 +1156,36 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
       enumerator.node = GS_PART_MAP_ENUMERATOR(state)->node; 
       enumerator.bucket = GS_PART_MAP_ENUMERATOR(state)->bucket;
     }
-  /* Get the next count objects and put them in the stack buffer. */
-  for (i = 0; i < count; i++)
+  /* Get the next count objects and put them in the stack buffer.
+   * UGLY HACK: Lets this compile with any key type.  Fast enumeration
+   * will only work with things that are id-sized, however, so don't
+   * try using it with non-object collections.
+   */
+  for (i = 0; i < len; i++)
     {
-      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-      if (0 != node)
-        {
-          /* UGLY HACK: Lets this compile with any key type.  Fast enumeration
-           * will only work with things that are id-sized, however, so don't
-           * try using it with non-object collections.
-           */
-          stackbuf[i] = (id)GSI_MAP_READ_KEY(map, &node->key).addr;
-        }
+      GSIMapKey	key;
+#if	GSI_MAP_HAS_VALUE
+      GSIMapVal	val;
+
+      if (!GSIMapEnumeratorNext(&enumerator, &key, &val))
+	{
+	  break;
+	}
+#else
+      if (!GSIMapEnumeratorNext(&enumerator, &key))
+	{
+	  break;
+	}
+#endif
+      stackbuf[i] = (id)key.addr;
     }
   /* Store the important bits of the enumerator in the caller. */
   GS_PART_MAP_ENUMERATOR(state)->node = enumerator.node;
   GS_PART_MAP_ENUMERATOR(state)->bucket = enumerator.bucket;
   /* Update the rest of the state. */
-  state->state += count;
+  state->state += i;
   state->itemsPtr = stackbuf;
-  return count;
+  return i;
 }
 
 GS_STATIC_INLINE GSIMapNode
@@ -1109,8 +1211,13 @@ GSIMapGetNode(GSIMapTable map)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && (0 == key.addr || 0 == value.addr))
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   node->key = key;
   node->value = value;
   GSI_MAP_STORE_KEY(map, &node->key, key);
@@ -1123,8 +1230,13 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && (0 == key.addr || 0 == value.addr))
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSI_MAP_STORE_VALUE(map, &node->value, value);
@@ -1137,8 +1249,13 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && 0 == key.addr)
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
@@ -1148,8 +1265,13 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && 0 == key.addr)
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSIMapRightSizeMap(map, map->nodeCount);
