@@ -52,6 +52,46 @@ int main(void)
       "NSIntegralRect of an empty rect is the zero rect");
   END_SET("NSIntegralRect")
 
+  START_SET("NSIntegralRectWithOptions")
+    /* Each axis is aligned to whole units by the options; the expected values
+       were checked against Apple Foundation. */
+    NSRect	o = R(10.3, 20.7, 5.4, 6.8);
+
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o, NSAlignAllEdgesNearest),
+      R(10, 21, 6, 7)), "all edges nearest rounds each edge to whole units");
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o, NSAlignAllEdgesInward),
+      R(11, 21, 4, 6)), "all edges inward shrinks to whole units");
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o, NSAlignAllEdgesOutward),
+      R(10, 20, 6, 8)), "all edges outward grows to whole units");
+
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o,
+      NSAlignMinXNearest | NSAlignWidthNearest
+      | NSAlignMinYNearest | NSAlignHeightNearest), R(10, 21, 5, 7)),
+      "a min edge with a size rounds the origin and size independently");
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o,
+      NSAlignMaxXNearest | NSAlignWidthNearest
+      | NSAlignMaxYNearest | NSAlignHeightNearest), R(11, 21, 5, 7)),
+      "a max edge with a size anchors the far edge and rounds the size");
+    PASS(NSEqualRects(NSIntegralRectWithOptions(o,
+      NSAlignAllEdgesNearest | NSAlignRectFlipped), R(10, 21, 6, 6)),
+      "the flipped flag rounds a tie on the max Y edge downward");
+
+    PASS(NSEqualRects(NSIntegralRectWithOptions(R(5.3, 6.7, 0, 0),
+      NSAlignAllEdgesNearest), R(5, 7, 0, 0)),
+      "a zero-size rect keeps its aligned origin");
+    PASS(NSEqualRects(NSIntegralRectWithOptions(R(5.3, 6.7, 0, 0),
+      NSAlignAllEdgesOutward), R(5, 6, 1, 1)),
+      "outward grows a zero-size rect to one unit");
+
+    PASS(NSEqualRects(NSIntegralRectWithOptions(R(-2.5, -3.5, 1, 1),
+      NSAlignAllEdgesNearest), R(-2, -3, 1, 1)),
+      "a tie rounds towards positive infinity");
+
+    PASS_EXCEPTION(({ NSRect x = NSIntegralRectWithOptions(o, NSAlignMinXInward);
+      (void)x; }), NSInvalidArgumentException,
+      "an axis without exactly two of the min, max and size raises");
+  END_SET("NSIntegralRectWithOptions")
+
   START_SET("NSUnionRect")
     PASS(NSEqualRects(NSUnionRect(R(0, 0, 4, 4), R(2, 2, 4, 4)), R(0, 0, 6, 6)),
       "NSUnionRect is the bounding box of two overlapping rects");
