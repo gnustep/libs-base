@@ -1,3 +1,13 @@
+2026-07-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Tests/base/NSHashTable/weakObjects.m:
+	Weak pointer enumeration fixes and performance improvements.  We get
+	retained values (and explicitly release them) rather than depending
+	on autorelease pools in many more places.
+
 2026-07-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSZone.h: Remove old garbage collection

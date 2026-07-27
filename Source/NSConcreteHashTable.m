@@ -84,7 +84,7 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? M->cb.old.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 : (IS_WEAK(M) ? YES : NO))
+ (M->legacy ? 0 : (IS_WEAK(M) ? 1 : 0))
 
 /* NSPointerFunctions provides functions which combine the actions of
  * memory allocation/deallocation with those of assignment, so we make

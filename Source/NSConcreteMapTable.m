@@ -131,7 +131,7 @@ typedef GSIMapNode_t *GSIMapNode;
     : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
 #define GSI_MAP_ZEROED(M)\
   (M->legacy ? 0\
-    : (IS_WEAK_KEY(M) || IS_WEAK_VALUE(M)) ? YES : NO)
+    : ((IS_WEAK_KEY(M) ? 1 : 0) | (IS_WEAK_VALUE(M) ? 2 : 0)))
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
