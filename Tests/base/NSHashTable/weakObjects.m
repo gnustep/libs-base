@@ -30,7 +30,6 @@ int main()
   unsigned		counter;
 
   id testObj = [TestClass new];
-[testObj trackOwnership];
   [hashTable addObject: AUTORELEASE([TestClass new])];
   [hashTable addObject: testObj];
   [hashTable addObject: AUTORELEASE([TestClass new])];
