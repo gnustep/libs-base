@@ -561,10 +561,11 @@ GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
   if (vPtr) *vPtr = nil;
   if (zeroed)
     {
+      id	k;
+
       if (zeroed & 1)
 	{
-	  id	k = objc_loadWeakRetained((id*)&node->key.addr);
-
+	  k = objc_loadWeakRetained((id*)&node->key.addr);
 	  if (nil == k)
 	    {
 	      return YES;
@@ -585,6 +586,7 @@ GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
 
 	  if (nil == v)
 	    {
+	      [k release];
 	      return YES;
 	    }
 	  if (vPtr)
