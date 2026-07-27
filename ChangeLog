@@ -1,3 +1,14 @@
+2026-07-27 Todd White <todd.white@thalion.global>
+
+	* Source/NSUnarchiver.m: Decode a char archived value into a wider
+	integer destination (short/int/long/long long), preserving the sign
+	of the archived char.  BOOL is a char on most platforms but an int
+	with the libobjc2 runtime on Windows, so a gorm (which encodes BOOL
+	as unsigned char) failed to load there with "expected int and got
+	unsigned char".  See gnustep/libs-gui#318 and gnustep/libs-gui#405.
+	* Tests/base/NSArchiver/charWidening.m: Test the char to integer
+	widening.
+
 2026-07-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h:
