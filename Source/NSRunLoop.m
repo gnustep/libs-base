@@ -68,15 +68,6 @@ NSRunLoopMode const NSRunLoopCommonModes = @"NSRunLoopCommonModes";
 
 static NSDate	*theFuture = nil;
 
-/* Allow the 'TimerStyle' environment variable to control alternative
- * timer implementations for ease of testing.
- */
-static enum {
-  TS_SORTARY,	// Use a sorted array of timers in each context
-  TS_MINHEAP,	// Use a minheap of timers in each context
-  TS_SHAREDA	// Use sorted array shared between contexts
-} timerStyle = TS_SORTARY;
-
 
 
 /*
@@ -444,7 +435,6 @@ typedef struct {
   uint64_t		commonModeMask;		/* Common modes as mask */
   NSMapTable		*contextMap;		/* Hash lookup by mode */
   GSRunLoopCtxt		*contexts[64];		/* Context for each mode */
-  GSIArray		timers;			/* Timers not in contexts */
 } RunLoopInternal;
                                
 #define myvars	((RunLoopInternal*)_internal)
@@ -679,8 +669,6 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
       _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
       myvars->contextMap = NSCreateMapTable(
 	NSNonRetainedObjectMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
-      myvars->timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(myvars->timers, z, 8);
       // The first mode must be NSDefaultRunLoopMode
       contextForMode(myvars, NSDefaultRunLoopMode, YES);
       myvars->commonModeMask |= UINT64_C(1);
@@ -834,27 +822,6 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 {
   if (self == [NSRunLoop class])
     {
-      NSString	*s;
-
-      s = [[[NSProcessInfo processInfo] environment]
-	objectForKey: @"TimerStyle"];
-      if (s && [s caseInsensitiveCompare: @"SortAry"] == NSOrderedSame)
-	{
-	  timerStyle = TS_SORTARY;
-	}
-      else if (s && [s caseInsensitiveCompare: @"MinHeap"] == NSOrderedSame)
-	{
-	  timerStyle = TS_MINHEAP;
-	}
-      else if (s && [s caseInsensitiveCompare: @"SharedA"] == NSOrderedSame)
-	{
-	  timerStyle = TS_SHAREDA;
-	}
-      else
-	{
-	  timerStyle = TS_MINHEAP;
-	}
-
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
       RELEASE([NSObject leakAt: &theFuture]);
@@ -958,9 +925,6 @@ static GSMainQueueDrainer 	*drainer = nil;
 	{
 	  NSFreeMapTable(myvars->contextMap);
 	}
-      GSIArrayEmpty(myvars->timers);
-      NSZoneFree(myvars->timers->zone, (void*)myvars->timers);
-
       NSZoneFree(NSDefaultMallocZone(), myvars);
       _internal = NULL;
     }
@@ -978,36 +942,6 @@ static GSMainQueueDrainer 	*drainer = nil;
 
 
 
-/* Comparator for timers
- */
-static NSComparisonResult
-sorter(GSIArrayItem a, GSIArrayItem b)
-{
-  return [(NSTimer*)a.obj compare: (NSTimer*)b.obj];
-}
-
-static BOOL
-timerToTrim(GSIArrayItem item)
-{
-  return ((NSTimer*)(item.obj))->_invalidated;
-}
-
-#if 0
-static NSString *
-logTimers(GSIArray timers)
-{
-  NSMutableString	*s = [NSMutableString stringWithCapacity: 1000];
-  unsigned		count = GSIArrayCount(timers);
-  unsigned		index;
-
-  for (index = 0; index < count; index++)
-    {
-      [s appendFormat: @"    %@\n", GSIArrayItemAtIndex(timers, index).obj];
-    }
-  return s;
-}
-#endif
-
 
 /**
  * Adds a timer to the loop in the specified mode.<br />
@@ -1019,7 +953,6 @@ logTimers(GSIArray timers)
   const void	*loop = (const void*)self;
   GSRunLoopCtxt	*context;
   GSMinHeap	*timerHeap;
-  GSIArray      timers;
   uint64_t	modeBit;
   unsigned      i;
 
@@ -1055,55 +988,24 @@ logTimers(GSIArray timers)
     {
       return;	// Already present in this mode
     }
-  if (TS_MINHEAP == timerStyle)
-    {
-      timerHeap = context->timerHeap;
 
-      /* Timers can be scheduled in more than one mode, and if a timer fires
-       * and repeats it will have updated its fire date.  That will leave it
-       * incorrectly positioned in the min heap in other modes.  To handle
-       * that we must track whether it is scheduled in more than one mode to
-       * know if we need to check other modes for repositionng.
-       */
-      [timerHeap push: timer];
-      i = [timerHeap count];
-      if (i % 1000 == 0 && i > context->maxTimers)
-	{
-	  context->maxTimers = i;
-	  NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
-	    i, mode, self);
-	}
-    }
-  else if (TS_SHAREDA == timerStyle)
+  timerHeap = context->timerHeap;
+
+  /* Timers can be scheduled in more than one mode, and if a timer fires
+   * and repeats it will have updated its fire date.  That will leave it
+   * incorrectly positioned in the min heap in other modes.  To handle
+   * that we must track whether it is scheduled in more than one mode to
+   * know if we need to check other modes for repositionng.
+   */
+  [timerHeap push: timer];
+  i = [timerHeap count];
+  if (i % 1000 == 0 && i > context->maxTimers)
     {
-      if (0 == timer->_modeMask)
-	{
-	  timers = myvars->timers;
-	  /* When the timer is first scheduled, we must add to the shared
-	   * sorted array.
-	   */
-	  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
-	  i = GSIArrayCount(timers);
-	  if (i % 1000 == 0 && i > context->maxTimers)
-	    {
-	      context->maxTimers = i;
-	      NSLog(@"WARNING ... there are %u timers scheduled in %@",
-		i, self);
-	    }
-	}
+      context->maxTimers = i;
+      NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
+	i, mode, self);
     }
-  else
-    {
-      timers = context->timers;
-      GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), sorter);
-      i = GSIArrayCount(timers);
-      if (i % 1000 == 0 && i > context->maxTimers)
-	{
-	  context->maxTimers = i;
-	  NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
-	    i, mode, self);
-	}
-    }
+
   timer->_modeMask |= modeBit;
 }
 
@@ -1178,8 +1080,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   uint64_t		contextModeMask = ~(UINT64_C(1)<<context->modeIndex);
   GSMinHeap		*timerHeap;
-  GSIArray		timers;
-  unsigned		count;
   NSTimeInterval	now;
   NSDate                *earliest;
   NSDate		*d;
@@ -1199,238 +1099,75 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   /* Fire the oldest/first valid timer whose fire date has passed
    * and fire it.
    */
-  if (TS_MINHEAP == timerStyle)
+  timerHeap = context->timerHeap;
+  timer = [timerHeap peek];
+  while (timer != nil)
     {
-      timerHeap = context->timerHeap;
-      timer = [timerHeap peek];
-      while (timer != nil)
+      if (timerInvalidated(timer))
 	{
-	  if (timerInvalidated(timer))
-	    {
-	      timer = [timerHeap next];
-	    }
-	  else
-	    {
-	      d = timerDate(timer);
-	      ti = [d timeIntervalSinceReferenceDate];
-	      if (ti < now)
-		{
-		  int		modeIndex;
-		  uint64_t	mask;
-		  uint64_t	save;
-		  GSRunLoopCtxt	*c;
-
-		  timer = [timerHeap popRetained];
-		  mask = timer->_modeMask;
-		  mask &= contextModeMask;
-		  save = mask;
-		  while (mask)
-		    {
-		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-		      c = myvars->contexts[modeIndex];
-		      [c->timerHeap removeObjectIdenticalTo: timer];
-		    }
-		  [timer fire];
-		  GSPrivateNotifyASAP(_currentMode);
-		  IF_NO_ARC([arp emptyPool];)
-		  if (updateTimer(timer, d, now) == YES)
-		    {
-		      /* Updated ... replace in heap.
-		       */
-		      [timerHeap push: timer];
-		      mask = save;
-		      while (mask)
-			{
-			  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
-			  c = myvars->contexts[modeIndex];
-			  [c->timerHeap push: timer];
-			}
-		    }
-		  RELEASE(timer);
-		}
-	      break;
-	    }
+	  timer = [timerHeap next];
 	}
-
-      /* Now, find the earliest remaining timer date while removing
-       * any invalidated timers.
-       */
-      earliest = nil;
-      timer = [timerHeap peek];
-      while (timer != nil)
+      else
 	{
-	  if (timerInvalidated(timer))
-	    {
-	      timer = [timerHeap next];
-	    }
-	  else
-	    {
-	      earliest = timerDate(timer);
-	      break;
-	    }
-	}
-    }
-  else if (TS_SHAREDA == timerStyle)
-    {
-      uint64_t		bit = (UINT64_C(1) << context->modeIndex);
-      unsigned		index;
-      GSIArrayItem	item;
-
-   
-      /* Find and remove blocks of invalidated timers
-       */ 
-      timers = myvars->timers;
-      GSIArrayTrim(timers, timerToTrim);
-
-      count = GSIArrayCount(timers);
-      for (index = 0; index < count; index++)
-	{
-	  item = GSIArrayItemAtIndex(timers, index);
-	  timer = (NSTimer*)item.obj;
-	  if (timer->_modeMask & bit)
-	    {
-	      break;	// First timer in current mode
-	    }
-	}
-      if (index < count)
-	{
-	  d = timerDate(timer);
-	  ti = [d timeIntervalSinceReferenceDate];
-	  if (ti < now)
-	    {
-	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
-	      [timer fire];
-	      GSPrivateNotifyASAP(_currentMode);
-	      IF_NO_ARC([arp emptyPool];)
-	      if (updateTimer(timer, d, now) == YES)
-		{
-		  /* Updated ... replace in array.
-		   */
-		  GSIArrayInsertSortedNoRetain(timers, item, sorter);
-		}
-	      else
-		{
-		  RELEASE(timer);
-		}
-	    }
-	}
-
-      /* Now, find the earliest remaining timer date in this mode
-       */
-      earliest = nil;
-      count = GSIArrayCount(timers);
-      for (index = 0; index < count; index++)
-	{
-	  timer = (NSTimer*)GSIArrayItemAtIndex(timers, index).obj;
-	  if (timer->_modeMask & bit)
-	    {
-	      earliest = timerDate(timer);
-	      break;	// First timer in current mode
-	    }
-	}
-    }
-  else
-    {
-      GSIArrayItem	item;
-
-      timers = context->timers;
-
-      GSIArrayTrim(timers, timerToTrim);
-      if (GSIArrayCount(timers) > 0)
-	{
-	  item = GSIArrayItemAtIndex(timers, 0);
-	  timer = item.obj;
 	  d = timerDate(timer);
 	  ti = [d timeIntervalSinceReferenceDate];
 	  if (ti < now)
 	    {
 	      int		modeIndex;
-	      uint64_t		mask;
-	      uint64_t		save;
+	      uint64_t	mask;
+	      uint64_t	save;
 	      GSRunLoopCtxt	*c;
 
-	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
+	      timer = [timerHeap popRetained];
 	      mask = timer->_modeMask;
 	      mask &= contextModeMask;
 	      save = mask;
-
-	      while (mask != 0)
+	      while (mask)
 		{
-		  unsigned	location;
-		  unsigned	length;
-
 		  modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 		  c = myvars->contexts[modeIndex];
-
-		  /* Find the timers matching our fire date.
-		   */
-		  GSIArrayTrim(c->timers, timerToTrim);
-		  location = GSIArraySearchCount(c->timers,
-		    item, sorter, &length);
-
-		  /* Find our exact timer, and remove it.
-		   */
-		  while (length-- > 0)
-		    {
-		      if (GSIArrayItemAtIndex(c->timers,
-			location + length).obj == timer)
-			{
-			  GSIArrayRemoveItemAtIndex(
-			    c->timers, location + length);
-			  break;
-			}
-		    }
+		  [c->timerHeap removeObjectIdenticalTo: timer];
 		}
 	      [timer fire];
 	      GSPrivateNotifyASAP(_currentMode);
 	      IF_NO_ARC([arp emptyPool];)
 	      if (updateTimer(timer, d, now) == YES)
 		{
-		  /* Updated ... replace in array(s).
+		  /* Updated ... replace in heap.
 		   */
-		  GSIArrayInsertSortedNoRetain(timers, item, sorter);
+		  [timerHeap push: timer];
 		  mask = save;
 		  while (mask)
 		    {
 		      modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
 		      c = myvars->contexts[modeIndex];
-		      GSIArrayInsertSorted(c->timers, item, sorter);
+		      [c->timerHeap push: timer];
 		    }
 		}
-	      else
-		{
-		  RELEASE(timer);
-		}
+	      RELEASE(timer);
 	    }
-	}
-      /* Now, find the earliest remaining timer date while removing
-       * any invalidated timers.
-       */
-      earliest = nil;
-      count = GSIArrayCount(timers);
-      if (count > 0)
-	{
-	  unsigned	i;
-
-	  for (i = 0; i < count; i++)
-	    {
-	      timer = (NSTimer*)GSIArrayItemAtIndex(timers, i).obj;
-	      if (!timerInvalidated(timer))
-		{
-		  earliest = timerDate(timer);
-		  break;
-		}
-	    }
-	  if (nil == earliest)
-	    {
-	      GSIArrayRemoveAllItems(timers);	// all invalidated
-	    }
-	  else if (i > 0)
-	    {
-	      GSIArrayRemoveItems(timers, 0, i);
-	    }
+	  break;
 	}
     }
+
+  /* Now, find the earliest remaining timer date while removing
+   * any invalidated timers.
+   */
+  earliest = nil;
+  timer = [timerHeap peek];
+  while (timer != nil)
+    {
+      if (timerInvalidated(timer))
+	{
+	  timer = [timerHeap next];
+	}
+      else
+	{
+	  earliest = timerDate(timer);
+	  break;
+	}
+    }
+
   [arp drain];
 
   /* The earliest date of a valid timeout is retained in 'when'

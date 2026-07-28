@@ -92,8 +92,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   RELEASE(timerHeap);
   GSIArrayEmpty(performers);
   NSZoneFree(performers->zone, (void*)performers);
-  GSIArrayEmpty(timers);
-  NSZoneFree(timers->zone, (void*)timers);
   GSIArrayEmpty(watchers);
   NSZoneFree(watchers->zone, (void*)watchers);
   GSIArrayEmpty(_trigger);
@@ -144,11 +142,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       z = [self zone];
       timerHeap = [[GSMinHeap alloc] initWithCapacity: 100 andComparator: NULL];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
       _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(performers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
       GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
