@@ -360,6 +360,11 @@ heap_remove(MinHeapInternal *h, size_t index)
   return AUTORELEASE(heap_pop(internal));
 }
 
+- (id) popRetained
+{
+  return heap_pop(internal);
+}
+
 - (BOOL) push: (id)obj
 {
   if (obj != nil)
