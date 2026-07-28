@@ -21,6 +21,7 @@ NAME (TYPE v) \
   return d; \
 }
 
+ARCHIVE_AS(archiveUChar, unsigned char)
 ARCHIVE_AS(archiveShort, short)
 ARCHIVE_AS(archiveInt, int)
 ARCHIVE_AS(archiveUInt, unsigned int)
@@ -68,6 +69,18 @@ main(void)
 
   PASS(decodeAs(archiveInt(1234), @encode(int), &i) && i == 1234,
     "an int still decodes into an int unchanged");
+
+  /* BOOL is a char in some builds and an int in others, so one of these two
+     is a decode across widths whichever build this is. */
+  {
+    BOOL	b = NO;
+
+    PASS(decodeAs(archiveInt(1), @encode(BOOL), &b) && b,
+      "a BOOL archived as an int decodes as YES");
+    b = NO;
+    PASS(decodeAs(archiveUChar(1), @encode(BOOL), &b) && b,
+      "a BOOL archived as an unsigned char decodes as YES");
+  }
 
   {
     NSMutableData	*d = [NSMutableData data];
