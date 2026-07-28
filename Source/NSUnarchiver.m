@@ -1213,14 +1213,48 @@ scalarSize(char type)
       case _GSC_CHR:
       case _GSC_UCHR:
 	/* Encoding of chars is not consistant across platforms, so we
-	   loosen the type checking a little */
-	if (*type != type_map[_GSC_CHR] && *type != type_map[_GSC_UCHR])
+	   loosen the type checking a little.  BOOL is a char on most
+	   platforms, but the libobjc2 runtime defines it as an int on
+	   Windows (unless built with STRICT_APPLE_COMPATIBILITY), so a char
+	   in the archive may have to widen into a larger integer
+	   destination for an archive (such as a gorm) to decode there. */
+	if (*type == type_map[_GSC_CHR] || *type == type_map[_GSC_UCHR])
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
+	else if (*type == _C_SHT || *type == _C_USHT
+	  || *type == _C_INT || *type == _C_UINT
+	  || *type == _C_LNG || *type == _C_ULNG
+	  || *type == _C_LNG_LNG || *type == _C_ULNG_LNG)
+	  {
+	    unsigned char	c;
+	    long long		v;
+
+	    (*desImp)(src, desSel, &c, @encode(unsigned char), &cursor, nil);
+	    if ((info & _GSC_MASK) == _GSC_UCHR)
+	      v = (long long)c;
+	    else
+	      v = (long long)(signed char)c;
+
+	    switch (*type)
+	      {
+		case _C_SHT:
+		case _C_USHT:	*(short*)address = (short)v; break;
+		case _C_INT:
+		case _C_UINT:	*(int*)address = (int)v; break;
+		case _C_LNG:
+		case _C_ULNG:	*(long*)address = (long)v; break;
+		default:	*(long long*)address = v; break;
+	      }
+	    return;
+	  }
+	else
 	  {
 	    [NSException raise: NSInternalInconsistencyException
 		        format: @"expected %s and got %s",
 		    typeToName1(*type), typeToName2(info)];
 	  }
-	(*desImp)(src, desSel, address, type, &cursor, nil);
 	return;
 
       case _GSC_SHT:
