@@ -29,14 +29,6 @@
 #ifndef __NSURLSession_h_GNUSTEP_BASE_INCLUDE
 #define __NSURLSession_h_GNUSTEP_BASE_INCLUDE
 
-#if defined(_WIN32)
-#include <windows.h>
-typedef SRWLOCK gs_mutex_t;
-#else
-#include <pthread.h>
-typedef pthread_mutex_t gs_mutex_t;
-#endif
-
 #import <Foundation/NSObject.h>
 #import <Foundation/NSURLRequest.h>
 #import <Foundation/NSHTTPCookieStorage.h>
@@ -45,14 +37,6 @@ typedef pthread_mutex_t gs_mutex_t;
 #import <Foundation/NSOperation.h>
 #import <Foundation/NSProgress.h>
 #import <Foundation/NSDate.h>
-#include <curl/curl.h>
-// TODO
-#define GS_HAVE_NSURLSESSION 1
-#if CURL_AT_LEAST_VERSION(8, 16, 0)
-#define GS_HAVE_NSURLSESSION_WEBSOCKETS 1
-#else
-#define GS_HAVE_NSURLSESSION_WEBSOCKETS 0
-#endif
 #if GS_HAVE_NSURLSESSION
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
@@ -443,36 +427,6 @@ typedef NS_ENUM(NSInteger, NSURLSessionWebSocketMessageType) {
   NSURLSessionWebSocketMessageTypeString = 1,
 };
 
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketSendQueueEntryKind) {
-  GSURLSessionWebSocketSendQueueEntryKindData = 0,
-  GSURLSessionWebSocketSendQueueEntryKindPing = 1,
-  GSURLSessionWebSocketSendQueueEntryKindClose = 2,
-};
-
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketLifecycleState) {
-  GSURLSessionWebSocketLifecycleStateOpen = 0,
-  GSURLSessionWebSocketLifecycleStateCloseRequested = 1,
-  GSURLSessionWebSocketLifecycleStateCloseSent = 2,
-  GSURLSessionWebSocketLifecycleStatePeerCloseReceived = 3,
-  GSURLSessionWebSocketLifecycleStateClosed = 4,
-  GSURLSessionWebSocketLifecycleStateFailed = 5,
-};
-
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketReceiveState) {
-  GSURLSessionWebSocketReceiveStateIdle = 0,
-  GSURLSessionWebSocketReceiveStateText = 1,
-  GSURLSessionWebSocketReceiveStateBinary = 2,
-};
-
-typedef struct
-{
-  void *entry;
-  GSURLSessionWebSocketSendQueueEntryKind kind;
-  NSURLSessionWebSocketMessageType dataType;
-  size_t payloadOffset;
-  BOOL frameStarted;
-} GSURLSessionWebSocketMessageSendState;
-
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketMessage : NSObject
 {
@@ -492,24 +446,13 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketTask : NSURLSessionTask
 {
-@public
-  void   *_completionHandler;
-  NSInteger _maximumMessageSize;
-  NSURLSessionWebSocketCloseCode _closeCode;
-  NSData *_closeReason;
-  NSMutableArray *_sendQueue;
-  NSMutableArray *_recvQueue;
-  NSMutableArray *_pendingPingHandlers;
-  NSMutableArray *_pendingReceivedMessages;
-  NSData *_currentPingPayload;
-  GSURLSessionWebSocketMessageSendState _messageSendState;
-  NSMutableData *_receiveBuffer;
-  GSURLSessionWebSocketLifecycleState _lifecycleState;
-  GSURLSessionWebSocketReceiveState _receiveState;
-  unsigned long long _nextPingIdentifier;
-  size_t _receiveFrameOffset;
-  BOOL _sendFrameStartRetryPending;
-  gs_mutex_t _mutex;
+#if GS_NONFRAGILE
+# if defined(GS_NSURLSessionWebSocketTask_IVARS)
+@public GS_NSURLSessionWebSocketTask_IVARS
+# endif
+#else
+@private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode

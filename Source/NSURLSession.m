@@ -35,6 +35,8 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSURL.h"
 
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -notImplemented */
@@ -916,19 +918,30 @@ socket_callback(CURL * easy,           /* easy handle */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
                                           protocols: (NSArray<NSString *> *)protocols
 {
-  NSURLRequest * request;
+  NSMutableURLRequest *request;
 
-  // TODO(WS): Advertise the requested websocket subprotocols in the handshake.
-  (void)protocols;
-
-  request = [NSURLRequest requestWithURL: url];
+  request = [NSMutableURLRequest requestWithURL: url];
+  if ([protocols count] > 0)
+    {
+      [request setValue: [protocols componentsJoinedByString: @", "]
+     forHTTPHeaderField: @"Sec-WebSocket-Protocol"];
+    }
   return [self webSocketTaskWithRequest: request];
 }
 
 - (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request
 {
   NSURLSessionWebSocketTask * task;
+  NSString * scheme;
   NSInteger identifier;
+
+  scheme = [[[request URL] scheme] lowercaseString];
+  if (![scheme isEqualToString: @"ws"] && ![scheme isEqualToString: @"wss"])
+    {
+      [NSException raise: NSGenericException
+                  format: @"WebSocket tasks can only be created with ws or "
+                          @"wss schemes"];
+    }
 
   identifier = [self _nextTaskIdentifier];
   task = [[NSURLSessionWebSocketTask alloc] initWebSocketTask: self
@@ -936,8 +949,6 @@ socket_callback(CURL * easy,           /* easy handle */
                                                taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task _setProperties: GSURLSessionUpdatesDelegate];
-
-  // TODO(WS): Configure websocket-specific handshake and framing state.
 
   [self _didCreateTask: task];
 

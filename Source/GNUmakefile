@@ -392,6 +392,7 @@ ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
   BASE_MFILES += \
 	NSURLSession.m \
 	NSURLSessionTask.m \
+	NSURLSessionWebSocketTask.m \
 	NSURLSessionConfiguration.m
 endif
 endif
