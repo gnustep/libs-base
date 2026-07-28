@@ -1,5 +1,31 @@
 2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/GNUstepBase/GSIArray.h:
+	* Headers/GNUstepBase/GSMinHeap.h:
+	* Source/Additions/GSMinHeap.m:
+	* Source/GNUmakefile:
+	* Source/GSRunLoopCtxt.h:
+	* Source/GSRunLoopCtxt.m:
+	* Source/NSRunLoop.m:
+	* Source/NSTimer.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Change to use a min heap rather than an array of timers in each runloop
+	context.  This was done after testing three different timer
+	implementations to confirm that the theoretical benefits were seen in
+	practice (and that any slight overhead in the common case of a very
+	lightly loaded loop was negligible).  This also contains a change to
+	the way that timers are recorded in different run loop modes to improve
+	performance when firing and to iomprove lookup on every iteration.
+	The limitation of the new impelementation is that a run loop is limited
+	to having no more than 64 modes (adding to a 65th mode will raise an
+	exception), but this seems academic since programs typically operate
+	using only one to four modes anyway.
+
+2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPathUtilities.m: Add support for XDG user directories.
 	* Tests/base/NSPathUtilities/userDomain.m: Add some user domain tests.
 	Adds support for XDG well known user directory definitions configured
