@@ -1,3 +1,21 @@
+2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add support for XDG user directories.
+	* Tests/base/NSPathUtilities/userDomain.m: Add some user domain tests.
+	Adds support for XDG well known user directory definitions configured
+	in the .config/user-dirs.dirs file.  If present, these are used
+	unless overridden by similar configuration in the GNUstep config file.
+	Default values are still hard coded, so we operate normally if neither
+	config file lists a value.
+	The XDG configurations are XDG_DESKTOP_DIR XDG_DOCUMENTS_DIR
+	XDG_DOWNLOAD_DIR XDG_MUSIC_DIR XDG_PICTURES_DIR XDG_PROJECTS_DIR
+	XDG_PUBLICSHARE_DIR XDG_TEMPLATES_DIR XDG_VIDEOS_DIR
+	and the corresponding keys in the GNUstep config are
+	GNUSTEP_DESKTOP_DIR GNUSTEP_DOCUMENTS_DIR GNUSTEP_DOWNLOAD_DIR
+	GNUSTEP_MUSIC_DIR GNUSTEP_PICTURES_DIR GNUSTEP_PROJECTS_DIR
+	GNUSTEP_PUBLICSHARE_DIR GNUSTEP_TEMPLATES_DIR GNUSTEP_VIDEOS_DIR
+	The TEMPLATES and PROJECTS settings are currently unused.
+
 2026-07-27 Todd White <todd.white@thalion.global>
 
 	* Source/NSUnarchiver.m: Decode a char archived value into a wider
