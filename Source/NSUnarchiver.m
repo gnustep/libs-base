@@ -250,6 +250,18 @@ typeCheck(char t1, char t2)
       if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
 	return NO;
 
+/* Also allow an integer in the archive to be decoded into a char, as BOOL is
+ * a char on most platforms but an int with the libobjc2 runtime on Windows
+ * (unless that is built with STRICT_APPLE_COMPATIBILITY), so an archive (such
+ * as a gorm) written there has to decode its BOOL values into char
+ * destinations elsewhere.
+ */
+      if ((t1 == _C_CHR || t1 == _C_UCHR)
+	&& (c == _C_SHT || c == _C_USHT || c == _C_INT || c == _C_UINT
+	  || c == _C_LNG || c == _C_ULNG
+	  || c == _C_LNG_LNG || c == _C_ULNG_LNG))
+	return NO;
+
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
@@ -679,7 +691,8 @@ static unsigned	encodingVersion;
 	  offset += size;
 	}
     }
-  else if (*type == _C_SHT
+  else if (*type == _C_CHR
+    || *type == _C_SHT
     || *type == _C_INT
     || *type == _C_LNG
     || *type == _C_LNG_LNG)
@@ -789,7 +802,7 @@ static unsigned	encodingVersion;
 	{
 	  void	*address = (void*)buf + offset;
 
-	  switch (info & _GSC_SIZE)
+	  switch (ainfo & _GSC_SIZE)
 	    {
 	      case _GSC_I16:	/* Encoded as 16-bit	*/
 		{
@@ -1372,7 +1385,8 @@ scalarSize(char type)
    *	First, we read the data and convert it to the largest size
    *	this system can support.
    */
-  if (*type == _C_SHT
+  if (*type == _C_CHR
+    || *type == _C_SHT
     || *type == _C_INT
     || *type == _C_LNG
     || *type == _C_LNG_LNG)
