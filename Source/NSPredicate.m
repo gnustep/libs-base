@@ -38,6 +38,7 @@
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDate.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -111,7 +112,11 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @interface GSConstantValueExpression : NSExpression
 {
   @public
-  id	_obj;
+  id		_obj;
+  /* A constant may stand for a class rather than for a value, and the class
+   * it stands for need not be one there is here, so it is kept by name.
+   */
+  NSString	*_className;
 }
 @end
 
@@ -126,6 +131,16 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface GSKeyPathExpression : NSExpression
+{
+  @public
+  NSString	*_keyPath;
+}
+@end
+
+/* Written inside the arguments of a key path expression, which is how OS X
+ * stores the key path itself.  It carries nothing else.
+ */
+@interface GSKeyPathSpecifierExpression : NSExpression
 {
   @public
   NSString	*_keyPath;
@@ -1364,6 +1379,39 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   if (self == [NSExpression class] && nil == evaluatedObjectExpression)
     {
       evaluatedObjectExpression = [GSEvaluatedObjectExpression new];
+
+      /* An archive names the kinds of expression the way OS X does, so that
+       * one written here can be read there and the other way about.
+       */
+      [NSKeyedArchiver setClassName: @"NSConstantValueExpression"
+			   forClass: [GSConstantValueExpression class]];
+      [NSKeyedArchiver setClassName: @"NSSelfExpression"
+			   forClass: [GSEvaluatedObjectExpression class]];
+      [NSKeyedArchiver setClassName: @"NSVariableExpression"
+			   forClass: [GSVariableExpression class]];
+      [NSKeyedArchiver setClassName: @"NSKeyPathExpression"
+			   forClass: [GSKeyPathExpression class]];
+      [NSKeyedArchiver setClassName: @"NSKeyPathSpecifierExpression"
+			   forClass: [GSKeyPathSpecifierExpression class]];
+      [NSKeyedArchiver setClassName: @"NSFunctionExpression"
+			   forClass: [GSFunctionExpression class]];
+      [NSKeyedArchiver setClassName: @"NSAggregateExpression"
+			   forClass: [GSAggregateExpression class]];
+
+      [NSKeyedUnarchiver setClass: [GSConstantValueExpression class]
+		     forClassName: @"NSConstantValueExpression"];
+      [NSKeyedUnarchiver setClass: [GSEvaluatedObjectExpression class]
+		     forClassName: @"NSSelfExpression"];
+      [NSKeyedUnarchiver setClass: [GSVariableExpression class]
+		     forClassName: @"NSVariableExpression"];
+      [NSKeyedUnarchiver setClass: [GSKeyPathExpression class]
+		     forClassName: @"NSKeyPathExpression"];
+      [NSKeyedUnarchiver setClass: [GSKeyPathSpecifierExpression class]
+		     forClassName: @"NSKeyPathSpecifierExpression"];
+      [NSKeyedUnarchiver setClass: [GSFunctionExpression class]
+		     forClassName: @"NSFunctionExpression"];
+      [NSKeyedUnarchiver setClass: [GSAggregateExpression class]
+		     forClassName: @"NSAggregateExpression"];
     }
 }
 
@@ -1671,11 +1719,9 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return nil;
 }
 
-- (Class) classForCoder
-{
-  return [NSExpression class];
-}
-
+/* Each kind of expression is archived as itself, under the name OS X gives
+ * that kind, so the class is not collapsed to NSExpression here.
+ */
 - (void) encodeWithCoder: (NSCoder *)coder
 {
   // FIXME
@@ -1702,6 +1748,68 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (id) constantValue
 {
   return _obj;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      Class	c = object_getClass(_obj);
+
+      [coder encodeInt: NSConstantValueExpressionType
+		forKey: @"NSExpressionType"];
+      /* The operand of a function expression is a constant standing for the
+       * class the function belongs to, which is written by name.
+       */
+      if (_className != nil)
+	{
+	  [coder encodeObject: _className forKey: @"NSConstantValueClassName"];
+	}
+      else if (Nil != c && YES == class_isMetaClass(c))
+	{
+	  [coder encodeObject: NSStringFromClass((Class)_obj)
+		       forKey: @"NSConstantValueClassName"];
+	}
+      else
+	{
+	  [coder encodeObject: _obj forKey: @"NSConstantValue"];
+	}
+    }
+  else
+    {
+      [coder encodeObject: _obj];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSConstantValueExpressionType];
+  if (self == nil)
+    {
+      return nil;
+    }
+
+  if ([coder allowsKeyedCoding])
+    {
+      if ([coder containsValueForKey: @"NSConstantValueClassName"])
+	{
+	  NSString	*name;
+
+	  name = [coder decodeObjectForKey: @"NSConstantValueClassName"];
+	  ASSIGN(_className, name);
+	  ASSIGN(_obj, (id)NSClassFromString(name));
+	}
+      else
+	{
+	  ASSIGN(_obj, [coder decodeObjectForKey: @"NSConstantValue"]);
+	}
+    }
+  else
+    {
+      ASSIGN(_obj, [coder decodeObject]);
+    }
+
+  return self;
 }
 
 - (BOOL) isEqual: (id)other
@@ -1784,6 +1892,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (void) dealloc
 {
   RELEASE(_obj);
+  RELEASE(_className);
   DEALLOC
 }
 
@@ -1793,6 +1902,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   copy = (GSConstantValueExpression *)[super copyWithZone: zone];
   copy->_obj = [_obj copyWithZone: zone];
+  copy->_className = [_className copyWithZone: zone];
   return copy;
 }
 
@@ -1808,6 +1918,22 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSString *) description
 {
   return @"SELF";
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: NSEvaluatedObjectExpressionType
+		forKey: @"NSExpressionType"];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  DESTROY(self);
+
+  return RETAIN([NSExpression expressionForEvaluatedObject]);
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -1832,6 +1958,37 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"$%@", _variable];
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: NSVariableExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: _variable forKey: @"NSVariable"];
+    }
+  else
+    {
+      [coder encodeObject: _variable];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSVariableExpressionType];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+	{
+	  ASSIGN(_variable, [coder decodeObjectForKey: @"NSVariable"]);
+	}
+      else
+	{
+	  ASSIGN(_variable, [coder decodeObject]);
+	}
+    }
+
+  return self;
 }
 
 - (BOOL) isEqual: (id)other
@@ -1901,6 +2058,69 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return _keyPath;
 }
 
+/* OS X writes a key path as a function expression asking the object being
+ * evaluated for the key, with the key path itself held by a specifier in the
+ * arguments.
+ */
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      GSKeyPathSpecifierExpression	*specifier;
+      NSString				*selector;
+
+      selector = ([_keyPath rangeOfString: @"."].location == NSNotFound
+	? @"valueForKey:" : @"valueForKeyPath:");
+
+      specifier = [[GSKeyPathSpecifierExpression alloc]
+	initWithExpressionType: NSKeyPathExpressionType];
+      ASSIGN(specifier->_keyPath, _keyPath);
+
+      [coder encodeInt: NSKeyPathExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: selector forKey: @"NSSelectorName"];
+      [coder encodeObject: [NSExpression expressionForEvaluatedObject]
+		   forKey: @"NSOperand"];
+      [coder encodeObject: [NSArray arrayWithObject: specifier]
+		   forKey: @"NSArguments"];
+      RELEASE(specifier);
+    }
+  else
+    {
+      [coder encodeObject: _keyPath];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSKeyPathExpressionType];
+  if (self == nil)
+    {
+      return nil;
+    }
+
+  if ([coder allowsKeyedCoding])
+    {
+      NSArray	*arguments = [coder decodeObjectForKey: @"NSArguments"];
+      id	first = ([arguments count] > 0
+	? [arguments objectAtIndex: 0] : nil);
+
+      if ([first isKindOfClass: [GSKeyPathSpecifierExpression class]])
+	{
+	  ASSIGN(_keyPath, ((GSKeyPathSpecifierExpression *)first)->_keyPath);
+	}
+      else if ([coder containsValueForKey: @"NSKeyPath"])
+	{
+	  ASSIGN(_keyPath, [coder decodeObjectForKey: @"NSKeyPath"]);
+	}
+    }
+  else
+    {
+      ASSIGN(_keyPath, [coder decodeObject]);
+    }
+
+  return self;
+}
+
 - (BOOL) isEqual: (id)other
 {
   if (self == other)
@@ -1947,6 +2167,60 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
 {
+  return self;
+}
+
+@end
+
+@implementation GSKeyPathSpecifierExpression
+
+- (void) dealloc
+{
+  RELEASE(_keyPath);
+  DEALLOC
+}
+
+- (NSString *) description
+{
+  return _keyPath;
+}
+
+- (NSString *) keyPath
+{
+  return _keyPath;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      /* The kind OS X gives a specifier, which is not one of the kinds an
+       * expression can be asked for.
+       */
+      [coder encodeInt: 10 forKey: @"NSExpressionType"];
+      [coder encodeObject: _keyPath forKey: @"NSKeyPath"];
+    }
+  else
+    {
+      [coder encodeObject: _keyPath];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSKeyPathExpressionType];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+	{
+	  ASSIGN(_keyPath, [coder decodeObjectForKey: @"NSKeyPath"]);
+	}
+      else
+	{
+	  ASSIGN(_keyPath, [coder decodeObject]);
+	}
+    }
+
   return self;
 }
 
@@ -2141,6 +2415,37 @@ do { \
 
 @implementation GSAggregateExpression
 
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: NSAggregateExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: _collection forKey: @"NSCollection"];
+    }
+  else
+    {
+      [coder encodeObject: _collection];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSAggregateExpressionType];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+	{
+	  ASSIGN(_collection, [coder decodeObjectForKey: @"NSCollection"]);
+	}
+      else
+	{
+	  ASSIGN(_collection, [coder decodeObject]);
+	}
+    }
+
+  return self;
+}
+
 - (BOOL) isEqual: (id)other
 {
   if (self == other)
@@ -2208,6 +2513,61 @@ do { \
 - (NSArray *) arguments
 {
   return _args;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      GSConstantValueExpression	*operand;
+      NSString			*selector = _function;
+
+      /* A function is named with its trailing colon in an archive. */
+      if (NO == [selector hasSuffix: @":"])
+	{
+	  selector = [selector stringByAppendingString: @":"];
+	}
+
+      /* The operand stands for the class the function belongs to, which OS X
+       * names _NSPredicateUtilities.  There is no such class here, so the
+       * constant carries the name alone.
+       */
+      operand = [[GSConstantValueExpression alloc]
+	initWithExpressionType: NSConstantValueExpressionType];
+      ASSIGN(operand->_className, @"_NSPredicateUtilities");
+
+      [coder encodeInt: NSFunctionExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: selector forKey: @"NSSelectorName"];
+      [coder encodeObject: operand forKey: @"NSOperand"];
+      [coder encodeObject: _args forKey: @"NSArguments"];
+      RELEASE(operand);
+    }
+  else
+    {
+      [coder encodeObject: _function];
+      [coder encodeObject: _args];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  NSString	*name;
+  NSArray	*args;
+
+  if ([coder allowsKeyedCoding])
+    {
+      name = [coder decodeObjectForKey: @"NSSelectorName"];
+      args = [coder decodeObjectForKey: @"NSArguments"];
+    }
+  else
+    {
+      name = [coder decodeObject];
+      args = [coder decodeObject];
+    }
+
+  DESTROY(self);
+
+  return RETAIN([NSExpression expressionForFunction: name arguments: args]);
 }
 
 - (BOOL) isEqual: (id)other
