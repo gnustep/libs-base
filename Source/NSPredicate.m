@@ -544,6 +544,35 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 - (id) initWithType: (NSCompoundPredicateType)type
       subpredicates: (NSArray *)list
 {
+  /* The work is done by a subclass for each type, so hand back one of those
+   * rather than an instance of this class, which implements nothing.
+   */
+  if ([self class] == [NSCompoundPredicate class])
+    {
+      Class	c;
+
+      switch (type)
+	{
+	  case NSNotPredicateType:
+	    c = [GSNotCompoundPredicate class];
+	    break;
+	  case NSOrPredicateType:
+	    c = [GSOrCompoundPredicate class];
+	    break;
+	  case NSAndPredicateType:
+	    c = [GSAndCompoundPredicate class];
+	    break;
+	  default:
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Unknown compound predicate type %lu",
+	      (unsigned long)type];
+	    c = Nil;
+	}
+
+      DESTROY(self);
+      self = [c alloc];
+    }
+
   if ((self = [super init]) != nil)
     {
       _type = type;
