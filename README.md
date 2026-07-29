@@ -2,6 +2,7 @@ GNUstep Base Library
 ====================
 
 [![CI](https://github.com/gnustep/libs-base/actions/workflows/main.yml/badge.svg)](https://github.com/gnustep/libs-base/actions/workflows/main.yml?query=branch%3Amaster)
+[![NetBSD](https://github.com/gnustep/libs-base/actions/workflows/netbsd.yml/badge.svg)](https://github.com/gnustep/libs-base/actions/workflows/netbsd.yml?query=branch%3Amaster)
 
 The GNUstep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
