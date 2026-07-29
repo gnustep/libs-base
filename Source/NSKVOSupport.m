@@ -70,6 +70,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
  * accessors are synthesized explicitly. */
 @synthesize keypathObserver = _keypathObserver;
 @synthesize restOfKeypathObserver = _restOfKeypathObserver;
+@synthesize restOfKeypathRelay = _restOfKeypathRelay;
 @synthesize dependentObservers = _dependentObservers;
 @synthesize object = _object;
 @synthesize key = _key;
@@ -101,6 +102,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   [_restOfKeypath release];
   [_dependentObservers release];
   [_restOfKeypathObserver release];
+  [_restOfKeypathRelay release];
   [_affectedObservers release];
   [super dealloc];
 }
@@ -159,6 +161,81 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 {
   return __atomic_fetch_sub(&_changeDepth, 1, __ATOMIC_SEQ_CST) == 1;
 }
+@end
+#pragma endregion
+
+#pragma region Forwarding Relay
+/* Stands between an object that registers observations on the objects it
+ * holds and the observer of the whole key path.  The change is reported for
+ * the key path being observed, on the object being observed, whichever of the
+ * held objects it came from.
+ */
+@implementation _NSKVOForwardingRelay
+
+- (instancetype) initWithObject: (id)object
+                        keypath: (NSString *)keypath
+                keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
+{
+  if (nil != (self = [super init]))
+    {
+      _object = object;
+      _keypath = [keypath copy];
+      _keypathObserver = RETAIN(keypathObserver);
+
+      [object addObserver: self
+               forKeyPath: keypath
+                  options: 0
+                  context: NULL];
+    }
+  return self;
+}
+
+- (void) stop
+{
+  [_object removeObserver: self forKeyPath: _keypath];
+  _object = nil;
+}
+
+- (void) dealloc
+{
+  [_keypath release];
+  [_keypathObserver release];
+  [super dealloc];
+}
+
+- (void) observeValueForKeyPath: (NSString *)keyPath
+                       ofObject: (id)object
+                         change: (NSDictionary *)change
+                        context: (void *)context
+{
+  id                   observer = [_keypathObserver observer];
+  NSString            *keypath = [_keypathObserver keypath];
+  id                   rootObject = [_keypathObserver object];
+  NSMutableDictionary *relayed;
+
+  if (nil == observer)
+    {
+      return;
+    }
+
+  relayed = [NSMutableDictionary
+    dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:
+                                   NSKeyValueChangeSetting],
+                                 NSKeyValueChangeKindKey, nil];
+
+  if (([_keypathObserver options] & NSKeyValueObservingOptionNew))
+    {
+      id newValue = [rootObject valueForKeyPath: keypath] ?: [NSNull null];
+
+      [relayed setObject: newValue forKey: NSKeyValueChangeNewKey];
+    }
+
+  [observer observeValueForKeyPath: keypath
+                          ofObject: rootObject
+                            change: relayed
+                           context: [_keypathObserver context]];
+}
+
 @end
 #pragma endregion
 
@@ -373,6 +450,86 @@ _addKeypathObserver(id object, NSString *keypath,
 static void
 _removeKeyObserver(_NSKVOKeyObserver *keyObserver);
 
+/* An object may register observations on the objects it holds, by way of its
+ * own -addObserver:forKeyPath:options:context:.  That implementation has to be
+ * used or nothing it holds is ever observed.  A plain collection, which
+ * refuses the registration, and a proxy, which forwards the method and so
+ * would look like such an object, are both left to the ordinary path.
+ */
+static BOOL
+_registersObservationsItself(id object)
+{
+  SEL   selector = @selector(addObserver:forKeyPath:options:context:);
+  Class class;
+  Class root;
+  IMP   implementation;
+
+  if (nil == object)
+    {
+      return NO;
+    }
+
+  root = class = object_getClass(object);
+  while (class_getSuperclass(root) != Nil)
+    {
+      root = class_getSuperclass(root);
+    }
+  if (root != [NSObject class])
+    {
+      return NO;
+    }
+
+  implementation = class_getMethodImplementation(class, selector);
+
+  return implementation
+      != class_getMethodImplementation([NSObject class], selector)
+    && implementation
+      != class_getMethodImplementation([NSArray class], selector)
+    && implementation
+      != class_getMethodImplementation([NSSet class], selector);
+}
+
+/* Observe the rest of a key path on the value of its first key. */
+static void
+_attachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
+{
+  id value = [keyObserver.object valueForKey: keyObserver.key];
+
+  if (_registersObservationsItself(value))
+    {
+      _NSKVOForwardingRelay *relay;
+
+      relay = [[_NSKVOForwardingRelay alloc]
+                initWithObject: value
+                       keypath: keyObserver.restOfKeypath
+               keypathObserver: keyObserver.keypathObserver];
+      keyObserver.restOfKeypathRelay = relay;
+      [relay release];
+    }
+  else
+    {
+      keyObserver.restOfKeypathObserver
+        = _addKeypathObserver(value, keyObserver.restOfKeypath,
+                              keyObserver.keypathObserver,
+                              keyObserver.affectedObservers);
+    }
+}
+
+static void
+_detachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
+{
+  if (keyObserver.restOfKeypathRelay)
+    {
+      [keyObserver.restOfKeypathRelay stop];
+      keyObserver.restOfKeypathRelay = nil;
+    }
+  if (keyObserver.restOfKeypathObserver)
+    {
+      _removeKeyObserver(keyObserver.restOfKeypathObserver);
+      keyObserver.restOfKeypathObserver = nil;
+    }
+}
+
 // Add all observers with declared dependencies on this one:
 // * All keypaths that could trigger a change (keypaths for values affecting
 // us).
@@ -478,12 +635,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
     }
 
   // If restOfKeypath is non-nil, we have to chain on further observers.
-  if (keyObserver.restOfKeypath && !keyObserver.restOfKeypathObserver)
+  if (keyObserver.restOfKeypath && !keyObserver.restOfKeypathObserver
+      && !keyObserver.restOfKeypathRelay)
     {
-      keyObserver.restOfKeypathObserver
-        = _addKeypathObserver([object valueForKey:key],
-                              keyObserver.restOfKeypath, keypathObserver,
-                              keyObserver.affectedObservers);
+      _attachRestOfKeypath(keyObserver);
     }
 
   // Back-propagation of changes.
@@ -491,14 +646,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   // be reconstructed.
   for (_NSKVOKeyObserver *affectedObserver in keyObserver.affectedObservers)
     {
-      if (!affectedObserver.restOfKeypathObserver)
+      if (!affectedObserver.restOfKeypathObserver
+          && !affectedObserver.restOfKeypathRelay)
         {
-          affectedObserver.restOfKeypathObserver
-            = _addKeypathObserver([affectedObserver.object
-                                    valueForKey:affectedObserver.key],
-                                  affectedObserver.restOfKeypath,
-                                  affectedObserver.keypathObserver,
-                                  affectedObserver.affectedObservers);
+          _attachRestOfKeypath(affectedObserver);
         }
     }
 }
@@ -556,18 +707,15 @@ _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   /* Fast path: a simple (non-keypath) observer with no dependents and no
    * affected observers has no nested work here. */
   if (!dependents && keyObserver.restOfKeypathObserver == nil
+      && keyObserver.restOfKeypathRelay == nil
       && keyObserver.dependentObservers == nil
       && keyObserver.affectedObservers == nil)
     {
       return;
     }
 
-  if (keyObserver.restOfKeypathObserver)
-    {
-      // Destroy the subpath observer recursively.
-      _removeKeyObserver(keyObserver.restOfKeypathObserver);
-      keyObserver.restOfKeypathObserver = nil;
-    }
+  // Destroy the subpath observer recursively.
+  _detachRestOfKeypath(keyObserver);
 
   if (dependents)
     {
@@ -597,8 +745,7 @@ _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
       // (triggers in _addDependentAndNestedObservers).
       for (_NSKVOKeyObserver *affectedObserver in keyObserver.affectedObservers)
         {
-          _removeKeyObserver(affectedObserver.restOfKeypathObserver);
-          affectedObserver.restOfKeypathObserver = nil;
+          _detachRestOfKeypath(affectedObserver);
         }
     }
 }
