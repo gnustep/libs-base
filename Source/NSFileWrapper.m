@@ -151,11 +151,20 @@
       self = [self initSymbolicLinkWithDestination: 
                  [fm pathContentOfSymbolicLinkAtPath: path]];
     }
+  else
+    {
+      self = [super init];
+    }
 
-  // Store the full path in filename, the specification is unclear in this point
-  [self setFilename: path];
-  [self setPreferredFilename: [path lastPathComponent]];
-  [self setFileAttributes: fileAttributes];
+  if (self)
+    {
+      /* Store the full path in filename,
+       * the specification is unclear in this point
+       */
+      [self setFilename: path];
+      [self setPreferredFilename: [path lastPathComponent]];
+      [self setFileAttributes: fileAttributes];
+    }
 
   LEAVE_POOL
   return self;

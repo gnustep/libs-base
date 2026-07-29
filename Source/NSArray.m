@@ -166,6 +166,11 @@ static SEL	rlSel;
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSArrayClass)

@@ -470,11 +470,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   resultDoc = xsltApplyStylesheet(stylesheet, internal->node.doc,
                                   (const char **)params);
   
-  // Cleanup...
+  // Cleanup...  xsltParseStylesheetDoc() took ownership of stylesheetDoc, so
+  // xsltFreeStylesheet() frees it too; freeing it again here was a double free.
+  // xsltCleanupGlobals()/xmlCleanupParser() tear down process-global library
+  // state and must not be called from a library while documents are still live.
   xsltFreeStylesheet(stylesheet);
-  xmlFreeDoc(stylesheetDoc);
-  xsltCleanupGlobals();
-  xmlCleanupParser();
   NSZoneFree([self zone], params);
 
   return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];

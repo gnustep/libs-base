@@ -190,7 +190,7 @@ GS_EXPORT_CLASS
  * be type-converted if necessary, using standard C conversion rules.
  */
 GS_EXPORT_CLASS
-@interface NSNumber : NSValue <NSCopying,NSCoding>
+@interface NSNumber : NSValue <NSCopying, NSCoding, NSSecureCoding>
 
 // Allocating and Initializing
 

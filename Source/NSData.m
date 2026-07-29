@@ -452,6 +452,10 @@ getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
 		}
 	      memcpy(tmp + fileLength, buf, c);
 	      fileLength += c;
+	      if (c < BUFSIZ)
+		{
+		  break;	// End of file or error
+		}
 	    }
 	}
       else
@@ -472,10 +476,16 @@ getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
 	      goto failure;
 	    }
 
-	  while (offset < fileLength
-	    && (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
+	  while (offset < fileLength)
 	    {
+	      size_t	want = fileLength - offset;	
+
+	      c = fread(tmp + offset, 1, want, theFile);
 	      offset += c;
+	      if (c < want)
+		{
+		  break;	// short file for some reason
+		}
 	    }
 	  if (offset < fileLength)
 	    {
@@ -623,6 +633,11 @@ failure:
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
+}
+
++ (BOOL) supportsSecureCoding
+{
+  return YES;
 }
 
 + (id) allocWithZone: (NSZone*)z
@@ -1855,7 +1870,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(unsigned)
 		atCursor: cursor];
   for (i = 0; i < numInts; i++)
@@ -1873,7 +1888,7 @@ failure:
 {
   unsigned i;
 
-  [self deserializeBytes: &intBuffer
+  [self deserializeBytes: intBuffer
 		  length: numInts * sizeof(int)
 		atCursor: &index];
   for (i = 0; i < numInts; i++)
@@ -2274,7 +2289,7 @@ failure:
     {
       int	desc;
       int	mask;
-      int	length;
+      size_t	length;
 
       length = strlen(theRealPath);
       if (length > sizeof(thePath) - 7)
@@ -2954,10 +2969,15 @@ failure:
   NSUInteger	need = size + shift;
   void		*buf;
 
-  if (aRange.location > size)
+  if (end > size)
     {
       [NSException raise: NSRangeException
-                  format: @"location bad in %@", NSStringFromSelector(_cmd)];
+        format: @"range beyond data in %@", NSStringFromSelector(_cmd)];
+    }
+  if (0 == bytes && length > 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
     }
   if (0 == length && 0 == shift)
     {
@@ -2968,7 +2988,7 @@ failure:
       [self setLength: need];
     }
   buf = [self mutableBytes];
-  if (0 == buf && length > 0)
+  if (0 == buf)
     {
       [NSException raise: NSInternalInconsistencyException
                   format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
@@ -3784,7 +3804,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    {
 	      uint32_t	x;
 
-	      if (*cursor >= length-3)
+	      /* length is unsigned, so guard the length-3 subtraction against
+	       * underflow for a short buffer before using it as a bound. */
+	      if (length < 4 || *cursor >= length-3)
 		{
 		  [NSException raise: NSRangeException
 			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
@@ -3995,8 +4017,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (nil == self)
     {
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-      readOptionsMask &= ~NSDataReadingMappedIfSafe;
-      readOptionsMask &= ~NSDataReadingMappedAlways;
+      readOptionsMask &= (NSDataReadingOptions)
+	~(NSDataReadingMappedIfSafe | NSDataReadingMappedAlways);
       self = [self initWithContentsOfFile: path 
 				  options: readOptionsMask 
 				    error: errorPtr];
@@ -4405,8 +4427,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	  if (!*(void**)data)
 	    {
-	      ni = -1;
-	      ni = GSSwapHostI32ToBig(ni);
+	      ni = -1;	// all bits set ... no byte swapping needed.
 	      [self appendBytes: (void*)&len length: sizeof(len)];
 	      return;
 	    }

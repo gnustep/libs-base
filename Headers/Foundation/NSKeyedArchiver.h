@@ -273,6 +273,7 @@ GS_EXPORT_CLASS
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
   BOOL          _requiresSecureCoding;
+  NSSet		*_allowedClasses; /* Current secure-coding allowed set (not retained; owned by the caller for the duration of a decode). */
 #endif
 #if     GS_NONFRAGILE
 #else

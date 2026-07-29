@@ -60,8 +60,8 @@ int main()
   [node release];
 
   // Equality tests.
-  node = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
-  other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  node = (NSXMLElement*)[[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  other = (NSXMLElement*)[[NSXMLNode alloc] initWithKind: NSXMLElementKind];
   [other setName: @"test"];
   [node setName: @"test"];
   PASS([node isEqual: other], 

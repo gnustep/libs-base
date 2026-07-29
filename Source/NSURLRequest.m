@@ -146,8 +146,12 @@ typedef struct {
 
 - (NSString*) description
 {
+  /* NB. We use NSURL's -description method because we knok that hides
+   * any password in the URL (and passwords are sensitive information
+   * which shoudl not appear in debug logs).
+   */
   return [NSString stringWithFormat: @"<%@ %@>",
-    NSStringFromClass([self class]), [[self URL] absoluteString]];
+    NSStringFromClass([self class]), [[self URL] description]];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

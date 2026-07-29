@@ -266,20 +266,26 @@ appendUIntData(NSMutableData *d, NSUInteger i)
               NSRange r;
 
 	      len = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  len += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      len += *p++ << shift;
+	      if (p < end)
+		{
+		  len += *p++ << shift;
+		}
 
 	      idx = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  idx += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      idx += *p++ << shift;
+	      if (p < end)
+		{
+		  idx += *p++ << shift;
+		}
 
               r = NSMakeRange(pos, len);
 	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
@@ -776,20 +782,26 @@ appendUIntData(NSMutableData *d, NSUInteger i)
               NSRange r;
 
 	      len = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  len += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      len += *p++ << shift;
+	      if (p < end)
+		{
+		  len += *p++ << shift;
+		}
 
 	      idx = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  idx += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      idx += *p++ << shift;
+	      if (p < end)
+		{
+		  idx += *p++ << shift;
+		}
 
               r = NSMakeRange(pos, len);
 	      [self setAttributes: [attributes objectAtIndex: idx] range: r];

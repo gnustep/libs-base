@@ -41,7 +41,8 @@
   BOOL			verbose;
   BOOL			warn;
 }
-
++ (NSString*) authorCredit;
++ (NSString*) generatedDate;
 - (NSString*) checkComment: (NSString*)comment
 		      unit: (NSString*)unit
 		      info: (NSMutableDictionary*)d;

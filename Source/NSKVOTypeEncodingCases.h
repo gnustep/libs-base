@@ -74,7 +74,7 @@
                     'Q')                                                       \
   OBJC_APPLY_BOOL_TYPE_ENCODING(_APPLY_TYPE_MACRO)
 
-//APPLY_TYPE(__int128, int128, Int128, 't') \
+//APPLY_TYPE(__int128, int128, Int128, 't')
 //APPLY_TYPE(unsigned __int128, unsignedInt128, UnsignedInt128, 'T')
 
 #define OBJC_APPLY_OBJECTIVEC_TYPE_ENCODINGS(_APPLY_TYPE_MACRO)                \

@@ -97,6 +97,7 @@ typedef struct {
 #define	EXPOSE_NSThread_IVARS	1
 #define	GS_NSThread_IVARS \
   id                    _stringCollatorCache; \
+  id                    _stringTransliteratorCache; \
   BOOL                  _targetIsBlock; \
   gs_thread_id_t        _pthreadID; \
   NSUInteger            _threadID; \
@@ -171,6 +172,7 @@ GS_PRIVATE_INTERNAL(NSThread)
 #define lockInfo (internal->_lockInfo)
 #define targetIsBlock (internal->_targetIsBlock)
 #define stringCollatorCache (internal->_stringCollatorCache)
+#define stringTransliteratorCache (internal->_stringTransliteratorCache)
 
 
 #if defined(HAVE_PTHREAD_MAIN_NP)
@@ -1205,6 +1207,7 @@ unregisterActiveThread(NSThread *thread)
   DESTROY(_arg);
   DESTROY(_name);
   DESTROY(stringCollatorCache);
+  DESTROY(stringTransliteratorCache);
   if (_autorelease_vars.pool_cache != 0)
     {
       [NSAutoreleasePool _endThread: self];
@@ -1599,6 +1602,15 @@ nsthreadLauncher(void *thread)
 - (void) _setStringCollatorCache: (id) cache
 {
   ASSIGN(stringCollatorCache, cache);
+}
+
+- (id) _stringTransliteratorCache
+{
+  return (id)stringTransliteratorCache;
+}
+- (void) _setStringTransliteratorCache: (id) cache
+{
+  ASSIGN(stringTransliteratorCache, cache);
 }
 
 @end

@@ -2728,10 +2728,25 @@ static Class		tcpPortClass;
 }
 
 /** Sets the TLS options for network connections created by this port
- * acting as a network client.
+ * acting as a network client.<br />
+ * If options is nil, TLS is not used for the network connections.<br />
+ * When options in not nil, if GSTLSVerify is missing a value of NO is set
+ * so that connections to server with self-signed certificates will work
+ * by default.  To require the server to have a trusted certificate
+ * the options must contain GSTLSVerify set to YES.
  */
 - (void) setClientOptionsForTLS: (NSDictionary*)options
 {
+  if (options)
+    {
+      NSMutableDictionary	*m = AUTORELEASE([options mutableCopy]);
+
+      if (nil == [options objectForKey: GSTLSVerify])
+	{
+          [m setObject: @"NO" forKey: GSTLSVerify];
+	}
+      options = m;
+    }
   M_LOCK(myLock);
   ASSIGNCOPY(tlscopts, options);
   M_UNLOCK(myLock);

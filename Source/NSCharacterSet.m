@@ -1074,6 +1074,12 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
        */
       DESTROY(self);
       [aCoder decodeValueOfObjCType: @encode(int) at: &index];
+      if (index < 0 || index >= MAX_STANDARD_SETS)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"invalid standard character set index (%d)"
+	    @" in archive", index];
+	}
       self = RETAIN([abstractClass _staticSet: 0 length: 0 number: index]);
     }
   else

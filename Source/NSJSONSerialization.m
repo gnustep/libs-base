@@ -549,10 +549,13 @@ parseNumber(ParserState *state)
 
   // Define a macro to add a character to the buffer, because we'll need to do
   // it a lot.  This generates a parse error if the maximum size is exceeded.
+  // A numeric token longer than the buffer is rejected (rather than allowed
+  // to overrun the buffer) by returning as soon as the error is raised.
 #define BUFFER(x) do {\
   if (parsedSize == sizeof(number))\
     {\
       parseError(state);\
+      return nil;\
     }\
   number[parsedSize++] = (char)x; } while (0)
   // JSON numbers must start with a - or a digit

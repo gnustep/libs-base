@@ -41,6 +41,7 @@ Additions_OBJC_FILES =\
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
 	GSMime.m \
+	GSMinHeap.m \
 	GSURITemplate.m \
 	GSXML.m \
 	NSArray+GNUstepBase.m \

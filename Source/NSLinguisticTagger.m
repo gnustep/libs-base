@@ -458,14 +458,24 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
   unichar c;
   
   if (_string == nil || charIndex >= [_string length])
-    return nil;
+    {
+      if (tokenRange != NULL)
+	{
+	  *tokenRange = NSMakeRange(NSNotFound, 0);
+	}
+      return nil;
+    }
     
   range = [self tokenRangeAtIndex: charIndex unit: unit];
   if (tokenRange != NULL)
-    *tokenRange = range;
+    {
+      *tokenRange = range;
+    }
     
   if (range.location == NSNotFound || range.length == 0)
-    return nil;
+    {
+      return nil;
+    }
     
   c = [_string characterAtIndex: range.location];
   

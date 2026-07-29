@@ -62,9 +62,7 @@ int main()
     [NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
   DESTROY(output);
   
-  PASS([trimmed isEqualToString: currentDir],
-       "task inherits current directory (expected '%@', got '%@')",
-       currentDir, trimmed);
+  PASS_EQUAL(trimmed, currentDir, "task inherits current directory")
   DESTROY(trimmed);
   DESTROY(task);
 
@@ -85,9 +83,7 @@ int main()
     [NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
   DESTROY(output);
   
-  PASS([trimmed isEqualToString: parentDir],
-       "task runs in parent directory (expected '%@', got '%@')",
-       parentDir, trimmed);
+  PASS_EQUAL(trimmed, parentDir, "task runs in parent directory")
   DESTROY(trimmed);
   DESTROY(task);
 
@@ -108,10 +104,10 @@ int main()
     [NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
   DESTROY(output);
   
-  PASS([trimmed isEqualToString: tmpDir] || 
-       [tmpDir hasPrefix: trimmed], // Some systems may resolve symlinks differently
-       "task runs in temp directory (expected '%@', got '%@')",
-       tmpDir, trimmed);
+  PASS([trimmed isEqualToString: tmpDir]
+    || [tmpDir hasPrefix: trimmed], // Some systems may resolve symlinks differently
+    "task runs in temp directory (expected '%s', got '%s')",
+    [tmpDir UTF8String], [trimmed UTF8String]);
   DESTROY(trimmed);
   DESTROY(task);
 

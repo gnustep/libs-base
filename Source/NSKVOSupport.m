@@ -46,15 +46,13 @@
 
 #import "common.h"
 #import "NSKVOInternal.h"
-#import <objc/objc-arc.h>
-#import <stdatomic.h>
 
 #import <Foundation/Foundation.h>
 
-typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
+typedef void (*DispatchChangeFunction)(_NSKVOKeyObserver *, void *context);
 
 static NSString *
-_NSKVCSplitKeypath(NSString *keyPath, NSString *__autoreleasing *pRemainder)
+_NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 {
   NSRange result = [keyPath rangeOfString:@"."];
   if (keyPath.length > 0 && result.location != NSNotFound)
@@ -67,24 +65,29 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString *__autoreleasing *pRemainder)
 }
 
 #pragma region Key Observer
-@interface
-_NSKVOKeyObserver ()
-{
-  _Atomic(BOOL) _isRemoved;
-}
-@end
-
 @implementation _NSKVOKeyObserver
-- (instancetype)initWithObject: (id)object
-               keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
-                           key: (NSString *)key
-                 restOfKeypath: (NSString *)restOfKeypath
-             affectedObservers: (NSArray *)affectedObservers
+/* GCC does not perform clang's default (automatic) property synthesis, so the
+ * accessors are synthesized explicitly. */
+@synthesize keypathObserver = _keypathObserver;
+@synthesize restOfKeypathObserver = _restOfKeypathObserver;
+@synthesize restOfKeypathRelay = _restOfKeypathRelay;
+@synthesize dependentObservers = _dependentObservers;
+@synthesize object = _object;
+@synthesize key = _key;
+@synthesize restOfKeypath = _restOfKeypath;
+@synthesize affectedObservers = _affectedObservers;
+@synthesize root = _root;
+
+- (instancetype) initWithObject: (id)object
+                keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
+                            key: (NSString *)key
+                  restOfKeypath: (NSString *)restOfKeypath
+              affectedObservers: (NSArray *)affectedObservers
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
       _object = object;
-      _keypathObserver = [keypathObserver retain];
+      _keypathObserver = RETAIN(keypathObserver);
       _key = [key copy];
       _restOfKeypath = [restOfKeypath copy];
       _affectedObservers = [affectedObservers copy];
@@ -99,38 +102,39 @@ _NSKVOKeyObserver ()
   [_restOfKeypath release];
   [_dependentObservers release];
   [_restOfKeypathObserver release];
+  [_restOfKeypathRelay release];
   [_affectedObservers release];
   [super dealloc];
 }
 
 - (BOOL)isRemoved
 {
-  return _isRemoved;
+  return __atomic_load_n(&_isRemoved, __ATOMIC_SEQ_CST);
 }
 
 - (void)setIsRemoved: (BOOL)removed
 {
-  _isRemoved = removed;
+  __atomic_store_n(&_isRemoved, removed, __ATOMIC_SEQ_CST);
 }
 @end
 #pragma endregion
 
 #pragma region Keypath Observer
-@interface
-_NSKVOKeypathObserver ()
-{
-  _Atomic(int) _changeDepth;
-}
-@end
-
 @implementation _NSKVOKeypathObserver
+@synthesize object = _object;
+@synthesize observer = _observer;
+@synthesize keypath = _keypath;
+@synthesize options = _options;
+@synthesize context = _context;
+@synthesize pendingChange = _pendingChange;
+
 - (instancetype) initWithObject: (id)object
                        observer: (id)observer
                         keyPath: (NSString *)keypath
                         options: (NSKeyValueObservingOptions)options
                         context: (void *)context
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
       _object = object;
       _observer = observer;
@@ -148,20 +152,90 @@ _NSKVOKeypathObserver ()
   [super dealloc];
 }
 
-- (id) observer
-{
-  return _observer;
-}
-
 - (BOOL) pushWillChange
 {
-  return atomic_fetch_add(&_changeDepth, 1) == 0;
+  return __atomic_fetch_add(&_changeDepth, 1, __ATOMIC_SEQ_CST) == 0;
 }
 
 - (BOOL) popDidChange
 {
-  return atomic_fetch_sub(&_changeDepth, 1) == 1;
+  return __atomic_fetch_sub(&_changeDepth, 1, __ATOMIC_SEQ_CST) == 1;
 }
+@end
+#pragma endregion
+
+#pragma region Forwarding Relay
+/* Stands between an object that registers observations on the objects it
+ * holds and the observer of the whole key path.  The change is reported for
+ * the key path being observed, on the object being observed, whichever of the
+ * held objects it came from.
+ */
+@implementation _NSKVOForwardingRelay
+
+- (instancetype) initWithObject: (id)object
+                        keypath: (NSString *)keypath
+                keypathObserver: (_NSKVOKeypathObserver *)keypathObserver
+{
+  if (nil != (self = [super init]))
+    {
+      _object = object;
+      _keypath = [keypath copy];
+      _keypathObserver = RETAIN(keypathObserver);
+
+      [object addObserver: self
+               forKeyPath: keypath
+                  options: 0
+                  context: NULL];
+    }
+  return self;
+}
+
+- (void) stop
+{
+  [_object removeObserver: self forKeyPath: _keypath];
+  _object = nil;
+}
+
+- (void) dealloc
+{
+  [_keypath release];
+  [_keypathObserver release];
+  [super dealloc];
+}
+
+- (void) observeValueForKeyPath: (NSString *)keyPath
+                       ofObject: (id)object
+                         change: (NSDictionary *)change
+                        context: (void *)context
+{
+  id                   observer = [_keypathObserver observer];
+  NSString            *keypath = [_keypathObserver keypath];
+  id                   rootObject = [_keypathObserver object];
+  NSMutableDictionary *relayed;
+
+  if (nil == observer)
+    {
+      return;
+    }
+
+  relayed = [NSMutableDictionary
+    dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:
+                                   NSKeyValueChangeSetting],
+                                 NSKeyValueChangeKindKey, nil];
+
+  if (([_keypathObserver options] & NSKeyValueObservingOptionNew))
+    {
+      id newValue = [rootObject valueForKeyPath: keypath] ?: [NSNull null];
+
+      [relayed setObject: newValue forKey: NSKeyValueChangeNewKey];
+    }
+
+  [observer observeValueForKeyPath: keypath
+                          ofObject: rootObject
+                            change: relayed
+                           context: [_keypathObserver context]];
+}
+
 @end
 #pragma endregion
 
@@ -169,9 +243,9 @@ _NSKVOKeypathObserver ()
 @implementation _NSKVOObservationInfo
 - (instancetype) init
 {
-  if (self = [super init])
+  if (nil != (self = [super init]))
     {
-      _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity:1];
+      _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity: 1];
       GS_MUTEX_INIT(_lock);
     }
   return self;
@@ -207,31 +281,74 @@ _NSKVOKeypathObserver ()
   [super dealloc];
 }
 
-- (void) pushDependencyStack
+// While exploring the observer graph, for dependencies, we use this to 
+// detect cycles to prevent infinite recursion. 
+- (void) beginDependencyExpansionScope
 {
   GS_MUTEX_LOCK(_lock);
   if (_dependencyDepth == 0)
     {
       _existingDependentKeys = [NSMutableSet new];
+      _dependencyAncestorKeys = [NSMutableSet new];
     }
   ++_dependencyDepth;
   GS_MUTEX_UNLOCK(_lock);
 }
 
-- (BOOL) lockDependentKeypath: (NSString *)keypath
+/* Nodes (observable values) in the observer graph are uniquely identified
+ * using a combination of the object pointer and the name of the value */
+- (id) dependencyKeyForObject: (id)object key: (NSString *)key
 {
+  return [NSArray arrayWithObjects:
+                   (object ?: [NSNull null]),
+                   (key ?: @""),
+                   nil];
+}
+
+- (void) pushObserverToCurrentAncestorStack: (_NSKVOKeyObserver *)keyObserver
+{
+  id ancestorKey = [self dependencyKeyForObject: keyObserver.object
+                                            key: keyObserver.key];
   GS_MUTEX_LOCK(_lock);
-  if ([_existingDependentKeys containsObject:keypath])
+  [_dependencyAncestorKeys addObject: ancestorKey];
+  GS_MUTEX_UNLOCK(_lock);
+}
+
+- (void) popObserverFromCurrentAncestorStack: (_NSKVOKeyObserver *)keyObserver
+{
+  id ancestorKey = [self dependencyKeyForObject: keyObserver.object
+                                            key: keyObserver.key];
+  GS_MUTEX_LOCK(_lock);
+  [_dependencyAncestorKeys removeObject: ancestorKey];
+  GS_MUTEX_UNLOCK(_lock);
+}
+
+/// Mark keypath as visited in the current dependency-expansion scope.
+- (BOOL) checkDependencyForCycle: (NSString *)keypath
+                             forNode: (_NSKVOKeyObserver *)keyObserver
+{
+  NSString *dependentKey;
+  NSString *unusedRemainder;
+  id visitToken;
+
+  dependentKey = _NSKVCSplitKeypath(keypath, &unusedRemainder);
+  visitToken = [self dependencyKeyForObject: keyObserver.object
+                                        key: dependentKey];
+  GS_MUTEX_LOCK(_lock);
+  if ([_existingDependentKeys containsObject:visitToken])
     {
+      BOOL isCycle = [_dependencyAncestorKeys containsObject: visitToken];
       GS_MUTEX_UNLOCK(_lock);
-      return NO;
+      // If it's on the current ancestor stack, treat as cycle and dedup.
+      // If it's already visited but not on stack, allow expansion to continue.
+      return !isCycle;
     }
-  [_existingDependentKeys addObject:keypath];
+  [_existingDependentKeys addObject:visitToken];
   GS_MUTEX_UNLOCK(_lock);
   return YES;
 }
 
-- (void) popDependencyStack
+- (void) endDependencyExpansionScope
 {
   GS_MUTEX_LOCK(_lock);
   --_dependencyDepth;
@@ -239,39 +356,57 @@ _NSKVOKeypathObserver ()
     {
       [_existingDependentKeys release];
       _existingDependentKeys = nil;
+      [_dependencyAncestorKeys release];
+      _dependencyAncestorKeys = nil;
     }
   GS_MUTEX_UNLOCK(_lock);
 }
 
+/* The per-key observer arrays are stored copy-on-write: they are never
+ * mutated in place once stored, so -observersForKey: can hand out a snapshot
+ * without copying, and a snapshot being enumerated stays valid even if an
+ * observer callback adds or removes observers. */
 - (void) addObserver: (_NSKVOKeyObserver *)observer
 {
-  NSString       *key = observer.key;
-  NSMutableArray *observersForKey = nil;
+  NSString	*key = observer.key;
+  NSArray	*observersForKey;
 
   GS_MUTEX_LOCK(_lock);
   observersForKey = [_keyObserverMap objectForKey:key];
-  if (!observersForKey)
+  if (observersForKey)
     {
-      observersForKey = [NSMutableArray array];
-      [_keyObserverMap setObject:observersForKey forKey:key];
+      observersForKey = [observersForKey arrayByAddingObject:observer];
     }
-  [observersForKey addObject:observer];
+  else
+    {
+      observersForKey = [NSArray arrayWithObject:observer];
+    }
+  [_keyObserverMap setObject:observersForKey forKey:key];
   GS_MUTEX_UNLOCK(_lock);
 }
 
 - (void) removeObserver: (_NSKVOKeyObserver *)observer
 {
-  NSString      	*key;
-  NSMutableArray	*observersForKey;
+  NSString	*key;
+  NSArray	*observersForKey;
 
   GS_MUTEX_LOCK(_lock);
   key = observer.key;
   observersForKey = [_keyObserverMap objectForKey:key];
-  [observersForKey removeObject:observer];
-  observer.isRemoved = true;
-  if (observersForKey.count == 0)
+  [observer setIsRemoved: YES];
+  if (observersForKey != nil)
     {
-      [_keyObserverMap removeObjectForKey:key];
+      NSMutableArray *updated = [[observersForKey mutableCopy] autorelease];
+
+      [updated removeObject:observer];
+      if ([updated count] == 0)
+        {
+          [_keyObserverMap removeObjectForKey:key];
+        }
+      else
+        {
+          [_keyObserverMap setObject:updated forKey:key];
+        }
     }
   GS_MUTEX_UNLOCK(_lock);
 }
@@ -281,12 +416,12 @@ _NSKVOKeypathObserver ()
   NSArray	*result;
 
   GS_MUTEX_LOCK(_lock);
-  result = [[[_keyObserverMap objectForKey:key] copy] autorelease];
+  result = [[[_keyObserverMap objectForKey:key] retain] autorelease];
   GS_MUTEX_UNLOCK(_lock);
   return result;
 }
 
-- (bool) isEmpty
+- (BOOL) isEmpty
 {
   BOOL result;
 
@@ -315,24 +450,116 @@ _addKeypathObserver(id object, NSString *keypath,
 static void
 _removeKeyObserver(_NSKVOKeyObserver *keyObserver);
 
+/* An object may register observations on the objects it holds, by way of its
+ * own -addObserver:forKeyPath:options:context:.  That implementation has to be
+ * used or nothing it holds is ever observed.  A plain collection, which
+ * refuses the registration, and a proxy, which forwards the method and so
+ * would look like such an object, are both left to the ordinary path.
+ */
+static BOOL
+_registersObservationsItself(id object)
+{
+  SEL   selector = @selector(addObserver:forKeyPath:options:context:);
+  Class class;
+  Class root;
+  IMP   implementation;
+
+  if (nil == object)
+    {
+      return NO;
+    }
+
+  root = class = object_getClass(object);
+  while (class_getSuperclass(root) != Nil)
+    {
+      root = class_getSuperclass(root);
+    }
+  if (root != [NSObject class])
+    {
+      return NO;
+    }
+
+  implementation = class_getMethodImplementation(class, selector);
+
+  return implementation
+      != class_getMethodImplementation([NSObject class], selector)
+    && implementation
+      != class_getMethodImplementation([NSArray class], selector)
+    && implementation
+      != class_getMethodImplementation([NSSet class], selector);
+}
+
+/* Observe the rest of a key path on the value of its first key. */
+static void
+_attachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
+{
+  id value = [keyObserver.object valueForKey: keyObserver.key];
+
+  if (_registersObservationsItself(value))
+    {
+      _NSKVOForwardingRelay *relay;
+
+      relay = [[_NSKVOForwardingRelay alloc]
+                initWithObject: value
+                       keypath: keyObserver.restOfKeypath
+               keypathObserver: keyObserver.keypathObserver];
+      keyObserver.restOfKeypathRelay = relay;
+      [relay release];
+    }
+  else
+    {
+      keyObserver.restOfKeypathObserver
+        = _addKeypathObserver(value, keyObserver.restOfKeypath,
+                              keyObserver.keypathObserver,
+                              keyObserver.affectedObservers);
+    }
+}
+
+static void
+_detachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
+{
+  if (keyObserver.restOfKeypathRelay)
+    {
+      [keyObserver.restOfKeypathRelay stop];
+      keyObserver.restOfKeypathRelay = nil;
+    }
+  if (keyObserver.restOfKeypathObserver)
+    {
+      _removeKeyObserver(keyObserver.restOfKeypathObserver);
+      keyObserver.restOfKeypathObserver = nil;
+    }
+}
+
 // Add all observers with declared dependencies on this one:
 // * All keypaths that could trigger a change (keypaths for values affecting
 // us).
 // * The head of the remaining keypath.
 static void
 _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
-                                           bool               dependents)
+                                           BOOL               dependents)
 {
-  id                     object = keyObserver.object;
-  NSString              *key = keyObserver.key;
-  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-  _NSKVOObservationInfo *observationInfo
-    = (__bridge _NSKVOObservationInfo *) [object observationInfo]
-        ?: _createObservationInfoForObject(object);
+  id                     object;
+  NSString              *key;
+  _NSKVOKeypathObserver *keypathObserver;
+
+  /* Fast path: a simple (non-keypath) observer with no dependents to
+   * reconstruct and no affected observers has no nested work here. */
+  if (!dependents && keyObserver.restOfKeypath == nil
+      && keyObserver.affectedObservers == nil)
+    {
+      return;
+    }
+
+  object = keyObserver.object;
+  key = keyObserver.key;
+  keypathObserver = keyObserver.keypathObserver;
 
   // Aggregate all keys whose values will affect us.
   if (dependents)
     {
+      _NSKVOObservationInfo *observationInfo
+        = (_NSKVOObservationInfo *) [object observationInfo]
+            ?: _createObservationInfoForObject(object);
       // Make sure to retrieve the underlying class of the observee.
       // This is just [object class] for an NSObject derived class.
       // When observing an object through a proxy, we instead use KVC
@@ -344,28 +571,40 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
           NSArray 		*affectedKeyObservers;
           NSMutableArray 	*dependentObservers;
 
+          affectedKeyObservers = keyObserver.affectedObservers;
+
           /* affectedKeyObservers is the list of observers that must be notified
            * of changes. If we have descendants, we have to add ourselves to the
            * growing list of affected keys. If not, we must pass it along
            * unmodified. (This is a minor optimization: we don't need to signal
-           * for our own reconstruction
-           *  if we have no subpath observers.)
-	   */
-          affectedKeyObservers = (keyObserver.restOfKeypath
-	    ? ([keyObserver.affectedObservers arrayByAddingObject:keyObserver]
-	    ?: [NSArray arrayWithObject:keyObserver])
-	    : keyObserver.affectedObservers);
+           * for our own reconstruction if we have no subpath observers.)
+           */
+          if (keyObserver.restOfKeypath)
+          {
+            if (affectedKeyObservers)
+              {
+                affectedKeyObservers =
+                  [affectedKeyObservers arrayByAddingObject:keyObserver];
+              }
+            else
+              {
+                affectedKeyObservers = [NSArray arrayWithObject:keyObserver];
+              }
+          }
 
-          [observationInfo pushDependencyStack];
-          /* Don't allow our own key to be recreated.
-	   */
-          [observationInfo lockDependentKeypath:keyObserver.key];
+          [observationInfo beginDependencyExpansionScope];
+          [observationInfo pushObserverToCurrentAncestorStack: keyObserver];
+          /* Don't allow our own key to be recreated. */
+          [observationInfo checkDependencyForCycle:keyObserver.key
+                                               forNode:keyObserver];
 
+          /* The observers, which affect us */
           dependentObservers =
             [NSMutableArray arrayWithCapacity:[valueInfluencingKeys count]];
           for (NSString *dependentKeypath in valueInfluencingKeys)
             {
-              if ([observationInfo lockDependentKeypath:dependentKeypath])
+              if ([observationInfo checkDependencyForCycle:dependentKeypath
+                                                       forNode:keyObserver])
                 {
                   _NSKVOKeyObserver *dependentObserver
                     = _addKeypathObserver(object, dependentKeypath,
@@ -379,7 +618,8 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
             }
           keyObserver.dependentObservers = dependentObservers;
 
-          [observationInfo popDependencyStack];
+          [observationInfo popObserverFromCurrentAncestorStack: keyObserver];
+          [observationInfo endDependencyExpansionScope];
         }
     }
   else
@@ -395,12 +635,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
     }
 
   // If restOfKeypath is non-nil, we have to chain on further observers.
-  if (keyObserver.restOfKeypath && !keyObserver.restOfKeypathObserver)
+  if (keyObserver.restOfKeypath && !keyObserver.restOfKeypathObserver
+      && !keyObserver.restOfKeypathRelay)
     {
-      keyObserver.restOfKeypathObserver
-        = _addKeypathObserver([object valueForKey:key],
-                              keyObserver.restOfKeypath, keypathObserver,
-                              keyObserver.affectedObservers);
+      _attachRestOfKeypath(keyObserver);
     }
 
   // Back-propagation of changes.
@@ -408,14 +646,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   // be reconstructed.
   for (_NSKVOKeyObserver *affectedObserver in keyObserver.affectedObservers)
     {
-      if (!affectedObserver.restOfKeypathObserver)
+      if (!affectedObserver.restOfKeypathObserver
+          && !affectedObserver.restOfKeypathRelay)
         {
-          affectedObserver.restOfKeypathObserver
-            = _addKeypathObserver([affectedObserver.object
-                                    valueForKey:affectedObserver.key],
-                                  affectedObserver.restOfKeypath,
-                                  affectedObserver.keypathObserver,
-                                  affectedObserver.affectedObservers);
+          _attachRestOfKeypath(affectedObserver);
         }
     }
 }
@@ -428,7 +662,7 @@ _addKeyObserver(_NSKVOKeyObserver *keyObserver)
 
   _NSKVOEnsureKeyWillNotify(object, keyObserver.key);
   observationInfo
-    = (__bridge _NSKVOObservationInfo *) [object observationInfo]
+    = (_NSKVOObservationInfo *) [object observationInfo]
       ?: _createObservationInfoForObject(object);
   [observationInfo addObserver:keyObserver];
 }
@@ -458,6 +692,7 @@ _addKeypathObserver(id object, NSString *keypath,
     {
       _addNestedObserversAndOptionallyDependents(keyObserver, true);
       _addKeyObserver(keyObserver);
+    } else {
     }
 
   return keyObserver;
@@ -467,14 +702,20 @@ _addKeypathObserver(id object, NSString *keypath,
 #pragma region Observer / Key Deregistration
 static void
 _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
-  bool dependents)
+  BOOL dependents)
 {
-  if (keyObserver.restOfKeypathObserver)
+  /* Fast path: a simple (non-keypath) observer with no dependents and no
+   * affected observers has no nested work here. */
+  if (!dependents && keyObserver.restOfKeypathObserver == nil
+      && keyObserver.restOfKeypathRelay == nil
+      && keyObserver.dependentObservers == nil
+      && keyObserver.affectedObservers == nil)
     {
-      // Destroy the subpath observer recursively.
-      _removeKeyObserver(keyObserver.restOfKeypathObserver);
-      keyObserver.restOfKeypathObserver = nil;
+      return;
     }
+
+  // Destroy the subpath observer recursively.
+  _detachRestOfKeypath(keyObserver);
 
   if (dependents)
     {
@@ -504,8 +745,7 @@ _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
       // (triggers in _addDependentAndNestedObservers).
       for (_NSKVOKeyObserver *affectedObserver in keyObserver.affectedObservers)
         {
-          _removeKeyObserver(affectedObserver.restOfKeypathObserver);
-          affectedObserver.restOfKeypathObserver = nil;
+          _detachRestOfKeypath(affectedObserver);
         }
     }
 }
@@ -577,7 +817,7 @@ NSObject (NSKeyValueObserving)
 + (void) setKeys: (NSArray *) triggerKeys 
 triggerChangeNotificationsForDependentKey: (NSString *) dependentKey
 {
-  NSMutableDictionary<NSString *, NSSet *> *affectingKeys;
+  NSMutableDictionary *affectingKeys;
   NSSet *triggerKeySet;
 
   affectingKeys = objc_getAssociatedObject(self, KVO_MAP);
@@ -594,7 +834,7 @@ triggerChangeNotificationsForDependentKey: (NSString *) dependentKey
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
-                         change: (NSDictionary<NSString *, id> *)change
+                         change: (NSDictionary *)change
                         context: (void *)context
 {
   [NSException raise: NSInternalInconsistencyException
@@ -608,14 +848,14 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 - (void *) observationInfo
 {
-  return (__bridge void *)
+  return (void *)
     objc_getAssociatedObject(self, &s_kvoObservationInfoAssociationKey);
 }
 
 - (void) setObservationInfo: (void *)observationInfo
 {
   objc_setAssociatedObject(self, &s_kvoObservationInfoAssociationKey,
-    (__bridge id) observationInfo,
+    (id) observationInfo,
     OBJC_ASSOCIATION_RETAIN);
 }
 
@@ -640,7 +880,8 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
       free(selectorName);
       if ([self respondsToSelector:sel])
         {
-          return ((BOOL(*)(id, SEL)) objc_msgSend)(self, sel);
+          IMP imp = [self methodForSelector:sel];
+          return ((BOOL(*)(id, SEL)) imp)(self, sel);
         }
     }
   return YES;
@@ -691,7 +932,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           // most keyPaths are short
           char selectorName[sc_bufferSize];
 
-	  strncpy(selectorName, "keyPathsForValuesAffecting", 26);
+	  strncpy(selectorName, "keyPathsForValuesAffecting", sc_prefixLength);
 
           selectorName[sc_prefixLength] = toupper(rawKey[0]);
           // Copy the rest of the key, including the null terminator
@@ -741,17 +982,17 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   return emptySet;
 }
 
-- (void) addObserver: (id)observer
-          forKeyPath: (NSString *)keyPath
+- (void) addObserver: (NSObject*)observer
+          forKeyPath: (NSString*)keyPath
              options: (NSKeyValueObservingOptions)options
-             context: (void *)context
+             context: (void*)context
 {
   _NSKVOKeypathObserver *keypathObserver =
-    [[[_NSKVOKeypathObserver alloc] initWithObject:self
-                                          observer:observer
-                                           keyPath:keyPath
-                                           options:options
-                                           context:context] autorelease];
+    [[[_NSKVOKeypathObserver alloc] initWithObject: self
+                                          observer: observer
+                                           keyPath: keyPath
+                                           options: options
+                                           context: context] autorelease];
   _NSKVOKeyObserver *rootObserver
     = _addKeypathObserver(self, keyPath, keypathObserver, nil);
   rootObserver.root = true;
@@ -759,7 +1000,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   if ((options & NSKeyValueObservingOptionInitial))
     {
       NSMutableDictionary *change = [NSMutableDictionary
-        dictionaryWithObjectsAndKeys:@(NSKeyValueChangeSetting),
+        dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger: NSKeyValueChangeSetting],
                                      NSKeyValueChangeKindKey, nil];
 
       if ((options & NSKeyValueObservingOptionNew))
@@ -775,14 +1016,14 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-- (void) removeObserver: (id)observer
-             forKeyPath: (NSString *)keyPath
-                context: (void *)context
+- (void) removeObserver: (NSObject*)observer
+             forKeyPath: (NSString*)keyPath
+                context: (void*)context
 {
   _NSKVOObservationInfo *observationInfo;
 
   _removeKeypathObserver(self, keyPath, observer, context);
-  observationInfo = (__bridge _NSKVOObservationInfo *) [self observationInfo];
+  observationInfo = (_NSKVOObservationInfo *) [self observationInfo];
   if ([observationInfo isEmpty])
     {
       // TODO: was nullptr prior
@@ -790,7 +1031,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-- (void) removeObserver: (id)observer forKeyPath:(NSString *)keyPath
+- (void) removeObserver: (NSObject*)observer forKeyPath: (NSString*)keyPath
 {
   [self removeObserver:observer forKeyPath:keyPath context:NULL];
 }
@@ -819,7 +1060,7 @@ _valueForPendingChangeAtIndexes(id notifyingObject, NSString *key,
                                 NSDictionary      *pendingChange)
 {
   id          value = nil;
-  NSIndexSet *indexes = pendingChange[NSKeyValueChangeIndexesKey];
+  NSIndexSet *indexes = [pendingChange objectForKey: NSKeyValueChangeIndexesKey];
   if (indexes)
     {
       NSArray  *collection = [notifyingObject valueForKey:key];
@@ -843,11 +1084,12 @@ _valueForPendingChangeAtIndexes(id notifyingObject, NSString *key,
 // void TFunc(_NSKVOKeyObserver* keyObserver);
 inline static void
 _dispatchWillChange(id notifyingObject, NSString *key,
-                    DispatchChangeBlock block)
+                    DispatchChangeFunction fn, void *changeContext)
 {
   _NSKVOObservationInfo *observationInfo
-    = (__bridge _NSKVOObservationInfo *) [notifyingObject observationInfo];
-  for (_NSKVOKeyObserver *keyObserver in [observationInfo observersForKey:key])
+    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
+  NSArray *observers = [observationInfo observersForKey:key];
+  for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
 
@@ -862,16 +1104,16 @@ _dispatchWillChange(id notifyingObject, NSString *key,
         {
           NSKeyValueObservingOptions options;
 
-          // Call into the lambda function, which will do the actual set-up for
+          // Call into the change function, which does the actual set-up for
           // pendingChanges
-          block(keyObserver);
+          fn(keyObserver, changeContext);
 
           options = keypathObserver.options;
           if (options & NSKeyValueObservingOptionPrior)
             {
               NSMutableDictionary *change = keypathObserver.pendingChange;
 
-              [change setObject:@(YES)
+              [change setObject:[NSNumber numberWithBool: YES]
                          forKey:NSKeyValueChangeNotificationIsPriorKey];
               [keypathObserver.observer
                 observeValueForKeyPath:keypathObserver.keypath
@@ -889,14 +1131,19 @@ _dispatchWillChange(id notifyingObject, NSString *key,
 }
 
 static void
-_dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
+_dispatchDidChange(id notifyingObject, NSString *key,
+                   DispatchChangeFunction fn, void *changeContext)
 {
   _NSKVOObservationInfo *observationInfo
-    = (__bridge _NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray<_NSKVOKeyObserver *> *observers =
+    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
+  NSArray *observers =
     [observationInfo observersForKey:key];
-  for (_NSKVOKeyObserver *keyObserver in [observers reverseObjectEnumerator])
+  NSUInteger index = [observers count];
+  /* Notify in reverse order (a plain index loop avoids allocating an
+   * NSReverseEnumerator on every change). */
+  while (index-- > 0)
     {
+      _NSKVOKeyObserver     *keyObserver = [observers objectAtIndex: index];
       _NSKVOKeypathObserver *keypathObserver;
 
       if (keyObserver.isRemoved)
@@ -917,9 +1164,9 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
           NSMutableDictionary 	*change;
           void                	*context;
 
-          // Call into lambda, which will do set-up for finalizing changes
-          // dictionary
-          block(keyObserver);
+          // Call into the change function, which does set-up for finalizing
+          // the changes dictionary
+          fn(keyObserver, changeContext);
 
           observer = keypathObserver.observer;
           keypath = keypathObserver.keypath;
@@ -930,8 +1177,43 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
                                   ofObject:rootObject
                                     change:change
                                    context:context];
-          keypathObserver.pendingChange = nil;
+          /* pendingChange is retained for reuse by the next notification
+           * (cleared/repopulated in the change function), not freed here. */
         }
+    }
+}
+
+static void
+_kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  NSMutableDictionary *change = keypathObserver.pendingChange;
+
+  /* Reuse the change dictionary across notifications rather than allocating
+   * (and rehashing) a fresh one every time the setter fires. */
+  if (change == nil)
+    {
+      change = [[NSMutableDictionary alloc] initWithCapacity: 3];
+      keypathObserver.pendingChange = change;
+      [change release];
+    }
+  else
+    {
+      [change removeAllObjects];
+    }
+
+  [change setObject:[NSNumber numberWithUnsignedInteger: NSKeyValueChangeSetting]
+             forKey:NSKeyValueChangeKindKey];
+
+  if (options & NSKeyValueObservingOptionOld)
+    {
+      // For to-many mutations, we can't get the old values at indexes
+      // that have not yet been inserted.
+      id        rootObject = keypathObserver.object;
+      NSString *keypath = keypathObserver.keypath;
+      id oldValue = [rootObject valueForKeyPath:keypath] ?: [NSNull null];
+      [change setObject: oldValue forKey: NSKeyValueChangeOldKey];
     }
 }
 
@@ -939,25 +1221,25 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
 {
   if ([self observationInfo])
     {
-      _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        NSMutableDictionary *change =
-          [NSMutableDictionary dictionaryWithObject:@(NSKeyValueChangeSetting)
-                                             forKey:NSKeyValueChangeKindKey];
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
+      _dispatchWillChange(self, key, _kvoWillSetChange, NULL);
+    }
+}
 
-        if (options & NSKeyValueObservingOptionOld)
-          {
-            // For to-many mutations, we can't get the old values at indexes
-            // that have not yet been inserted.
-            id        rootObject = keypathObserver.object;
-            NSString *keypath = keypathObserver.keypath;
-            id oldValue = [rootObject valueForKeyPath:keypath] ?: [NSNull null];
-            change[NSKeyValueChangeOldKey] = oldValue;
-          }
+static void
+_kvoDidSetChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  NSMutableDictionary       *change = keypathObserver.pendingChange;
+  if ((options & NSKeyValueObservingOptionNew) &&
+      [[change objectForKey: NSKeyValueChangeKindKey] integerValue]
+        != NSKeyValueChangeRemoval)
+    {
+      NSString *keypath = keypathObserver.keypath;
+      id        rootObject = keypathObserver.object;
+      id newValue = [rootObject valueForKeyPath:keypath] ?: [NSNull null];
 
-        keypathObserver.pendingChange = change;
-      });
+      [change setObject: newValue forKey: NSKeyValueChangeNewKey];
     }
 }
 
@@ -965,68 +1247,100 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
 {
   if ([self observationInfo])
     {
-      _dispatchDidChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        NSMutableDictionary       *change = keypathObserver.pendingChange;
-        if ((options & NSKeyValueObservingOptionNew) &&
-            [change[NSKeyValueChangeKindKey] integerValue]
-              != NSKeyValueChangeRemoval)
-          {
-            NSString *keypath = keypathObserver.keypath;
-            id        rootObject = keypathObserver.object;
-            id newValue = [rootObject valueForKeyPath:keypath] ?: [NSNull null];
-
-            change[NSKeyValueChangeNewKey] = newValue;
-          }
-      });
+      _dispatchDidChange(self, key, _kvoDidSetChange, NULL);
     }
+}
+
+struct _kvoIndexedWillContext
+{
+  NSKeyValueChange	*kind;
+  NSIndexSet		*indexes;
+  id			 object;
+  NSString		*key;
+};
+static void
+_kvoWillIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoIndexedWillContext *ctx
+    = (struct _kvoIndexedWillContext *) context;
+  NSMutableDictionary   *change = [NSMutableDictionary
+    dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger: *ctx->kind],
+                                 NSKeyValueChangeKindKey,
+                                 ctx->indexes, NSKeyValueChangeIndexesKey,
+                                 nil];
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  id                         rootObject = keypathObserver.object;
+
+  // The reference platform does not support to-many mutations on nested
+  // keypaths. We have to treat them as to-one mutations to support
+  // aggregate functions.
+  if (*ctx->kind != NSKeyValueChangeSetting
+      && keyObserver.restOfKeypathObserver)
+    {
+      // This only needs to be done in willChange because didChange
+      // derives from the existing changeset.
+      [change setObject: [NSNumber numberWithUnsignedInteger:
+                           (*ctx->kind = NSKeyValueChangeSetting)]
+                 forKey: NSKeyValueChangeKindKey];
+
+      // Make change Old/New values the entire collection rather than a
+      // to-many change with objectsAtIndexes:
+      [change removeObjectForKey:NSKeyValueChangeIndexesKey];
+    }
+
+  if ((options & NSKeyValueObservingOptionOld)
+      && *ctx->kind != NSKeyValueChangeInsertion)
+    {
+      // For to-many mutations, we can't get the old values at indexes
+      // that have not yet been inserted.
+      NSString *keypath = keypathObserver.keypath;
+      [change setObject: _valueForPendingChangeAtIndexes(ctx->object, ctx->key,
+                           keypath, rootObject, keyObserver, change)
+                 forKey: NSKeyValueChangeOldKey];
+    }
+
+  keypathObserver.pendingChange = change;
 }
 
 - (void) willChange: (NSKeyValueChange)changeKind
     valuesAtIndexes: (NSIndexSet *)indexes
              forKey: (NSString *)key
 {
-  __block NSKeyValueChange kind = changeKind;
+  NSKeyValueChange kind = changeKind;
   if ([self observationInfo])
     {
-      _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        NSMutableDictionary   *change = [NSMutableDictionary
-          dictionaryWithObjectsAndKeys:@(kind), NSKeyValueChangeKindKey,
-                                       indexes, NSKeyValueChangeIndexesKey,
-                                       nil];
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        id                         rootObject = keypathObserver.object;
+      struct _kvoIndexedWillContext ctx = { &kind, indexes, self, key };
+      _dispatchWillChange(self, key, _kvoWillIndexedChange, &ctx);
+    }
+}
 
-        // The reference platform does not support to-many mutations on nested
-        // keypaths. We have to treat them as to-one mutations to support
-        // aggregate functions.
-        if (kind != NSKeyValueChangeSetting
-            && keyObserver.restOfKeypathObserver)
-          {
-            // This only needs to be done in willChange because didChange
-            // derives from the existing changeset.
-            change[NSKeyValueChangeKindKey] = @(kind = NSKeyValueChangeSetting);
+struct _kvoIndexedDidContext
+{
+  id		 object;
+  NSString	*key;
+};
+static void
+_kvoDidIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoIndexedDidContext *ctx
+    = (struct _kvoIndexedDidContext *) context;
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  NSMutableDictionary       *change = keypathObserver.pendingChange;
+  if ((options & NSKeyValueObservingOptionNew) &&
+      [[change objectForKey: NSKeyValueChangeKindKey] integerValue]
+        != NSKeyValueChangeRemoval)
+    {
+      // For to-many mutations, we can't get the new values at indexes
+      // that have been deleted.
+      id        rootObject = keypathObserver.object;
+      NSString *keypath = keypathObserver.keypath;
+      id        newValue
+        = _valueForPendingChangeAtIndexes(ctx->object, ctx->key, keypath,
+                                          rootObject, keyObserver, change);
 
-            // Make change Old/New values the entire collection rather than a
-            // to-many change with objectsAtIndexes:
-            [change removeObjectForKey:NSKeyValueChangeIndexesKey];
-          }
-
-        if ((options & NSKeyValueObservingOptionOld)
-            && kind != NSKeyValueChangeInsertion)
-          {
-            // For to-many mutations, we can't get the old values at indexes
-            // that have not yet been inserted.
-            NSString *keypath = keypathObserver.keypath;
-            change[NSKeyValueChangeOldKey]
-              = _valueForPendingChangeAtIndexes(self, key, keypath, rootObject,
-                                                keyObserver, change);
-          }
-
-        keypathObserver.pendingChange = change;
-      });
+      [change setObject: newValue forKey: NSKeyValueChangeNewKey];
     }
 }
 
@@ -1036,25 +1350,8 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
 {
   if ([self observationInfo])
     {
-      _dispatchDidChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        NSMutableDictionary       *change = keypathObserver.pendingChange;
-        if ((options & NSKeyValueObservingOptionNew) &&
-            [change[NSKeyValueChangeKindKey] integerValue]
-              != NSKeyValueChangeRemoval)
-          {
-            // For to-many mutations, we can't get the new values at indexes
-            // that have been deleted.
-            id        rootObject = keypathObserver.object;
-            NSString *keypath = keypathObserver.keypath;
-            id        newValue
-              = _valueForPendingChangeAtIndexes(self, key, keypath, rootObject,
-                                                keyObserver, change);
-
-            change[NSKeyValueChangeNewKey] = newValue;
-          }
-      });
+      struct _kvoIndexedDidContext ctx = { self, key };
+      _dispatchDidChange(self, key, _kvoDidIndexedChange, &ctx);
     }
 }
 
@@ -1063,63 +1360,120 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
 static const NSString *_NSKeyValueChangeOldSetValue
   = @"_NSKeyValueChangeOldSetValue";
 
+struct _kvoSetWillContext
+{
+  NSKeyValueChange		changeKind;
+  NSKeyValueSetMutationKind	mutationKind;
+  NSSet				*objects;
+};
+static void
+_kvoWillSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoSetWillContext *ctx = (struct _kvoSetWillContext *) context;
+  NSMutableDictionary *change =
+    [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInteger: ctx->changeKind]
+                                       forKey:NSKeyValueChangeKindKey];
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  id                         rootObject = keypathObserver.object;
+  NSString                  *keypath = keypathObserver.keypath;
+
+  NSSet *oldValues = [rootObject valueForKeyPath:keypath];
+  if ((options & NSKeyValueObservingOptionOld)
+      && ctx->changeKind != NSKeyValueChangeInsertion)
+    {
+      NSMutableSet *removed = [NSMutableSet set];
+
+      // The old value should only contain values which are removed from
+      // the original collection.
+      switch (ctx->mutationKind)
+        {
+        case NSKeyValueMinusSetMutation:
+          // The only objects which were removed are those both in
+          // oldValues and objects.
+          for (id obj in oldValues)
+            {
+              if ([ctx->objects containsObject:obj])
+                [removed addObject:obj];
+            }
+          break;
+        case NSKeyValueIntersectSetMutation:
+        case NSKeyValueSetSetMutation:
+        default:
+          // The only objects which were removed are those in oldValues
+          // and NOT in objects.
+          for (id obj in oldValues)
+            {
+              if (![ctx->objects member:obj])
+                [removed addObject:obj];
+            }
+          break;
+        }
+      [change setObject: removed forKey: NSKeyValueChangeOldKey];
+    }
+
+  if (options & NSKeyValueObservingOptionNew)
+    {
+      // Save old value in change dictionary for
+      // didChangeValueForKey:withSetMutation:usingObjects: to use for
+      // determining added objects Only needed if observer wants New
+      // value.  A nil value would previously have been a no-op via the
+      // dictionary subscript, so guard it here.
+      NSSet *oldCopy = [[oldValues copy] autorelease];
+
+      if (oldCopy != nil)
+        {
+          [change setObject: oldCopy forKey: _NSKeyValueChangeOldSetValue];
+        }
+    }
+
+  keypathObserver.pendingChange = change;
+}
+
 - (void)willChangeValueForKey: (NSString *)key
               withSetMutation: (NSKeyValueSetMutationKind)mutationKind
                  usingObjects: (NSSet *)objects
 {
   if ([self observationInfo])
     {
-      NSKeyValueChange changeKind = _changeFromSetMutationKind(mutationKind);
-      _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        NSMutableDictionary *change =
-          [NSMutableDictionary dictionaryWithObject:@(changeKind)
-                                             forKey:NSKeyValueChangeKindKey];
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        id                         rootObject = keypathObserver.object;
-        NSString                  *keypath = keypathObserver.keypath;
+      struct _kvoSetWillContext ctx
+        = { _changeFromSetMutationKind(mutationKind), mutationKind, objects };
+      _dispatchWillChange(self, key, _kvoWillSetMutation, &ctx);
+    }
+}
 
-        NSSet *oldValues = [rootObject valueForKeyPath:keypath];
-        if ((options & NSKeyValueObservingOptionOld)
-            && changeKind != NSKeyValueChangeInsertion)
-          {
-            // The old value should only contain values which are removed from
-            // the original dictionary
-            switch (mutationKind)
-              {
-              case NSKeyValueMinusSetMutation:
-                // The only objects which were removed are those both in
-                // oldValues and objects
-                change[NSKeyValueChangeOldKey] =
-                  [oldValues objectsPassingTest:^(id obj, BOOL *stop) {
-                    return [objects containsObject:obj];
-                  }];
-                break;
-              case NSKeyValueIntersectSetMutation:
-              case NSKeyValueSetSetMutation:
-              default:
-                // The only objects which were removed are those in oldValues
-                // and NOT in objects
-                change[NSKeyValueChangeOldKey] =
-                  [oldValues objectsPassingTest:^BOOL(id obj, BOOL *stop) {
-                    return [objects member:obj] ? NO : YES;
-                  }];
-                break;
-              }
-          }
+struct _kvoSetDidContext
+{
+  NSKeyValueSetMutationKind	mutationKind;
+  NSSet				*objects;
+};
+static void
+_kvoDidSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoSetDidContext *ctx = (struct _kvoSetDidContext *) context;
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueChange changeKind = _changeFromSetMutationKind(ctx->mutationKind);
+  NSKeyValueObservingOptions options = keypathObserver.options;
 
-        if (options & NSKeyValueObservingOptionNew)
-          {
-            // Save old value in change dictionary for
-            // didChangeValueForKey:withSetMutation:usingObjects: to use for
-            // determining added objects Only needed if observer wants New
-            // value
-            change[_NSKeyValueChangeOldSetValue] =
-              [[oldValues copy] autorelease];
-          }
+  if ((options & NSKeyValueObservingOptionNew)
+      && changeKind != NSKeyValueChangeRemoval)
+    {
+      // New values only exist for inserting or replacing, not removing
+      NSMutableDictionary *change = keypathObserver.pendingChange;
+      NSSet *oldValues = [change objectForKey: _NSKeyValueChangeOldSetValue];
+      NSMutableSet *added = [NSMutableSet set];
 
-        keypathObserver.pendingChange = change;
-      });
+      // The new value should only contain values which are added to the
+      // original set The only objects added are those in objects but
+      // NOT in oldValues
+      for (id obj in ctx->objects)
+        {
+          if (![oldValues member:obj])
+            [added addObject:obj];
+        }
+
+      [change setObject: added forKey: NSKeyValueChangeNewKey];
+      [change removeObjectForKey:_NSKeyValueChangeOldSetValue];
     }
 }
 
@@ -1129,29 +1483,8 @@ static const NSString *_NSKeyValueChangeOldSetValue
 {
   if ([self observationInfo])
     {
-      _dispatchDidChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueChange changeKind = _changeFromSetMutationKind(mutationKind);
-        NSKeyValueObservingOptions options = keypathObserver.options;
-
-        if ((options & NSKeyValueObservingOptionNew)
-            && changeKind != NSKeyValueChangeRemoval)
-          {
-            // New values only exist for inserting or replacing, not removing
-            NSMutableDictionary *change = keypathObserver.pendingChange;
-            NSSet *oldValues = change[_NSKeyValueChangeOldSetValue];
-            // The new value should only contain values which are added to the
-            // original set The only objects added are those in objects but
-            // NOT in oldValues
-            NSSet *newValue =
-              [objects objectsPassingTest:^BOOL(id obj, BOOL *stop) {
-                return [oldValues member:obj] ? NO : YES;
-              }];
-
-            change[NSKeyValueChangeNewKey] = newValue;
-            [change removeObjectForKey:_NSKeyValueChangeOldSetValue];
-          }
-      });
+      struct _kvoSetDidContext ctx = { mutationKind, objects };
+      _dispatchDidChange(self, key, _kvoDidSetMutation, &ctx);
     }
 }
 @end
@@ -1168,37 +1501,54 @@ NSObject (NSKeyValueObservingPrivate)
   return [self class];
 }
 
+struct _kvoNotifyContext
+{
+  id	oldValue;
+  id	newValue;
+};
+static void
+_kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoNotifyContext *ctx = (struct _kvoNotifyContext *) context;
+  NSMutableDictionary *change =
+    [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInteger: NSKeyValueChangeSetting]
+                                       forKey:NSKeyValueChangeKindKey];
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+
+  if (options & NSKeyValueObservingOptionOld)
+    {
+      [change setObject: (ctx->oldValue ? ctx->oldValue : [NSNull null])
+                 forKey: NSKeyValueChangeOldKey];
+    }
+
+  keypathObserver.pendingChange = change;
+}
+static void
+_kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
+{
+  struct _kvoNotifyContext *ctx = (struct _kvoNotifyContext *) context;
+  _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+  NSKeyValueObservingOptions options = keypathObserver.options;
+  NSMutableDictionary       *change = keypathObserver.pendingChange;
+  if ((options & NSKeyValueObservingOptionNew) &&
+      [[change objectForKey: NSKeyValueChangeKindKey] integerValue]
+        != NSKeyValueChangeRemoval)
+    {
+      [change setObject: (ctx->newValue ? ctx->newValue : [NSNull null])
+                 forKey: NSKeyValueChangeNewKey];
+    }
+}
+
 - (void)_notifyObserversOfChangeForKey: (NSString *)key
                               oldValue: (id)oldValue
                               newValue: (id)newValue
 {
   if ([self observationInfo])
     {
-      _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        NSMutableDictionary *change =
-          [NSMutableDictionary dictionaryWithObject:@(NSKeyValueChangeSetting)
-                                             forKey:NSKeyValueChangeKindKey];
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-
-        if (options & NSKeyValueObservingOptionOld)
-          {
-            change[NSKeyValueChangeOldKey] = oldValue ? oldValue : [NSNull null];
-          }
-
-        keypathObserver.pendingChange = change;
-      });
-      _dispatchDidChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        NSMutableDictionary       *change = keypathObserver.pendingChange;
-        if ((options & NSKeyValueObservingOptionNew) &&
-            [change[NSKeyValueChangeKindKey] integerValue]
-              != NSKeyValueChangeRemoval)
-          {
-            change[NSKeyValueChangeNewKey] = newValue ? newValue : [NSNull null];
-          }
-      });
+      struct _kvoNotifyContext ctx = { oldValue, newValue };
+      _dispatchWillChange(self, key, _kvoWillNotifyChange, &ctx);
+      _dispatchDidChange(self, key, _kvoDidNotifyChange, &ctx);
     }
 }
 
@@ -1231,30 +1581,38 @@ NSArray (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-- (void)addObserver: (id)observer
-  toObjectsAtIndexes: (NSIndexSet *)indexes
-          forKeyPath: (NSString *)keyPath
+- (void) addObserver: (NSObject*)observer
+  toObjectsAtIndexes: (NSIndexSet*)indexes
+          forKeyPath: (NSString*)keyPath
              options: (NSKeyValueObservingOptions)options
-             context: (void *)context
+             context: (void*)context
 {
-  [indexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop) {
-    [[self objectAtIndex:index] addObserver:observer
-                                 forKeyPath:keyPath
-                                    options:options
-                                    context:context];
-  }];
+  NSUInteger index = [indexes firstIndex];
+
+  while (index != NSNotFound)
+    {
+      [[self objectAtIndex:index] addObserver:observer
+                                   forKeyPath:keyPath
+                                      options:options
+                                      context:context];
+      index = [indexes indexGreaterThanIndex:index];
+    }
 }
 
-- (void)removeObserver: (id)observer
-  fromObjectsAtIndexes: (NSIndexSet *)indexes
-            forKeyPath: (NSString *)keyPath
-               context: (void *)context
+- (void) removeObserver: (NSObject*)observer
+   fromObjectsAtIndexes: (NSIndexSet*)indexes
+             forKeyPath: (NSString*)keyPath
+                context: (void*)context
 {
-  [indexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop) {
-    [[self objectAtIndex:index] removeObserver:observer
-                                    forKeyPath:keyPath
-                                       context:context];
-  }];
+  NSUInteger index = [indexes firstIndex];
+
+  while (index != NSNotFound)
+    {
+      [[self objectAtIndex:index] removeObserver:observer
+                                      forKeyPath:keyPath
+                                         context:context];
+      index = [indexes indexGreaterThanIndex:index];
+    }
 }
 
 - (void)removeObserver: (NSObject *)observer

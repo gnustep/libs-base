@@ -84,20 +84,3 @@ static inline void free_string(unichar **buf)
     }
 }
 
-/**
- * Allocates a temporary buffer of the requested size.  This allocates buffers
- * of up to 64 bytes on the stack or more than 64 bytes on the heap.  The
- * buffer is automatically destroyed when it goes out of scope in either case.
- *
- * Buffers created in this way are exception safe when using native exceptions.
- */
-#define TEMP_BUFFER(name, length)\
-  __attribute__((cleanup(free_string))) unichar *name ##_onheap = 0;\
-  unichar name ## _onstack[64];\
-  unichar *name = name ## _onstack;\
-  if (length > 64)\
-    {\
-      name ## _onheap = malloc(length * sizeof(unichar));\
-      name = name ## _onheap;\
-    }
-

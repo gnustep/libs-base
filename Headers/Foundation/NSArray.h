@@ -60,7 +60,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSArray, __covariant ElementT) : NSObject
-  <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
+  <NSCoding, NSSecureCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (instancetype) array;
 + (instancetype) arrayWithArray: (GS_GENERIC_CLASS(NSArray, ElementT) *)array;

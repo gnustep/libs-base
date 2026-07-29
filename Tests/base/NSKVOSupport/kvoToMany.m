@@ -48,8 +48,6 @@
 #define BOXF(V) [NSNumber numberWithFloat: (V)]
 #define BOXI(V) [NSNumber numberWithInteger: (V)]
 
-#if defined(__OBJC2__)
-
 @interface Observee : NSObject
 {
   NSMutableArray *_bareArray;
@@ -67,11 +65,8 @@
 
 @end
 
-typedef void (^ChangeCallback)(NSString *, id, NSDictionary *, void *);
-typedef void (^PerformBlock)(Observee *);
-
-#define CHANGE_CB                                                              \
-  ^(NSString * keyPath, id object, NSDictionary * change, void *context)
+typedef void (*ChangeCallback)(NSString *, id, NSDictionary *, void *);
+typedef void (*PerformBlock)(Observee *);
 
 @implementation Observee
 - (instancetype)init
@@ -295,10 +290,14 @@ typedef void (^PerformBlock)(Observee *);
 @end
 
 @interface TestObserver : NSObject
-@property (nonatomic, strong)
-  NSMutableArray<void (^)(NSString *, id, NSDictionary *, void *)> *callbacks;
-@property (nonatomic) NSUInteger                                    hits;
-@property (nonatomic) NSUInteger callbackIndex;
+{
+  ChangeCallback *_callbacks;
+  NSUInteger      _callbackCount;
+  NSUInteger      _callbackIndex;
+  NSUInteger      _hits;
+}
+- (void)setCallbacks:(ChangeCallback *)callbacks count:(NSUInteger)count;
+- (NSUInteger)hits;
 @end
 
 @implementation TestObserver
@@ -307,28 +306,25 @@ typedef void (^PerformBlock)(Observee *);
   self = [super init];
   if (self)
     {
-      _callbacks = [NSMutableArray new];
+      _callbacks = NULL;
+      _callbackCount = 0;
       _hits = 0;
       _callbackIndex = 0;
     }
   return self;
 }
 
-- (void)dealloc
+- (NSUInteger)hits
 {
-  [_callbacks release];
-  [super dealloc];
+  return _hits;
 }
 
-- (void)performBlock:(void (^)(void))block
-  andExpectChangeCallbacks:
-    (NSArray<void (^)(NSString *, id, NSDictionary *, void *)> *)callbacks
+- (void)setCallbacks:(ChangeCallback *)callbacks count:(NSUInteger)count
 {
-  self.hits = 0;
-  self.callbackIndex = 0;
-  ASSIGN(_callbacks, callbacks);
-
-  block();
+  _callbacks = callbacks;
+  _callbackCount = count;
+  _callbackIndex = 0;
+  _hits = 0;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath
@@ -336,23 +332,27 @@ typedef void (^PerformBlock)(Observee *);
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-  if (self.callbacks.count > 0)
+  if (_callbackCount > 0)
     {
-      void (^callback)(NSString *, id, NSDictionary *, void *)
-        = self.callbacks[_callbackIndex];
-      _callbackIndex = (_callbackIndex + 1) % [_callbacks count];
-      callback(keyPath, object, change, context);
+      _callbacks[_callbackIndex](keyPath, object, change, context);
+      _callbackIndex = (_callbackIndex + 1) % _callbackCount;
     }
-  self.hits++;
+  _hits++;
 }
 @end
 
 @interface                                  TestFacade : NSObject
-@property (nonatomic, strong) Observee     *observee;
-@property (nonatomic, strong) TestObserver *observer;
+{
+  Observee     *_observee;
+  TestObserver *_observer;
+}
+@property (nonatomic, retain) Observee     *observee;
+@property (nonatomic, retain) TestObserver *observer;
 @end
 
 @implementation TestFacade
+@synthesize observee = _observee;
+@synthesize observer = _observer;
 + (instancetype)newWithObservee:(Observee *)observee
 {
   return [[TestFacade alloc] initWithObservee:observee];
@@ -376,40 +376,27 @@ typedef void (^PerformBlock)(Observee *);
   [super dealloc];
 }
 
-- (void)performBlock:(void (^)(Observee *))block
-  andExpectChangeCallbacks:
-    (NSArray<void (^)(NSString *, id, NSDictionary *, void *)> *)callbacks
-{
-  @try
-    {
-      [_observer
-                    performBlock:^{
-                      block(_observee);
-                    }
-        andExpectChangeCallbacks:callbacks];
-    }
-  @catch (NSException *exception)
-    {
-      NSLog(@"Test failed with exception: %@", exception);
-    }
-}
-
 - (void)observeKeyPath:(NSString *)keyPath
-               withOptions:(NSKeyValueObservingOptions)options
-           performingBlock:(void (^)(Observee *))block
-  andExpectChangeCallbacks:
-    (NSArray<void (^)(NSString *, id, NSDictionary *, void *)> *)callbacks
+           withOptions:(NSKeyValueObservingOptions)options
+          performingFn:(PerformBlock)fn
+  andExpectChangeCallbacks:(ChangeCallback *)callbacks
+                     count:(NSUInteger)count
 {
-  [self
-                performBlock:^(Observee *observee) {
-                  [observee addObserver:self.observer
-                             forKeyPath:keyPath
-                                options:options
-                                context:nil];
-                  block(observee);
-                  [observee removeObserver:self.observer forKeyPath:keyPath];
-                }
-    andExpectChangeCallbacks:callbacks];
+  [_observer setCallbacks:callbacks count:count];
+  NS_DURING
+    {
+      [_observee addObserver:_observer
+                  forKeyPath:keyPath
+                     options:options
+                     context:nil];
+      fn(_observee);
+      [_observee removeObserver:_observer forKeyPath:keyPath];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Test failed with exception: %@", localException);
+    }
+  NS_ENDHANDLER
 }
 
 - (NSUInteger)hits
@@ -419,11 +406,17 @@ typedef void (^PerformBlock)(Observee *);
 @end
 
 @interface                                 DummyObject : NSObject
+{
+  NSString    *_name;
+  DummyObject *_sub;
+}
 @property (nonatomic, copy) NSString      *name;
 @property (nonatomic, retain) DummyObject *sub;
 @end
 
 @implementation DummyObject
+@synthesize name = _name;
+@synthesize sub = _sub;
 + (instancetype)makeDummy
 {
   DummyObject *ret = [[DummyObject new] autorelease];
@@ -441,6 +434,24 @@ typedef void (^PerformBlock)(Observee *);
 @end
 
 static void
+bareArray_illegalNotification(NSString *keyPath, id object,
+                              NSDictionary *change, void *context)
+{
+  // Any notification here is illegal.
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "Any notification here is illegal.");
+}
+
+static void
+bareArray_addObject(Observee *observee)
+{
+  [observee addObjectToBareArray:@"hello"];
+}
+
+static void
 ToMany_NoNotificationOnBareArray()
 {
   START_SET("ToMany_NoNotificationOnBareArray");
@@ -449,15 +460,10 @@ ToMany_NoNotificationOnBareArray()
   TestFacade *facade = [TestFacade newWithObservee:observee];
 
   [facade observeKeyPath:@"bareArray"
-                 withOptions:0
-             performingBlock:^(Observee *observee) {
-               [observee addObjectToBareArray:@"hello"];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      ^(NSString *keyPath, id object, NSDictionary *change,
-        void *context) { // Any notification here is illegal.
-        PASS(NO, "Any notification here is illegal.");
-      }, nil]];
+             withOptions:0
+            performingFn:bareArray_addObject
+    andExpectChangeCallbacks:(ChangeCallback[]){bareArray_illegalNotification}
+                       count:1];
   PASS([facade hits] == 0, "No notifications were sent");
 
   [facade release];
@@ -467,76 +473,167 @@ ToMany_NoNotificationOnBareArray()
 }
 
 static void
+notifyingArray_firstInsertCallback(NSString *keyPath, id object,
+                                   NSDictionary *change, void *context)
+{
+  NSIndexSet *indexes;
+
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), [change objectForKey: NSKeyValueChangeKindKey],
+             "firstInsertCallback: Change is an insertion");
+
+  indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
+
+  PASS(indexes != nil, "firstInsertCallback: Indexes are not nil");
+  PASS([indexes firstIndex] == 0, "firstInsertCallback: Index is 0");
+
+  if (![[change objectForKey: NSKeyValueChangeNotificationIsPriorKey] boolValue])
+    {
+      PASS_EQUAL(@"object1", [[change objectForKey: NSKeyValueChangeNewKey] objectAtIndex:0],
+                 "firstInsertCallback: New object is 'object1'");
+    }
+}
+
+static void
+notifyingArray_secondInsertCallback(NSString *keyPath, id object,
+                                    NSDictionary *change, void *context)
+{
+  NSIndexSet *indexes;
+
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  // We should get an add on index 1 of "object2"
+  PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), [change objectForKey: NSKeyValueChangeKindKey],
+             "secondInsertCallback: Change is an insertion");
+
+  indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
+
+  PASS(indexes != nil, "secondInsertCallback: Indexes are not nil");
+  PASS([indexes firstIndex] == 1, "secondInsertCallback: Index is 1");
+
+  if (![[change objectForKey: NSKeyValueChangeNotificationIsPriorKey] boolValue])
+    {
+      PASS_EQUAL(@"object2", [[change objectForKey: NSKeyValueChangeNewKey] objectAtIndex:0],
+                 "secondInsertCallback: New object is 'object2'");
+    }
+}
+
+static void
+notifyingArray_removalCallback(NSString *keyPath, id object,
+                               NSDictionary *change, void *context)
+{
+  NSIndexSet *indexes;
+
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), [change objectForKey: NSKeyValueChangeKindKey],
+             "removalCallback: Change is a removal");
+
+  indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
+
+  PASS(indexes != nil, "removalCallback: Indexes are not nil");
+  PASS([indexes firstIndex] == 0, "removalCallback: Index is 0");
+  if ([[change objectForKey: NSKeyValueChangeNotificationIsPriorKey] boolValue])
+    {
+      PASS_EQUAL(@"object1", [[change objectForKey: NSKeyValueChangeOldKey] objectAtIndex:0],
+                 "removalCallback: Old object is 'object1'");
+    }
+}
+
+static void
+notifyingArray_illegalChangeNotification(NSString *keyPath, id object,
+                                         NSDictionary *change, void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "illegalChangeNotification: was called");
+}
+
+static void
+notifyingArray_initialNotificationCallback(NSString *keyPath, id object,
+                                           NSDictionary *change, void *context)
+{
+  NSArray *expectedArray = [NSArray arrayWithObjects: @"object2", nil];
+
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  PASS_EQUAL(expectedArray, [change objectForKey: NSKeyValueChangeNewKey],
+    "Initial notification: New array is 'object2'");
+  NSLog(@"Initial notification: New array is %@",
+        [change objectForKey: NSKeyValueChangeNewKey]);
+}
+
+static void
+notifyingArray_manualMutation1(Observee *observee)
+{
+  [observee addObjectToManualArray:@"object1"];
+  [observee addObjectToManualArray:@"object2"];
+  [observee removeObjectFromManualArrayIndex:0];
+}
+
+static void
+notifyingArray_manualMutation2(Observee *observee)
+{
+  [observee addObjectToManualArray:@"object1"];
+  [observee addObjectToManualArray:@"object2"];
+  [observee removeObjectFromManualArrayIndex:0];
+}
+
+static void
+notifyingArray_emptyMutation(Observee *observee)
+{
+  (void)observee;
+}
+
+static void
+notifyingArray_kvcMediatedMutation(Observee *observee)
+{
+  // This array is not assisted with setter functions and should go
+  // through the get/mutate/set codepath.
+  NSMutableArray *mediatedVersionOfArray =
+    [observee mutableArrayValueForKey:@"kvcMediatedArray"];
+  [mediatedVersionOfArray addObject:@"object1"];
+  [mediatedVersionOfArray addObject:@"object2"];
+  [mediatedVersionOfArray removeObjectAtIndex:0];
+}
+
+static void
+notifyingArray_helpersMediatedMutation(Observee *observee)
+{
+  // This array is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  NSMutableArray *mediatedVersionOfArray =
+    [observee mutableArrayValueForKey:@"arrayWithHelpers"];
+  [mediatedVersionOfArray addObject:@"object1"];
+  [mediatedVersionOfArray addObject:@"object2"];
+  [mediatedVersionOfArray removeObjectAtIndex:0];
+}
+
+static void
+notifyingArray_helpersManualMutation(Observee *observee)
+{
+  // This array is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  [observee insertObject:@"object1" inArrayWithHelpersAtIndex:0];
+  [observee insertObject:@"object2" inArrayWithHelpersAtIndex:1];
+  [observee removeObjectFromArrayWithHelpersAtIndex:0];
+}
+
+static void
 ToMany_NotifyingArray()
 {
   START_SET("ToMany_NotifyingArray");
-
-  ChangeCallback firstInsertCallback;
-  ChangeCallback secondInsertCallback;
-  ChangeCallback removalCallback;
-  ChangeCallback illegalChangeNotification;
-
-  /* Callback Setup */
-
-  firstInsertCallback = CHANGE_CB
-  {
-    NSIndexSet *indexes;
-
-    PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), change[NSKeyValueChangeKindKey],
-               "firstInsertCallback: Change is an insertion");
-
-    indexes = change[NSKeyValueChangeIndexesKey];
-
-    PASS(indexes != nil, "firstInsertCallback: Indexes are not nil");
-    PASS([indexes firstIndex] == 0, "firstInsertCallback: Index is 0");
-
-    if (![change[NSKeyValueChangeNotificationIsPriorKey] boolValue])
-      {
-        PASS_EQUAL(@"object1", [change[NSKeyValueChangeNewKey] objectAtIndex:0],
-                   "firstInsertCallback: New object is 'object1'");
-      }
-  };
-
-  secondInsertCallback = CHANGE_CB
-  {
-    NSIndexSet *indexes;
-
-    // We should get an add on index 1 of "object2"
-    PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), change[NSKeyValueChangeKindKey],
-               "secondInsertCallback: Change is an insertion");
-
-    indexes = change[NSKeyValueChangeIndexesKey];
-
-    PASS(indexes != nil, "secondInsertCallback: Indexes are not nil");
-    PASS([indexes firstIndex] == 1, "secondInsertCallback: Index is 1");
-
-    if (![change[NSKeyValueChangeNotificationIsPriorKey] boolValue])
-      {
-        PASS_EQUAL(@"object2", [change[NSKeyValueChangeNewKey] objectAtIndex:0],
-                   "secondInsertCallback: New object is 'object2'");
-      }
-  };
-
-  removalCallback = CHANGE_CB
-  {
-    NSIndexSet *indexes;
-
-    PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), change[NSKeyValueChangeKindKey],
-               "removalCallback: Change is a removal");
-
-    indexes = change[NSKeyValueChangeIndexesKey];
-
-    PASS(indexes != nil, "removalCallback: Indexes are not nil");
-    PASS([indexes firstIndex] == 0, "removalCallback: Index is 0");
-    if ([change[NSKeyValueChangeNotificationIsPriorKey] boolValue])
-      {
-        PASS_EQUAL(@"object1", [change[NSKeyValueChangeOldKey] objectAtIndex:0],
-                   "removalCallback: Old object is 'object1'");
-      }
-  };
-
-  illegalChangeNotification
-    = CHANGE_CB{PASS(NO, "illegalChangeNotification: was called")};
 
   /* Testing manually notifiying array (utilizes add and remove meths in
    * Observee) */
@@ -549,16 +646,14 @@ ToMany_NotifyingArray()
 
   // This test expects one change for each key; any more than that is a failure.
   [facade observeKeyPath:@"manualNotificationArray"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               [observee addObjectToManualArray:@"object1"];
-               [observee addObjectToManualArray:@"object2"];
-               [observee removeObjectFromManualArrayIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      firstInsertCallback, secondInsertCallback, removalCallback,
-      illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_manualMutation1
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_firstInsertCallback, notifyingArray_secondInsertCallback,
+      notifyingArray_removalCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:4];
   PASS([facade hits] == 3, "Three notifications were sent");
 
   [facade release];
@@ -569,18 +664,16 @@ ToMany_NotifyingArray()
   // This test expects two change notifications for each key; any more than that
   // is a failure.
   [facade observeKeyPath:@"manualNotificationArray"
-                 withOptions:NSKeyValueObservingOptionPrior
-                             | NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               [observee addObjectToManualArray:@"object1"];
-               [observee addObjectToManualArray:@"object2"];
-               [observee removeObjectFromManualArrayIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      firstInsertCallback, firstInsertCallback, secondInsertCallback,
-      secondInsertCallback, removalCallback, removalCallback,
-      illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionPrior
+                         | NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_manualMutation2
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_firstInsertCallback, notifyingArray_firstInsertCallback,
+      notifyingArray_secondInsertCallback, notifyingArray_secondInsertCallback,
+      notifyingArray_removalCallback, notifyingArray_removalCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:7];
 
   PASS([facade hits] == 6, "Six notifications were sent");
   PASS_EQUAL(([NSArray arrayWithObjects: @"object2", nil]),
@@ -589,41 +682,26 @@ ToMany_NotifyingArray()
 
   // This test expects one change notification: the initial one. Any more than
   // that is a failure.
-  ChangeCallback initialNotificationCallback = CHANGE_CB
-  {
-    NSArray *expectedArray = [NSArray arrayWithObjects: @"object2", nil];
-    PASS_EQUAL(expectedArray, change[NSKeyValueChangeNewKey],
-      "Initial notification: New array is 'object2'");
-    NSLog(@"Initial notification: New array is %@",
-          change[NSKeyValueChangeNewKey]);
-  };
-
   [facade observeKeyPath:@"manualNotificationArray"
-                 withOptions:NSKeyValueObservingOptionInitial
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      initialNotificationCallback, illegalChangeNotification, nil
-    ]];
+             withOptions:NSKeyValueObservingOptionInitial
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_emptyMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_initialNotificationCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:2];
   PASS([facade hits] == 1, "One notification was sent");
 
   /* Testing mediated array */
   [facade observeKeyPath:@"kvcMediatedArray"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is not assisted with setter functions and should go
-               // through the get/mutate/set codepath.
-               NSMutableArray *mediatedVersionOfArray =
-                 [observee mutableArrayValueForKey:@"kvcMediatedArray"];
-               [mediatedVersionOfArray addObject:@"object1"];
-               [mediatedVersionOfArray addObject:@"object2"];
-               [mediatedVersionOfArray removeObjectAtIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      firstInsertCallback, secondInsertCallback, removalCallback,
-      illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_kvcMediatedMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_firstInsertCallback, notifyingArray_secondInsertCallback,
+      notifyingArray_removalCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:4];
   PASS([facade hits] == 3, "Three notifications were sent");
 
   [facade release];
@@ -633,20 +711,14 @@ ToMany_NotifyingArray()
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
   [facade observeKeyPath:@"arrayWithHelpers"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               NSMutableArray *mediatedVersionOfArray =
-                 [observee mutableArrayValueForKey:@"arrayWithHelpers"];
-               [mediatedVersionOfArray addObject:@"object1"];
-               [mediatedVersionOfArray addObject:@"object2"];
-               [mediatedVersionOfArray removeObjectAtIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      firstInsertCallback, secondInsertCallback, removalCallback,
-      illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_helpersMediatedMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_firstInsertCallback, notifyingArray_secondInsertCallback,
+      notifyingArray_removalCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:4];
   PASS([facade hits] == 3, "Three notifications were sent");
 
   [facade release];
@@ -657,18 +729,14 @@ ToMany_NotifyingArray()
   // In this test, we use the same arrayWithHelpers as above, but interact with
   // it manually.
   [facade observeKeyPath:@"arrayWithHelpers"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               [observee insertObject:@"object1" inArrayWithHelpersAtIndex:0];
-               [observee insertObject:@"object2" inArrayWithHelpersAtIndex:1];
-               [observee removeObjectFromArrayWithHelpersAtIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      firstInsertCallback, secondInsertCallback, removalCallback,
-      illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:notifyingArray_helpersManualMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      notifyingArray_firstInsertCallback, notifyingArray_secondInsertCallback,
+      notifyingArray_removalCallback,
+      notifyingArray_illegalChangeNotification}
+                       count:4];
   PASS([facade hits] == 3, "Three notifications were sent");
 
   [facade release];
@@ -678,44 +746,66 @@ ToMany_NotifyingArray()
 }
 
 static void
+kvcAgg_insertCallbackPost(NSString *keyPath, id object, NSDictionary *change,
+                          void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  PASS([change objectForKey: NSKeyValueChangeNotificationIsPriorKey] == nil, "Post change");
+  PASS_EQUAL(BOXI(NSKeyValueChangeSetting), [change objectForKey: NSKeyValueChangeKindKey],
+             "Change is a setting");
+  PASS_EQUAL(BOXI(0), [change objectForKey: NSKeyValueChangeOldKey], "Old value is 0");
+  PASS_EQUAL(BOXI(1), [change objectForKey: NSKeyValueChangeNewKey], "New value is 1");
+
+  NSIndexSet *indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
+  PASS(indexes == nil, "Indexes are nil");
+}
+
+static void
+kvcAgg_illegalChangeNotification(NSString *keyPath, id object,
+                                 NSDictionary *change, void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "illegalChangeNotification");
+}
+
+static void
+kvcAgg_mediatedMutation(Observee *observee)
+{
+  // This array is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  NSMutableArray *mediatedVersionOfArray =
+    [observee mutableArrayValueForKey:@"arrayWithHelpers"];
+  [mediatedVersionOfArray addObject:@"object1"];
+}
+
+static void
+kvcAgg_manualMutation(Observee *observee)
+{
+  // This array is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  [observee insertObject:@"object1" inArrayWithHelpersAtIndex:0];
+}
+
+static void
 ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
 {
   START_SET("ToMany_KVCMediatedArrayWithHelpers_AggregateFunction");
 
-  ChangeCallback insertCallbackPost;
-  ChangeCallback illegalChangeNotification;
-
-  insertCallbackPost = CHANGE_CB
-  {
-    PASS(change[NSKeyValueChangeNotificationIsPriorKey] == nil, "Post change");
-    PASS_EQUAL(BOXI(NSKeyValueChangeSetting), change[NSKeyValueChangeKindKey],
-               "Change is a setting");
-    PASS_EQUAL(BOXI(0), change[NSKeyValueChangeOldKey], "Old value is 0");
-    PASS_EQUAL(BOXI(1), change[NSKeyValueChangeNewKey], "New value is 1");
-
-    NSIndexSet *indexes = change[NSKeyValueChangeIndexesKey];
-    PASS(indexes == nil, "Indexes are nil");
-  };
-
-  illegalChangeNotification = CHANGE_CB
-  {
-    PASS(NO, "illegalChangeNotification");
-  };
-
   Observee   *observee = [Observee new];
   TestFacade *facade = [TestFacade newWithObservee:observee];
   [facade observeKeyPath:@"arrayWithHelpers.@count"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               NSMutableArray *mediatedVersionOfArray =
-                 [observee mutableArrayValueForKey:@"arrayWithHelpers"];
-               [mediatedVersionOfArray addObject:@"object1"];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      insertCallbackPost, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:kvcAgg_mediatedMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      kvcAgg_insertCallbackPost, kvcAgg_illegalChangeNotification}
+                       count:2];
   PASS([facade hits] == 1, "One notification was sent");
 
   [facade release];
@@ -726,15 +816,12 @@ ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
   // In this test, we use the same arrayWithHelpers as above, but interact with
   // it manually.
   [facade observeKeyPath:@"arrayWithHelpers.@count"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               [observee insertObject:@"object1" inArrayWithHelpersAtIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      insertCallbackPost, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:kvcAgg_manualMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      kvcAgg_insertCallbackPost, kvcAgg_illegalChangeNotification}
+                       count:2];
   PASS([facade hits] == 1, "One notification was sent");
 
   [facade release];
@@ -744,48 +831,62 @@ ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
 }
 
 static void
+toOne_insertCallbackPost(NSString *keyPath, id object, NSDictionary *change,
+                         void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+
+  PASS([change objectForKey: NSKeyValueChangeNotificationIsPriorKey] == nil, "Post change");
+  PASS_EQUAL(BOXI(NSKeyValueChangeSetting), [change objectForKey: NSKeyValueChangeKindKey],
+             "Change is a setting");
+  NSArray *expectedOld = [NSArray arrayWithObjects: @"Value", nil];
+  PASS_EQUAL(expectedOld, [change objectForKey: NSKeyValueChangeOldKey],
+             "Old value is correct");
+  NSArray *expectedNew = [NSArray arrayWithObjects: @"Value", @"Value", nil];
+  PASS_EQUAL(expectedNew, [change objectForKey: NSKeyValueChangeNewKey],
+             "New value is correct");
+  NSIndexSet *indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
+  PASS(indexes == nil, "Indexes are nil");
+}
+
+static void
+toOne_illegalChangeNotification(NSString *keyPath, id object,
+                                NSDictionary *change, void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "illegalChangeNotification");
+}
+
+static void
+toOne_insertMutation(Observee *observee)
+{
+  // This array is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  [observee insertObject:[DummyObject makeDummy]
+    inArrayWithHelpersAtIndex:0];
+}
+
+static void
 ToMany_ToOne_ShouldDowngradeForOrderedObservation()
 {
   START_SET("ToMany_ToOne_ShouldDowngradeForOrderedObservation");
-
-  ChangeCallback insertCallbackPost;
-  ChangeCallback illegalChangeNotification;
-
-  insertCallbackPost = CHANGE_CB
-  {
-    PASS(change[NSKeyValueChangeNotificationIsPriorKey] == nil, "Post change");
-    PASS_EQUAL(BOXI(NSKeyValueChangeSetting), change[NSKeyValueChangeKindKey],
-               "Change is a setting");
-    NSArray *expectedOld = [NSArray arrayWithObjects: @"Value", nil];
-    PASS_EQUAL(expectedOld, change[NSKeyValueChangeOldKey],
-               "Old value is correct");
-    NSArray *expectedNew = [NSArray arrayWithObjects: @"Value", @"Value", nil];
-    PASS_EQUAL(expectedNew, change[NSKeyValueChangeNewKey],
-               "New value is correct");
-    NSIndexSet *indexes = change[NSKeyValueChangeIndexesKey];
-    PASS(indexes == nil, "Indexes are nil");
-  };
-
-  illegalChangeNotification = CHANGE_CB
-  {
-    PASS(NO, "illegalChangeNotification");
-  };
 
   Observee *observee = [Observee new];
   [observee insertObject:[DummyObject makeDummy] inArrayWithHelpersAtIndex:0];
 
   TestFacade *facade = [TestFacade newWithObservee:observee];
   [facade observeKeyPath:@"arrayWithHelpers.name"
-                 withOptions:NSKeyValueObservingOptionOld
-                             | NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               // This array is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               [observee insertObject:[DummyObject makeDummy]
-                 inArrayWithHelpersAtIndex:0];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      insertCallbackPost, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionOld
+                         | NSKeyValueObservingOptionNew
+            performingFn:toOne_insertMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      toOne_insertCallbackPost, toOne_illegalChangeNotification}
+                       count:2];
   PASS([facade hits] == 1, "One notification was sent");
 
   [facade release];
@@ -795,23 +896,37 @@ ToMany_ToOne_ShouldDowngradeForOrderedObservation()
 }
 
 static void
+leak_onlyNewCallback(NSString *keyPath, id object, NSDictionary *change,
+                     void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS([change objectForKey: NSKeyValueChangeNewKey] != nil, "New key is not nil");
+  PASS([change objectForKey: NSKeyValueChangeOldKey] == nil, "Old key is nil");
+}
+
+static void
+leak_illegalChangeNotification(NSString *keyPath, id object,
+                               NSDictionary *change, void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "illegalChangeNotification");
+}
+
+static void
+leak_addMutation(Observee *observee)
+{
+  [observee addObjectToManualArray:@"object1"];
+}
+
+static void
 ObserverInformationShouldNotLeak()
 {
   START_SET("ObserverInformationShouldNotLeak");
-
-  ChangeCallback onlyNewCallback;
-  ChangeCallback illegalChangeNotification;
-
-  onlyNewCallback = CHANGE_CB
-  {
-    PASS(change[NSKeyValueChangeNewKey] != nil, "New key is not nil");
-    PASS(change[NSKeyValueChangeOldKey] == nil, "Old key is nil");
-  };
-
-  illegalChangeNotification = CHANGE_CB
-  {
-    PASS(NO, "illegalChangeNotification");
-  };
 
   Observee   *observee = [Observee new];
   TestFacade *firstFacade = [TestFacade newWithObservee:observee];
@@ -823,11 +938,11 @@ ObserverInformationShouldNotLeak()
 
   TestFacade *facade = [TestFacade newWithObservee:observee];
   [facade observeKeyPath:@"manualNotificationArray"
-                 withOptions:NSKeyValueObservingOptionNew
-             performingBlock:^(Observee *observee) {
-               [observee addObjectToManualArray:@"object1"];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects: onlyNewCallback, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionNew
+            performingFn:leak_addMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      leak_onlyNewCallback, leak_illegalChangeNotification}
+                       count:2];
 
   [observee removeObserver:firstFacade.observer
                 forKeyPath:@"manualNotificationArray"];
@@ -841,7 +956,7 @@ ObserverInformationShouldNotLeak()
   END_SET("ObserverInformationShouldNotLeak");
 }
 
-static void
+static void __attribute__((unused))
 NSArrayShouldNotBeObservable()
 {
   START_SET("NSArrayShouldNotBeObservable");
@@ -915,15 +1030,15 @@ NSArrayObserveElements()
 
   // First two elements in range for observation so observer will receive
   // changes
-  [observeeArray[0] addObjectToManualArray:@"object1"];
-  [observeeArray[0] addObjectToManualArray:@"object2"];
+  [[observeeArray objectAtIndex: 0] addObjectToManualArray:@"object1"];
+  [[observeeArray objectAtIndex: 0] addObjectToManualArray:@"object2"];
   PASS([observer hits] == 2, "First two elements in range for observation");
 
-  [observeeArray[1] addObjectToManualArray:@"object1"];
+  [[observeeArray objectAtIndex: 1] addObjectToManualArray:@"object1"];
   PASS([observer hits] == 3, "Second element in range for observation");
 
   // But the third element is not so observer will not receive changes
-  [observeeArray[2] addObjectToManualArray:@"object1"];
+  [[observeeArray objectAtIndex: 2] addObjectToManualArray:@"object1"];
   PASS([observer hits] == 3, "Third element not in range for observation");
 
   PASS_RUNS([observeeArray
@@ -936,11 +1051,11 @@ NSArrayObserveElements()
 
   // Removed observer from first element, so modifying it will not report a
   // change
-  [observeeArray[0] addObjectToManualArray:@"object3"];
+  [[observeeArray objectAtIndex: 0] addObjectToManualArray:@"object3"];
   PASS([observer hits] == 3, "First element observer removed");
 
   // But the second element is still being observed
-  [observeeArray[1] addObjectToManualArray:@"object2"];
+  [[observeeArray objectAtIndex: 1] addObjectToManualArray:@"object2"];
   PASS([observer hits] == 4, "Second element still being observed");
 
   PASS_RUNS([observeeArray
@@ -951,7 +1066,7 @@ NSArrayObserveElements()
                         forKeyPath:@"manualNotificationArray"],
             "remove observer from second element");
 
-  [observeeArray[1] addObjectToManualArray:@"object3"];
+  [[observeeArray objectAtIndex: 1] addObjectToManualArray:@"object3"];
   PASS([observer hits] == 4, "Second element observer removed");
 
   [observer release];
@@ -990,117 +1105,209 @@ NSSetShouldNotBeObservable()
   END_SET("NSSetShouldNotBeObservable");
 }
 
+static BOOL setSetChanged = NO;
+
+static void
+setMut_unionCallback(NSString *keyPath, id object, NSDictionary *change,
+                     void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), [change objectForKey: NSKeyValueChangeKindKey],
+             "Union change is an insertion");
+  NSSet *expected = [NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil];
+  PASS_EQUAL([change objectForKey: NSKeyValueChangeNewKey], expected,
+             "Union new key is correct");
+  PASS([change objectForKey: NSKeyValueChangeOldKey] == nil, "Union old key is nil");
+}
+
+static void
+setMut_minusCallback(NSString *keyPath, id object, NSDictionary *change,
+                     void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS_EQUAL([change objectForKey: NSKeyValueChangeKindKey], BOXI(NSKeyValueChangeRemoval),
+             "Minus change is a removal");
+  PASS_EQUAL([change objectForKey: NSKeyValueChangeOldKey], [NSSet setWithObject:BOXI(1)],
+             "Minus old key is correct");
+  PASS([change objectForKey: NSKeyValueChangeNewKey] == nil, "Minus new key is nil");
+}
+
+static void
+setMut_addCallback(NSString *keyPath, id object, NSDictionary *change,
+                   void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), [change objectForKey: NSKeyValueChangeKindKey],
+             "Add change is an insertion");
+  NSLog(@"Change %@", change);
+  PASS_EQUAL([NSSet setWithObject:BOXI(1)], [change objectForKey: NSKeyValueChangeNewKey],
+             "Add new key is correct");
+  PASS([change objectForKey: NSKeyValueChangeOldKey] == nil, "Add old key is nil");
+}
+
+static void
+setMut_removeCallback(NSString *keyPath, id object, NSDictionary *change,
+                      void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), [change objectForKey: NSKeyValueChangeKindKey],
+             "Remove change is a removal");
+  PASS_EQUAL([NSSet setWithObject:BOXI(1)], [change objectForKey: NSKeyValueChangeOldKey],
+             "Remove old key is correct");
+  PASS([change objectForKey: NSKeyValueChangeNewKey] == nil, "Remove new key is nil");
+}
+
+static void
+setMut_intersectCallback(NSString *keyPath, id object, NSDictionary *change,
+                         void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), [change objectForKey: NSKeyValueChangeKindKey],
+             "Intersect change is a removal");
+  NSSet *expected = [NSSet setWithObject:BOXI(3)];
+  PASS_EQUAL(expected, [change objectForKey: NSKeyValueChangeOldKey],
+             "Intersect old key is correct");
+  PASS([change objectForKey: NSKeyValueChangeNewKey] == nil, "Intersect new key is nil");
+}
+
+static void
+setMut_setCallback(NSString *keyPath, id object, NSDictionary *change,
+                   void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)context;
+  if (setSetChanged)
+    {
+      PASS_EQUAL(BOXI(NSKeyValueChangeReplacement),
+                 [change objectForKey: NSKeyValueChangeKindKey],
+                 "Set change is a replacement");
+      PASS_EQUAL([NSSet setWithObject:BOXI(2)], [change objectForKey: NSKeyValueChangeOldKey],
+                 "Set old key is correct");
+      PASS_EQUAL([NSSet setWithObject:BOXI(3)], [change objectForKey: NSKeyValueChangeNewKey],
+                 "Set new key is correct");
+    }
+  // setXxx method is not automatically swizzled for observation
+  else
+    {
+      PASS_EQUAL(BOXI(NSKeyValueChangeSetting), [change objectForKey: NSKeyValueChangeKindKey],
+                 "Set change is a setting");
+      PASS_EQUAL([NSSet setWithObject:BOXI(3)], [change objectForKey: NSKeyValueChangeOldKey],
+                 "Set old key is correct");
+      PASS_EQUAL([NSSet setWithObject:BOXI(3)], [change objectForKey: NSKeyValueChangeNewKey],
+                 "Set new key is correct");
+    }
+}
+
+static void
+setMut_illegalChangeNotification(NSString *keyPath, id object,
+                                 NSDictionary *change, void *context)
+{
+  (void)keyPath;
+  (void)object;
+  (void)change;
+  (void)context;
+  PASS(NO, "illegalChangeNotification");
+}
+
+static void
+setMut_helpersMutation(Observee *observee)
+{
+  // This set is assisted by setter functions, and should also
+  // dispatch one notification per change.
+  [observee
+    addSetWithHelpers:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
+  [observee removeSetWithHelpers:[NSSet setWithObject:BOXI(1)]];
+  [observee addSetWithHelpersObject:BOXI(1)];
+  [observee removeSetWithHelpersObject:BOXI(1)];
+  [observee intersectSetWithHelpers:[NSSet setWithObject:BOXI(2)]];
+  [observee setSetWithHelpers:[NSSet setWithObject:BOXI(3)]];
+}
+
+static void
+setMut_kvcMediatedMutation(Observee *observee)
+{
+  // Proxy mutable set should dispatch one notification per change
+  // The proxy set is a NSKeyValueIvarMutableSet
+  NSMutableSet *proxySet =
+    [observee mutableSetValueForKey:@"kvcMediatedSet"];
+  [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
+  [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
+  [proxySet addObject:BOXI(1)];
+  [proxySet removeObject:BOXI(1)];
+  [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
+  [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
+}
+
+static void
+setMut_manualMutation(Observee *observee)
+{
+  // Manually should dispatch one notification per change
+  [observee manualUnionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
+  [observee manualMinusSet:[NSSet setWithObject:BOXI(1)]];
+  [observee manualSetAddObject:BOXI(1)];
+  [observee manualSetRemoveObject:BOXI(1)];
+  [observee manualIntersectSet:[NSSet setWithObject:BOXI(2)]];
+  [observee manualSetSet:[NSSet setWithObject:BOXI(3)]];
+}
+
+static void
+setMut_proxyMutation(Observee *observee)
+{
+  // Proxy mutable set should dispatch one notification per change
+  // The proxy set is a NSKeyValueIvarMutableSet
+  NSMutableSet *proxySet =
+    [observee mutableSetValueForKey:@"proxySet"];
+  [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
+  [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
+  [proxySet addObject:BOXI(1)];
+  [proxySet removeObject:BOXI(1)];
+  [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
+  [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
+}
+
+static void
+setMut_proxyRoMutation(Observee *observee)
+{
+  NSMutableSet *proxySet =
+    [observee mutableSetValueForKey:@"proxyRoSet"];
+  [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
+  [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
+  [proxySet addObject:BOXI(1)];
+  [proxySet removeObject:BOXI(1)];
+  [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
+  [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
+}
+
 static void
 NSSetMutationMethods()
 {
   START_SET("NSSetMutationMethods");
 
-  __block BOOL setSetChanged = NO;
-
-  // Union with @({@(1), @(2), @(3)}) to get @({@(1), @(2), @(3)})
-  ChangeCallback unionCallback = CHANGE_CB
-  {
-    PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), change[NSKeyValueChangeKindKey],
-               "Union change is an insertion");
-    NSSet *expected = [NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil];
-    PASS_EQUAL(change[NSKeyValueChangeNewKey], expected,
-               "Union new key is correct");
-    PASS(change[NSKeyValueChangeOldKey] == nil, "Union old key is nil");
-  };
-
-  // Minus with @({@(1)}) to get @({@(2), @(3)})
-  ChangeCallback minusCallback = CHANGE_CB
-  {
-    PASS_EQUAL(change[NSKeyValueChangeKindKey], BOXI(NSKeyValueChangeRemoval),
-               "Minus change is a removal");
-    PASS_EQUAL(change[NSKeyValueChangeOldKey], [NSSet setWithObject:BOXI(1)],
-               "Minus old key is correct");
-    PASS(change[NSKeyValueChangeNewKey] == nil, "Minus new key is nil");
-  };
-
-  // Add @(1) to @({@(2), @(3)}) to get @({@(1), @(2), @(3)})
-  ChangeCallback addCallback = CHANGE_CB
-  {
-    PASS_EQUAL(BOXI(NSKeyValueChangeInsertion), change[NSKeyValueChangeKindKey],
-               "Add change is an insertion");
-    NSLog(@"Change %@", change);
-    PASS_EQUAL([NSSet setWithObject:BOXI(1)], change[NSKeyValueChangeNewKey],
-               "Add new key is correct");
-    PASS(change[NSKeyValueChangeOldKey] == nil, "Add old key is nil");
-  };
-
-  // Remove @(1) from @({@(1), @(2), @(3)}) to get @({@(2), @(3)})
-  ChangeCallback removeCallback = CHANGE_CB
-  {
-    PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), change[NSKeyValueChangeKindKey],
-               "Remove change is a removal");
-    PASS_EQUAL([NSSet setWithObject:BOXI(1)], change[NSKeyValueChangeOldKey],
-               "Remove old key is correct");
-    PASS(change[NSKeyValueChangeNewKey] == nil, "Remove new key is nil");
-  };
-
-  // Intersect with @({@(2)}) to get @({2})
-  ChangeCallback intersectCallback = CHANGE_CB
-  {
-    PASS_EQUAL(BOXI(NSKeyValueChangeRemoval), change[NSKeyValueChangeKindKey],
-               "Intersect change is a removal");
-    NSSet *expected = [NSSet setWithObject:BOXI(3)];
-    PASS_EQUAL(expected, change[NSKeyValueChangeOldKey],
-               "Intersect old key is correct");
-    PASS(change[NSKeyValueChangeNewKey] == nil, "Intersect new key is nil");
-  };
-
-  // Set with @({@(3)}) to get @({@(3)})
-  ChangeCallback setCallback = CHANGE_CB
-  {
-    if (setSetChanged)
-      {
-        PASS_EQUAL(BOXI(NSKeyValueChangeReplacement),
-                   change[NSKeyValueChangeKindKey],
-                   "Set change is a replacement");
-        PASS_EQUAL([NSSet setWithObject:BOXI(2)], change[NSKeyValueChangeOldKey],
-                   "Set old key is correct");
-        PASS_EQUAL([NSSet setWithObject:BOXI(3)], change[NSKeyValueChangeNewKey],
-                   "Set new key is correct");
-      }
-    // setXxx method is not automatically swizzled for observation
-    else
-      {
-        PASS_EQUAL(BOXI(NSKeyValueChangeSetting), change[NSKeyValueChangeKindKey],
-                   "Set change is a setting");
-        PASS_EQUAL([NSSet setWithObject:BOXI(3)], change[NSKeyValueChangeOldKey],
-                   "Set old key is correct");
-        PASS_EQUAL([NSSet setWithObject:BOXI(3)], change[NSKeyValueChangeNewKey],
-                   "Set new key is correct");
-      }
-  };
-
-  ChangeCallback illegalChangeNotification = CHANGE_CB
-  {
-    PASS(NO, "illegalChangeNotification");
-  };
+  setSetChanged = NO;
 
   Observee   *observee = [Observee new];
   TestFacade *facade = [TestFacade newWithObservee:observee];
 
   [facade observeKeyPath:@"setWithHelpers"
-                 withOptions:NSKeyValueObservingOptionNew
-                             | NSKeyValueObservingOptionOld
-             performingBlock:^(Observee *observee) {
-               // This set is assisted by setter functions, and should also
-               // dispatch one notification per change.
-               [observee
-                 addSetWithHelpers:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
-               [observee removeSetWithHelpers:[NSSet setWithObject:BOXI(1)]];
-               [observee addSetWithHelpersObject:BOXI(1)];
-               [observee removeSetWithHelpersObject:BOXI(1)];
-               [observee intersectSetWithHelpers:[NSSet setWithObject:BOXI(2)]];
-               [observee setSetWithHelpers:[NSSet setWithObject:BOXI(3)]];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      unionCallback, minusCallback, addCallback, removeCallback,
-      intersectCallback, setCallback, illegalChangeNotification, nil
-    ]];
+             withOptions:NSKeyValueObservingOptionNew
+                         | NSKeyValueObservingOptionOld
+            performingFn:setMut_helpersMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      setMut_unionCallback, setMut_minusCallback, setMut_addCallback,
+      setMut_removeCallback, setMut_intersectCallback, setMut_setCallback,
+      setMut_illegalChangeNotification}
+                       count:7];
   PASS([facade hits] == 6, "All six notifications were sent (setWithHelpers)");
 
   setSetChanged = YES;
@@ -1112,23 +1319,14 @@ NSSetMutationMethods()
   facade = [TestFacade newWithObservee:observee];
 
   [facade observeKeyPath:@"kvcMediatedSet"
-                 withOptions:NSKeyValueObservingOptionNew
-                             | NSKeyValueObservingOptionOld
-             performingBlock:^(Observee *observee) {
-               // Proxy mutable set should dispatch one notification per change
-               // The proxy set is a NSKeyValueIvarMutableSet
-               NSMutableSet *proxySet =
-                 [observee mutableSetValueForKey:@"kvcMediatedSet"];
-               [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
-               [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
-               [proxySet addObject:BOXI(1)];
-               [proxySet removeObject:BOXI(1)];
-               [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
-               [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      unionCallback, minusCallback, addCallback, removeCallback,
-      intersectCallback, setCallback, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionNew
+                         | NSKeyValueObservingOptionOld
+            performingFn:setMut_kvcMediatedMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      setMut_unionCallback, setMut_minusCallback, setMut_addCallback,
+      setMut_removeCallback, setMut_intersectCallback, setMut_setCallback,
+      setMut_illegalChangeNotification}
+                       count:7];
   PASS([facade hits] == 6, "All six notifications were sent (kvcMediatedSet)");
 
   [observee release];
@@ -1138,64 +1336,42 @@ NSSetMutationMethods()
   facade = [TestFacade newWithObservee:observee];
 
   [facade observeKeyPath:@"manualNotificationSet"
-                 withOptions:NSKeyValueObservingOptionNew
-                             | NSKeyValueObservingOptionOld
-             performingBlock:^(Observee *observee) {
-               // Manually should dispatch one notification per change
-               [observee manualUnionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
-               [observee manualMinusSet:[NSSet setWithObject:BOXI(1)]];
-               [observee manualSetAddObject:BOXI(1)];
-               [observee manualSetRemoveObject:BOXI(1)];
-               [observee manualIntersectSet:[NSSet setWithObject:BOXI(2)]];
-               [observee manualSetSet:[NSSet setWithObject:BOXI(3)]];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      unionCallback, minusCallback, addCallback, removeCallback,
-      intersectCallback, setCallback, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionNew
+                         | NSKeyValueObservingOptionOld
+            performingFn:setMut_manualMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      setMut_unionCallback, setMut_minusCallback, setMut_addCallback,
+      setMut_removeCallback, setMut_intersectCallback, setMut_setCallback,
+      setMut_illegalChangeNotification}
+                       count:7];
   PASS([facade hits] == 6,
        "All six notifications were sent (manualNotificationSet)");
 
   /* Indirect proxy (add<key>Object, etc.) to test
    * NSKeyValueFastMutableSet */
   [facade observeKeyPath:@"proxySet"
-                 withOptions:NSKeyValueObservingOptionNew
-                             | NSKeyValueObservingOptionOld
-             performingBlock:^(Observee *observee) {
-               // Proxy mutable set should dispatch one notification per change
-               // The proxy set is a NSKeyValueIvarMutableSet
-               NSMutableSet *proxySet =
-                 [observee mutableSetValueForKey:@"proxySet"];
-               [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
-               [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
-               [proxySet addObject:BOXI(1)];
-               [proxySet removeObject:BOXI(1)];
-               [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
-               [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      unionCallback, minusCallback, addCallback, removeCallback,
-      intersectCallback, setCallback, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionNew
+                         | NSKeyValueObservingOptionOld
+            performingFn:setMut_proxyMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      setMut_unionCallback, setMut_minusCallback, setMut_addCallback,
+      setMut_removeCallback, setMut_intersectCallback, setMut_setCallback,
+      setMut_illegalChangeNotification}
+                       count:7];
   PASS([facade hits] == 6, "All six notifications were sent (proxySet)");
 
   /* Indirect slow proxy via NSInvocation to test NSKeyValueSlowMutableSet */
   /* Indirect proxy (add<key>Object, etc.) to test
    * NSKeyValueFastMutableSet */
   [facade observeKeyPath:@"proxyRoSet"
-                 withOptions:NSKeyValueObservingOptionNew
-                             | NSKeyValueObservingOptionOld
-             performingBlock:^(Observee *observee) {
-               NSMutableSet *proxySet =
-                 [observee mutableSetValueForKey:@"proxyRoSet"];
-               [proxySet unionSet:[NSSet setWithObjects:BOXI(1), BOXI(2), BOXI(3), nil]];
-               [proxySet minusSet:[NSSet setWithObject:BOXI(1)]];
-               [proxySet addObject:BOXI(1)];
-               [proxySet removeObject:BOXI(1)];
-               [proxySet intersectSet:[NSSet setWithObject:BOXI(2)]];
-               [proxySet setSet:[NSSet setWithObject:BOXI(3)]];
-             }
-    andExpectChangeCallbacks: [NSArray arrayWithObjects:
-      unionCallback, minusCallback, addCallback, removeCallback,
-      intersectCallback, setCallback, illegalChangeNotification, nil]];
+             withOptions:NSKeyValueObservingOptionNew
+                         | NSKeyValueObservingOptionOld
+            performingFn:setMut_proxyRoMutation
+    andExpectChangeCallbacks:(ChangeCallback[]){
+      setMut_unionCallback, setMut_minusCallback, setMut_addCallback,
+      setMut_removeCallback, setMut_intersectCallback, setMut_setCallback,
+      setMut_illegalChangeNotification}
+                       count:7];
   PASS([facade hits] == 6, "All six notifications were sent (proxySet)");
 
   [observee release];
@@ -1227,20 +1403,3 @@ main(int argc, char *argv[])
 
   return 0;
 }
-
-#else
-
-int
-main(int argc, const char *argv[])
-{
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-
-  NSLog(@"This test requires an Objective-C 2.0 runtime and is not supported "
-        @"on this platform.");
-
-  DESTROY(pool);
-
-  return 0;
-}
-
-#endif

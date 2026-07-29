@@ -147,7 +147,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (id) init
 {
-  return [self initWithKind: NSXMLDTDKind options: 0];
+  return [super initWithKind: NSXMLDTDKind options: 0];
 }
 
 - (id) initWithContentsOfURL: (NSURL*)url
@@ -167,24 +167,25 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  NSXMLDocument *tempDoc = 
-    [[NSXMLDocument alloc] initWithData: data
-                                options: mask
-                                  error: error];
-  if (tempDoc != nil)
+  if ((self = [self initWithKind: NSXMLDTDKind options: mask]) != nil)
     {
-      NSArray *children = [tempDoc children];
-      NSEnumerator *enumerator = [children objectEnumerator];
-      NSXMLNode *child;
+      NSXMLDocument *tempDoc = 
+	[[NSXMLDocument alloc] initWithData: data
+				    options: mask
+				      error: error];
+      if (tempDoc != nil)
+	{
+	  NSEnumerator	*enumerator;
+	  NSXMLNode 	*child;
 
-      self = [self initWithKind: NSXMLDTDKind options: mask];
-      
-      while ((child = [enumerator nextObject]) != nil)
-        {
-          [child detach]; // detach from document.
-          [self addChild: child];
-        }
-      [tempDoc release];
+	  enumerator = [[tempDoc children] objectEnumerator];
+	  while ((child = [enumerator nextObject]) != nil)
+	    {
+	      [child detach]; // detach from document.
+	      [self addChild: child];
+	    }
+	  [tempDoc release];
+	}
     }
 
   return self;

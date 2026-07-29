@@ -1637,7 +1637,7 @@ AC_LANG_PUSH(C)
 AC_MSG_CHECKING([for working INTPTR_MAX, INTPTR_MIN, UINTPTR_MAX]);
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([[#include <inttypes.h>]],
-    [[int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;]])],
+    [[long int imax = INTPTR_MAX; long int imin = INTPTR_MIN; unsigned long umax = UINTPTR_MAX;]])],
   have_valid_ptr_limits=yes,
   have_valid_ptr_limits=no);
   if test "$have_valid_ptr_limits" = "yes"; then
@@ -1700,16 +1700,34 @@ if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
   # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
   AC_SEARCH_LIBS(gethostbyname_r, [socket nsl])
 
-  #we check for 6 argument version, 5 argument version exists in the wild but we don't support it
+  # The glibc form takes 6 arguments, returns an int and yields the result
+  # through a struct hostent** parameter.  The Solaris form takes 5 arguments
+  # and returns the struct hostent* directly.
+  gs_gethostbyname_r_args=0
   AC_MSG_CHECKING(for gethostbyname_r with 6 arguments)
   AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM([#include <stdlib.h>
                           #include <netdb.h>],
                          [int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);])],
-         AC_MSG_RESULT(yes)
-         AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has gethostbyname_r with 6 arguments.]),
-         AC_MSG_RESULT(no)
+         [AC_MSG_RESULT(yes)
+          gs_gethostbyname_r_args=6],
+         [AC_MSG_RESULT(no)]
   )
+  if test "$gs_gethostbyname_r_args" = "0"; then
+    AC_MSG_CHECKING(for gethostbyname_r with 5 arguments)
+    AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [struct hostent *r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (int *)NULL);])],
+           [AC_MSG_RESULT(yes)
+            gs_gethostbyname_r_args=5],
+           [AC_MSG_RESULT(no)]
+    )
+  fi
+  if test "$gs_gethostbyname_r_args" != "0"; then
+    AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has a reentrant gethostbyname_r.])
+    AC_DEFINE_UNQUOTED([GS_GETHOSTBYNAME_R_ARGS], $gs_gethostbyname_r_args, [Number of arguments taken by gethostbyname_r (5 or 6).])
+  fi
 fi
 
 if test "x$ac_cv_func_gethostbyname_r" = "xno"; then
@@ -3500,6 +3518,8 @@ if test $enable_xml = yes; then
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
 
+    AC_CHECK_FUNCS(xmlStopParser)
+
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
@@ -3725,11 +3745,16 @@ AC_SUBST(HAVE_ICU)
 #--------------------------------------------------------------------
 
 HAVE_LIBDISPATCH=0
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  blocks=yes
+else
+  blocks=no
+fi
 AC_ARG_ENABLE(libdispatch,
   [AS_HELP_STRING([--disable-libdispatch],
   [Disable dispatching blocks via libdispatch])],
   enable_libdispatch=$enableval,
-  enable_libdispatch=yes)
+  enable_libdispatch=$blocks)
 
 if test $enable_libdispatch = yes; then
   AC_ARG_WITH(dispatch-include,
@@ -3812,19 +3837,10 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 HAVE_NEWKVO=0
 AC_ARG_ENABLE(newkvo,
   [AS_HELP_STRING([--disable-newkvo],
-  [Disable new KVO implementation])],,[
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
-  enable_newkvo=yes
-else
-  enable_newkvo=no
-fi])
+  [Disable new KVO implementation])],,[enable_newkvo=yes])
 if test "x$enable_newkvo" = "xyes"
 then
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    HAVE_NEWKVO=1
-  else
-    echo "You are not using the new runtime ... newkvo not available"
-  fi
+  HAVE_NEWKVO=1
 fi
 AC_SUBST(HAVE_NEWKVO)
 
@@ -3904,7 +3920,7 @@ AC_SUBST(HAVE_LIBCURL)
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBDISPATCH = 1 -a $HAVE_LIBCURL = 1; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
@@ -3920,11 +3936,6 @@ if test $enable_nsurlsession = yes; then
   if test $HAVE_BLOCKS = 0; then
     AC_MSG_ERROR([Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi
-  if test $HAVE_LIBDISPATCH = 0; then
-    AC_MSG_ERROR([Missing libdispatch (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-   fi
-  # Check for dispatch_queue_create_with_target needed for NSURLSession
-  AC_CHECK_FUNCS(dispatch_queue_create_with_target)
   if test $HAVE_LIBCURL = 0; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi

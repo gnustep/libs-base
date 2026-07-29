@@ -84,7 +84,7 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? M->cb.old.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 : (IS_WEAK(M) ? YES : NO))
+ (M->legacy ? 0 : (IS_WEAK(M) ? 1 : 0))
 
 /* NSPointerFunctions provides functions which combine the actions of
  * memory allocation/deallocation with those of assignment, so we make
@@ -629,22 +629,20 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
     }
   if (enumerator->map != 0)		// Got a GSIMapTable enumerator
     {
+      NSConcreteHashTable *map = enumerator->map;
       GSIMapNode    n;
 
       /* The 'map' field is non-null, so this NSHashEnumerator is actually
        * a GSIMapEnumerator.
        */
-      n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-      if (n == 0)
+      while ((n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator)) != 0)
 	{
-	  return 0;
-	}
-      else
-	{
-          NSConcreteHashTable *map = enumerator->map;
+	  void	*v = GSI_MAP_READ_KEY(map, &n->key).ptr;
 
-          return GSI_MAP_READ_KEY(map, &n->key).ptr;
+
+	  return v;
 	}
+      return 0;
     }
   else if (enumerator->node != 0)	// Got an enumerator object
     {
@@ -908,7 +906,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 }
 
 - (BOOL) containsObject: (id)anObject
@@ -923,6 +921,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 	}
     }
   return NO;
+}
+
+- (void) compact
+{
+  GSIMapRemoveWeak(self);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -980,32 +983,35 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 		       capacity: (NSUInteger)initialCapacity
 {
-  legacy = NO;
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      legacy = NO;
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
-    sizeof(self->cb.pf));
+      memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
+	sizeof(self->cb.pf));
 
 #if	GC_WITH_GC
-  if (self->cb.pf.usesWeakReadAndWriteBarriers)
-    {
-      zone = (NSZone*)nodeW;
-    }
-  else
-    {
-      zone = (NSZone*)nodeS;
-    }
+      if (self->cb.pf.usesWeakReadAndWriteBarriers)
+	{
+	  zone = (NSZone*)nodeW;
+	}
+      else
+	{
+	  zone = (NSZone*)nodeS;
+	}
 #endif
-  GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+      GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+    }
   return self;
 }
 
@@ -1025,7 +1031,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
       if (node)
 	{
-	  return node->key.obj;
+	  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 	}
     }
   return nil;
@@ -1085,13 +1091,13 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (id) nextObject
 {
-  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+  GSIMapKey	key;
 
-  if (node == 0)
+  if (GSIMapEnumeratorNext(&enumerator, &key))
     {
-      return nil;
+      return key.obj;
     }
-  return node->key.obj;
+  return nil;
 }
 
 - (void) dealloc

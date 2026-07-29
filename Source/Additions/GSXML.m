@@ -635,10 +635,13 @@ static NSMapTable	*attrNames = 0;
       DESTROY(self);
       return nil;
     }
-  lib = data;
-  _ownsLib = f;
-  ((xmlNodePtr)(lib))->_private = self;
-  ASSIGN(_parent, p);
+  if (nil != (self = [super init]))
+    {
+      lib = data;
+      _ownsLib = f;
+      ((xmlNodePtr)(lib))->_private = self;
+      ASSIGN(_parent, p);
+    }
   return self;
 }
 @end
@@ -1690,15 +1693,18 @@ static NSMapTable	*nodeNames = 0;
  */
 - (id) _initFrom: (void*)data parent: (id)p
 {
-  if (data == NULL)
+  if (nil != (self = [super init]))
     {
-      NSLog(@"%@ - no data for initialization",
-	NSStringFromClass([self class]));
-      DESTROY(self);
-      return nil;
+      if (data == NULL)
+	{
+	  NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
+	  return nil;
+	}
+      lib = data;
+      ASSIGN(_parent, p);
     }
-  lib = data;
-  ASSIGN(_parent, p);
   return self;
 }
 - (void) _setOwnsLib: (BOOL)f
@@ -1968,7 +1974,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 /**
  * If called by a SAX callback routine, this method will terminate
- * the parsiong process.
+ * the parsing process.
  */
 - (void) abortParsing
 {
@@ -1976,12 +1982,16 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       xmlParserCtxtPtr	ctxt = (xmlParserCtxtPtr)lib;
 
+#ifdef	HAVE_XMLSTOPPARSER
+      xmlStopParser(ctxt);
+#else
       // Stop SAX callbacks
       ctxt->disableSAX = 1;
       // Stop incoming data being parsed.
       ctxt->instate = XML_PARSER_EOF;
       // Pretend we are at end of file (nul byte).
       if (ctxt->input != NULL) ctxt->input->cur = (const unsigned char*)"";
+#endif
     }
 }
 
@@ -2082,25 +2092,28 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
-  if (handler == nil)
+  if (nil != (self = [super init]))
     {
-      saxHandler = [GSTreeSAXHandler new];
-    }
-  else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
-    {
-      saxHandler = RETAIN(handler);
-    }
-  else
-    {
-      NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
-      DESTROY(self);
-      return nil;
-    }
-  [saxHandler _setParser: self];
-  if ([self _initLibXML] == NO)
-    {
-      DESTROY(self);
-      return nil;
+      if (handler == nil)
+	{
+	  saxHandler = [GSTreeSAXHandler new];
+	}
+      else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
+	{
+	  saxHandler = RETAIN(handler);
+	}
+      else
+	{
+	  NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
+	  DESTROY(self);
+	  return nil;
+	}
+      [saxHandler _setParser: self];
+      if ([self _initLibXML] == NO)
+	{
+	  DESTROY(self);
+	  return nil;
+	}
     }
   return self;
 }
@@ -2181,8 +2194,10 @@ static NSString	*endMarker = @"At end of incremental parse";
       DESTROY(self);
       return nil;
     }
-  src = [data copy];
-  self = [self initWithSAXHandler: handler];
+  if (nil != (self = [self initWithSAXHandler: handler]))
+    {
+      src = [data copy];
+    }
   return self;
 }
 
@@ -3976,11 +3991,14 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (id) _initWithNativePointer: (xmlXPathObject *)lib
 		      context: (GSXPathContext *)context
 {
-  _lib = lib;
-  /* We RETAIN our context because we might be holding references to nodes
-   * which belong to the document, and we must make sure the document is
-   * not freed before we are.  */
-  ASSIGN (_context, context);
+  if (nil != (self = [super init]))
+    {
+      _lib = lib;
+      /* We RETAIN our context because we might be holding references to nodes
+       * which belong to the document, and we must make sure the document is
+       * not freed before we are.  */
+      ASSIGN (_context, context);
+    }
   return self;
 }
 
@@ -4165,10 +4183,12 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (id) initWithDocument: (GSXMLDocument *)d
 {
-  ASSIGN (_document, d);
-  _lib = xmlXPathNewContext ([_document lib]);
-  ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
-
+  if (nil != (self = [super init]))
+    {
+      ASSIGN (_document, d);
+      _lib = xmlXPathNewContext ([_document lib]);
+      ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
+    }
   return self;
 }
 

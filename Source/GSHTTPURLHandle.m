@@ -1607,8 +1607,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) _tryLoadInBackground: (NSURL*)fromURL
 {
   NSNotificationCenter	*nc;
-  NSString		*host = nil;
-  NSString		*port = nil;
+  NSString		*host;
+  NSString		*port;
   NSString		*s;
 
   /*
@@ -1645,20 +1645,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   host = [u host];
-  port = (id)[u port];
-  if (port != nil)
+  if ([u port])
     {
-      port = [NSString stringWithFormat: @"%u", [port intValue]];
+      port = [NSString stringWithFormat: @"%u", (unsigned)[[u port] intValue]];
     }
-  else
-    {
-      port = [u scheme];
-    }
-  if ([port isEqualToString: @"https"])
+  else if ([[u scheme] isEqualToString: @"https"])
     {
       port = @"443";
     }
-  else if ([port isEqualToString: @"http"])
+  else
     {
       port = @"80";
     }

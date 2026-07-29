@@ -5,7 +5,7 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 -->
-<gsdoc base="Functions" up="Base">
+<gsdoc base="Functions" up="{Project}">
   <head>
     <title>Functions</title>
     <author name="Richard Frith-Macdonald"></author>

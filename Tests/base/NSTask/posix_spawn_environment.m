@@ -126,6 +126,14 @@ int main()
                     forKey: @"LD_LIBRARY_PATH"];
     }
 #endif
+  /* If running with LSAN we need to pass leak suppression or the process may
+   * crash with a spurious leak report.
+   */
+  if ([env objectForKey: @"LSAN_OPTIONS"] != nil)
+    {
+      [customEnv setObject: [env objectForKey: @"LSAN_OPTIONS"]
+                    forKey: @"LSAN_OPTIONS"];
+    }
   
   task = [[NSTask alloc] init];
   [task setLaunchPath: [helpers stringByAppendingPathComponent: testenvvar]];
@@ -151,6 +159,14 @@ int main()
     {
       [customEnv setObject: [env objectForKey: @"LD_LIBRARY_PATH"]
                     forKey: @"LD_LIBRARY_PATH"];
+    }
+  /* If running with LSAN we need to pass leak suppression or the process may
+   * crash with a spurious leak report.
+   */
+  if ([env objectForKey: @"LSAN_OPTIONS"] != nil)
+    {
+      [customEnv setObject: [env objectForKey: @"LSAN_OPTIONS"]
+                    forKey: @"LSAN_OPTIONS"];
     }
   
   task = [[NSTask alloc] init];

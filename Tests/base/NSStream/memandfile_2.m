@@ -144,7 +144,7 @@ int main()
   NSString *pathO = @"temp";
   NSInputStream *input2 = [NSInputStream inputStreamWithData: goldData];
   NSOutputStream *output2 = [NSOutputStream outputStreamToFileAtPath: pathO append: NO];
-  Listener1 *l2 = [[Listener2 new] autorelease];
+  Listener1 *l2 = (Listener1*)[[Listener2 new] autorelease];
 
   [output2 setDelegate: l2];
   [output2 scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];

@@ -112,11 +112,11 @@ static	NSIndexPath	*dummy = nil;
 	{
 	  if (pos >= _length)
 	    {
-	      return NSOrderedDescending;
+	      return NSOrderedAscending;
 	    }
 	  else if (pos >= olength)
 	    {
-	      return NSOrderedAscending;
+	      return NSOrderedDescending;
 	    }
 	  if (oindexes[pos] < _indexes[pos])
 	    {

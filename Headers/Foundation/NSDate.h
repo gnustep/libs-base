@@ -56,7 +56,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 @class NSTimeZoneDetail;
 
 GS_EXPORT_CLASS
-@interface NSDate : NSObject <NSCoding,NSCopying>
+@interface NSDate : NSObject <NSCoding, NSSecureCoding, NSCopying>
 {
 }
 

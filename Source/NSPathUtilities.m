@@ -79,6 +79,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+static NSString	*debugKey = @"NSPathUtilities";
+
 NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
 
 void GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
@@ -221,10 +223,21 @@ static NSString *gnustepUserDirDocumentation = nil;
 static NSString *gnustepUserDirDocumentationInfo = nil;
 static NSString *gnustepUserDirDocumentationMan = nil;
 
+static NSString *gnustepUserDesktop = @"Desktop";
+static NSString *gnustepUserDocuments = @"Documents";
+static NSString *gnustepUserDownloads = @"Downloads";
+static NSString *gnustepUserMusic = @"Music";
+static NSString *gnustepUserPictures = @"Images";
+static NSString *gnustepUserProjects = @"Projects";
+static NSString *gnustepUserPublicShare = @"Public";
+static NSString *gnustepUserTemplates = @"Templates";
+static NSString *gnustepUserVideos = @"Videos";
+  
 static NSString	*uninstalled = nil;
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
   NSString *userName);
+static NSMutableDictionary *UserDirsParseXDG();
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
@@ -395,8 +408,23 @@ getPathConfig(NSDictionary *dict, NSString *key)
   path = [dict objectForKey: key];
   if (path != nil)
     {
+      NSString	*orig = path;
+
       path = getPath(path);
-      if ([path isAbsolutePath] == NO)
+      if ([path isAbsolutePath])
+	{
+	  if (GSDebugSet(debugKey))
+	    {
+	      fprintf(stderr, "Configured path for '%s' is '%s'.\n",
+		[key UTF8String], [orig UTF8String]);
+	      if (path != orig)
+		{
+		  fprintf(stderr, "  Resolved relative to '%s' as '%s'.\n",
+		    [gnustepConfigPath UTF8String], [path UTF8String]);
+		}
+	    }
+	}
+      else
 	{
 	  fprintf(stderr, "GNUstep configuration file entry '%s' ('%s') is not "
 	    "an absolute path.\nPlease fix your configuration file.\n",
@@ -425,10 +453,12 @@ getPathConfig(NSDictionary *dict, NSString *key)
   return path;
 }
 
-static void ExtractValuesFromConfig(NSDictionary *config)
+static void
+ExtractValuesFromConfig(NSDictionary *config)
 {
   NSMutableDictionary	*c = [config mutableCopy];
   BOOL			createLibraryPath;
+  NSMutableDictionary	*xdg;
   id		        extra;
 
   /*
@@ -573,6 +603,29 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     @"GNUSTEP_USER_DIR_DOC_INFO");
   TEST_ASSIGN(gnustepUserDirDocumentationInfo,
     @GNUSTEP_TARGET_USER_DIR_DOC_INFO);
+
+  /* Check for user subdirectories.  Ones from the GNUstep file are added
+   * second, so they override the XDG ones.
+   */
+  xdg = UserDirsParseXDG();
+  ASSIGN_IF_SET(gnustepUserDesktop, xdg, @"XDG_DESKTOP_DIR");
+  ASSIGN_IF_SET(gnustepUserDesktop, c, @"GNUSTEP_DESKTOP_DIR");
+  ASSIGN_IF_SET(gnustepUserDocuments, xdg, @"XDG_DOCUMENTS_DIR");
+  ASSIGN_IF_SET(gnustepUserDocuments, c, @"GNUSTEP_DOCUMENTS_DIR");
+  ASSIGN_IF_SET(gnustepUserDownloads, xdg, @"XDG_DOWNLOAD_DIR");
+  ASSIGN_IF_SET(gnustepUserDownloads, c, @"GNUSTEP_DOWNLOAD_DIR");
+  ASSIGN_IF_SET(gnustepUserMusic, xdg, @"XDG_MUSIC_DIR");
+  ASSIGN_IF_SET(gnustepUserMusic, c, @"GNUSTEP_MUSIC_DIR");
+  ASSIGN_IF_SET(gnustepUserPictures, xdg, @"XDG_PICTURES_DIR");
+  ASSIGN_IF_SET(gnustepUserPictures, c, @"GNUSTEP_PICTURES_DIR");
+  ASSIGN_IF_SET(gnustepUserProjects, xdg, @"XDG_PROJECTS_DIR");
+  ASSIGN_IF_SET(gnustepUserProjects, c, @"GNUSTEP_PROJECTS_DIR");
+  ASSIGN_IF_SET(gnustepUserPublicShare, xdg, @"XDG_PUBLICSHARE_DIR");
+  ASSIGN_IF_SET(gnustepUserPublicShare, c, @"GNUSTEP_PUBLICSHARE_DIR");
+  ASSIGN_IF_SET(gnustepUserTemplates, xdg, @"XDG_TEMPLATES_DIR");
+  ASSIGN_IF_SET(gnustepUserTemplates, c, @"GNUSTEP_TEMPLATES_DIR");
+  ASSIGN_IF_SET(gnustepUserVideos, xdg, @"XDG_VIDEOS_DIR");
+  ASSIGN_IF_SET(gnustepUserVideos, c, @"GNUSTEP_VIDEOS_DIR");
 
   /*
    * The GNUSTEP_EXTRA field may contain a list of extra keys which
@@ -942,10 +995,11 @@ GNUstepConfig(NSDictionary *newConfig)
     {
       NS_DURING
 	{
+	  NSString	*path;
+
 	  if (newConfig == nil)
 	    {
 	      NSString		*file = nil;
-	      NSString		*path;
 	      NSEnumerator	*e;
 	      NSString      	*defs;
 	      BOOL		fromEnvironment = YES;
@@ -954,14 +1008,38 @@ GNUstepConfig(NSDictionary *newConfig)
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
 	      /* Now we source the configuration file if it exists */
-#if	!OPTION_NO_ENVIRONMENT
 	      file = [[[NSProcessInfo processInfo] environment]
 		objectForKey: @"GNUSTEP_CONFIG_FILE"];
+	      if (file)
+		{
+#if	OPTION_NO_ENVIRONMENT
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Ignored '%s' (from GNUSTEP_CONFIG_FILE"
+			" environment variable) because gnustep-base was"
+			" configured/built with OPTION_NO_ENVIRONMENT.\n",
+			[file UTF8String]);
+		    }
+		  file = nil;
+#else
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Using '%s' (from GNUSTEP_CONFIG_FILE"
+			" environment variable) as configuration file.\n",
+			[file UTF8String]);
+		    }
 #endif
+		}
 	      if (file == nil)
 		{
 		  fromEnvironment = NO;
 		  file = @GNUSTEP_TARGET_CONFIG_FILE;
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Using '%s' (configure/build time default"
+			" for gnustep-base) as configuration file.\n",
+			[file UTF8String]);
+		    }
 		}
 
 	      /*
@@ -981,11 +1059,16 @@ GNUstepConfig(NSDictionary *newConfig)
 	      if ([file hasPrefix: @"./"] == YES
 	        || [file hasPrefix: @"../"] == YES)
 		{
-		  Class		c = [NSProcessInfo class];
-
-		  path = GSPrivateSymbolPath(c);
+		  path = GSPrivateSymbolPath([NSProcessInfo class]);
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config file location is relative."
+			" Forming absolute path from gnustep-base library"
+			" location '%s' with '%s'.\n",
+			[path UTF8String], [file UTF8String]);
+		    }
                   if ([file hasPrefix: @"./"] == YES)
                     {
                       file = [file substringFromIndex: 2];
@@ -1030,17 +1113,34 @@ GNUstepConfig(NSDictionary *newConfig)
 #endif
 		}
 
-	      if (bareDirectory == YES)
+	      if (bareDirectory)
 		{
 		  /* Set the directory name, but don't try to read file.
 		   */
 		  gnustepConfigPath = RETAIN(file);
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config base path '%s' with no config"
+			" file to read.\n", [file UTF8String]);
+		    }
 		}
 	      else
 		{
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
-		  ParseConfigurationFile(file, conf, nil);
+		  if (GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Config base path '%s' with master"
+			" config file '%s' to read.\n",
+			[gnustepConfigPath UTF8String],
+			[[file lastPathComponent] UTF8String]);
+		    }
+		  if (ParseConfigurationFile(file, conf, nil)
+		    && GSDebugSet(debugKey))
+		    {
+		      fprintf(stderr, "Configuration contained '%s'\n",
+			[[conf descriptionInStringsFileFormat] UTF8String]);
+		    }
 		}
 
 	      /* Merge in any values from property lists in the
@@ -1067,15 +1167,36 @@ GNUstepConfig(NSDictionary *newConfig)
 	  else
 	    {
 	      conf = [newConfig mutableCopy];
+
+	      /* As config came from the program rather than a file
+	       * we use the path to the executable as config path.
+	       */
+	      path = GSPrivateExecutablePath();
+	      path = [path stringByDeletingLastPathComponent];
+	      ASSIGN(gnustepConfigPath, path);
 	    }
+
 	  /* System admins may force the user and defaults paths by
 	   * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
 	   * If they simply don't define it at all, we assign a default.
 	   */
-	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
+	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"])
+	    {
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "Using GNUSTEP_USER_CONFIG_FILE"
+		    " from master config file.\n");
+		}
+	    }
+	  else
 	    {
 	      [conf setObject: @GNUSTEP_TARGET_USER_CONFIG_FILE
 		       forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "Using GNUSTEP_USER_CONFIG_FILE"
+		    " (configure/build time default for gnustep-base)\n");
+		}
 	    }
 	  if (config != nil)
 	    {
@@ -1130,23 +1251,37 @@ GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 
   if (userName != nil)
     {
-      NSString		*file;
-      NSString		*home;
-      NSString		*path;
+      NSString			*file;
+      NSString			*home;
+      NSString			*path;
+      NSMutableDictionary	*dict;
 
-      file = RETAIN([config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
+      file = [config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
       if ([file length] > 0)
 	{
 	  home = NSHomeDirectoryForUser(userName);
 	  path = [home stringByAppendingPathComponent: file];
-	  ParseConfigurationFile(path, config, userName);
+	  if (GSDebugSet(debugKey))
+	    {
+	      fprintf(stderr, "Trying user config from '%s' in '%s'\n",
+		[file UTF8String], [home UTF8String]);
+	    }
+	  dict = [NSMutableDictionary new];
+	  if (ParseConfigurationFile(path, dict, userName))
+	    {
+	      /* Don't let the user file override the GNUSTEP_USER_CONFIG_FILE
+	       * variable ... that would be silly/pointless.
+	       */
+	      [dict removeObjectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	      [config addEntriesFromDictionary: dict];
+	      if (GSDebugSet(debugKey))
+		{
+		  fprintf(stderr, "User configuration contained '%s'\n",
+		    [[dict descriptionInStringsFileFormat] UTF8String]);
+		}
+	    }
+	  RELEASE(dict);
 	}
-      /*
-       * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
-       * variable ... that would be silly/pointless.
-       */
-      [config setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
-      RELEASE(file);
     }
 }
 
@@ -1347,6 +1482,10 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
+      if (GSDebugSet(debugKey))
+	{
+	  fprintf(stderr, "No readable file at '%s'\n", [fileName UTF8String]);
+	}
       return NO;
     }
 
@@ -1616,6 +1755,66 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   return YES;
 }
 
+/* Get the contents of the XDG specification of well-known subdirectory
+ * names if available.
+ */
+static NSMutableDictionary *
+UserDirsParseXDG()
+{
+  NSMutableDictionary	*info;
+  NSArray		*keys;
+  NSString		*fileName;
+  NSString		*userName;
+  NSString		*home;
+
+  /* For XDG let the standard environment variable take precedence over
+   * GNUstep specific rules.
+   */
+  if (nil == (home = [[[NSProcessInfo processInfo] environment]
+    objectForKey: @"HOME"]))
+    {
+      home = NSHomeDirectory();
+    }
+  fileName = [home stringByAppendingPathComponent: @".config"];
+  fileName = [fileName stringByAppendingPathComponent: @"user-dirs.dirs"];
+
+  /* Use ParseConfigurationFile() to check that the XDG config is safe and
+   * to extract the key/value pairs from it.
+   */
+  userName = NSUserName();
+  info = [NSMutableDictionary dictionary];
+  if (NO == ParseConfigurationFile(fileName, info, userName))
+    {
+      [info removeAllObjects];
+    }
+
+  /* Now map XDG name/value pairs to GNUstep names with absolute
+   * strings as dictionaries.
+   */
+  keys = [info allKeys];
+  GS_FOR_IN(NSString*, key, keys)
+  if ([key hasPrefix: @"XDG_"] && [key hasSuffix: @"_DIR"])
+    {
+      NSString	*value = [info objectForKey: key];
+
+      if ([value isEqualToString: @"$HOME"])
+	{
+	  value = home;
+	}
+      else if ([value hasPrefix: @"$HOME/"])
+	{
+	  value = [home stringByAppendingPathComponent:
+	    [value substringFromIndex: 6]];
+	}
+      [info setObject: value forKey: key];
+    }
+  else
+    {
+      [info removeObjectForKey: key];
+    }
+  GS_END_FOR(keys)
+  return info;
+}
 
 /* See NSPathUtilities.h for description */
 GS_DECLARE void
@@ -2271,7 +2470,8 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 #define ADD_PATH(mask, base_dir, add_dir) \
 if (domainMask & mask) \
 { \
-  path = [base_dir stringByAppendingPathComponent: add_dir]; \
+  if ([add_dir isAbsolutePath]) path = add_dir; \
+  else path = [base_dir stringByAppendingPathComponent: add_dir]; \
   if ([path length] > 0 && [paths containsObject: path] == NO) \
     [paths addObject: path]; \
 }
@@ -2530,14 +2730,14 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	   * verified on Macintosh
 	   * despite the name it is Documents and not Document....
 	   */
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Documents");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDocuments);
 	}
 	break;
 
       case NSDownloadsDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Downloads");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDownloads);
 	}
 	break;
 	
@@ -2550,21 +2750,21 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSMoviesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Videos");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserVideos);
 	}
 	break;
 
       case NSMusicDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Music");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserMusic);
 	}
 	break;
 
       case NSPicturesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Images");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPictures);
 	}
 	break;
 
@@ -2576,7 +2776,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
       case NSSharedPublicDirectory:
 	{
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Public");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPublicShare);
 	}
 	break;
 
