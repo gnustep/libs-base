@@ -105,6 +105,48 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @interface GSNotCompoundPredicate : NSCompoundPredicate
 @end
 
+/* The comparison a predicate makes is archived as an object of its own, as
+ * OS X archives it, with a class for each family of operators.  It exists
+ * for archiving alone and holds what the predicate holds.
+ */
+@interface GSPredicateOperator : NSObject
+{
+  @public
+  NSPredicateOperatorType	_type;
+  NSComparisonPredicateModifier	_modifier;
+  NSUInteger			_options;
+  SEL				_selector;
+}
++ (id) operatorForType: (NSPredicateOperatorType)type
+	      modifier: (NSComparisonPredicateModifier)modifier
+	       options: (NSUInteger)options
+	      selector: (SEL)selector;
+@end
+
+@interface GSComparisonPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSEqualityPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSMatchingPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSLikePredicateOperator : GSPredicateOperator
+@end
+
+@interface GSSubstringPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSInPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSBetweenPredicateOperator : GSPredicateOperator
+@end
+
+@interface GSCustomPredicateOperator : GSPredicateOperator
+@end
+
 @interface NSExpression (Private)
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables;
 @end
@@ -214,6 +256,58 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 #endif
 
 @implementation NSPredicate
+
++ (void) initialize
+{
+  if (self == [NSPredicate class])
+    {
+      /* An archive names a predicate and the comparison it makes the way
+       * OS X does, so that one written here can be read there and the other
+       * way about.
+       */
+      [NSKeyedArchiver setClassName: @"NSTruePredicate"
+			   forClass: [GSTruePredicate class]];
+      [NSKeyedArchiver setClassName: @"NSFalsePredicate"
+			   forClass: [GSFalsePredicate class]];
+      [NSKeyedArchiver setClassName: @"NSComparisonPredicateOperator"
+			   forClass: [GSComparisonPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSEqualityPredicateOperator"
+			   forClass: [GSEqualityPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSMatchingPredicateOperator"
+			   forClass: [GSMatchingPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSLikePredicateOperator"
+			   forClass: [GSLikePredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSSubstringPredicateOperator"
+			   forClass: [GSSubstringPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSInPredicateOperator"
+			   forClass: [GSInPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSBetweenPredicateOperator"
+			   forClass: [GSBetweenPredicateOperator class]];
+      [NSKeyedArchiver setClassName: @"NSCustomPredicateOperator"
+			   forClass: [GSCustomPredicateOperator class]];
+
+      [NSKeyedUnarchiver setClass: [GSTruePredicate class]
+		     forClassName: @"NSTruePredicate"];
+      [NSKeyedUnarchiver setClass: [GSFalsePredicate class]
+		     forClassName: @"NSFalsePredicate"];
+      [NSKeyedUnarchiver setClass: [GSComparisonPredicateOperator class]
+		     forClassName: @"NSComparisonPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSEqualityPredicateOperator class]
+		     forClassName: @"NSEqualityPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSMatchingPredicateOperator class]
+		     forClassName: @"NSMatchingPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSLikePredicateOperator class]
+		     forClassName: @"NSLikePredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSSubstringPredicateOperator class]
+		     forClassName: @"NSSubstringPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSInPredicateOperator class]
+		     forClassName: @"NSInPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSBetweenPredicateOperator class]
+		     forClassName: @"NSBetweenPredicateOperator"];
+      [NSKeyedUnarchiver setClass: [GSCustomPredicateOperator class]
+		     forClassName: @"NSCustomPredicateOperator"];
+    }
+}
 
 + (NSPredicate *) predicateWithFormat: (NSString *) format, ...
 {
@@ -473,6 +567,23 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return @"TRUEPREDICATE";
 }
 
+/* A predicate of a fixed value holds nothing, so the class it is archived
+ * under is all there is to write.
+ */
+- (Class) classForCoder
+{
+  return [self class];
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  return self;
+}
+
 @end
 
 @implementation GSFalsePredicate
@@ -500,6 +611,20 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 - (NSString *) predicateFormat
 {
   return @"FALSEPREDICATE";
+}
+
+- (Class) classForCoder
+{
+  return [self class];
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  return self;
 }
 
 @end
@@ -636,15 +761,41 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  // FIXME
-  [self subclassResponsibility: _cmd];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: (int)_type forKey: @"NSCompoundPredicateType"];
+      [coder encodeObject: _subs forKey: @"NSSubpredicates"];
+    }
+  else
+    {
+      int	type = (int)_type;
+
+      [coder encodeValueOfObjCType: @encode(int) at: &type];
+      [coder encodeObject: _subs];
+    }
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  // FIXME
-  [self subclassResponsibility: _cmd];
-  return self;
+  NSCompoundPredicateType	type;
+  NSArray			*subs;
+
+  if ([coder allowsKeyedCoding])
+    {
+      type = (NSCompoundPredicateType)
+	[coder decodeIntForKey: @"NSCompoundPredicateType"];
+      subs = [coder decodeObjectForKey: @"NSSubpredicates"];
+    }
+  else
+    {
+      int	t;
+
+      [coder decodeValueOfObjCType: @encode(int) at: &t];
+      type = (NSCompoundPredicateType)t;
+      subs = [coder decodeObject];
+    }
+
+  return [self initWithType: type subpredicates: subs];
 }
 
 @end
@@ -774,6 +925,190 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return [NSString stringWithFormat: @"NOT %@", [sub predicateFormat]];
 }
 
+@end
+
+@implementation GSPredicateOperator
+
++ (id) operatorForType: (NSPredicateOperatorType)type
+	      modifier: (NSComparisonPredicateModifier)modifier
+	       options: (NSUInteger)options
+	      selector: (SEL)selector
+{
+  GSPredicateOperator	*op;
+  Class			c;
+
+  switch (type)
+    {
+      case NSLessThanPredicateOperatorType:
+      case NSLessThanOrEqualToPredicateOperatorType:
+      case NSGreaterThanPredicateOperatorType:
+      case NSGreaterThanOrEqualToPredicateOperatorType:
+	c = [GSComparisonPredicateOperator class];
+	break;
+      case NSEqualToPredicateOperatorType:
+      case NSNotEqualToPredicateOperatorType:
+	c = [GSEqualityPredicateOperator class];
+	break;
+      case NSMatchesPredicateOperatorType:
+	c = [GSMatchingPredicateOperator class];
+	break;
+      case NSLikePredicateOperatorType:
+	c = [GSLikePredicateOperator class];
+	break;
+      case NSBeginsWithPredicateOperatorType:
+      case NSEndsWithPredicateOperatorType:
+	c = [GSSubstringPredicateOperator class];
+	break;
+      case NSInPredicateOperatorType:
+      case NSContainsPredicateOperatorType:
+	c = [GSInPredicateOperator class];
+	break;
+      case NSBetweenPredicateOperatorType:
+	c = [GSBetweenPredicateOperator class];
+	break;
+      case NSCustomSelectorPredicateOperatorType:
+	c = [GSCustomPredicateOperator class];
+	break;
+      default:
+	c = [GSPredicateOperator class];
+	break;
+    }
+
+  op = [[c alloc] init];
+  op->_type = type;
+  op->_modifier = modifier;
+  op->_options = options;
+  op->_selector = selector;
+  return AUTORELEASE(op);
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if (NO == [coder allowsKeyedCoding])
+    {
+      int	type = (int)_type;
+      int	modifier = (int)_modifier;
+      int	options = (int)_options;
+
+      [coder encodeValueOfObjCType: @encode(int) at: &type];
+      [coder encodeValueOfObjCType: @encode(int) at: &modifier];
+      [coder encodeValueOfObjCType: @encode(int) at: &options];
+      return;
+    }
+
+  [coder encodeInt: (int)_modifier forKey: @"NSModifier"];
+  [coder encodeInt: (int)_type forKey: @"NSOperatorType"];
+
+  /* What else is written depends on the family the operator belongs to,
+   * as it does on OS X.
+   */
+  switch (_type)
+    {
+      case NSLessThanPredicateOperatorType:
+      case NSLessThanOrEqualToPredicateOperatorType:
+      case NSGreaterThanPredicateOperatorType:
+      case NSGreaterThanOrEqualToPredicateOperatorType:
+	[coder encodeInt: (int)_options forKey: @"NSOptions"];
+	[coder encodeInt: 0 forKey: @"NSVariant"];
+	break;
+      case NSEqualToPredicateOperatorType:
+      case NSNotEqualToPredicateOperatorType:
+	[coder encodeInt:
+	  (NSNotEqualToPredicateOperatorType == _type) ? 1 : 0
+		  forKey: @"NSNegate"];
+	[coder encodeInt: (int)_options forKey: @"NSOptions"];
+	break;
+      case NSBeginsWithPredicateOperatorType:
+      case NSEndsWithPredicateOperatorType:
+	[coder encodeInt: (int)_options forKey: @"NSFlags"];
+	[coder encodeInt:
+	  (NSEndsWithPredicateOperatorType == _type) ? 1 : 0
+		  forKey: @"NSPosition"];
+	break;
+      case NSMatchesPredicateOperatorType:
+      case NSLikePredicateOperatorType:
+      case NSInPredicateOperatorType:
+      case NSContainsPredicateOperatorType:
+	[coder encodeInt: (int)_options forKey: @"NSFlags"];
+	break;
+      case NSCustomSelectorPredicateOperatorType:
+	[coder encodeObject: NSStringFromSelector(_selector)
+		     forKey: @"NSSelectorName"];
+	break;
+      default:
+	break;
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  if ((self = [super init]) == nil)
+    {
+      return nil;
+    }
+
+  if (NO == [coder allowsKeyedCoding])
+    {
+      int	type;
+      int	modifier;
+      int	options;
+
+      [coder decodeValueOfObjCType: @encode(int) at: &type];
+      [coder decodeValueOfObjCType: @encode(int) at: &modifier];
+      [coder decodeValueOfObjCType: @encode(int) at: &options];
+      _type = (NSPredicateOperatorType)type;
+      _modifier = (NSComparisonPredicateModifier)modifier;
+      _options = (NSUInteger)options;
+      return self;
+    }
+
+  _type = (NSPredicateOperatorType)[coder decodeIntForKey: @"NSOperatorType"];
+  _modifier
+    = (NSComparisonPredicateModifier)[coder decodeIntForKey: @"NSModifier"];
+  /* The options are written under one name or the other, depending on the
+   * family.
+   */
+  if ([coder containsValueForKey: @"NSOptions"])
+    {
+      _options = (NSUInteger)[coder decodeIntForKey: @"NSOptions"];
+    }
+  else
+    {
+      _options = (NSUInteger)[coder decodeIntForKey: @"NSFlags"];
+    }
+  if ([coder containsValueForKey: @"NSSelectorName"])
+    {
+      _selector
+	= NSSelectorFromString([coder decodeObjectForKey: @"NSSelectorName"]);
+    }
+
+  return self;
+}
+
+@end
+
+@implementation GSComparisonPredicateOperator
+@end
+
+@implementation GSEqualityPredicateOperator
+@end
+
+@implementation GSMatchingPredicateOperator
+@end
+
+@implementation GSLikePredicateOperator
+@end
+
+@implementation GSSubstringPredicateOperator
+@end
+
+@implementation GSInPredicateOperator
+@end
+
+@implementation GSBetweenPredicateOperator
+@end
+
+@implementation GSCustomPredicateOperator
 @end
 
 @implementation NSComparisonPredicate
@@ -1357,15 +1692,88 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  // FIXME
-  [self subclassResponsibility: _cmd];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _left forKey: @"NSLeftExpression"];
+      [coder encodeObject: _right forKey: @"NSRightExpression"];
+      [coder encodeObject: [GSPredicateOperator operatorForType: _type
+						       modifier: _modifier
+							options: _options
+						       selector: _selector]
+		   forKey: @"NSPredicateOperator"];
+    }
+  else
+    {
+      int	type = (int)_type;
+      int	modifier = (int)_modifier;
+      int	options = (int)_options;
+
+      [coder encodeObject: _left];
+      [coder encodeObject: _right];
+      [coder encodeValueOfObjCType: @encode(int) at: &type];
+      [coder encodeValueOfObjCType: @encode(int) at: &modifier];
+      [coder encodeValueOfObjCType: @encode(int) at: &options];
+      [coder encodeObject: NSStringFromSelector(_selector)];
+    }
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  // FIXME
-  [self subclassResponsibility: _cmd];
-  return self;
+  NSExpression			*left;
+  NSExpression			*right;
+  NSPredicateOperatorType	type;
+  NSComparisonPredicateModifier	modifier;
+  NSUInteger			options;
+  SEL				selector;
+
+  if ([coder allowsKeyedCoding])
+    {
+      GSPredicateOperator	*op;
+
+      left = [coder decodeObjectForKey: @"NSLeftExpression"];
+      right = [coder decodeObjectForKey: @"NSRightExpression"];
+      op = [coder decodeObjectForKey: @"NSPredicateOperator"];
+      if (NO == [op isKindOfClass: [GSPredicateOperator class]])
+	{
+	  DESTROY(self);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"decoding a comparison predicate without the"
+	    @" comparison it makes"];
+	  return nil;
+	}
+      type = op->_type;
+      modifier = op->_modifier;
+      options = op->_options;
+      selector = op->_selector;
+    }
+  else
+    {
+      int	t;
+      int	m;
+      int	o;
+
+      left = [coder decodeObject];
+      right = [coder decodeObject];
+      [coder decodeValueOfObjCType: @encode(int) at: &t];
+      [coder decodeValueOfObjCType: @encode(int) at: &m];
+      [coder decodeValueOfObjCType: @encode(int) at: &o];
+      type = (NSPredicateOperatorType)t;
+      modifier = (NSComparisonPredicateModifier)m;
+      options = (NSUInteger)o;
+      selector = NSSelectorFromString([coder decodeObject]);
+    }
+
+  if (NSCustomSelectorPredicateOperatorType == type)
+    {
+      return [self initWithLeftExpression: left
+			  rightExpression: right
+			   customSelector: selector];
+    }
+  return [self initWithLeftExpression: left
+		      rightExpression: right
+			     modifier: modifier
+				 type: type
+			      options: options];
 }
 
 @end
