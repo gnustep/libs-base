@@ -30,6 +30,7 @@
 #import "Foundation/NSError.h"
 #import "Foundation/FoundationErrors.h"
 #import "Foundation/NSException.h"
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSValue.h"
@@ -56,6 +57,25 @@
 @end
 
 static NSMapTable	*globalClassMap = 0;
+
+static NSError *
+GSNSErrorFromUnarchiverException(NSException *exception)
+{
+  NSDictionary	*info;
+  NSString	*reason = [exception reason];
+
+  if (reason == nil)
+    {
+      reason = @"The archive data could not be decoded.";
+    }
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    reason, NSLocalizedDescriptionKey,
+    [exception name], @"NSExceptionName",
+    nil];
+  return [NSError errorWithDomain: NSCocoaErrorDomain
+			     code: NSFileReadCorruptFileError
+			 userInfo: info];
+}
 
 #define	GETVAL \
   id		o; \
@@ -464,7 +484,22 @@ static NSMapTable	*globalClassMap = 0;
                         fromData: (NSData*)data
                            error: (NSError**)error
 {
-  return [self _unarchivedRootFromData: data allowedClasses: classes error: error];
+  id object = nil;
+
+  NS_DURING
+    {
+      object = RETAIN([self _unarchivedRootFromData: data allowedClasses: classes error: error]);
+    }
+  NS_HANDLER
+    {
+      if (error != 0)
+	      {
+	        *error = GSNSErrorFromUnarchiverException(localException);
+	      }
+      DESTROY(object);
+    }
+  NS_ENDHANDLER
+  return AUTORELEASE(object);
 }
 
 + (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
@@ -1124,4 +1159,3 @@ static NSMapTable	*globalClassMap = 0;
   return self;
 }
 @end
-
