@@ -8,7 +8,7 @@ int main()
 #if     GNUSTEP
   ENTER_POOL
   unsigned		i, j;
-  NSTimeInterval	wake = 10.0;
+  NSTimeInterval	wake = 20.0;
   NSURL			*url;
   NSURL			*u;
   NSData		*data;
