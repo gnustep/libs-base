@@ -118,16 +118,16 @@ GS_EXPORT_CLASS
 #if GS_USE_ICU || GS_UNSAFE_REGEX
 + (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
   options: (NSRegularExpressionOptions)opts
-  error: (NSError**)e;
+  error: (NSError *_Nullable *_Nullable)e;
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
-		 error: (NSError**)e;
+		 error: (NSError *_Nullable *_Nullable)e;
 + (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
   options: (NSRegularExpressionOptions)opts
-  error: (NSError**)e;
+  error: (NSError *_Nullable *_Nullable)e;
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
-		 error: (NSError**)e;
+		 error: (NSError *_Nullable *_Nullable)e;
 - (NSString*) pattern; 
 #if     GS_API_VERSION( 13100, GS_API_LATEST)
 /** In the GNUstep implementation this method is the fundametal primitive

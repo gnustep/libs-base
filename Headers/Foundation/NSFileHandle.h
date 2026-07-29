@@ -55,11 +55,11 @@ GS_EXPORT_CLASS
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 + (instancetype) fileHandleForReadingFromURL: (NSURL*)url
-				       error: (NSError**)error;
+				       error: (NSError *_Nullable *_Nullable)error;
 + (instancetype) fileHandleForWritingToURL: (NSURL*)url
-				     error: (NSError**)error;
+				     error: (NSError *_Nullable *_Nullable)error;
 + (instancetype) fileHandleForUpdatingURL: (NSURL*)url
-				    error: (NSError**)error;
+				    error: (NSError *_Nullable *_Nullable)error;
 #endif
 
 - (id) initWithFileDescriptor: (int)desc;

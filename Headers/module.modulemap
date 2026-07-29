@@ -1,0 +1,10 @@
+module Foundation [system] {
+  header "Foundation/Foundation.h"
+
+  textual header "GNUstepBase/GSVersionMacros.h"
+  textual header "GNUstepBase/GSConfig.h"
+  textual header "GNUstepBase/GNUstep.h"
+  textual header "GNUstepBase/GSBlocks.h"
+
+  export *
+}
