@@ -112,6 +112,8 @@ int main(int argc,char **argv)
   PASS_EQUAL(itemKeyEquivalent, fakeItemKeyEquivalent, "keyEquivalent selector is forwarded from the fake item to the actual item");
   NSLog(@"Item key equivalent: %@, fake item key equivalent: %@", itemKeyEquivalent, fakeItemKeyEquivalent);
 
+  RELEASE(item);
+  RELEASE(fakeItem);
   END_SET("GSFFIInvocation")
   return 0;
 }

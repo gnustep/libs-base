@@ -403,7 +403,7 @@ not be used.)
 Serialized property lists can actually be written in one of three different
 formats -- plain text, XML, and binary.  Interconversion amongst these is
 possible using the @code{pldes} and @code{plser} command-line tools (see the
-@uref{../../Tools/Reference/index.html, tools reference}).
+@uref{../../BaseTools/BaseTools.html, tools reference}).
 @ignore
 Still need: the XML format; how to specify format in output; discussion of
 compatibility with OS X; using serialization with NSData.
@@ -582,7 +582,7 @@ standardUserDefaults]}.  The instance provides access to settings indexed by
 string keys.  The standard keys used are documented
 @uref{../../../User/Gui/DefaultsSummary.html, here}.  Users can adjust
 settings for particular keys using the
-@i{@code{@uref{../../Tools/Reference/defaults.html, defaults}}} command.
+@i{@code{@uref{../../BaseTools/defaults.html, defaults}}} command.
 
 The @code{NSProcessInfo} class provides access to certain information about
 the system environment such as the operating system and host name.  It also
@@ -664,7 +664,7 @@ Obtain a notification center instance using @code{NSNotificationCenter
 +defaultCenter}.  An @code{NSDistributedNotificationCenter} may be used for
 interprocess communication on the same machine.  Interprocess notification will
 be slower than within-process notification, and makes use of the
-@uref{../../Tools/Reference/gdnc.html, gdnc} command-line tool.
+@uref{../../BaseTools/gdnc.html, gdnc} command-line tool.
 
 Notifications are similar in some ways to @i{events} in other frameworks,
 although they are not used for user interface component connections as in Java

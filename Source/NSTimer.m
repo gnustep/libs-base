@@ -66,21 +66,32 @@ static Class	NSDate_class;
 
   if ([self isValid])
     {
-      if (_selector == 0)
+      if (nil == _target)
+	{
+          s = [NSString stringWithFormat: @"%@ at %@ calls %@",
+            s, [self fireDate], _block];
+	}
+      else if (_selector == 0)
         {
-          return [NSString stringWithFormat: @"%@ at %@ invokes %@",
+          s = [NSString stringWithFormat: @"%@ at %@ invokes %@",
             s, [self fireDate], _target];
         }
       else
         {
-          return [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
+          s = [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
             s, [self fireDate], NSStringFromSelector(_selector), _target];
         }
+      if (_modeMask)
+	{
+	  s = [s stringByAppendingFormat: @", scheduled in modes: 0x%0"PRIx64,
+	    _modeMask];
+	}
     }
   else
     {
-      return [NSString stringWithFormat: @"%@ (invalidated)", s];
+      s = [NSString stringWithFormat: @"%@ (invalidated)", s];
     }
+  return s;
 }
 
 /* For MacOS-X compatibility, this returns nil.

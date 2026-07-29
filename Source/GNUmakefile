@@ -130,6 +130,7 @@ GSIMap.h \
 GSFunctions.h \
 GSLocale.h \
 GSMime.h \
+GSMinHeap.h \
 GSTLS.h \
 GSURITemplate.h \
 GSXML.h \
@@ -174,6 +175,7 @@ GSICUString.m \
 GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
+GSRunLoopCtxt.m \
 GSRunLoopWatcher.m \
 GSSet.m \
 GSShellSort.m \
@@ -358,13 +360,13 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
-# We have two implementations for Key Value Observing.
-# One highly-optimised one that depends on libobjc2
-# and the original implementation.
+# We have two implementations for Key Value Observing: the newer one
+# (NSKVOSupport.m/NSKVOSwizzling.m) and the original (NSKeyValueObserving.m).
 ifeq ($(GNUSTEP_BASE_HAVE_NEWKVO), 1)
   BASE_MFILES += \
   NSKVOSupport.m \
   NSKVOSwizzling.m
+  ADDITIONAL_OBJCFLAGS += -DGNUSTEP_BASE_NEW_KVO=1
 else
   BASE_MFILES += \
   NSKeyValueObserving.m
@@ -386,15 +388,11 @@ ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   endif
 endif
 
-ifeq ($(HAVE_BLOCKS), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
+ifeq ($(GNUSTEP_BASE_WITH_NSURLSESSION), 1)
   BASE_MFILES += \
 	NSURLSession.m \
 	NSURLSessionTask.m \
 	NSURLSessionConfiguration.m
-endif
-endif
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)

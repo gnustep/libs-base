@@ -28,6 +28,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSException.h"
 #import "Foundation/FoundationErrors.h"
 #import "Foundation/NSMapTable.h"
@@ -95,6 +96,7 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 
 @interface NSKeyedUnarchiver (Private)
 - (id) _decodeObject: (unsigned)index;
+- (void) _validateSecureClass: (Class)aClass named: (NSString*)aName;
 @end
 
 @implementation NSKeyedUnarchiver (Internal)
@@ -176,6 +178,31 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 @end
 
 @implementation NSKeyedUnarchiver (Private)
+- (void) _validateSecureClass: (Class)aClass named: (NSString*)aName
+{
+  NSEnumerator	*e;
+  Class		a;
+
+  if ([aClass conformsToProtocol: @protocol(NSSecureCoding)] == NO
+    || [aClass supportsSecureCoding] == NO)
+    {
+      [NSException raise: NSInvalidUnarchiveOperationException
+	format: @"secure coding requested, but class '%@' does not support"
+	@" secure coding", aName];
+    }
+  e = [_allowedClasses objectEnumerator];
+  while ((a = [e nextObject]) != nil)
+    {
+      if ([aClass isSubclassOfClass: a] == YES)
+	{
+	  return;	// A kind of an allowed class.
+	}
+    }
+  [NSException raise: NSInvalidUnarchiveOperationException
+    format: @"secure coding requested, but class '%@' is not one of the"
+    @" allowed classes", aName];
+}
+
 - (id) _decodeObject: (unsigned)index
 {
   id	o;
@@ -185,6 +212,17 @@ GSNSErrorFromUnarchiverException(NSException *exception)
    * If the referenced object is already in _objMap
    * we simply return it (the object at index 0 maps to nil)
    */
+  /* The index comes from an (untrusted) CF$UID in the archive, and GSIArray
+   * is not bounds checked in release builds, so reject an out-of-range
+   * reference (as -[_objects objectAtIndex:] does below) rather than reading
+   * past the end of the map.
+   */
+  if (index >= GSIArrayCount(_objMap))
+    {
+      [NSException raise: NSRangeException
+		  format: @"[%@ -%@] archive object index out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   obj = GSIArrayItemAtIndex(_objMap, index).obj;
   if (obj != nil)
     {
@@ -206,7 +244,6 @@ GSNSErrorFromUnarchiverException(NSException *exception)
       NSArray		*classes;
       Class		c;
       id		r;
-      id		s;
       NSDictionary	*savedKeyMap;
       unsigned		savedCursor;
 
@@ -243,6 +280,11 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 	    }
 	}
 
+      if (_requiresSecureCoding == YES)
+	{
+	  [self _validateSecureClass: c named: classname];
+	}
+
       savedCursor = _cursor;
       savedKeyMap = _keyMap;
 
@@ -253,56 +295,51 @@ GSNSErrorFromUnarchiverException(NSException *exception)
       // Store object in map so that decoding of it can be self referential.
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 
-      s = RETAIN(o);
       r = [o initWithCoder: self];
-      if (s != r)
+      if (o != r)
 	{
+	  /* The -initWithCoder: method released o when it provided a
+	   * replacement object, but o is still in the array.  When we
+	   * store the replacement the original gets deallocated.
+	   */
 	  [_delegate unarchiver: self
-	      willReplaceObject: s
+	      willReplaceObject: o
 		     withObject: r];
 	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
+	  RELEASE(r);			// Retained in array
+	  o = r;
 	}
-      o = r;
-      DESTROY(s);
+      else
+	{
+	  RELEASE(o);			// Retained in array
+	}
 
-      s = RETAIN(o);
       r = [o awakeAfterUsingCoder: self];
-      if (s != r)
+      if (o != r)
 	{
 	  [_delegate unarchiver: self
-	      willReplaceObject: s
+	      willReplaceObject: o
 		     withObject: r];
 	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
+	  o = r;
 	}
-      o = r;
-      DESTROY(s);
 
       if (_delegate != nil)
 	{
-	  s = RETAIN(o);
 	  r = [_delegate unarchiver: self didDecodeObject: o];
 	  /* Apple documentation says that the delegate may return nil to
 	   * indicate that the decoded objects should not be changed.
 	   */
-	  if (nil == r)
+	  if (o != r && r != nil)
 	    {
-	      o = s;
-	    }
-	  else
-	    {
-	      if (s != r)
-		{
-		  [_delegate unarchiver: self
-		      willReplaceObject: s
-			     withObject: r];
-		  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
-		}
+	      [_delegate unarchiver: self
+		  willReplaceObject: o
+			 withObject: r];
+	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)r, index);
 	      o = r;
-	      DESTROY(s);
 	    }
 	}
 
-      RELEASE(o);	// Retained in array
       obj = o;
       _keyMap = savedKeyMap;
       _cursor = savedCursor;
@@ -395,6 +432,45 @@ GSNSErrorFromUnarchiverException(NSException *exception)
   return o;
 }
 
+/* Decode the root object of an archive with secure coding enabled and the
+ * given set of allowed classes, converting any failure into a nil result and
+ * an NSError rather than letting the exception escape. */
++ (id) _unarchivedRootFromData: (NSData*)data
+                allowedClasses: (NSSet*)classes
+                         error: (NSError**)error
+{
+  NSKeyedUnarchiver	*u = nil;
+  id			o = nil;
+
+  if (error != NULL)
+    {
+      *error = nil;
+    }
+  NS_DURING
+    {
+      u = [[NSKeyedUnarchiver alloc] initForReadingWithData: data];
+      [u setRequiresSecureCoding: YES];
+      u->_allowedClasses = classes;
+      o = RETAIN([u decodeObjectForKey: @"root"]);
+      [u finishDecoding];
+      DESTROY(u);
+    }
+  NS_HANDLER
+    {
+      DESTROY(u);
+      DESTROY(o);
+      if (error != NULL)
+	{
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+	    code: NSCoderReadCorruptError
+	    userInfo: [NSDictionary dictionaryWithObject: [localException reason]
+	                                          forKey: NSLocalizedDescriptionKey]];
+	}
+    }
+  NS_ENDHANDLER
+  return AUTORELEASE(o);
+}
+
 + (id) unarchivedObjectOfClass: (Class)cls
                       fromData: (NSData*)data
                          error: (NSError**)error
@@ -410,17 +486,16 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 {
   id object = nil;
 
-  /* FIXME: implement proper secure coding support */
   NS_DURING
     {
-      object = RETAIN([self unarchiveObjectWithData: data]);
+      object = RETAIN([self _unarchivedRootFromData: data allowedClasses: classes error: error]);
     }
   NS_HANDLER
     {
       if (error != 0)
-	{
-	  *error = GSNSErrorFromUnarchiverException(localException);
-	}
+	      {
+	        *error = GSNSErrorFromUnarchiverException(localException);
+	      }
       DESTROY(object);
     }
   NS_ENDHANDLER
@@ -440,8 +515,13 @@ GSNSErrorFromUnarchiverException(NSException *exception)
                                       fromData: (NSData*)data
                                          error: (NSError**)error
 {
-  /* FIXME: implement proper secure coding support */
-  return [self unarchiveObjectWithData: data];
+  NSMutableSet	*allowed = [NSMutableSet setWithObject: [NSArray class]];
+
+  if (classes != nil)
+    {
+      [allowed unionSet: classes];
+    }
+  return [self _unarchivedRootFromData: data allowedClasses: allowed error: error];
 }
 
 + (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
@@ -460,8 +540,17 @@ GSNSErrorFromUnarchiverException(NSException *exception)
                                                fromData: (NSData*)data
                                                   error: (NSError**)error
 {
-  /* FIXME: implement proper secure coding support */
-  return [self unarchiveObjectWithData: data];
+  NSMutableSet	*allowed = [NSMutableSet setWithObject: [NSDictionary class]];
+
+  if (keyClasses != nil)
+    {
+      [allowed unionSet: keyClasses];
+    }
+  if (valueClasses != nil)
+    {
+      [allowed unionSet: valueClasses];
+    }
+  return [self _unarchivedRootFromData: data allowedClasses: allowed error: error];
 }
 
 
@@ -493,6 +582,15 @@ GSNSErrorFromUnarchiverException(NSException *exception)
       return YES;
     }
   return NO;
+}
+
+- (BOOL) _containsRawKey: (NSString*)aKey
+{
+  /* Look the key up in the current object map without the leading-'$'
+   * escaping that GETVAL applies, so the internal sequential element keys
+   * ("$0", "$1", ...) can be probed.
+   */
+  return (nil == [_keyMap objectForKey: aKey]) ? NO : YES;
 }
 
 - (void) dealloc
@@ -753,7 +851,25 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 
 - (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)key
 {
-  return [self decodeObjectForKey: key];
+  NSSet	*saved = _allowedClasses;
+  id	o;
+
+  /* Restrict the allowed classes for this key's subtree, restoring the
+   * enclosing set afterwards (the enforcement itself is in -_decodeObject:
+   * and only applies when secure coding is required). */
+  _allowedClasses = classes;
+  NS_DURING
+    {
+      o = [self decodeObjectForKey: key];
+    }
+  NS_HANDLER
+    {
+      _allowedClasses = saved;
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  _allowedClasses = saved;
+  return o;
 }
 
 - (NSPoint) decodePoint

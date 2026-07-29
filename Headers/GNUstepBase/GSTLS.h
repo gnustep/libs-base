@@ -56,6 +56,13 @@ GS_EXPORT NSString * const GSTLSVerify;
 #endif
 #undef	id
 
+/** Notification posted whenever a connection (handled by a [GSTLSSession]
+ * instance) to a TLS server fails certificate or host name verification.
+ * This is only sent if the option to turn off strict verification was not
+ * set in the session options.
+ */
+GS_EXPORT NSString* const GSTLSVerifyFailedNotification;
+
 /* This class is used to ensure that the GNUTLS system is initialised
  * and thread-safe.  It also provides a mechanism to save certificate
  * and key information in memory by associating a 'filename' with the
@@ -254,11 +261,20 @@ GS_EXPORT_CLASS
  */
 - (BOOL) handshake;
 
+/** Returns the name of the host this session connects to, or nil if it
+ * is not to a named host.
+ */
+- (NSString*) hostName;
+
 /** If the session verified a certificate from the remote end, returns the
  * name of the certificate issuer in the form "C=xxxx,O=yyyy,CN=zzzz" as
  * described in RFC4514.  Otherwise returns nil.
  */
 - (NSString*) issuer;
+
+/** Returns the configured options for this session.
+ */
+- (NSDictionary*) options;
 
 /** If the session verified a certificate from the remote end, returns the
  * name of the certificate owner in the form "C=xxxx,O=yyyy,CN=zzzz" as

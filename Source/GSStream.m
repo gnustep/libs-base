@@ -321,7 +321,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (NSString*) _stringFromEvents
 {
   NSMutableString	*s = [NSMutableString stringWithCapacity: 100];
-  BOOL			bits = 0;
 
   if (0 == _events)
     {
@@ -329,27 +328,27 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     }
   if (_events & NSStreamEventOpenCompleted)
     {
-      if (bits++ > 0) [s appendString: @"|"];
+      if ([s length] > 0) [s appendString: @"|"];
       [s appendString: @"OpenCompleted"];
     }
   if (_events & NSStreamEventHasBytesAvailable)
     {
-      if (bits++ > 0) [s appendString: @"|"];
+      if ([s length] > 0) [s appendString: @"|"];
       [s appendString: @"HasBytesAvailable"];
     }
   if (_events & NSStreamEventHasSpaceAvailable)
     {
-      if (bits++ > 0) [s appendString: @"|"];
+      if ([s length] > 0) [s appendString: @"|"];
       [s appendString: @"HasSpaceAvailable"];
     }
   if (_events & NSStreamEventErrorOccurred)
     {
-      if (bits++ > 0) [s appendString: @"|"];
+      if ([s length] > 0) [s appendString: @"|"];
       [s appendString: @"ErrorOccurred"];
     }
   if (_events & NSStreamEventEndEncountered)
     {
-      if (bits++ > 0) [s appendString: @"|"];
+      if ([s length] > 0) [s appendString: @"|"];
       [s appendString: @"EndEncountered"];
     }
   return s;

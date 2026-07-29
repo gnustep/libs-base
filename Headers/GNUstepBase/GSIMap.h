@@ -130,8 +130,10 @@ extern "C" {
  *              memory when working with garbage collection.
  *
  *      GSI_MAP_ZEROED()
- *              Define this macro to check whether a map uses keys which may
- *              be zeroed weak pointers.  
+ *              Define this macro to check whether a map uses keys or values
+ *		which may be zeroed weak pointers.  Should produce an integer
+ *		bitmask with one for a zeroed key and two for a zeroed value;
+ *		zero if neither, three if both.
  *
  *	GSI_MAP_NODE_CLASS
  *		If defined, each node in the map has an 'isa' field at the
@@ -189,14 +191,6 @@ extern "C" {
 #ifndef GSI_MAP_STORE_VALUE
 #  define GSI_MAP_STORE_VALUE(M, addr, obj)\
  *(addr) = obj
-#endif
-#if	GSI_MAP_HAS_VALUE
-#define GSI_MAP_NODE_IS_EMPTY(M, node) \
-  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0) \
-  || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
-#else
-#define GSI_MAP_NODE_IS_EMPTY(M, node) \
-  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0))
 #endif
 
 /*
@@ -491,11 +485,41 @@ GSIMapAddNodeToBucket(GSIMapBucket bucket, GSIMapNode node)
 }
 
 GS_STATIC_INLINE void
+GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
+{
+  GSI_MAP_RELEASE_KEY(map, node->key);
+  GSI_MAP_CLEAR_KEY(map, &node->key);
+#if	GSI_MAP_HAS_VALUE
+  GSI_MAP_RELEASE_VALUE(map, node->value);
+  GSI_MAP_CLEAR_VALUE(map, &node->value);
+#endif
+  node->nextInBucket = map->freeNodes;
+  map->freeNodes = node;
+}
+
+GS_STATIC_INLINE void
 GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
 
-  bucket = GSIMapBucketForKey(map, GSI_MAP_READ_KEY(map, &node->key));
+  if (GSI_MAP_ZEROED(map) & 1)
+    {
+      GSIMapKey	k;
+
+      k.addr = (uintptr_t)objc_loadWeakRetained((id*)&node->key.addr);
+      if (0 == k.addr)
+        {
+	  // Weak key already gone.
+	  GSIMapFreeNode(map, node);
+	  return;
+	}
+      bucket = GSIMapBucketForKey(map, k);
+      [(id)k.addr release];
+    }
+  else
+    {
+      bucket = GSIMapBucketForKey(map, GSI_MAP_READ_KEY(map, &node->key));
+    }
   GSIMapAddNodeToBucket(bucket, node);
   map->nodeCount++;
 }
@@ -514,19 +538,6 @@ GSIMapRemoveNodeFromMap(GSIMapTable map, GSIMapBucket bkt, GSIMapNode node)
   GSIMapRemoveNodeFromBucket(bkt, node);
 }
 
-GS_STATIC_INLINE void
-GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
-{
-  GSI_MAP_RELEASE_KEY(map, node->key);
-  GSI_MAP_CLEAR_KEY(map, &node->key);
-#if	GSI_MAP_HAS_VALUE
-  GSI_MAP_RELEASE_VALUE(map, node->value);
-  GSI_MAP_CLEAR_VALUE(map, &node->value);
-#endif
-  node->nextInBucket = map->freeNodes;
-  map->freeNodes = node;
-}
-
 GS_STATIC_INLINE GSIMapNode
 GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
 {
@@ -534,6 +545,62 @@ GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
   GSIMapRemoveNodeFromMap(map, &(map->buckets[bkt]), node);
   GSIMapFreeNode(map, node);
   return next;
+}
+
+/* Return YES if the supplied node contains nul values for a weak reference.
+ * When this returns NO, the values in kPtr and vPtr (if those are not NULL)
+ * will be the retained key (and value if appropriate) of the node, and the
+ * calling code must ensure that those values are released when it has done.
+ */
+GS_STATIC_INLINE BOOL
+GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
+{
+  int	zeroed = GSI_MAP_ZEROED(map);
+
+  if (kPtr) *kPtr = nil;
+  if (vPtr) *vPtr = nil;
+  if (zeroed)
+    {
+      id	k;
+
+      if (zeroed & 1)
+	{
+	  k = objc_loadWeakRetained((id*)&node->key.addr);
+	  if (nil == k)
+	    {
+	      return YES;
+	    }
+	  if (kPtr)
+	    {
+	      *kPtr = k;
+	    }
+	  else
+	    {
+	      [k release];
+	    }
+	}
+#if	GSI_MAP_HAS_VALUE
+      if (zeroed & 2)
+	{
+	  id	v = objc_loadWeakRetained((id*)&node->value);
+
+	  if (nil == v)
+	    {
+	      [k release];
+	      return YES;
+	    }
+	  if (vPtr)
+	    {
+	      *vPtr = v;
+	    }
+	  else
+	    {
+	      [v release];
+	    }
+	}
+#endif
+    }
+  return NO;
 }
 
 GS_STATIC_INLINE void
@@ -551,7 +618,7 @@ GSIMapRemoveWeak(GSIMapTable map)
           while (node != 0)
             {
               GSIMapNode next = node->nextInBucket;
-              if (GSI_MAP_NODE_IS_EMPTY(map, node))
+              if (GSIMapWeakIsEmpty(map, node, NULL, NULL))
                 {
                   GSIMapRemoveNodeFromMap(map, bucket, node);
                   GSIMapFreeNode(map, node);
@@ -577,7 +644,9 @@ GSIMapRemangleBuckets(GSIMapTable map,
 
 	  while ((node = old_buckets->firstNode) != 0)
 	    {
-	      if (GSI_MAP_NODE_IS_EMPTY(map, node))
+	      id	k;
+
+	      if (GSIMapWeakIsEmpty(map, node, &k, NULL))
 		{
 		  GSIMapRemoveNodeFromMap(map, old_buckets, node);
 		  GSIMapFreeNode(map, node);
@@ -585,12 +654,14 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	      else
 		{
 		  GSIMapBucket	bkt;
+		  GSIMapKey	key;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
-		    GSI_MAP_READ_KEY(map, &node->key)),
+		  key.addr = (uintptr_t)k;
+		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, key),
 		      new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
+		  [k release];
 		}
 	    }
 	  old_buckets++;
@@ -677,23 +748,69 @@ GS_STATIC_INLINE GSIMapNode
 GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 {
   GSIMapNode	node = bucket->firstNode;
+  int		zeroed = GSI_MAP_ZEROED(map);
 
-  if (GSI_MAP_ZEROED(map))
+  /* To avoid excessive autoreleases we manage loading weak pointers
+   * directly rather than using macros.
+   */
+  if (zeroed)
     {
-      while ((node != 0)
-	&& GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
+      if (0 == key.addr)
+	{
+	  return 0;	// Can't use a nil key in a weak map
+	}
+      while (node != 0)
 	{
 	  GSIMapNode	tmp = node->nextInBucket;
+	  GSIMapKey	k;
+	  BOOL		found;
 
-	  if (GSI_MAP_NODE_IS_EMPTY(map, node))
+	  if (zeroed & 1)
 	    {
-	      GSIMapRemoveNodeFromMap(map, bucket, node);
-	      GSIMapFreeNode(map, node);
+	      k.addr = (uintptr_t)objc_loadWeakRetained((id*)&node->key.addr);
+	      if (0 == k.addr)
+		{
+		  GSIMapRemoveNodeFromMap(map, bucket, node);
+		  GSIMapFreeNode(map, node);
+		  node = tmp;
+		  continue;
+		}
+	    }
+	  else
+	    {
+	      k = GSI_MAP_READ_KEY(map, &node->key);
+	    }
+
+#if	GSI_MAP_HAS_VALUE
+	  if (zeroed & 2)
+	    {
+	      id	v = objc_loadWeakRetained((id*)&node->value);
+
+	      if (nil == v)
+		{
+		  GSIMapRemoveNodeFromMap(map, bucket, node);
+		  GSIMapFreeNode(map, node);
+		  node = tmp;
+		  continue;
+		}
+	      [v release];
+	    }
+#endif
+
+	  found = GSI_MAP_EQUAL(map, k, key);
+	  if (zeroed & 1)
+	    {
+	      [(id)k.addr release];
+	    }
+	  if (found)
+	    {
+	      break;
 	    }
 	  node = tmp;
 	}
       return node;
     }
+
   while ((node != 0)
     && GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
     {
@@ -730,13 +847,17 @@ GSIMapFirstNode(GSIMapTable map)
 	{
 	  while (bucket < count)
 	    {
+	      id	k, v;
+
 	      node = map->buckets[bucket].firstNode;
-	      while (node != 0 && GSI_MAP_NODE_IS_EMPTY(map, node))
+	      while (node != 0 && GSIMapWeakIsEmpty(map, node, &k, &v))
 		{
 		  node = GSIMapRemoveAndFreeNode(map, bucket, node);
 		}
 	      if (node != 0)
 		{
+		  [k autorelease];
+		  [v autorelease];
 		  break;
 		}
 	      bucket++;
@@ -784,7 +905,7 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 	{
 	  GSIMapNode	tmp = node->nextInBucket;
 
-	  if (GSI_MAP_NODE_IS_EMPTY(map, node))
+	  if (GSIMapWeakIsEmpty(map, node, NULL, NULL))
 	    {
 	      GSIMapRemoveNodeFromMap(map, bucket, node);
 	      GSIMapFreeNode(map, node);
@@ -863,7 +984,7 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 /** Enumerating **/
 
 /* IMPORTANT WARNING: Enumerators have a wonderous property.
- * Once a node has been returned by `GSIMapEnumeratorNextNode()', it may be
+ * Once a node has been returned by `GSIMapEnumeratorNext()', it may be
  * removed from the map without effecting the rest of the current
  * enumeration. */
 
@@ -893,16 +1014,21 @@ GSIMapEnumeratorForMap(GSIMapTable map)
    */
   if (GSI_MAP_ZEROED(map))
     {
+      id	k;
+      id	v;
+
       while (enumerator.bucket < map->bucketCount)
 	{
 	  GSIMapNode	node = map->buckets[enumerator.bucket].firstNode;
 
-	  while (node != 0 && GSI_MAP_READ_KEY(map, &node->key).addr == 0)
+	  while (node != 0 && GSIMapWeakIsEmpty(map, node, &k, &v))
 	    {
 	      node = GSIMapRemoveAndFreeNode(map, enumerator.bucket, node);
 	    }
 	  if ((enumerator.node = node) != 0)
 	    {
+	      [k autorelease];
+	      [v autorelease];
 	      return enumerator;
 	    }
 	  enumerator.bucket++;
@@ -950,7 +1076,101 @@ GSIMapEnumeratorBucket(GSIMapEnumerator enumerator)
   return 0;
 }
 
-/**
+#if	GSI_MAP_HAS_VALUE
+/** Returns YES and the key and value of the next valid node in the map,
+ * or NO if there are no more valid nodes.  Removes any empty nodes as
+ * they are encountered.
+ */
+GS_STATIC_INLINE BOOL 
+GSIMapEnumeratorNext(GSIMapEnumerator enumerator,
+  GSIMapKey *keyPtr, GSIMapVal *valPtr)
+{
+  GSIMapNode	node = ((_GSIE)enumerator)->node;
+  GSIMapTable	map = ((_GSIE)enumerator)->map;
+
+  /* Find the frst available non-zeroed node.
+   */
+  while (node != 0)
+    {
+      uintptr_t		bucket = ((_GSIE)enumerator)->bucket;
+      GSIMapNode	next;
+      GSIMapKey		key;
+      GSIMapVal		val;
+
+      if ((next = node->nextInBucket) == 0)
+	{
+	  uintptr_t	bucketCount = map->bucketCount;
+	  uintptr_t	bucketIndex = bucket;
+
+	  while (next == 0 && ++bucketIndex < bucketCount)
+	    {
+	      next = (map->buckets[bucketIndex]).firstNode;
+	    }
+	  ((_GSIE)enumerator)->bucket = bucketIndex;
+	}
+      ((_GSIE)enumerator)->node = next;
+
+      key = GSI_MAP_READ_KEY(map, &node->key);
+      val = GSI_MAP_READ_KEY(map, &node->value);
+      if (!GSI_MAP_ZEROED(map) || (key.addr != 0 && val.addr != 0))
+	{
+	  *keyPtr = key;
+	  *valPtr = val;
+	  return YES;
+	}
+      GSIMapRemoveNodeFromMap(map, &(map->buckets[bucket]), node);
+      GSIMapFreeNode(map, node);
+      node = next;
+    }
+  return NO;
+}
+
+#else
+
+/** Returns YES and the key and value of the next valid node in the map,
+ * or NO if there are no more valid nodes.  Does not compact maps with
+ * empty nodes.
+ */
+GS_STATIC_INLINE BOOL 
+GSIMapEnumeratorNext(GSIMapEnumerator enumerator, GSIMapKey *keyPtr)
+{
+  GSIMapNode	node = ((_GSIE)enumerator)->node;
+  GSIMapTable	map = ((_GSIE)enumerator)->map;
+
+  /* Find the frst available non-zeroed node.
+   */
+  while (node != 0)
+    {
+      GSIMapNode	next;
+      GSIMapKey		key;
+
+      if ((next = node->nextInBucket) == 0)
+	{
+	  uintptr_t	bucketCount = map->bucketCount;
+	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
+
+	  while (next == 0 && ++bucket < bucketCount)
+	    {
+	      next = (map->buckets[bucket]).firstNode;
+	    }
+	  ((_GSIE)enumerator)->bucket = bucket;
+	}
+      ((_GSIE)enumerator)->node = next;
+
+      key = GSI_MAP_READ_KEY(map, &node->key);
+      if (!GSI_MAP_ZEROED(map) || key.addr != 0)
+	{
+	  *keyPtr = key;
+	  return YES;
+	}
+      node = next;
+    }
+  return NO;
+}
+
+#endif
+
+/** Do not use ... use GSIMapEnumeratorNext() instead.
  * Returns the next node in the map, or a nul pointer if at the end.
  */
 GS_STATIC_INLINE GSIMapNode 
@@ -991,7 +1211,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	{
 	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
-	  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
+	  while (next != 0 && GSIMapWeakIsEmpty(map, next, NULL, NULL))
 	    {
 	      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 	    }
@@ -1007,7 +1227,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	      while (next == 0 && ++bucket < bucketCount)
 		{
 		  next = (map->buckets[bucket]).firstNode;
-		  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
+		  while (next != 0 && GSIMapWeakIsEmpty(map, next, NULL, NULL))
 		    {
 		      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 		    }
@@ -1035,7 +1255,6 @@ GS_STATIC_INLINE NSUInteger
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   NSFastEnumerationState *state, id *stackbuf, NSUInteger len)
 {
-  NSInteger count;
   NSInteger i;
 
   /* We can store a GSIMapEnumerator inside the extra buffer in state, but we
@@ -1051,8 +1270,6 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
 #define GS_PART_MAP_ENUMERATOR(state) ((struct GSPartMapEnumerator*)(uintptr_t)((state)->extra))
   GSIMapEnumerator_t enumerator;
 
-  count = MIN(len, map->nodeCount - state->state);
-
   /* Construct the real enumerator */
   if (0 == state->state)
     {
@@ -1064,26 +1281,36 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
       enumerator.node = GS_PART_MAP_ENUMERATOR(state)->node; 
       enumerator.bucket = GS_PART_MAP_ENUMERATOR(state)->bucket;
     }
-  /* Get the next count objects and put them in the stack buffer. */
-  for (i = 0; i < count; i++)
+  /* Get the next count objects and put them in the stack buffer.
+   * UGLY HACK: Lets this compile with any key type.  Fast enumeration
+   * will only work with things that are id-sized, however, so don't
+   * try using it with non-object collections.
+   */
+  for (i = 0; i < len; i++)
     {
-      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-      if (0 != node)
-        {
-          /* UGLY HACK: Lets this compile with any key type.  Fast enumeration
-           * will only work with things that are id-sized, however, so don't
-           * try using it with non-object collections.
-           */
-          stackbuf[i] = (id)GSI_MAP_READ_KEY(map, &node->key).addr;
-        }
+      GSIMapKey	key;
+#if	GSI_MAP_HAS_VALUE
+      GSIMapVal	val;
+
+      if (!GSIMapEnumeratorNext(&enumerator, &key, &val))
+	{
+	  break;
+	}
+#else
+      if (!GSIMapEnumeratorNext(&enumerator, &key))
+	{
+	  break;
+	}
+#endif
+      stackbuf[i] = (id)key.addr;
     }
   /* Store the important bits of the enumerator in the caller. */
   GS_PART_MAP_ENUMERATOR(state)->node = enumerator.node;
   GS_PART_MAP_ENUMERATOR(state)->bucket = enumerator.bucket;
   /* Update the rest of the state. */
-  state->state += count;
+  state->state += i;
   state->itemsPtr = stackbuf;
-  return count;
+  return i;
 }
 
 GS_STATIC_INLINE GSIMapNode
@@ -1109,8 +1336,13 @@ GSIMapGetNode(GSIMapTable map)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && (0 == key.addr || 0 == value.addr))
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   node->key = key;
   node->value = value;
   GSI_MAP_STORE_KEY(map, &node->key, key);
@@ -1123,8 +1355,13 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && (0 == key.addr || 0 == value.addr))
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSI_MAP_STORE_VALUE(map, &node->value, value);
@@ -1137,8 +1374,13 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && 0 == key.addr)
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
@@ -1148,8 +1390,13 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = GSIMapGetNode(map);
+  GSIMapNode	node;
 
+  if (GSI_MAP_ZEROED(map) && 0 == key.addr)
+    {
+      return 0;
+    }
+  node = GSIMapGetNode(map);
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSIMapRightSizeMap(map, map->nodeCount);

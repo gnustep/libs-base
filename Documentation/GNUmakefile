@@ -93,7 +93,6 @@ ReleaseNotes_AGSDOC_LOCAL_DIR = ReleaseNotes
 ReleaseNotes_AGSDOC_INSTALL_BUNDLE = ReleaseNotes
 ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base
 
-
 ReleaseNotes_AGSDOC_FILES = \
 	ReleaseNotes.gsdoc
 

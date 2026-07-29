@@ -532,13 +532,22 @@ GSLastErrorStr(long error_id) GS_DEPRECATED;
 
 
 
+/**
+ * The maximum number of bytes to allocate from the stack for a butffer.
+ * For buffer sizes greater than this, we use the heap.
+ * NB. This MUST be a multiple of 16
+ */
+#ifndef	GS_MAX_BYTES_FROM_STACK
+#define	GS_MAX_BYTES_FROM_STACK	4096
+#endif
+
 #ifndef	GS_MAX_OBJECTS_FROM_STACK
 /**
  * The number of objects to try to get from varargs into an array on
  * the stack ... if there are more than this, use the heap.
  * NB. This MUST be a multiple of 2
  */
-#define	GS_MAX_OBJECTS_FROM_STACK	128
+#define	GS_MAX_OBJECTS_FROM_STACK	(GS_MAX_BYTES_FROM_STACK/sizeof(id))
 #endif
 
 /**

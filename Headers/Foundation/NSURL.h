@@ -84,7 +84,7 @@ GS_EXPORT_CLASS
 /**
  * Initialize an empty URL object.
  */
-- (nonnull instancetype) init;
+- (_Nonnull instancetype) init;
 
 /**
  * Create and return a file URL with the supplied path.<br />

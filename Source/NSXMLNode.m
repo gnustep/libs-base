@@ -85,20 +85,20 @@ static void
 setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
 {
   xmlDocPtr	oldDoc;
-  BOOL 		adoptStr;
+  int 		adoptStr;
 
   if (node == NULL || node->doc == doc)
     return;
   
   oldDoc = node->doc;
-  adoptStr = NO;
+  adoptStr = 0;
   
   /* Only adopt strings if both docs exist and have different dicts */
   if (oldDoc != NULL && doc != NULL
     && oldDoc->dict != NULL && doc->dict != NULL
     && oldDoc->dict != doc->dict)
     {
-      adoptStr = YES;
+      adoptStr = 1;
     }
   /* If new doc has no dict but old doc has dict, need to copy strings out */
   else if (oldDoc != NULL && oldDoc->dict != NULL
@@ -274,7 +274,9 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
       case XML_ELEMENT_NODE:
         {
           /* Update attributes */
-          xmlAttrPtr attr = node->properties;
+          xmlAttrPtr	attr = node->properties;
+          xmlNsPtr	ns;
+
           while (attr != NULL)
             {
               attr->doc = doc;
@@ -292,7 +294,7 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
             }
           
           /* Update namespace declarations */
-          xmlNsPtr ns = node->nsDef;
+          ns = node->nsDef;
           while (ns != NULL)
             {
               ns->context = doc;
@@ -958,7 +960,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
        */
       if (childNode->type == XML_TEXT_NODE && childNode->name != NULL)
         {
-          const xmlChar *oldName = childNode->name;
           childNode->name = xmlStrdup((const xmlChar*)"text");
         }
       
@@ -2398,7 +2399,12 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       return nil;
     }
 
+#if LIBXML_VERSION >= 21300
+  string
+    = StringFromXMLString(xmlBufferContent(buffer), xmlBufferLength(buffer));
+#else
   string = StringFromXMLString(buffer->content, buffer->use);
+#endif
   xmlBufferFree(buffer);
 
   if ([self kind] == NSXMLTextKind)

@@ -112,11 +112,6 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
-- (id) init
-{
-  return [self initWithOptions: 0];
-}
-
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   [self subclassResponsibility: _cmd];
@@ -134,7 +129,7 @@ static Class	concreteClass = Nil;
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
   [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (BOOL) isEqual: (id)other
@@ -323,15 +318,22 @@ static Class	concreteClass = Nil;
     {
       id obj = pointerFunctionsRead(&_pf, &_contents[i]);
 
-      /* If this object is not nil, but at least one before it has been, then
-       * move it back to the correct location.
+      /* Move each non-nil pointer back over any preceding nil slots, and
+       * advance the insertion point for every non-nil pointer.
        */
-      if (nil != obj && i != insert)
+      if (nil != obj)
         {
-          pointerFunctionsAssign(&_pf, &_contents[insert++], obj);
+          if (i != insert)
+            {
+              pointerFunctionsAssign(&_pf, &_contents[insert], obj);
+            }
+          insert++;
         }
     }
-  _count = insert;
+  while (_count > insert)
+    {
+      _contents[--_count] = NULL;
+    }
   _version++;
 }
 
@@ -461,18 +463,21 @@ static Class	concreteClass = Nil;
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
+      memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
     }
-  memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
   return self;
 }
 

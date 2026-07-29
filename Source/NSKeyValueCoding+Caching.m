@@ -72,7 +72,7 @@ _KVCCacheSlotEqual(const void *ptr1, const void *ptr2)
   return a->cls == b->cls && a->hash == b->hash;
 }
 
-void inline _KVCCacheSlotRelease(const void *ptr)
+static void inline _KVCCacheSlotRelease(const void *ptr)
 {
   free((struct _KVCCacheSlot *) ptr);
 }

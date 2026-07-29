@@ -19,13 +19,13 @@ therein, picking up on special comments when provided to enhance the
 documentation.
 
 You can read more about GSdoc itself in this
-@uref{../../Tools/Reference/gsdoc.html, document}.
+@uref{../../BaseTools/gsdoc.html, document}.
 
 The @i{autogsdoc} tool is described
-@uref{../../Tools/Reference/autogsdoc.html, here}.
+@uref{../../BaseTools/autogsdoc.html, here}.
 
 (Both of these documents are part of the
-@uref{../../Tools/Reference/index.html, Base Tools} documentation.)
+@uref{../../BaseTools/BaseTools.html, Base Tools} documentation.)
 
 
 @section Quick Start
@@ -73,7 +73,7 @@ argument, the HTML will be structured into frames for easy navigation.
 $@{GNUSTEP_SYSTEM_ROOT@}/Tools directory.)
 
 You can also generate documentation automatically using the GNUstep make
-utility.  Consult its primary @uref{../../Make/Manual/make_toc.html,
+utility.  Consult its primary @uref{../../Make/Manual/gnustep-make/index.html,
 documentation} for details.  The short story is:
 
 @example

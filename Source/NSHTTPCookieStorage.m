@@ -38,6 +38,7 @@ static NSString *objectObserver = @"org.GNUstep.NSHTTPCookieStorage";
 typedef struct {
   NSHTTPCookieAcceptPolicy	_policy;
   NSMutableArray		*_cookies;
+  NSRecursiveLock		*_lock;
 } Internal;
  
 #define	this	((Internal*)(self->_NSHTTPCookieStorageInternal))
@@ -75,7 +76,7 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 	    NSAllocateObject(self, 0, NSDefaultMallocZone());
 	  o->_NSHTTPCookieStorageInternal = (Internal*)
 	    NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(Internal));
-	  [o init];
+	  o = [o init];
 	  storage = o;
 	}
       GS_MUTEX_UNLOCK(classLock);
@@ -90,6 +91,7 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
   if (nil == this->_cookies)
     {
       this->_cookies = [NSMutableArray new];
+      this->_lock = [NSRecursiveLock new];
       this->_policy = NSHTTPCookieAcceptPolicyAlways;
       [[NSDistributedNotificationCenter defaultCenter] 
 	addObserver: self
@@ -112,9 +114,10 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
     {
       [[NSDistributedNotificationCenter defaultCenter] removeObserver: self];
       RELEASE(this->_cookies);
+      RELEASE(this->_lock);
       NSZoneFree([self zone], this);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSString *) _cookieStorePath
@@ -148,9 +151,11 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 {
   BOOL 		changed = NO;
   NSDate 	*now = [NSDate date];
-  unsigned 	count = [this->_cookies count];
+  unsigned 	count;
 
+  [this->_lock lock];
   /* FIXME: Handle Max-age */
+  count = [this->_cookies count];
   while (count-- > 0)
     {
       NSHTTPCookie	*ck = [this->_cookies objectAtIndex: count];
@@ -163,7 +168,50 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 	  changed = YES;
 	}
     }
+  [this->_lock unlock];
   return changed;
+}
+
+- (void) _setCookieNoNotify: (NSHTTPCookie *)cookie
+{
+  NSEnumerator 	*ckenum;
+  NSHTTPCookie	*ck;
+  NSHTTPCookie	*remove_ck;
+  NSString 	*name = [cookie name];
+  NSString	*path = [cookie path];
+  NSString	*domain = [cookie domain];
+
+  NSAssert([cookie isKindOfClass: [NSHTTPCookie class]] == YES,
+    NSInvalidArgumentException);
+  
+  [this->_lock lock];
+  ckenum = [this->_cookies objectEnumerator];
+  remove_ck = nil;
+  while ((ck = [ckenum nextObject]))
+    {
+      if ([name isEqual: [ck name]] && [path isEqual: [ck path]])
+        {
+	  /* The Apple documentation says the domain should match and 
+	  RFC 2965 says they should match, though the original Netscape docs 
+	  doesn't mention that the domain should match, so here, if the
+	  version is explicitely set to 0, we don't require it */
+	  id ckv = [[ck properties] objectForKey: NSHTTPCookieVersion];
+	  if ((ckv && [ckv intValue] == 0) || [domain isEqual: [ck domain]])
+	    {
+	      remove_ck = ck;
+	      break;
+	    }
+	}
+    }
+  if (remove_ck != nil && cookie != remove_ck)
+    {
+      [this->_cookies removeObject: remove_ck];
+    }
+  if (cookie != remove_ck)
+    {
+      [this->_cookies addObject: cookie];
+    }
+  [this->_lock unlock];
 }
 
 - (void) _updateFromCookieStore
@@ -185,19 +233,19 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
   NS_HANDLER
     NSLog(@"NSHTTPCookieStorage: Error reading cookies plist");
   NS_ENDHANDLER
-  if (nil == properties)
-    return;
-  for (i = 0; i < [properties count]; i++)
+  if (properties)
     {
-      NSDictionary *props;
-      NSHTTPCookie *cookie;
-
-      props = [properties objectAtIndex: i];
-      cookie = [NSHTTPCookie cookieWithProperties: props];
-      if (NO == [this->_cookies containsObject: cookie])
+      [this->_lock lock];
+      for (i = 0; i < [properties count]; i++)
 	{
-	  [this->_cookies addObject: cookie];
+	  NSDictionary *props;
+	  NSHTTPCookie *cookie;
+
+	  props = [properties objectAtIndex: i];
+	  cookie = [NSHTTPCookie cookieWithProperties: props];
+	  [self _setCookieNoNotify: cookie];
 	}
+      [this->_lock unlock];
     }
 }
 
@@ -212,10 +260,14 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
     {
       return;
     }
+  [this->_lock lock];
   count = [this->_cookies count];
   properties = [NSMutableArray arrayWithCapacity: count];
   for (i = 0; i < count; i++) 
-    [properties addObject: [[this->_cookies objectAtIndex: i] properties]];
+    {
+      [properties addObject: [[this->_cookies objectAtIndex: i] properties]];
+    }
+  [this->_lock unlock];
   [properties writeToFile: path atomically: YES];
 }
 
@@ -249,68 +301,48 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 
 - (NSArray *) cookies
 {
-  return AUTORELEASE([this->_cookies copy]);
+  NSArray	*array;
+
+  [this->_lock lock];
+  array =[this->_cookies copy];
+  [this->_lock unlock];
+  return AUTORELEASE(array);
 }
 
 - (NSArray *) cookiesForURL: (NSURL *)URL
 {
   NSMutableArray 	*a = [NSMutableArray array];
-  NSEnumerator 		*ckenum = [this->_cookies objectEnumerator];
+  NSEnumerator 		*ckenum;
   NSHTTPCookie 		*cookie;
   NSString 		*receive_domain = [URL host];
 
+  [this->_lock lock];
+  ckenum = [this->_cookies objectEnumerator];
   while ((cookie = [ckenum nextObject]))
     {
       if ([receive_domain hasSuffix: [cookie domain]])
-        [a addObject: cookie];
+	{
+	  [a addObject: cookie];
+	}
     }
+  [this->_lock unlock];
   return a;
 }
 
 - (void) deleteCookie: (NSHTTPCookie *)cookie
 {
+  [this->_lock lock];
   if ([this->_cookies indexOfObject: cookie] != NSNotFound)
     {
       [this->_cookies removeObject: cookie];
       [self _doExpireUpdateAndNotify];
     }
   else
-    NSLog(@"NSHTTPCookieStorage: trying to delete a cookie that is not in the storage");
-}
-
-- (void) _setCookieNoNotify: (NSHTTPCookie *)cookie
-{
-  NSEnumerator 	*ckenum = [this->_cookies objectEnumerator];
-  NSHTTPCookie	*ck;
-  NSHTTPCookie	*remove_ck;
-  NSString 	*name = [cookie name];
-  NSString	*path = [cookie path];
-  NSString	*domain = [cookie domain];
-
-  NSAssert([cookie isKindOfClass: [NSHTTPCookie class]] == YES,
-    NSInvalidArgumentException);
-  
-  remove_ck = nil;
-  while ((ck = [ckenum nextObject]))
     {
-      if ([name isEqual: [ck name]] && [path isEqual: [ck path]])
-        {
-	  /* The Apple documentation says the domain should match and 
-	  RFC 2965 says they should match, though the original Netscape docs 
-	  doesn't mention that the domain should match, so here, if the
-	  version is explicitely set to 0, we don't require it */
-	  id ckv = [[ck properties] objectForKey: NSHTTPCookieVersion];
-	  if ((ckv && [ckv intValue] == 0) || [domain isEqual: [ck domain]])
-	    {
-	      remove_ck = ck;
-	      break;
-	    }
-	}
+      NSDebugMLog(@"NSHTTPCookieStorage:"
+	@" trying to delete a cookie that is not in the storage");
     }
-  if (remove_ck)
-    [this->_cookies removeObject: remove_ck];
-  
-  [this->_cookies addObject: cookie];
+  [this->_lock unlock];
 }
 
 - (void) setCookie: (NSHTTPCookie *)cookie

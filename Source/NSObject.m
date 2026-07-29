@@ -109,7 +109,7 @@ void GSEnumerationMutation(id obj)
        * This symbol is exported to take precedence over the weak symbol
        * provided by the runtime library.
        */
-      GS_EXPORT void objc_enumerationMutation(id obj)
+      void objc_enumerationMutation(id obj)
       {
 	GSEnumerationMutation(obj);
       }

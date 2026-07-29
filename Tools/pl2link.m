@@ -212,7 +212,12 @@ main(int argc, char** argv, char **env)
       NSString *execPath = nil;
       int l = 0;
 
-      fp = popen("which openapp","r");
+      if (NULL == (fp = popen("which openapp","r")))
+	{
+	  GSPrintf(stderr, @"Unable to find 'openapp' to open '%@'\n", entry);
+	  [pool release];
+	  exit(EXIT_FAILURE);
+	}
       fgets(line,sizeof line,fp);
       l = strlen(line);
       line[l-1] = '\0';

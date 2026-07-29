@@ -97,21 +97,6 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #define UNICODE_INT "UNICODELITTLE"
 #endif
 
-static inline uint16_t
-GSUnicodeSwap16(uint16_t codePoint)
-{
-  return (codePoint << 8) | (codePoint >> 8);
-}
-
-static inline uint32_t
-GSUnicodeSwap32(uint32_t codePoint)
-{
-  return ((codePoint & 0xFF) << 24)
-    | ((codePoint & 0xFF00) << 8)
-    | ((codePoint & 0xFF0000) >> 8)
-    | (codePoint >> 24);
-}
-
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
 static const char *unicode_enc = NULL;
@@ -545,7 +530,7 @@ GSEncodingFromLocale(const char *clocale)
       NSString	*registry;
       NSString	*charset;
       NSArray	*array;
-      char	*s;
+      const char*s;
 
       s = strchr (clocale, '.');
       registry = [[NSString stringWithUTF8String: s+1] lowercaseString];
@@ -742,6 +727,21 @@ static inline int
 octdigit(int c)
 {
   return (c >= '0' && c < '8');
+}
+
+static inline uint16_t
+GSUnicodeSwap16(uint16_t codePoint)
+{
+  return (codePoint << 8) | (codePoint >> 8);
+}
+
+static inline uint32_t
+GSUnicodeSwap32(uint32_t codePoint)
+{
+  return ((codePoint & 0xFF) << 24)
+    | ((codePoint & 0xFF00) << 8)
+    | ((codePoint & 0xFF0000) >> 8)
+    | (codePoint >> 24);
 }
 
 /**
@@ -1250,7 +1250,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	if ((GS_WORDS_BIGENDIAN && NSUTF16LittleEndianStringEncoding == enc)
 	  || (!GS_WORDS_BIGENDIAN && NSUTF16BigEndianStringEncoding == enc))
 	  {
-	    while (spos < slen)
+	    while (slen - spos >= sizeof(uint16_t))
               {
                 uint16_t	c = *(uint16_t*)(src + spos);
 
@@ -1261,7 +1261,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	  }
 	else
 	  {
-	    while (spos < slen)
+	    while (slen - spos >= sizeof(uint16_t))
               {
 	        ptr[dpos++] = *(uint16_t*)(src + spos);
 		spos += 2;
@@ -1280,7 +1280,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	    {
 	      swap = YES;
 	    }
-	  while (spos < slen)
+	  while (slen - spos >= sizeof(uint32_t))
 	    {
 	      uint32_t	c = *(uint32_t*)(src + spos);
 
@@ -2592,7 +2592,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	      }
 
 	    /* Grow output buffer to make room if necessary */
-	    if (dpos >= bsize)
+	    while (dpos + 4 > bsize)
 	      {
 		GROW();
 	      }

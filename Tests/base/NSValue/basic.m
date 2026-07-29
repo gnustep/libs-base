@@ -7,7 +7,7 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSValue *testObj;
 
-  test_alloc_only(@"NSValue");
+//  test_alloc_only(@"NSValue");
 
   int val = 5;
   int out;

@@ -209,10 +209,12 @@ static int verbose = 0;
 
 - (id)initWithCode: (NSString *)HTML
 {
-  length = [HTML length];
-  chars = malloc (sizeof(unichar) * length);
-  [HTML getCharacters: chars];
-
+  if (nil != (self = [super init]))
+    {
+      length = [HTML length];
+      chars = malloc (sizeof(unichar) * length);
+      [HTML getCharacters: chars];
+    }
   return [super init];
 }
 

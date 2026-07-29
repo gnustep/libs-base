@@ -548,6 +548,85 @@ cifframe_type(const char *typePtr, const char **advance, NSPointerArray **extra)
     case _C_BOOL: ftype = &ffi_type_uchar;
       break;
 #endif
+    case _C_BFLD:
+      {
+	/* A bitfield is encoded as b<offset><type><width> (the older form is
+	 * just b<width>).  Consecutive bitfields share a storage unit of the
+	 * underlying type, so coalesce this whole run of them into the
+	 * storage they occupy: one element of the underlying type per unit,
+	 * which gives the enclosing structure the correct size and alignment.
+	 */
+	int		maxbit = 0;
+	char		utype = _C_INT;
+	char		tt[2];
+	ffi_type	*bft;
+	unsigned	tsize;
+	unsigned	units;
+
+	typePtr = type;			/* Back up to the leading 'b'. */
+	while (*typePtr == _C_BFLD)
+	  {
+	    int		off = 0;
+	    int		width = 0;
+
+	    typePtr++;			/* Skip 'b'. */
+	    while (isdigit((unsigned char)*typePtr))
+	      off = off * 10 + (*typePtr++ - '0');
+	    if (*typePtr != '\0' && !isdigit((unsigned char)*typePtr)
+	      && *typePtr != _C_STRUCT_E && *typePtr != _C_UNION_E
+	      && *typePtr != _C_ARY_E && *typePtr != _C_BFLD)
+	      {
+		utype = *typePtr++;	/* Underlying type. */
+		while (isdigit((unsigned char)*typePtr))
+		  width = width * 10 + (*typePtr++ - '0');
+	      }
+	    else
+	      {
+		width = off;		/* Older b<width> form. */
+		off = 0;
+	      }
+	    if (off + width > maxbit)
+	      maxbit = off + width;
+	  }
+
+	tt[0] = utype;
+	tt[1] = '\0';
+	bft = cifframe_type(tt, NULL, extra);
+	tsize = (bft->size > 0) ? (unsigned)bft->size : 1;
+	units = (maxbit + 8 * tsize - 1) / (8 * tsize);
+	if (units < 1)
+	  units = 1;
+
+	if (units == 1)
+	  {
+	    ftype = bft;
+	  }
+	else
+	  {
+	    unsigned	size = sizeof(ffi_type);
+	    unsigned	align = __alignof(double);
+	    unsigned	k;
+
+	    if (size % align != 0)
+	      size += (align - (size % align));
+	    ftype = malloc(size + (units + 1) * sizeof(ffi_type*));
+	    ftype->size = 0;
+	    ftype->alignment = 0;
+	    ftype->type = FFI_TYPE_STRUCT;
+	    ftype->elements = (void*)ftype + size;
+	    for (k = 0; k < units; k++)
+	      ftype->elements[k] = bft;
+	    ftype->elements[units] = NULL;
+	    if (nil == *extra)
+	      {
+		*extra = [NSPointerArray pointerArrayWithOptions:
+		  NSPointerFunctionsOpaquePersonality
+		  | NSPointerFunctionsMallocMemory];
+	      }
+	    [*extra addPointer: ftype];
+	  }
+      }
+      break;
     default:
       ftype = &ffi_type_void;
       NSCAssert(0, @"Unknown type in sig");

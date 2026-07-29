@@ -68,6 +68,7 @@ main(int argc, char *argv[])
 
   types = makeIntArgTypes(252);
   sig = [NSMethodSignature signatureWithObjCTypes: types];
+  free(types);
   PASS(sig != nil && [sig numberOfArguments] == 254,
     "252-arg signature at 4096-byte boundary parsed, 254 arguments")
 
@@ -75,6 +76,7 @@ main(int argc, char *argv[])
   PASS_EXCEPTION(([NSMethodSignature signatureWithObjCTypes: types]),
     NSInvalidArgumentException,
     "253-arg signature one past boundary rejected")
+  free(types);
 
   /* A signature whose working buffer would otherwise require ~24 MB
    * of stack — well past any reasonable stack limit — must also be
@@ -84,6 +86,7 @@ main(int argc, char *argv[])
   PASS_EXCEPTION(([NSMethodSignature signatureWithObjCTypes: types]),
     NSInvalidArgumentException,
     "1.5M-arg signature rejected instead of crashing on alloca")
+  free(types);
 
   END_SET("NSMethodSignature alloca cap")
   return 0;

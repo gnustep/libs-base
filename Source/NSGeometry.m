@@ -36,6 +36,7 @@
 #import "common.h"
 #include <math.h>
 #import "Foundation/NSGeometry.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSNotification.h"
 #import "GSPrivate.h"
@@ -100,47 +101,113 @@ NSIntegralRect(NSRect aRect)
   return rect;
 }
 
+enum
+{
+  GSAlignUnset = 0,
+  GSAlignFloor,
+  GSAlignCeil,
+  GSAlignNearest
+};
+
+static CGFloat
+gsAlignValue(CGFloat value, int mode, BOOL tieDown)
+{
+  switch (mode)
+    {
+      case GSAlignFloor:
+        return floor(value);
+      case GSAlignCeil:
+        return ceil(value);
+      case GSAlignNearest:
+        /* Round to the nearest integer; a tie goes towards positive infinity,
+           or towards negative infinity for a flipped edge. */
+        return tieDown ? ceil(value - 0.5) : floor(value + 0.5);
+    }
+  return value;
+}
+
+static BOOL
+gsAlignAxis(CGFloat origin, CGFloat length,
+            int minMode, int maxMode, int sizeMode, BOOL tieDown,
+            CGFloat *outOrigin, CGFloat *outLength)
+{
+  int count = (minMode != GSAlignUnset)
+    + (maxMode != GSAlignUnset)
+    + (sizeMode != GSAlignUnset);
+
+  if (count != 2)
+    {
+      return NO;
+    }
+
+  if (minMode != GSAlignUnset && maxMode != GSAlignUnset)
+    {
+      CGFloat lo = gsAlignValue(origin, minMode, tieDown);
+      CGFloat hi = gsAlignValue(origin + length, maxMode, tieDown);
+
+      *outOrigin = lo;
+      *outLength = hi - lo;
+    }
+  else if (minMode != GSAlignUnset)
+    {
+      *outOrigin = gsAlignValue(origin, minMode, tieDown);
+      *outLength = gsAlignValue(length, sizeMode, NO);
+    }
+  else
+    {
+      CGFloat hi = gsAlignValue(origin + length, maxMode, tieDown);
+      CGFloat size = gsAlignValue(length, sizeMode, NO);
+
+      *outOrigin = hi - size;
+      *outLength = size;
+    }
+  return YES;
+}
+
 NSRect
 NSIntegralRectWithOptions(NSRect aRect, NSAlignmentOptions options)
 {
-  NSRect rect;
-  CGFloat maxX, maxY;
+  BOOL flipped = (options & NSAlignRectFlipped) ? YES : NO;
+  int minXMode, maxXMode, widthMode;
+  int minYMode, maxYMode, heightMode;
+  CGFloat ox, oy, ow, oh;
 
-  if (NSIsEmptyRect(aRect))
-    return NSMakeRect(0, 0, 0, 0);
+  minXMode = (options & NSAlignMinXInward) ? GSAlignCeil
+    : (options & NSAlignMinXOutward) ? GSAlignFloor
+    : (options & NSAlignMinXNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  maxXMode = (options & NSAlignMaxXInward) ? GSAlignFloor
+    : (options & NSAlignMaxXOutward) ? GSAlignCeil
+    : (options & NSAlignMaxXNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  widthMode = (options & NSAlignWidthInward) ? GSAlignFloor
+    : (options & NSAlignWidthOutward) ? GSAlignCeil
+    : (options & NSAlignWidthNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  minYMode = (options & NSAlignMinYInward) ? GSAlignCeil
+    : (options & NSAlignMinYOutward) ? GSAlignFloor
+    : (options & NSAlignMinYNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  maxYMode = (options & NSAlignMaxYInward) ? GSAlignFloor
+    : (options & NSAlignMaxYOutward) ? GSAlignCeil
+    : (options & NSAlignMaxYNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  heightMode = (options & NSAlignHeightInward) ? GSAlignFloor
+    : (options & NSAlignHeightOutward) ? GSAlignCeil
+    : (options & NSAlignHeightNearest) ? GSAlignNearest
+    : GSAlignUnset;
 
-  if (options & NSAlignMinXInward)
-    rect.origin.x = ceil(NSMinX(aRect));
-  else if (options & NSAlignMinXOutward)
-    rect.origin.x = floor(NSMinX(aRect));
-  else
-    rect.origin.x = round(NSMinX(aRect));
+  if (!gsAlignAxis(NSMinX(aRect), NSWidth(aRect),
+                   minXMode, maxXMode, widthMode, NO, &ox, &ow)
+    || !gsAlignAxis(NSMinY(aRect), NSHeight(aRect),
+                    minYMode, maxYMode, heightMode, flipped, &oy, &oh))
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSIntegralRectWithOptions: each axis needs exactly"
+                  @" two of its minimum edge, maximum edge and size"];
+    }
 
-  if (options & NSAlignMinYInward)
-    rect.origin.y = ceil(NSMinY(aRect));
-  else if (options & NSAlignMinYOutward)
-    rect.origin.y = floor(NSMinY(aRect));
-  else
-    rect.origin.y = round(NSMinY(aRect));
-
-  if (options & NSAlignMaxXInward)
-    maxX = floor(NSMaxX(aRect));
-  else if (options & NSAlignMaxXOutward)
-    maxX = ceil(NSMaxX(aRect));
-  else
-    maxX = round(NSMaxX(aRect));
-
-  if (options & NSAlignMaxYInward)
-    maxY = floor(NSMaxY(aRect));
-  else if (options & NSAlignMaxYOutward)
-    maxY = ceil(NSMaxY(aRect));
-  else
-    maxY = round(NSMaxY(aRect));
-
-  rect.size.width = maxX - rect.origin.x;
-  rect.size.height = maxY - rect.origin.y;
-
-  return rect;
+  return NSMakeRect(ox, oy, ow, oh);
 }
 
 

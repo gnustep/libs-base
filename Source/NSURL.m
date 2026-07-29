@@ -923,6 +923,10 @@ static NSUInteger	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	name, NSStringFromSelector(_cmd)];
     }
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
 
@@ -980,10 +984,13 @@ static NSUInteger	urlAlign;
       start = end;
 
       if (buf->scheme != 0 && base != 0
-        && 0 != strcmp(buf->scheme, base->scheme))
+        && (base->scheme == 0 || 0 != strcmp(buf->scheme, base->scheme)))
         {
-          /* The relative URL is of a different scheme to the base ...
-           * so it's actually an absolute URL without a base.
+          /* The relative URL has a scheme which the base lacks or which
+           * differs from the base ... so it's actually an absolute URL
+           * without a base.  (base->scheme may be NULL when the base was
+           * itself parsed from a scheme-less string, so it must be checked
+           * before strcmp.)
            */
           DESTROY(_baseURL);
           base = 0;
@@ -1447,11 +1454,42 @@ static NSUInteger	urlAlign;
 
 - (NSString*) description
 {
-  NSString	*dscr = _urlString;
+  NSString	*dscr;
 
-  if (_baseURL != nil)
+  if ([[self password] length] > 0)
     {
-      dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
+      NSRange	r0;
+      NSRange	r1;
+      NSRange	rp;
+
+      /* Debug logs should not contain sensiive information like passwords,
+       * so the -description metod for a URL needs to produce output which
+       * hides the password content.  If someone really needs to see the
+       * password they can call the -password method directly.
+       */
+      dscr = [self absoluteString];
+
+      /* Find the range from the username on.
+       */
+      r0 = [dscr rangeOfString: @"://"];
+      r0 = NSMakeRange(NSMaxRange(r0), [dscr length] - NSMaxRange(r0));
+      /* The next colon marks the end of the username
+       */
+      r0 = [dscr rangeOfString: @":" options: 0 range: r0];
+      /* The first '@' marks the end of the password (and start of the host)
+       */
+      r1 = [dscr rangeOfString: @"@"];
+      rp = NSMakeRange(NSMaxRange(r0), r1.location - NSMaxRange(r0));
+      dscr = [dscr stringByReplacingCharactersInRange: rp
+					   withString: @"HIDDEN-PASSWORD"];
+    }
+  else
+    {
+      dscr = _urlString;
+      if (_baseURL != nil)
+	{
+	  dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
+	}
     }
   return dscr;
 }
@@ -2071,9 +2109,11 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-          char		buf[strlen(myData->path) + 1];
+	  unsigned	len = strlen(myData->path);
+          char		buf[len + 1];
 
-          strcpy(buf, myData->path);
+          strncpy(buf, myData->path, len);
+	  buf[len] = '\0';
           unescape(buf, buf);
 	  path = [NSString stringWithUTF8String: buf];
 	}
@@ -3170,20 +3210,17 @@ parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
 	      push(&input, c);
 	      c = scanComponent(&input, authLegal, ":/?#", &one, md);
 	    } 
-	  markOne = input.mark;
 	  input.mark = 0;
 
 	  if (':' == c)
 	    {
 	      [md appendBytes: ":" length: 1];
 	      c = scanComponent(&input, authLegal, "/?#", &two, md);
-	      markTwo = input.mark;
 	      input.mark = 0;
 	    }
 	  else
 	    {
 	      two = NSMakeRange(NSNotFound, 0);
-	      markTwo = 0;
 	    }
 	}
 
@@ -3307,7 +3344,7 @@ parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
        * a hash (unless percent encoded of course).
        */
       [md appendBytes: "#" length: 1];
-      c = scanComponent(&input, queryLegal, "", &r->fragment, md);
+      scanComponent(&input, queryLegal, "", &r->fragment, md);
       if (input.mark && NO == encodingInvalidCharacters)
 	{
 	  ERR(@"Bad Fragment component - illegal character");
@@ -3466,7 +3503,7 @@ NSLog(@"%@", err);
       /* Record start of authority
        */
       [urlString appendString: @"//"];
-      location += len + 2;
+      location += 2;
     }
 
   if (internal->_user != nil) 

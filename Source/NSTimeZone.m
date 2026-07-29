@@ -384,6 +384,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
     {
       zone = RETAIN(localTimeZone);
       DESTROY(self);
+      /* The following strance cast, where we should be returning (id),
+       * is to work around a bug/feature in at least one version of clang.
+       */
       return (GSPlaceholderTimeZone*)zone;
     }
 
@@ -510,7 +513,10 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   DESTROY(self);
-                  return zone;
+		  /* The following strance cast, where we should be returning (id),
+		   * is to work around a bug/feature in at least one version of clang.
+		   */
+                  return (GSPlaceholderTimeZone*)zone;
                 }
 #else
 		{
@@ -527,6 +533,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	}
     }
   DESTROY(self);
+  /* The following strance cast, where we should be returning (id),
+   * is to work around a bug/feature in at least one version of clang.
+   */
   return (GSPlaceholderTimeZone*)zone;
 }
 
@@ -712,6 +721,12 @@ static int		uninitialisedOffset = 100000;
       GS_MUTEX_UNLOCK(zone_mutex);
       return z;
     }
+
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
+
   if (aName == nil)
     {
       if (anOffset % 60 == 0)
@@ -1479,7 +1494,7 @@ static int		uninitialisedOffset = 100000;
         // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
         tzName = tz.TimeZoneKeyName;
 #else
-        dst = GetTimeZoneInformation(&tz);
+        dst = GetDynamicTimeZoneInformation(&tz);
 
         if (dst == TIME_ZONE_ID_DAYLIGHT)
           tzName = tz.DaylightName;
@@ -1487,7 +1502,7 @@ static int		uninitialisedOffset = 100000;
           tzName = tz.StandardName;
 #endif
 
-        localZoneSource = @"function: 'GetTimeZoneInformation()'";
+        localZoneSource = @"function: 'GetDynamicTimeZoneInformation()'";
 
 #if defined(_MSC_VER) && defined(UCAL_H)
         // Convert Windows timezone name to IANA identifier
@@ -1586,7 +1601,7 @@ static int		uninitialisedOffset = 100000;
 	     is a symlink to the time zone. Getting the actual data (which
 	     is easier) doesn't help, since we won't know the name itself.  */
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
-	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
+	  ASSIGN(tzdir, [NSString stringWithUTF8String: TZDIR]);
 	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
           localZoneSource = [NSString stringWithFormat:
 	    @"file (TZDEFAULT): '%@'", localZoneString];
@@ -1600,6 +1615,7 @@ static int		uninitialisedOffset = 100000;
 	      localZoneString
 		= [localZoneString stringByResolvingSymlinksInPath];
 	      /* Guess what tzdir is */
+	      DESTROY(tzdir);
 	      tzdir = [localZoneString stringByDeletingLastPathComponent];
 	      while ([tzdir length] > 2
 		&& [dflt fileExistsAtPath:
@@ -2118,7 +2134,11 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 
 - (id) init
 {
-  return [self initWithName: @"NSLocalTimeZone" data: nil];
+  if ([self class] == NSTimeZoneClass)
+    {
+      return [self initWithName: @"NSLocalTimeZone" data: nil];
+    }
+  return [super init];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
@@ -2456,6 +2476,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
  * Common locations for timezone info on unix systems.
  */
 static NSString *zoneDirs[] = {
+  nil,		// Populate from TZDIR environment variable
 #ifdef TZDIR
   @TZDIR,
 #endif
@@ -2485,15 +2506,22 @@ static NSString *zoneDirs[] = {
 	  NSString	*zonedir = nil;
 	  unsigned	i;
 
+	  if (nil == zoneDirs[0])
+	    {
+	      zoneDirs[0] = RETAIN([[[NSProcessInfo processInfo] environment]
+		objectForKey: @"TZDIR"]);
+	    }
 	  for (i = 0; i < sizeof(zoneDirs)/sizeof(zoneDirs[0]); i++)
 	    {
 	      BOOL	isDir;
 
 	      zonedir
 		= [zoneDirs[i] stringByAppendingPathComponent: POSIX_TZONES];
-	      if ([mgr fileExistsAtPath: zonedir isDirectory: &isDir] && isDir)
+	      if (zonedir
+		&& [mgr fileExistsAtPath: zonedir isDirectory: &isDir]
+		&& isDir)
 		{
-		  tzdir = RETAIN(zonedir);
+		  ASSIGN(tzdir, zonedir);
 		  break;  // use first one
 		}
 	    }
@@ -3058,10 +3086,25 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
   union local_storage	*lsp;
   const char      	*zoneName;
 
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
+
   /* The placeholder class should have dealt with loading the data
    */
-  NSAssert([data isKindOfClass: [NSData class]], NSInvalidArgumentException);
-  NSAssert([name isKindOfClass: [NSString class]], NSInvalidArgumentException);
+  if (NO == [data isKindOfClass: [NSData class]])
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad/missing time zone data"];
+    }
+  if (NO == [name isKindOfClass: [NSString class]])
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad/missing time zone name"];
+    }
 
   timeZoneName = [name copy];
   timeZoneData = [data copy];

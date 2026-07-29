@@ -1,3 +1,849 @@
+2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/GNUstepBase/GSIArray.h:
+	* Headers/GNUstepBase/GSMinHeap.h:
+	* Source/Additions/GSMinHeap.m:
+	* Source/GNUmakefile:
+	* Source/GSRunLoopCtxt.h:
+	* Source/GSRunLoopCtxt.m:
+	* Source/NSRunLoop.m:
+	* Source/NSTimer.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Change to use a min heap rather than an array of timers in each runloop
+	context.  This was done after testing three different timer
+	implementations to confirm that the theoretical benefits were seen in
+	practice (and that any slight overhead in the common case of a very
+	lightly loaded loop was negligible).  This also contains a change to
+	the way that timers are recorded in different run loop modes to improve
+	performance when firing and to iomprove lookup on every iteration.
+	The limitation of the new impelementation is that a run loop is limited
+	to having no more than 64 modes (adding to a 65th mode will raise an
+	exception), but this seems academic since programs typically operate
+	using only one to four modes anyway.
+
+2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add support for XDG user directories.
+	* Tests/base/NSPathUtilities/userDomain.m: Add some user domain tests.
+	Adds support for XDG well known user directory definitions configured
+	in the .config/user-dirs.dirs file.  If present, these are used
+	unless overridden by similar configuration in the GNUstep config file.
+	Default values are still hard coded, so we operate normally if neither
+	config file lists a value.
+	The XDG configurations are XDG_DESKTOP_DIR XDG_DOCUMENTS_DIR
+	XDG_DOWNLOAD_DIR XDG_MUSIC_DIR XDG_PICTURES_DIR XDG_PROJECTS_DIR
+	XDG_PUBLICSHARE_DIR XDG_TEMPLATES_DIR XDG_VIDEOS_DIR
+	and the corresponding keys in the GNUstep config are
+	GNUSTEP_DESKTOP_DIR GNUSTEP_DOCUMENTS_DIR GNUSTEP_DOWNLOAD_DIR
+	GNUSTEP_MUSIC_DIR GNUSTEP_PICTURES_DIR GNUSTEP_PROJECTS_DIR
+	GNUSTEP_PUBLICSHARE_DIR GNUSTEP_TEMPLATES_DIR GNUSTEP_VIDEOS_DIR
+	The TEMPLATES and PROJECTS settings are currently unused.
+
+2026-07-27 Todd White <todd.white@thalion.global>
+
+	* Source/NSUnarchiver.m: Decode a char archived value into a wider
+	integer destination (short/int/long/long long), preserving the sign
+	of the archived char.  BOOL is a char on most platforms but an int
+	with the libobjc2 runtime on Windows, so a gorm (which encodes BOOL
+	as unsigned char) failed to load there with "expected int and got
+	unsigned char".  See gnustep/libs-gui#318 and gnustep/libs-gui#405.
+	* Tests/base/NSArchiver/charWidening.m: Test the char to integer
+	widening.
+
+2026-07-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Tests/base/NSHashTable/weakObjects.m:
+	Weak pointer enumeration fixes and performance improvements.  We get
+	retained values (and explicitly release them) rather than depending
+	on autorelease pools in many more places.
+
+2026-07-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSZone.h: Remove old garbage collection
+	documentation and make documentation consistent and say that
+	allocation failure is indicated by a NULL return value.
+	* Source/NSZone.m: Make allocation functions consistently return
+	NULL on failure rather than raising exception.
+
+2026-07-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLSessionTask.m: Do not bother trying to unfold headers
+	when using a version of libcurl recent enough to do it for us.
+
+2026-07-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.h: Add +generatedDate method.
+	* Tools/AGSOutput.m: Add +generatedDate method and use it.
+	* Tools/AGSHtml.m: Use +generatedDate method.
+	* Tools/AGSParser.m: Use +generatedDate method.
+	Should complete issue #697
+
+2026-07-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSMinHeap.h:
+	* Source/GSMinHeap.m:
+	* Tests/base/GSMinHeap/test00.m:
+	Implementation and tests for a minheap implementation.
+
+2026-07-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: Changes to pass the thread autorelease
+	variables around as a parameter to function/methods which are called
+	on thread exit.  This is to handle situations where the thread exit
+	means that we can't get to the variables via thread-local data.
+	Also simplify the cleanup coede on thread exit.
+	* Source/NSHTTPCookieStorage.m: add a lock as an instancve variable
+	to make cookie storage objects thread-safe.
+	Fix loading from disk to avoid duplicate cookies in store.
+	* Source/NSMethodSignature.m: check for end of type encoding string
+	where the array or union end character is missing.
+
+2026-07-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: fix tiny memory leak.
+	* Source/NSCoder.m: fix memory leak on exception.
+	* Source/NSKeyedUnarchiver.m: fix memory leak on exception.
+	* Tests/base/NSKeyedArchiver/arrayoverflow.m: fix memory leak
+	* Tests/base/NSCalendarDate/test02.m: tidy a little
+	* Source/Additions/GSMime.m: break interdependency between the
+	GSMimeParser and GSMimeDocument classes in +initialize since that
+	could cause a deadlock if the classes were first used in different
+	threads in different orders. GSMimeParser no longer cached the
+	document class (a performance optimisation targetted at very very
+	old versions of the ObjC runtime).
+	* Tools/AGSParser.m: Use SOURCE_DATE_EPOCH env variable if provided.
+	* Tools/AGSOutput.h: Add +authorCredit method.
+	* Tools/AGSOutput.m: Add +authorCredit method and use it.
+	* Tools/AGSHtml.m: Use +authorCredit method.
+	For issue make it easy for poackagers to produce consistent
+	documentation using the SOURCE_DATE_EPOCH and SOURCE_AUTHOR_CREDIT
+	environment variables to override current timestamp and user.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Source/NSURLSession.m, Source/NSURLSessionTask.m,
+	Source/NSURLSessionPrivate.h: Drive the libcurl multi handle from a
+	dedicated work thread running an NSRunLoop rather than libdispatch, so
+	the class no longer depends on libdispatch.  The serial work queue
+	becomes an NSThread, the timer source an NSTimer, and the per-socket
+	read and write sources become run loop descriptor watchers (ET_RDESC
+	and ET_WDESC on unix, a WSAEVENT registered as ET_HANDLE on Windows).
+	A socket watcher is now added or removed only on an actual direction
+	change rather than torn down and recreated.  dispatch_once is replaced
+	by a static gs_mutex.
+	* configure.ac, Source/GNUmakefile: Build NSURLSession whenever the ng
+	runtime, blocks and libcurl are present, no longer requiring libdispatch,
+	so the class is available (and its tests run) on systems without
+	libdispatch installed.
+	* Tests/base/NSURLSession/Helpers/HTTPServer.m,
+	Tests/base/NSURLSession/Helpers/GNUmakefile: Rewrite the test HTTP
+	server to serve each connection on its own thread rather than with
+	libdispatch queues and sources, so the tests no longer depend on
+	libdispatch either.
+	* Tests/base/NSURLSession/simpleTaskTests.m: Re-enable the suite, which
+	was disabled (except under MSVC, where pre-existing transfer failures
+	are tracked separately), and add tests for invalidateAndCancel and for
+	deallocating a session without invalidating it.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Source/NSNumber.m (GSHashDouble, -[NSNumber hash]): Derive the hash
+	from -doubleValue by reducing the value modulo a Mersenne prime, so
+	that equal numbers held in different types hash equally (as -isEqual:
+	requires) and fractional values no longer collide on their integral
+	part.
+	* Tests/base/NSNumber/NSNumber_hash.m: New test for the -hash /
+	-isEqual: contract, for fractional scattering and for non-finite
+	values.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Headers/Foundation/NSString.h, Headers/Foundation/NSData.h,
+	Headers/Foundation/NSDate.h, Headers/Foundation/NSValue.h,
+	Headers/Foundation/NSArray.h, Headers/Foundation/NSDictionary.h,
+	Headers/Foundation/NSSet.h: Declare NSSecureCoding conformance on the
+	plist substrate classes.
+	* Source/NSString.m, Source/NSData.m, Source/NSDate.m,
+	Source/NSNumber.m, Source/NSArray.m, Source/NSDictionary.m,
+	Source/NSSet.m (+[... supportsSecureCoding]): Implement, returning YES,
+	so a container of secure classes can be decoded securely.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: Add cases for decoding a
+	plist container (array, dictionary) of a secure class.
+	* Source/NSHost.m
+	(-[NSHost(Private) _addHostAddress:withNames:addresses:]): Call the
+	5-argument gethostbyaddr_r, which returns the struct hostent* directly,
+	on systems that provide that form.  The 5-argument gethostbyname_r
+	support added the equivalent for gethostbyname_r but missed its
+	companion gethostbyaddr_r, so the build failed on Solaris.  The Solaris
+	prototype takes the address as char*, so it is cast; it is still the
+	binary address rather than an ascii string.
+
+2026-07-08  Todd White <todd.white@thalion.global>
+
+	* Source/NSKVOSwizzling.m: On runtimes without libobjc2 per-object
+	method addition, make an observed object notify for arbitrary-key
+	mutation, as NSMutableDictionary does, by overriding setObject:forKey:
+	and removeObjectForKey: on the notifying subclass.  This was done only
+	for the libobjc2 backend, so key-value observing of a mutable
+	dictionary fired no notifications on the GNU runtime.
+	* Tests/base/NSKVOSupport/general.m,
+	Tests/base/NSKVOSupport/newoldvalues.m: Remove the FLAKY_ON_GCC markers
+	that made the affected cases hopeful on the GNU runtime; they now pass.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSKVOSupport/kvoToMany.m: Rework to avoid Objective-C
+	blocks and other constructs unavailable with the GNU runtime
+	(property auto-synthesis, the strong attribute, object subscripting),
+	and drop the objc-2 build guard, so the to-many key-value observing
+	tests build and run on the GNU runtime as well.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* configure.ac: Build the new key-value observing implementation on
+	every Objective-C runtime rather than only the next-generation one.
+	Add --disable-newkvo to fall back to the old implementation.
+	* configure: Regenerate.
+	* Source/GNUmakefile: Define GNUSTEP_BASE_NEW_KVO when the new KVO is
+	compiled so the swizzling code can select a backend.
+	* Source/NSKVOInternal.h: Guard on GNUSTEP_BASE_NEW_KVO as well as
+	__OBJC2__.  Declare the _NSKVOKeyObserver and _NSKVOKeypathObserver
+	instance variables explicitly; gcc does not synthesise them from the
+	property declarations.
+	* Source/NSKVOSwizzling.m: Add a per-class swizzling backend, using an
+	NSKVONotifying_<Class> subclass and object_setClass, for runtimes that
+	lack the libobjc2 object_addMethod_np extension.
+	(KVCSetterForPropertyName): Correct the buffer offset; it dropped the
+	second character of every key, so no setter selector resolved.
+	(_NSKVOInfoForClass, _NSKVOInstallOverride, _NSKVOEnsureKeyWillNotify):
+	Use a recursive gs_mutex instead of @synchronized, which needs
+	Objective-C exceptions that the GNU runtime does not enable on Windows.
+	(notifyingSetImpl*): Call straight through to the original setter when
+	the object has no observation info.
+	* Source/NSKVOSupport.m: Replace the block-based change dispatch with
+	plain functions.
+	(-[_NSKVOObservationInfo addObserver:], removeObserver:,
+	observersForKey:): Hold the per-key observer arrays copy-on-write so a
+	notification does not copy them.
+	(_kvoWillSetChange, _dispatchDidChange): Reuse the change dictionary
+	across notifications and iterate observers in reverse with an index
+	loop.
+	(_addNestedObserversAndOptionallyDependents,
+	_removeNestedObserversAndOptionallyDependents): Return early for a
+	simple key that has no dependents.
+
+2026-07-07  Todd White <todd.white@thalion.global>
+
+	* configure.ac: Detect the 5-argument (Solaris) form of
+	gethostbyname_r in addition to the 6-argument (glibc) form, and
+	record the argument count in GS_GETHOSTBYNAME_R_ARGS.
+	* configure: Regenerate.
+	* Headers/GNUstepBase/config.h.in: Regenerate.
+	* Source/NSHost.m (-[NSHost(Private) _addHostName:withNames:addresses:]):
+	Use the 5-argument gethostbyname_r, which returns the struct hostent*
+	directly, on systems that provide that form.
+	* Source/GSSocketStream.m (-[GSSocketInputStream _dispatch],
+	-[GSSocketOutputStream _dispatch]): Do not send a
+	NSStreamEventHasSpaceAvailable event while the socket event set
+	includes FD_CLOSE.  On winsock the socket reports space available
+	even once the peer has closed the connection, so the stream kept
+	offering space for writing after the close and a write was attempted
+	on the closed connection.
+
+2026-07-06 Todd White <todd.white@thalion.global>
+
+	* Source/NSCalendar.m
+	(-[NSCalendar rangeOfUnit:startDate:interval:forDate:]): Implement;
+	it was a stub returning NO.  Return the start and duration of the
+	calendar unit that contains the date.
+	* Tests/base/NSCalendar/rangeOfUnitInterval.m: New test.
+	* Source/NSCalendar.m (_NSRangeOfUnitField,
+	-[NSCalendar rangeOfUnit:inUnit:forDate:]): Implement; it was a
+	stub that always returned {0, 0}.  Return the range of the smaller
+	unit within the larger unit for the date, or {NSNotFound,
+	NSNotFound} for a pair that is not a containment.
+	* Tests/base/NSCalendar/rangeOfUnit.m: New test.
+	* Source/NSKeyedUnarchiver.m: Enforce NSSecureCoding class
+	restrictions.  The secure decoding entry points
+	(unarchivedObjectOfClasses:fromData:error: and the array and
+	dictionary variants) now enable secure coding, decode against the
+	given allowed classes and return nil with an NSError on a
+	violation, instead of forwarding to the insecure path.
+	-_decodeObject: rejects a class-tagged object whose class is not
+	one of the allowed classes or does not support secure coding.
+	-decodeObjectOfClasses:forKey: restricts the allowed classes for
+	its subtree.
+	* Headers/Foundation/NSKeyedArchiver.h: Add the _allowedClasses
+	instance variable.
+	* Tests/base/NSKeyedArchiver/secure_coding.m: New test.
+	* Source/cifframe.m (cifframe_type): Handle the _C_BFLD type encoding.
+	Passing or returning a structure that contains a bitfield through an
+	NSInvocation aborted with "Unknown type in sig".  Coalesce each run of
+	bitfields into the storage units of their underlying type so the
+	enclosing structure gets the correct libffi layout.
+	* Source/NSMethodSignature.m (next_arg): Take the size of a structure
+	that contains bitfields from the runtime.  Bitfields share a storage
+	unit and report a byte size of zero individually, so summing the member
+	sizes gave such a structure a size of zero and its return value was lost.
+	Work out a bitfield's alignment from its underlying type rather than
+	from objc_alignof_type, whose gnu runtime implementation aborts on a
+	bitfield encoding.
+	* Tests/base/NSInvocation/bitfield.m: New test.
+
+2026-07-05 Todd White <todd.white@thalion.global>
+
+	* Source/NSScanner.m (-[NSScanner scanDecimal:]): Implement; it
+	was an unimplemented stub that raised an exception.
+	* Tests/base/NSScanner/scanDecimal.m:
+	New test.
+	* Source/NSScanner.m (-[NSScanner scanHexDouble:],
+	-[NSScanner scanHexFloat:]): Implement scanning of a C hexadecimal
+	floating point value; both were unimplemented stubs returning NO.
+	* Tests/base/NSScanner/scanHexFloat.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalAdd, NSDecimalSubtract): Do not turn
+	an overflow into an underflow when the result is negative.  A sum or
+	difference too large to represent is an overflow whatever its sign.
+	* Tests/base/NSDecimalNumber/add_subtract_overflow_sign.m:
+	New test.
+	* Tests/base/NSDecimalNumber/nan_and_edges.m:
+	New test.
+	* Source/NSDecimal.m (NSDecimalMultiply): Report a product too large
+	to represent as NSCalculationOverflow regardless of its sign, rather
+	than NSCalculationUnderflow when the result is negative.
+	* Tests/base/NSDecimalNumber/multiply_overflow_sign.m:
+	New test.
+2026-07-06 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProgress.m:
+	Create the userInfo dictionary if needed.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
+	* Source/NSCalendar.m (-[NSDateComponents copyWithZone:]):
+	Always return a new instance.  NSDateComponents is mutable, but
+	copyWithZone: short-circuited through NSShouldRetainWithZone and
+	returned the receiver, so -copy handed back the same object and
+	mutating the "copy" changed the original.
+	* Tests/base/NSDateComponents/copy.m:
+	* Tests/base/NSDateComponents/TestInfo:
+	New test.
+	* Tests/base/NSDateComponents/basic.m:
+	* Tests/base/NSDateComponents/TestInfo:
+	Add tests for NSDateComponents (there were none): the undefined defaults,
+	the component accessors and setters, valueForComponent: and
+	setValue:forComponent: (including the weekOfYear/week alias), and building
+	a date through an attached Gregorian calendar.
+	* Source/NSCache.m (-_evictObjectsToMakeSpaceForObjectWithCost:):
+	Only apply the count limit when one has been set.  A count limit of 0
+	means "no limit", but the eviction test triggered on count >= 0 for
+	every insert, so an otherwise unbounded cache discarded the content of
+	the discardable objects it held.  Guard the count check with
+	_countLimit > 0, matching the existing _costLimit > 0 guard.
+	* Tests/base/NSCache/nolimit.m: New test.
+	* Tests/base/NSCache/removeobjects.m:
+	Add tests for NSCache behaviour not covered by cache.m: removeObjectForKey:
+	(including the absent-key no-op), objectForKey: for an unknown key, value
+	replacement for an existing key, the evictsObjectsWithDiscardedContent and
+	delegate accessors, and the delegate cache:willEvictObject: callback on
+	removeObjectForKey: and removeAllObjects.
+	* Tests/base/NSCharacterSet/mutable.m:
+	Add tests for characterSetWithRange:, isSupersetOfSet:, and the
+	NSMutableCharacterSet add / remove / formUnion / formIntersection /
+	invert operations.
+	* Tests/base/NSCountedSet/counting.m:
+	Add tests for the NSCountedSet counting behaviour: countForObject:, the
+	distinct count, addObject: incrementing, removeObject: decrementing and
+	removing an object at zero, and initWithArray: counting duplicates.
+	* Source/NSPointerArray.m (-[NSConcretePointerArray compact]): Advance
+	the insertion point for every non-nil pointer and clear the trailing
+	slots, so that non-nil pointers before the first nil are not lost.
+	* Tests/base/NSPointerArray/compact.m: New test.
+	* Tests/base/NSPointerArray/mutation.m:
+	Add tests for pointerAtIndex:, removePointerAtIndex:,
+	replacePointerAtIndex:withPointer:, setCount: (growing with NULLs and
+	shrinking) and storing a NULL pointer.
+	* Tests/base/NSHashTable/operations.m:
+	Add tests for the NSHashTable membership helpers (member:, anyObject,
+	setRepresentation, removeAllObjects), the predicates
+	(isEqualToHashTable:, isSubsetOfHashTable:, intersectsHashTable:) and the
+	set-algebra operations (unionHashTable:, intersectHashTable:,
+	minusHashTable:).
+	* Tests/base/NSMapTable/strongObjects.m:
+	Add tests for the strong-to-strong NSMapTable operations not otherwise
+	covered: +strongToStrongObjectsMapTable, overwrite semantics,
+	objectForKey: of an absent key, removeAllObjects, keyEnumerator /
+	objectEnumerator, and dictionaryRepresentation.
+	* Tests/base/NSPredicate/compound.m:
+	Add tests for predicateWithValue:, the NOT and ENDSWITH operators, the
+	programmatic NSCompoundPredicate constructors, and the empty-subpredicate
+	semantics (AND of nothing is true, OR of nothing is false).
+	* Tests/base/NSValueTransformer/registry.m:
+	Add tests for the NSValueTransformer name registry
+	(setValueTransformer:forName:, valueTransformerForName:,
+	valueTransformerNames), the allowsReverseTransformation metadata, and
+	that reverseTransformedValue: on a non-reversible transformer raises.
+	* Source/NSIndexPath.m (-[NSIndexPath compare:]): Order a shorter path
+	that is a prefix of the other before the longer path, not after.
+	* Tests/base/NSIndexPath/compare_prefix.m: New test.
+	* Tests/base/NSIndexPath/compare_getindexes.m:
+	Add tests for getIndexes:, equal-path isEqual: and hash, and the equal
+	and element-difference cases of compare:.
+	* Tests/base/NSSortDescriptor/descriptors.m:
+	Add tests for the key/ascending accessors, reversedSortDescriptor, the
+	equal case of compareObject:toObject:, a custom-selector descriptor, and
+	single-descriptor ascending/descending sorting.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet intersectOrderedSet:],
+	-[NSMutableOrderedSet intersectSet:]): Enumerate a snapshot of the
+	receiver's contents rather than removing objects while enumerating the
+	receiver itself.
+	* Tests/base/NSOrderedSet/intersect.m: New test.
+	* Source/NSOrderedSet.m (-[NSMutableOrderedSet
+	moveObjectsAtIndexes:toIndex:]): Build the moved objects in index order,
+	remove them highest index first so the earlier indexes stay valid, and
+	reinsert them at an increasing target index.
+	* Tests/base/NSOrderedSet/moveObjects.m: New test.
+	* Tests/base/NSOrderedSet/operations.m:
+	Add tests for NSOrderedSet / NSMutableOrderedSet accessors, ordering
+	and uniqueness, and the index-based mutation and set-algebra operations
+	(objectAtIndex:, indexOfObject:, first/lastObject, isEqualToOrderedSet:,
+	reversedOrderedSet, array, set, and the mutable insert / remove /
+	replace / exchange / union / minus operations).
+	* Tests/base/NSUUID/format.m:
+	Add tests for the NSUUID string/byte layout: that a UUID string parses
+	to the expected bytes in order and back, that parsing accepts lower
+	case and produces upper case and rejects malformed strings, and that
+	+UUID yields distinct, well-formed values.
+	* Tests/base/NSIndexSet/basic.m:
+	Add tests for the core NSIndexSet and NSMutableIndexSet API: creation
+	and count, containment and range queries, first/last and
+	greater/less-than navigation, isEqualToIndexSet:, getIndexes:..., and
+	the mutable add / remove / shift operations.
+
+2026-07-03 Todd White <todd.white@thalion.global>
+
+	* Tests/base/NSDateInterval/basic.m:
+	* Tests/base/NSDateInterval/TestInfo:
+	Add tests for NSDateInterval: construction (including the negative
+	duration and reversed date exceptions), the accessors and setters,
+	compare: and isEqualToDateInterval:, intersection
+	(intersectsDateInterval:, intersectionWithDateInterval:), containsDate:
+	and copying.
+	* Tests/base/NSError/basic.m:
+	* Tests/base/NSError/TestInfo:
+	Add tests for NSError: construction and accessors (domain, code,
+	userInfo), the localized-value accessors (localizedDescription and its
+	failure-reason and domain/code fallbacks, localizedFailureReason,
+	localizedRecoverySuggestion, localizedRecoveryOptions), copying and
+	NSCoding.
+	* Tests/base/Functions/NSGeometry2.m:
+	Add tests for the NSGeometry rectangle functions not covered by
+	NSGeometry1.m: the coordinate accessors, NSIsEmptyRect, NSOffsetRect,
+	NSInsetRect, NSIntegralRect, NSUnionRect, NSIntersectionRect,
+	NSContainsRect, NSPointInRect, NSMouseInRect and NSDivideRect.
+	* Tests/base/NSSet/operations.m:
+	Add tests for NSSet and NSMutableSet: creation and de-duplication,
+	membership (containsObject:, member:, anyObject, allObjects), the set
+	predicates (isEqualToSet:, isSubsetOfSet:, intersectsSet:), the
+	setByAdding... derived-set methods, and NSMutableSet mutation and set
+	algebra (unionSet:, intersectSet:, minusSet:, setSet:).
+	* Source/NSDecimal.m (GSDecimalCompare):
+	Treat trailing zeros in a mantissa as insignificant, so that two equal
+	values of different mantissa length (as produced by NSDecimalNormalize)
+	compare as NSOrderedSame rather than by length.
+	* Tests/base/NSDecimalNumber/compare_trailing_zeros.m: New test.
+	* Tests/base/NSDecimalNumber/decimal_functions.m:
+	Add tests for the NSDecimal C functions: NSDecimalFromString,
+	NSDecimalFromComponents, NSDecimalString, NSDecimalAdd,
+	NSDecimalSubtract, NSDecimalMultiply, NSDecimalDivide (including
+	division by zero and loss of precision), NSDecimalPower,
+	NSDecimalMultiplyByPowerOf10, NSDecimalRound in each rounding mode,
+	NSDecimalCompare, NSDecimalCopy, NSDecimalNormalize, NSDecimalMax,
+	NSDecimalMin, NSDecimalDouble and NSDecimalIsNotANumber.
+	* Tests/base/Functions/NSRange.m:
+	Add tests for the NSRange functions: NSMakeRange (including its
+	location + length overflow exception), NSMaxRange, NSEqualRanges,
+	NSLocationInRange, NSUnionRange, NSIntersectionRange, and the
+	NSStringFromRange / NSRangeFromString round trip.
+
+2026-07-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProxy.m:
+	* Tests/base/NSProxy/test00.m:
+	Add testcase and some improvements in NSProxy for the fast forwarding
+	mechanism.
+
+2026-06-29 Todd White <todd.white@thalion.global>
+
+	* Source/NSXMLDTDNode.m (-setNotationName:, -setPublicID:,
+	-setSystemID:): these stored XMLSTRING(arg) - the transient
+	[arg UTF8String] buffer - directly in the persistent libxml2 entity
+	fields, so once the autorelease pool that produced the string
+	drained the field dangled: a getter read freed memory and -dealloc
+	xmlFreeEntity freed a pointer libxml2 never allocated.  Copy the
+	argument with XMLStringCopy, as -[NSXMLDTD setPublicID:] and
+	-setSystemID: do.  -setSystemID: also wrote ExternalID instead of
+	SystemID, so -systemID never returned the value set; store it in
+	SystemID.
+	* Tests/base/NSXMLDTDNode/entity-id-persistence.m: new regression
+	test.
+	* Source/NSPropertyList.m (parsePlItem): the GNUstep-extended
+	OpenStep typed values <*I...>, <*D...> and <*R...> copied their
+	token body into a stack buffer (char buf[len+1] / unichar buf[len])
+	whose size was taken straight from the token length, so a token of
+	a few hundred KB overflowed the stack.  The token is reachable from
+	+propertyListWithData:options:format:error: with attacker-supplied
+	data.  A valid typed value is a short number or date, so reject an
+	over-long token before allocating the buffer.
+	* Tests/base/NSPropertyList/openstep-typed-value-bounds.m: new
+	regression test.
+
+2026-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/BaseAdditions.gsdoc:
+	* Documentation/Functions.gsdoc:
+	* Documentation/GNUmakefile:
+	* Documentation/General/Debugging.gsdoc:
+	* Documentation/General/OpenStepCompliance.gsdoc:
+	* Documentation/HtmlNav/docs-web.html:
+	* Documentation/HtmlNav/index.html:
+	* Documentation/TypesAndConstants.gsdoc:
+	* Documentation/manual/BaseLibrary.texi:
+	* Documentation/manual/DistributedObjects.texi:
+	* Documentation/manual/GSDoc.texi:
+	* Documentation/manual/foreword.texi:
+	* Documentation/manual/index.html:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Tools/AGSHtml.m:
+	* Tools/BaseTools.gsdoc:
+	Documentation internal link fixes.
+
+2026-06-20 Todd White <todd.white@thalion.global>
+
+	* Source/GSString.m (-[GSCString substringFromRange:],
+	-[GSCString substringWithRange:]): both ran the tiny-string fast path
+	- createTinyString((char*)_contents.c + aRange.location,
+	aRange.length) - before validating aRange against the receiver length.
+	createTinyString reads up to 9 bytes from that pointer, so an
+	out-of-range range read past the end of the character buffer.  Perform
+	GS_RANGE_CHECK first, as the GSMutableString implementations do.
+	* Tests/base/NSString/substring-bounds.m: new regression test.
+	* Source/NSValue.m (-[NSValue initWithCoder:]): the object-type
+	string length was decoded from the archive and, when <= 64, that many
+	bytes were copied into a 64-byte stack buffer; a length of exactly 64
+	filled the buffer with no room for a terminator, yet the bytes were
+	then used as a NUL-terminated C string (strncmp,
+	-valueClassWithObjCType:), reading past the end of the buffer.  Reject
+	a type string that is not NUL-terminated.
+	* Tests/base/NSValue/codertype.m: new regression test.
+	* Tests/base/NSValue/TestInfo: added so the NSValue tests are run.
+	* Source/NSXMLParser.m (-[NSXMLParser parse]): the '<' tag handler
+	tested cp < cend - 8' when looking ahead for
+	"!--" and "![CDATA[", but cend is an unsigned NSUInteger, so a tag
+	with fewer than 3 (resp. 8) bytes remaining made the subtraction
+	underflow to a huge value, the guard passed, and the following
+	strncmp() read past the end of the buffer.  Test cp + 8 < cend' instead,
+	equivalent whenever there are enough bytes but without the underflow.
+	* Tests/base/NSXMLParser/cend-bounds.m: new regression test.
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the
+	0xAF "big array" and 0xDF "big dictionary" cases read an element
+	count straight from the (untrusted) data and used it both to size the
+	NSAllocateCollectable() buffer and to bound the loop that reads that
+	many object-index entries, with no check that the data could hold
+	them.  A crafted marker declaring billions of elements over a few
+	bytes made the loop read object indices far past the end of the
+	buffer (and on 32-bit wrapped the sizeof(id)*count product to an
+	undersized allocation).  Reject a count that cannot fit in the bytes
+	remaining for the index entries before allocating or reading.
+	* Tests/base/NSPropertyList/bplist-bigcontainer-bounds.m: new
+	regression test.
+	* Source/NSCalendarDate.m (Grow): the helper that enlarges the date
+	formatting buffer always grew by a fixed 512 unichars, so a format field
+	longer than that increment (e.g. a long month or weekday name supplied
+	through the locale) left the buffer too small and the following
+	-getCharacters: wrote past its end.  Grow by at least the requested
+	size.
+	* Tests/base/NSCalendarDate/growname.m: new regression test.
+	* Source/NSPropertyList.m (-[GSBinaryPLParser objectAtIndex:]): the four
+	string object cases (short and long UTF-8 and UTF-16, markers 0x50-0x5F
+	and 0x60-0x6F) read len bytes from the object body without checking that
+	the body stayed within the data, unlike the sibling data cases, so a
+	string object declaring a length past the end read out of bounds.
+	Validate the length against the remaining data before reading.
+	* Tests/base/NSPropertyList/bplist-string-bounds.m: new regression test.
+	* Source/NSAttributedString.m (-[NSAttributedString initWithCoder:],
+	-[NSMutableAttributedString initWithCoder:]): the variable-length
+	integer decode loops for NSAttributeInfo (`while (*p & 0x80)' and the
+	trailing `*p++') had no `p < end' bound, so an NSAttributeInfo value
+	ending in a continuation byte read past the end of the buffer.  Bound
+	both loops (and the trailing byte) by end.
+	* Tests/base/NSAttributedString/coderinfo.m: new regression test.
+	* Source/NSValue.m (-[NSValue initWithCoder:]): in the version >= 2
+	decode path, when the unpacked type size was <= 64 the serialized
+	bytes were placed in a stack VLA whose length came straight from
+	the (untrusted) archive, so a large size overran the stack.
+	Heap-allocate the serialized buffer, as the > 64 case already does.
+	* Tests/base/NSValue/TestInfo: add the marker so the directory is run.
+	* Tests/base/NSValue/codervla.m: new regression test.
+
+2026-06-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSDecimalNumber.h:
+        * Source/NSDecimalNumber.m:
+        * Tests/base/NSJSONSerialization/depth.m:
+        * Tests/base/NSJSONSerialization/number.m:
+        * Tests/base/NSMutableSet/general.m:
+        * Tests/base/NSStream/memandfile_2.m:
+        * Tests/base/NSString/NSString_custom.m:
+        * Tests/base/NSString/locale.m:
+	Fix type casting issues causing compiler warnings/errors.
+
+2026-06-20 Todd White <todd.white@thalion.global>
+
+	* Source/NSKVOSupport.m:
+	* Tests/base/NSKVOSupport/legacy.m:
+	Implements the setKeys:triggerChangeNotificationsForDependentKey: class
+    	method. Please do not use it. It is fundamentally broken, and requires
+    	the object's meta class to hold additional state.
+    	Keys from this class method are the last resort when retrieving
+    	dependencies via keyPathsForValuesAffectingValueForKey:.
+    	This aligns with the implementation in Foundation.
+
+2026-06-19 Todd White <todd.white@thalion.global>
+
+	* Source/NSInvocation.m (-[NSInvocation initWithCoder:]): when the
+	decoded method-type string was missing or unparseable, the method
+	signature and the replacement invocation were nil, but the method
+	went on to decode the target, selector and arguments through ivars
+	off the nil self (a near-NULL out-of-bounds write).  Reject a nil
+	signature before touching the ivars.
+	* Tests/base/NSInvocation/codersig.m: new regression test.
+	* Source/NSCharacterSet.m (-[NSCharacterSet initWithCoder:]): the
+	abstract class decoded an int from the archive and used it directly
+	as an index into the fixed-size cache_set[] array of standard sets
+	with no bounds check, so a crafted archive could read and -retain
+	an out-of-bounds slot.  Range-check the index.
+	* Tests/base/NSCharacterSet/coderindex.m: new regression test.
+	* Source/NSSerializer.m (deserializeFromInfo): the ST_CSTRING case
+	read a byte count from the (untrusted) data and built the string
+	with length size-1; a crafted count of 0 made size-1 underflow to
+	a huge length over a zero-byte buffer (an out-of-bounds read).
+	Reject a zero C-string length.
+	* Tests/base/NSSerializer/cstring.m: new regression test.
+	* Source/NSData.m (-[NSDataStatic
+	deserializeTypeTag:andCrossRef:atCursor:]): the 32-bit cross-reference
+	read was guarded with `*cursor >= length-3', but length is an unsigned
+	NSUInteger, so a buffer shorter than 3 bytes made length-3 underflow and
+	defeated the guard, reading past the end of the buffer.  Reject a
+	too-short buffer before the subtraction.
+	* Tests/base/NSData/typetag.m: new regression test.
+	* Source/NSData.m (-[NSData deserializeInts:count:atCursor:],
+	-[NSData deserializeInts:count:atIndex:]): both passed &intBuffer (the
+	address of the local pointer parameter) to -deserializeBytes:length:
+	atCursor: instead of intBuffer, so the decoded bytes were written over
+	the pointer on the stack rather than into the caller's buffer.  Pass
+	intBuffer.
+	* Tests/base/NSData/deserializeints.m: new regression test.
+	* Source/NSCoder.m (-[_NSKeyedCoderOldStyleArray initWithCoder:]): the
+	destination buffer was allocated with -[NSMutableData initWithLength:
+	_c * _s] where _c (the decoded NS.count) and _s are both unsigned,
+	so the 32-bit product could truncate and an attacker-chosen count
+	made the buffer far smaller than the _c elements the following loop
+	wrote into it.  Reject a count larger than the sequential element
+	keys actually present, and widen the product.
+	* Source/NSKeyedUnarchiver.m (-_containsRawKey:): new private helper
+	that probes the current object map without the leading-'$' escaping.
+	* Tests/base/NSKeyedArchiver/arrayoverflow.m: new regression test.
+	* Source/NSDecimal.m (GSDecimalFromString): the digit-copying loops
+	wrote into the fixed-size cMantissa[] array of a stack decimal without
+	bounding the destination index, so a numeric string with more digits
+	than the mantissa can hold overran the buffer.  Stop filling the
+	mantissa at its capacity (sizeof cMantissa): excess integer digits
+	raise the exponent to preserve magnitude and excess fractional digits
+	are dropped.
+	* Tests/base/NSDecimalNumber/string.m: new regression test.
+	* Source/NSJSONSerialization.m (parseNumber): the BUFFER() macro
+	raised a parse error when the 255-byte numeric buffer was full but
+	did not stop, so a numeric token longer than the buffer overran the
+	stack array.  Return as soon as the error is raised so an over-long
+	token is rejected instead of overflowing the buffer.
+	* Tests/base/NSJSONSerialization/number.m: new regression test.
+
+2026-06-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc: minor tidy
+	* Headers/Foundation/NSBundle.h: extend -mainBundle documentation
+	* Source/NSBundle.m: Make tool bundle lookup try to get the bundle from
+	the same domain as the executable if possible (relevant of two tools
+	with the same name are installed in different domains).
+	Log to stderr (when --GNU-Debug=NSBundle option is used) the path
+	used for the main bundle and the type of that bundle.
+	Remove old gnustep-make version 1 compatibility code.  Tidy a little.
+
+2026-06-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add some debug showing the progress of
+	reading GNUstep configuration files to get the standard paths.
+	If the --GNU-Debug=NSPathUtilities argument is specifeld the extra
+	information is written to stderr.
+
+2026-06-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Fix race condition in lock setup reported by
+	DTW-Thalion.  Set up cached methods for lock before setting the
+	variable itself.
+
+2026-06-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	Define a larger size for on-stack memory allocation of buffers, to
+	reduce the performance overhead of using the heap.  Add check for
+	malloc failure when we do have to allocate buffer space on heap.
+	* Source/GSICUString.h:
+	* Source/GSICUString.m:
+	* Source/NSPropertyList.m:
+	* Source/NSRegularExpression.m:
+	Remove duplicate macro usage
+
+2026-06-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m:
+	* Source/NSMessagePortNameServer.m:
+	Avoid issues if stdio fails to read from file or file is modified
+	while we are reading.
+
+2026-06-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMethodSignature.m:
+	* Source/NSOperation.m:
+	* Source/NSPropertyList.m:
+	* Tests/base/NSKVOSupport/ComplexNilAndCycleTest.m:
+	* Tests/base/NSMeasurement/conversion.m:
+	Various memory leak fixes
+	* Source/NSData.m: fix range check and check for presence of bytes
+	* Source/Additions/GSXML.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSCoder.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSDate.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSFileWrapper.m:
+	* Source/NSLocale.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSPointerArray.m:
+	* Source/NSPointerFunctions.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSXMLDTD.m:
+	* Source/NSXMLParser.m:
+	* Tools/AGSIndex.m:
+	* Tools/HTMLLinker.m:
+	* Tools/gdnc.m:
+	Make sure classes call superclass initialiser (to ensure that code in
+	-[NSObject init] is executed, for object creation/descruption info).
+
+2026-06-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tests/base/NSAutoreleasePool/order.m:
+	* Source/NSAutoreleasePool.m: updates to (hopefully) make code easier
+	to understnad and to (in the absence of re-entrancy) make pool contents
+	be released in a predictable (LIFO) order.  There is no guarantee of
+	this in the API, but it mis simpler to describe and test.
+
+2026-06-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: libobjc2 integration fix; empty chldren
+	after popping pool.  Also fix error in linking pool from cache into
+	list (problem exposed by the integration issue) and make emptying
+	children more robust in the case of re-entrancy. Finally, fix a few
+	bugs and make gcc behavior match libobjc2 behavior.
+	* Tests/base/NSAutoreleasePool/order.m:
+	* Tests/base/NSAutoreleasePool/reentrant.m:
+	Add some tests for pool behavior with reentrancy.
+
+2026-05-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Allow TZDIR environment variable to define
+	where we look for time zone information.  Issue #615
+
+2026-05-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Hide any password in the -description method.
+	* Source/NSURLRequest.m: Hide URL password in our -description
+	* Tests/base/NSURL/basic.m: Test password hiding.
+	Security changes; if a URL contains username/password information
+	(which is generally deprecated), we hide it in the string returned
+	by the -description method.  This minimises the chance of accidental
+	leakage of secure information into logs etc.
+
+2026-05-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+	* Source/NSURLProtocol.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStream.m:
+	* Tests/base/NSStream/socket.m:
+	Usability tweaks, including setting the host name requested for the
+	TLS connection automatically if not specified.  This is needed for
+	servers with multiple names which want to know which hostname a
+	request was intended for.
+
+2026-05-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: Enable strict host certificate verification by
+	default and use available server name for host name verification
+	if it is set.  Improve printing certificate and other debug.
+	Fix bug checking remote host name, and change to use system trust
+	list (if possible) in preference to the one in the gnustep bundle.
+	This is a big deal as it alters the behavior of
+	NSURL (and the NSURLHandle/NSURLConnection APIs) so that they will
+	now fail to send the HTTPS request if the remote host has a bad
+	certificate (not trusted or secure enough etc).  When the APIs were
+	first developed that would have been a big issue because a lot of
+	servers would not have worked, but nowadays we can expect servers
+	to have good certificates issued by a trusted authority.
+	* Documentation/Base.gsdoc: document the user default and environment
+	variable settings available for process-wide control of TLS behavior.
+	* Source/NSSocketPort.m: Disable strict host certificate verification
+	by default for TLS used for inter-process communication. This feature
+	is only activated by programattically setting TLS configuration for a
+	connection, so code which wants certificate verification should be
+	setting the option to get it anyway.
+	modified:   Source/GSTLS.m
+	* Tests/base/NSStream/socket.m:
+	* Tests/base/NSURL/test02.m:
+	* Tests/base/NSURLConnection/Helpers/NSURLConnectionTest.m:
+	* Tests/base/NSURLConnection/test02.m:
+	Update tests to disable hostname validation where we are using bad certs
+
+2026-05-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSZone.m: Tiny optimisation ... avoid a function call
+	overhead when using default malloc zone.
+
+2026-04-28 Hendrik Huebner <hendrik.huebner@algoriddim.com>
+
+	* Source/NSOperation.m: Added libdispatch based NSOperationQueue
+	implementation (Enabled by default for platforms where libdispatch
+	is available).
+	* Headers/Foundation/NSOperation.h: Exposed underlyingQueue getter
+	and setter for platforms using libdispatch.
+	* Tests/base/NSOperation/queue_dispatch.m:
+	Added tests for underlying queue and dispatch implementation.
+	* Tests/base/NSOperation/GNUmakefile.preamble: Link libdispatch to
+	queue_dispatch.m.
+
 2026-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Move calls to memory allocation code.
@@ -47,7 +893,16 @@
 	exceptions or null pointer crashes in code which expects the
 	-UTF8String method to work for all strings.
 	Remove a few old testcases and add a load of new ones.
-	
+
+2026-04-22 Hendrik Huebner <hendrik.huebner@algoriddim.com>
+
+	* Headers/Foundation/NSString.h:
+	Declare -stringByFoldingWithOptions:locale:.
+	* Source/NSString.m:
+	Implement -stringByFoldingWithOptions:locale: using ICU transliteration.
+	* Tests/base/NSString/locale.m:
+	Add folding tests for case, diacritic, width and combined behavior.
+
 2026-04-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSFileManager.h:

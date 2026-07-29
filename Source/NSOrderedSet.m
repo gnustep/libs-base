@@ -477,13 +477,13 @@ static SEL	remSel;
 - (instancetype) initWithOrderedSet: (NSOrderedSet *)other
                           copyItems: (BOOL)flag
 {
-  unsigned	c = [other count];
-  id		o, e = [other objectEnumerator];
-  unsigned	i = 0;
+  NSUInteger	c = [other count];
+  NSUInteger	i = 0;
   GS_BEGINIDBUF(os, c);
 
-  while ((o = [e nextObject]))
+  GS_FOR_IN(id, o, other)
     {
+      if (i >= c) break;
       if (flag)
         {
           os[i] = [o copy];
@@ -494,6 +494,8 @@ static SEL	remSel;
         }
       i++;
     }
+  GS_END_FOR(other)
+
   self = [self initWithObjects: os count: c];
   if (flag)
     {
@@ -1549,25 +1551,23 @@ static SEL	remSel;
          inIndexRange: NULL];
 
   // Build the temporary array....
-  while (i-- > 0)
+  for (i = 0; i < count; i++)
     {
-      NSUInteger index = indexArray[i];
-      id obj = [self objectAtIndex: index];
-      [tmpArray addObject: obj];
+      [tmpArray addObject: [self objectAtIndex: indexArray[i]]];
     }
 
   // Remove the originals...
-  for (i = 0; i < count; i++)
+  i = count;
+  while (i-- > 0)
     {
-      NSUInteger index = indexArray[i];
-      [self removeObjectAtIndex: index];
+      [self removeObjectAtIndex: indexArray[i]];
     }
 
   // Move the objects
   e = [tmpArray objectEnumerator];
   while ((o = [e nextObject]) != nil)
     {
-      [self insertObject: o atIndex: index];
+      [self insertObject: o atIndex: index++];
     }
 }
 
@@ -1693,7 +1693,7 @@ static SEL	remSel;
 {
   if (other != self)
     {
-      id keys = [self objectEnumerator];
+      id keys = [[self array] objectEnumerator];
       id key;
 
       while ((key = [keys nextObject]))
@@ -1708,7 +1708,7 @@ static SEL	remSel;
 
 - (void) intersectSet: (NSSet *)other
 {
-  id keys = [self objectEnumerator];
+  id keys = [[self array] objectEnumerator];
   id key;
 
   while ((key = [keys nextObject]))

@@ -146,31 +146,31 @@ GS_EXPORT_CLASS
  *  value (<code>NSRoundPlain</code>).  Exceptions raised on overflow,
  *  underflow, and divide by zero.
  */
-+ (id)defaultDecimalNumberHandler;
++ (id) defaultDecimalNumberHandler;
 
 /**
  * Constructor setting all behavior.  (For more precise control over error
  * handling, create your own class implementing the [(NSDecimalNumberBehaviors)]
  * protocol.)
  */
-+ (id)decimalNumberHandlerWithRoundingMode:(NSRoundingMode)roundingMode 
-				     scale:(short)scale
-			  raiseOnExactness:(BOOL)raiseOnExactness 
-			   raiseOnOverflow:(BOOL)raiseOnOverflow 
-			  raiseOnUnderflow:(BOOL)raiseOnUnderflow
-		       raiseOnDivideByZero:(BOOL)raiseOnDivideByZero;
++ (id) decimalNumberHandlerWithRoundingMode: (NSRoundingMode)roundingMode 
+				     scale: (short)scale
+			  raiseOnExactness: (BOOL)raiseOnExactness 
+			   raiseOnOverflow: (BOOL)raiseOnOverflow 
+			  raiseOnUnderflow: (BOOL)raiseOnUnderflow
+		       raiseOnDivideByZero: (BOOL)raiseOnDivideByZero;
 
 /**
  * Initializer setting all behavior.  (For more precise control over error
  * handling, create your own class implementing the [(NSDecimalNumberBehaviors)]
  * protocol.)
  */
-- (id)initWithRoundingMode:(NSRoundingMode)roundingMode 
-		     scale:(short)scale 
-	  raiseOnExactness:(BOOL)raiseOnExactness
-	   raiseOnOverflow:(BOOL)raiseOnOverflow 
-	  raiseOnUnderflow:(BOOL)raiseOnUnderflow
-       raiseOnDivideByZero:(BOOL)raiseOnDivideByZero;
+- (id)initWithRoundingMode: (NSRoundingMode)roundingMode 
+		     scale: (short)scale 
+	  raiseOnExactness: (BOOL)raiseOnExactness
+	   raiseOnOverflow: (BOOL)raiseOnOverflow 
+	  raiseOnUnderflow: (BOOL)raiseOnUnderflow
+       raiseOnDivideByZero: (BOOL)raiseOnDivideByZero;
 @end
 
 /**
@@ -200,54 +200,54 @@ GS_EXPORT_CLASS
  *  is same as [NSDecimalNumberHandler+defaultDecimalNumberHandler] unless it
  *  has been explicitly set otherwise.
  */
-+ (id <NSDecimalNumberBehaviors>)defaultBehavior;
++ (id <NSDecimalNumberBehaviors>) defaultBehavior;
 
 /**
  *  Sets the default rounding/precision/exception handling behavior to the
  *  given behavior.  If this is not called, behavior defaults to
  *  [NSDecimalNumberHandler+defaultDecimalNumberHandler].
  */
-+ (void)setDefaultBehavior:(id <NSDecimalNumberBehaviors>)behavior;
++ (void) setDefaultBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Return maximum positive value that can be represented.
  */
-+ (NSDecimalNumber *)maximumDecimalNumber;
++ (NSDecimalNumber*) maximumDecimalNumber;
 
 /**
  *  Return minimum negative value (<em>not</em> the smallest positive value)
  *  that can be represented.
  */
-+ (NSDecimalNumber *)minimumDecimalNumber;
++ (NSDecimalNumber*) minimumDecimalNumber;
 
 /**
  *  Return a fixed value representing an NaN.
  */
-+ (NSDecimalNumber *)notANumber;
++ (NSDecimalNumber*) notANumber;
 
 /**
  *  Return a constant object with a value of one.
  */
-+ (NSDecimalNumber *)one;
++ (NSDecimalNumber*) one;
 
 /**
  *  Return a constant object with a value of zero.
  */
-+ (NSDecimalNumber *)zero;
++ (NSDecimalNumber*) zero;
 
 /**
  *  New instance with given value.  Note an NSDecimal may be created using the
  *  function NSDecimalFromString().
  */
-+ (NSDecimalNumber *)decimalNumberWithDecimal:(NSDecimal)decimal;
++ (NSDecimalNumber*) decimalNumberWithDecimal: (NSDecimal)decimal;
 
 /**
  *  New instance by component.  Note that the precision of this initializer is
  *  limited.
  */
-+ (NSDecimalNumber *)decimalNumberWithMantissa:(unsigned long long)mantissa 
-				      exponent:(short)exponent
-				    isNegative:(BOOL)isNegative;
++ (NSDecimalNumber*) decimalNumberWithMantissa: (unsigned long long)mantissa 
+				      exponent: (short)exponent
+				    isNegative: (BOOL)isNegative;
 
 /**
  *  New instance from string.  Arbitrary precision is preserved, though calling
@@ -255,7 +255,7 @@ GS_EXPORT_CLASS
  *  constrained by the current <em><code>scale</code></em>.  Number format
  *  is parsed according to current default locale.
  */
-+ (NSDecimalNumber *)decimalNumberWithString:(NSString *)numericString;
++ (NSDecimalNumber*) decimalNumberWithString: (NSString *)numericString;
 
 /**
  *  New instance from string.  Arbitrary precision is preserved, though calling
@@ -263,22 +263,22 @@ GS_EXPORT_CLASS
  *  constrained by the current <em><code>scale</code></em>.  Number format
  *  is parsed according to given locale.
  */
-+ (NSDecimalNumber *)decimalNumberWithString:(NSString *)numericString 
-				      locale:(NSDictionary *)locale;
++ (NSDecimalNumber*) decimalNumberWithString: (NSString *)numericString 
+				      locale: (id)locale;
 
 /**
  *  Initialize with given value.  Note an NSDecimal may be created using the
  *  function NSDecimalFromString().
  */
-- (id)initWithDecimal:(NSDecimal)decimal;
+- (id) initWithDecimal: (NSDecimal)decimal;
 
 /**
  *  Initialize by component.  Note that the precision of this initializer is
  *  limited.
  */
-- (id)initWithMantissa:(unsigned long long)mantissa 
-	      exponent:(short)exponent 
-	    isNegative:(BOOL)flag;
+- (id) initWithMantissa: (unsigned long long)mantissa 
+	       exponent: (short)exponent 
+	     isNegative: (BOOL)flag;
 
 /**
  *  Initialize from string.  Arbitrary precision is preserved, though calling
@@ -286,7 +286,7 @@ GS_EXPORT_CLASS
  *  constrained by the current <em><code>scale</code></em>.  Number format
  *  is parsed according to current default locale.
  */
-- (id)initWithString:(NSString *)numberValue;
+- (id) initWithString: (NSString *)numberValue;
 
 /**
  *  Initialize from string.  Arbitrary precision is preserved, though calling
@@ -294,122 +294,122 @@ GS_EXPORT_CLASS
  *  constrained by the current <em><code>scale</code></em>.  Number format
  *  is parsed according to given locale.
  */
-- (id)initWithString:(NSString *)numberValue 
-	      locale:(NSDictionary *)locale;
+- (id) initWithString: (NSString *)numberValue 
+	       locale: (id)locale;
 
 /**
  *  Returns the Objective-C type (<code>@encode(...)</code> compatible) of the
  *  data contained <code>NSDecimalNumber</code>, which is by convention "d"
  *  (for double), even though this is not strictly accurate.
  */
-- (const char *)objCType;
+- (const char *) objCType;
 
 /**
  *  Return underlying value as an <code>NSDecimal</code> structure.
  */
-- (NSDecimal)decimalValue;
+- (NSDecimal) decimalValue;
 
 /**
  *  Returns string version of number formatted according to locale.
  */
-- (NSString *)descriptionWithLocale:(id)locale;
+- (NSString*) descriptionWithLocale: (id)locale;
 
 /**
  *  Returns underlying value as a <code>double</code>, which may be an
  *  approximation if precision greater than the default of 38.
  */
-- (double)doubleValue;
+- (double) doubleValue;
 
 
 /**
  *  Compares with other number, returning less, greater, or equal.
  */
-- (NSComparisonResult)compare:(NSNumber *)decimalNumber;
+- (NSComparisonResult) compare: (NSNumber *)decimalNumber;
 
 /**
  *  Adds self to decimalNumber and returns new result, using +defaultBehavior
  *  for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByAdding:(NSDecimalNumber *)decimalNumber;
+- (NSDecimalNumber*) decimalNumberByAdding: (NSDecimalNumber*)decimalNumber;
 
 /**
  *  Adds self to decimalNumber and returns new result, using given behavior
  *  for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByAdding:(NSDecimalNumber *)decimalNumber 
-			      withBehavior:(id<NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByAdding: (NSDecimalNumber*)decimalNumber 
+			      withBehavior: (id<NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Divides self by decimalNumber and returns new result, using +defaultBehavior
  *  for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByDividingBy:(NSDecimalNumber *)decimalNumber;
+- (NSDecimalNumber*) decimalNumberByDividingBy: (NSDecimalNumber*)decimalNumber;
 
 /**
  *  Divides self by decimalNumber and returns new result, using given behavior
  *  for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByDividingBy:(NSDecimalNumber *)decimalNumber 
-				  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByDividingBy: (NSDecimalNumber*)decimalNumber 
+				  withBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Multiplies self by decimalNumber and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByMultiplyingBy:(NSDecimalNumber *)decimalNumber;
+- (NSDecimalNumber*) decimalNumberByMultiplyingBy: (NSDecimalNumber*)decimalNumber;
 
 /**
  *  Multiplies self by decimalNumber and returns new result, using given
  *  behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByMultiplyingBy:(NSDecimalNumber *)decimalNumber 
-				     withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByMultiplyingBy: (NSDecimalNumber*)decimalNumber 
+				     withBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Multiplies self by given power of 10 and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByMultiplyingByPowerOf10:(short)power;
+- (NSDecimalNumber*) decimalNumberByMultiplyingByPowerOf10: (short)power;
 
 /**
  *  Multiplies self by given power of 10 and returns new result, using given
  *  behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByMultiplyingByPowerOf10:(short)power 
-  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByMultiplyingByPowerOf10: (short)power 
+  withBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Raises self to given positive integer power and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByRaisingToPower:(NSUInteger)power;
+- (NSDecimalNumber*) decimalNumberByRaisingToPower: (NSUInteger)power;
 
 /**
  *  Raises self to given positive integer power and returns new result, using
  *  given behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByRaisingToPower:(NSUInteger)power 
-  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByRaisingToPower: (NSUInteger)power 
+  withBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Subtracts decimalNumber from self and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberBySubtracting:
-  (NSDecimalNumber *)decimalNumber;
+- (NSDecimalNumber*) decimalNumberBySubtracting:
+  (NSDecimalNumber*) decimalNumber;
 
 /**
  *  Subtracts decimalNumber from self and returns new result, using given
  *  behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberBySubtracting:
-  (NSDecimalNumber *)decimalNumber 
-  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberBySubtracting:
+  (NSDecimalNumber*) decimalNumber 
+  withBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Returns rounded version of underlying decimal.
  */
-- (NSDecimalNumber *)decimalNumberByRoundingAccordingToBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber*) decimalNumberByRoundingAccordingToBehavior: (id <NSDecimalNumberBehaviors>)behavior;
 
 @end
 

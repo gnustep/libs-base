@@ -109,6 +109,15 @@ static NSMapTable *_flagMap = nil;
       [s addObject: @"NSRunLoop"];
     }
 
+/* Our test certificate is self-signed and out of date ... don't require
+ * the server to be verified.
+ */
+#if defined(GNUSTEP_BASE_LIBRARY)
+  [NSURLProtocol setProperty: @"NO"
+		      forKey: GSTLSVerify
+		   inRequest: _request];
+#endif
+
   _conn = [[NSURLConnection alloc] initWithRequest: _request
 					  delegate: self];
 
@@ -533,7 +542,7 @@ didReceiveResponse:(NSURLResponse *)response
     } // Is extra NSDictionary?
   else if ([extra isKindOfClass: [NSURLRequest class]])
     {
-      ASSIGN(_request, extra);
+      _request = [extra mutableCopy];
     }
 
   if (nil == _request)

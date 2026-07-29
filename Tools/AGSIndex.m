@@ -280,7 +280,10 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
 
 - (id) init
 {
-  refs = [[NSMutableDictionary alloc] initWithCapacity: 8];
+  if (nil != (self = [super init]))
+    {
+      refs = [[NSMutableDictionary alloc] initWithCapacity: 8];
+    }
   return self;
 }
 

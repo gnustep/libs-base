@@ -2,6 +2,10 @@
 
 set -ex
 
+# NetBSD and the other BSDs ship a non-GNU make as /usr/bin/make, so allow the
+# caller to point us at GNU make. Defaults to plain "make" everywhere else.
+MAKE=${MAKE:-make}
+
 install_gnustep_make() {
     echo "::group::GNUstep Make"
     cd $DEPS_PATH
@@ -15,7 +19,7 @@ install_gnustep_make() {
       MAKE_OPTS="$MAKE_OPTS --with-runtime-abi=$RUNTIME_VERSION"
     fi
     ./configure --prefix=$INSTALL_PATH --with-library-combo=$LIBRARY_COMBO --with-libdir=$LIBDIR $MAKE_OPTS || cat config.log
-    make install
+    $MAKE install
 
     echo Objective-C build flags:
     $INSTALL_PATH/bin/gnustep-config --objc-flags
@@ -38,7 +42,7 @@ install_libobjc2() {
       -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
       -DEMBEDDED_BLOCKS_RUNTIME=ON \
       ../
-    make install
+    $MAKE install
     echo "::endgroup::"
 }
 
@@ -54,7 +58,7 @@ install_libdispatch() {
       -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
       -DINSTALL_PRIVATE_HEADERS=1 \
       ../
-    make install
+    $MAKE install
     echo "::endgroup::"
 }
 
@@ -64,7 +68,11 @@ mkdir -p $DEPS_PATH
 # the MSYS2 toolchain uses Pacman to install non-GNUstep dependencies.
 if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_MINGW" != "true" ]; then
     install_libobjc2
-    install_libdispatch
+    # libdispatch is optional for gnustep-base and does not support every
+    # platform we build on, so allow a workflow to opt out of it.
+    if [ "$INSTALL_LIBDISPATCH" != "false" ]; then
+        install_libdispatch
+    fi
 fi
 
 install_gnustep_make

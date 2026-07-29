@@ -762,6 +762,15 @@ _arg_addr(NSInvocation *inv, int index)
 
   DESTROY(self);
   self = RETAIN([NSInvocation invocationWithMethodSignature: newSig]);
+  if (self == nil)
+    {
+      /* The decoded method type was missing or unparseable, so there is no
+       * signature and hence no instance: reject the archive rather than
+       * decoding the remaining values through ivars off a nil self.
+       */
+      [NSException raise: NSInvalidArgumentException
+		  format: @"invalid method signature in archived NSInvocation"];
+    }
 
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 

@@ -1079,38 +1079,36 @@ static NSNotificationCenter *default_center = nil;
        * Locate the map table for this name.
        */
       n0 = GSIMapNodeForKey(NAMED, (GSIMapKey)((id)name));
-      if (n0 == 0)
+      if (n0)
 	{
-	  unlockNCTable(TABLE);
-	  return;		/* Nothing to do.	*/
-	}
-      m = (GSIMapTable)n0->value.ptr;
+	  m = (GSIMapTable)n0->value.ptr;
 
-      if (object == nil)
-	{
-	  e0 = GSIMapEnumeratorForMap(m);
-	  n0 = GSIMapEnumeratorNextNode(&e0);
-
-	  while (n0 != 0)
+	  if (object == nil)
 	    {
-	      GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
+	      e0 = GSIMapEnumeratorForMap(m);
+	      n0 = GSIMapEnumeratorNextNode(&e0);
 
-	      purgeMapNode(m, n0, observer);
-	      n0 = next;
+	      while (n0 != 0)
+		{
+		  GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
+
+		  purgeMapNode(m, n0, observer);
+		  n0 = next;
+		}
 	    }
-	}
-      else
-	{
-	  n0 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
-	  if (n0 != 0)
+	  else
 	    {
-	      purgeMapNode(m, n0, observer);
+	      n0 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	      if (n0 != 0)
+		{
+		  purgeMapNode(m, n0, observer);
+		}
 	    }
-	}
-      if (m->nodeCount == 0)
-	{
-	  mapFree(TABLE, m);
-	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
+	  if (m->nodeCount == 0)
+	    {
+	      mapFree(TABLE, m);
+	      GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
+	    }
 	}
     }
 

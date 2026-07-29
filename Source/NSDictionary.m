@@ -117,6 +117,11 @@ static SEL	appSel;
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSDictionaryClass)

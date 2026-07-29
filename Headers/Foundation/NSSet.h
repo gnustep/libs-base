@@ -45,7 +45,7 @@ extern "C" {
 NS_ASSUME_NONNULL_BEGIN
 
 GS_EXPORT_CLASS
-@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding,
+@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding, NSSecureCoding,
                                                              NSCopying,
                                                              NSMutableCopying,
                                                              NSFastEnumeration>

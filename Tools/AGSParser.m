@@ -23,8 +23,9 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSData.h"
 #import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSError.h"
@@ -33,9 +34,11 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
+#import "Foundation/NSTimeZone.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSXMLParser.h"
 #import "AGSParser.h"
+#import "AGSOutput.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
@@ -271,7 +274,7 @@ equalTypes(NSArray *t1, NSArray *t2)
   NSString		*chap;
   NSString		*toolName;
   NSString		*secHeading;
-  BOOL			createSec = NO;
+  BOOL			createSec;
   NSMutableString	*m;
   NSRange		r;
 
@@ -282,6 +285,11 @@ equalTypes(NSArray *t1, NSArray *t2)
       createSec = NO;
       m = [NSMutableString stringWithFormat:
         @"<chapter id=\"_main\"><heading>%@</heading></chapter>", toolName];
+    }
+  else if ([chap rangeOfString: @"<chapter id=\"_main\">"].length > 0)
+    {
+      createSec = NO; 	// already present
+      m = nil;
     }
   else
     {
@@ -2544,24 +2552,26 @@ fail:
 			      }
 			  }
 		      }
+		  }
 
-		    /* A main function is not documented as a function,
-		     * but as a special case its comments are added to
-		     * the 'front' section of the documentation.
-		     * We may also need to patch up the initial chapter
-		     * and section to indicate that this is a tool.
-		     */
-		    if ([name isEqual: @"main"])
+		/* A main function is not documented as a function,
+		 * but as a special case its comments are added to
+		 * the 'front' section of the documentation.
+		 * We may also need to patch up the initial chapter
+		 * and section to indicate that this is a tool.
+		 */
+		if ([name isEqual: @"main"])
+		  {
+		    NSString	*c;
+
+		    dict = [info objectForKey: kind];
+		    dict = [dict objectForKey: name];
+		    if (nil == (c = [dict objectForKey: @"Comment"]))
 		      {
-			NSString	*c;
-
-			if (nil == (c = [oDecl objectForKey: @"Comment"]))
-			  {
-			    c = @"";
-			  }
-			[self addMain: c];
-			[dict removeObjectForKey: name];
+			c = @"";
 		      }
+		    [self addMain: c];
+		    [dict removeObjectForKey: name];
 		  }
 	      }
 	    break;
@@ -2573,17 +2583,7 @@ fail:
    */
   if ([info objectForKey: @"date"] == nil)
     {
-      static NSString	*generated = nil;
-
-      if (nil == generated)
-	{
-	  NSCalendarDate	*now = [NSCalendarDate date];
-
-	  [now setCalendarFormat: @"%Y-%m-%d"];
-	  generated = [[NSString alloc] initWithFormat:
-	    @"<date>Generated at %@</date>", now];
-	}
-      [info setObject: generated forKey: @"date"];
+      [info setObject: [AGSOutput generatedDate] forKey: @"date"];
     }
 
   return info;

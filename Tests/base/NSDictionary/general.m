@@ -220,7 +220,7 @@ int main()
        [obj isEqual:dict],
        "-description gives us a text property-list");
 
-  [dict getObjects: &vals1Array andKeys: &keys1Array];
+  [dict getObjects: vals1Array andKeys: keys1Array];
   uint8_t found = 0;
   if (vals1Array[0] == val1 || vals1Array[1] == val1)
     {
@@ -239,9 +239,9 @@ int main()
       found |= 1 << 3;
     }
   PASS(found == 0b1111, "-getObjects:andKeys: returns correct objects");
-  PASS_RUNS([dict getObjects: NULL andKeys: &keys1Array],
+  PASS_RUNS([dict getObjects: NULL andKeys: keys1Array],
     "-getObjects:andKeys: can ignore objects");
-  PASS_RUNS([dict getObjects: &vals1Array andKeys: NULL],
+  PASS_RUNS([dict getObjects: vals1Array andKeys: NULL],
     "-getObjects:andKeys: can ignore keys");
 
 

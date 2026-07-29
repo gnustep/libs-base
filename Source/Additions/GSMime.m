@@ -120,7 +120,6 @@ static  NSMapTable	*encodings = 0;
 static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
 static	Class		NSDataClass = 0;
-static	Class		documentClass = 0;
 
 static BOOL             oldStyleFolding = NO;
 static NSString         *Cte7bit = @"7bit";
@@ -338,12 +337,12 @@ decodeWord(unsigned char *dst, const unsigned char *src,
 
   if (enc == WE_QUOTED)
     {
-      while (*src && (src != end))
+      while (src < end && *src)
 	{
 	  if (*src == '=')
 	    {
 	      src++;
-	      if (*src == '\0')
+	      if (src >= end || *src == '\0')
 		{
 		  break;
 		}
@@ -351,7 +350,7 @@ decodeWord(unsigned char *dst, const unsigned char *src,
                 {
                   break;
                 }
-              if (!isxdigit(src[0]) || !isxdigit(src[1]))
+              if (src + 1 >= end || !isxdigit(src[0]) || !isxdigit(src[1]))
                 {
                   /* Strictly speaking the '=' must be followed by
                    * two hexadecimal characters, but RFC2045 says that
@@ -510,7 +509,7 @@ wordData(NSString *word, BOOL *encoded)
 		maxLength: len + 1
 		 encoding: NSISOLatin1StringEncoding];
       md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
-      d = [documentClass encodeBase64: d];
+      d = [d base64EncodedDataWithOptions: 0];
       [md appendBytes: "=?" length: 2];
       [md appendBytes: buf length: len];
       [md appendBytes: "?B?" length: 3];
@@ -590,7 +589,7 @@ wordData(NSString *word, BOOL *encoded)
    * Expand destination data buffer to have capacity to handle info.
    */
   [dData setLength: size + (3 * (end + 8 - src))/4];
-  dst = (unsigned char*)[dData mutableBytes];
+  dst = (unsigned char*)[dData mutableBytes] + size;
   beg = dst;
 
   /*
@@ -690,7 +689,7 @@ wordData(NSString *word, BOOL *encoded)
    * Expand destination data buffer to have capacity to handle info.
    */
   [dData setLength: size + (end - src)];
-  dst = (unsigned char*)[dData mutableBytes];
+  dst = (unsigned char*)[dData mutableBytes] + size;
   beg = dst;
 
   while (src < end)
@@ -921,10 +920,6 @@ wordData(NSString *word, BOOL *encoded)
   if (NSStringClass == 0)
     {
       NSStringClass = [NSString class];
-    }
-  if (documentClass == 0)
-    {
-      documentClass = [GSMimeDocument class];
     }
 }
 
@@ -1405,7 +1400,7 @@ wordData(NSString *word, BOOL *encoded)
   self = [super init];
   if (self != nil)
     {
-      document = [[documentClass alloc] init];
+      document = [[GSMimeDocument alloc] init];
       data = [NSMutableData new];
       _defaultEncoding = NSASCIIStringEncoding;
     }
@@ -2253,10 +2248,17 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       else
 	{
-	  unichar	buf[length];
-	  unichar	*src = buf;
-	  unichar	*dst = buf;
+	  unichar	*src;
+	  unichar	*dst;
+	  NSString	*result;
 
+	  /* The quoted string length is attacker-controlled (it comes from an
+	   * untrusted header value), so use GS_BEGINITEMBUF rather than a stack
+	   * VLA to avoid a stack overflow on a very long quoted string.
+	   */
+	  GS_BEGINITEMBUF(buf, length, unichar)
+	  src = buf;
+	  dst = buf;
 	  [string getCharacters: buf range: NSMakeRange(start, length)];
 	  while (src < &buf[length])
 	    {
@@ -2270,7 +2272,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		}
 	      *dst++ = *src++;
 	    }
-	  return [NSStringClass stringWithCharacters: buf length: dst - buf];
+	  result = [NSStringClass stringWithCharacters: buf length: dst - buf];
+	  GS_ENDITEMBUF()
+	  return result;
 	}
     }
   else							// Token
@@ -2336,7 +2340,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (void) setDefaultCharset: (NSString*)aName
 {
-  _defaultEncoding = [documentClass encodingFromCharset: aName];
+  _defaultEncoding = [GSMimeDocument encodingFromCharset: aName];
   if (_defaultEncoding == 0)
     {
       _defaultEncoding = NSASCIIStringEncoding;
@@ -2535,7 +2539,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		      if (charset != nil)
 			{
 			  stringEncoding
-			    = [documentClass encodingFromCharset: charset];
+			    = [GSMimeDocument encodingFromCharset: charset];
 			}
 		    }
 
@@ -2546,7 +2550,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    {
 		      NSString	*charset;
 
-		      charset = [documentClass charsetFromEncoding:
+		      charset = [GSMimeDocument charsetFromEncoding:
 			stringEncoding];
 		      [typeInfo setParameter: charset
 				      forKey: @"charset"];
@@ -3022,7 +3026,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	      s = [s initWithBytes: src
 			    length: tmp - src
 			  encoding: NSUTF8StringEncoding];
-	      enc = [documentClass encodingFromCharset: s];
+	      enc = [GSMimeDocument encodingFromCharset: s];
 	      RELEASE(s);
 
 	      src = tmp + 1;
@@ -3073,9 +3077,14 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	       */
 	      if (tmp > src)
 		{
-		  unsigned char	buf[tmp - src + 1];
 		  unsigned char	*ptr;
 
+		  /* The encoded word length is controlled by the (untrusted)
+		   * header data, so GS_BEGINITEMBUF keeps a short word on the
+		   * stack but moves a long one to the heap, avoiding both a
+		   * stack overflow and an unconditional heap allocation.
+		   */
+		  GS_BEGINITEMBUF(buf, tmp - src + 1, unsigned char)
 		  ptr = decodeWord(buf, src, tmp, encoding);
 		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: buf
@@ -3090,6 +3099,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
                       [hdr appendString: s];
                     }
 		  RELEASE(s);
+		  GS_ENDITEMBUF()
 		}
 	      /* Point past end to continue parsing.
 	       */
@@ -5850,7 +5860,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) addContent: (id)newContent
 {
-  if ([newContent isKindOfClass: documentClass] == NO)
+  if ([newContent isKindOfClass: [GSMimeDocument class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Content to add is not a GSMimeDocument"];
@@ -6318,7 +6328,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             {
 	      NSStringEncoding	e;
 
-	      e = [documentClass encodingFromCharset: charset];
+	      e = [GSMimeDocument encodingFromCharset: charset];
 #if     defined(NeXT_Foundation_LIBRARY)
 	      if (e != NSASCIIStringEncoding)
 #else
@@ -6412,12 +6422,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           /* For an XML document (subtype is xml) we can try to get the
            * characterset by examining the document header.
            */
-          if (nil == (charset = [documentClass charsetForXml: content]))
+          if (nil == (charset = [GSMimeDocument charsetForXml: content]))
             {
               charset = @"utf-8";
             }
         }
-      enc = [documentClass encodingFromCharset: charset];
+      enc = [GSMimeDocument encodingFromCharset: charset];
       d = [content dataUsingEncoding: enc];
       if (nil == d)
 	{
@@ -6466,14 +6476,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
            */
           if ([subtype isEqualToString: @"xml"] == YES)
             {
-              charset = [documentClass charsetForXml: content];
+              charset = [GSMimeDocument charsetForXml: content];
             }
           if (nil == charset)
             {
               charset = @"utf-8";
             }
         }
-      enc = [documentClass encodingFromCharset: charset];
+      enc = [GSMimeDocument encodingFromCharset: charset];
       if (NSASCIIStringEncoding == enc)
         {
           enc = NSUTF8StringEncoding;
@@ -6490,7 +6500,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (id) copyWithZone: (NSZone*)z
 {
-  GSMimeDocument	*c = [documentClass allocWithZone: z];
+  GSMimeDocument	*c = [GSMimeDocument allocWithZone: z];
 
   c->headers = [[NSMutableArray allocWithZone: z] initWithArray: headers
 						      copyItems: YES];
@@ -7214,7 +7224,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      NSStringEncoding	e;
 
 	      charset = [type parameterForKey: @"charset"];
-	      e = [documentClass encodingFromCharset: charset];
+	      e = [GSMimeDocument encodingFromCharset: charset];
 #if     defined(NeXT_Foundation_LIBRARY)
 	      if (e != NSASCIIStringEncoding)
 #else
@@ -7373,7 +7383,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  NSUInteger	len;
 	  NSUInteger	pos = 0;
 
-	  d = [documentClass encodeBase64: d];
+	  d = [d base64EncodedDataWithOptions: 0];
 	  ptr = [d bytes];
 	  len = [d length];
 
@@ -7442,7 +7452,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      id	o = [newContent objectAtIndex: c];
 
-	      if ([o isKindOfClass: documentClass] == NO)
+	      if ([o isKindOfClass: [GSMimeDocument class]] == NO)
 		{
 		  [NSException raise: NSInvalidArgumentException
 			      format: @"Content contains non-GSMimeDocument"];
@@ -7926,7 +7936,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           /* Parts of a multipart document must be MIME documents
            * in their own right.
            */
-          if (NO == [d isKindOfClass: documentClass])
+          if (NO == [d isKindOfClass: [GSMimeDocument class]])
             {
               [NSException raise: NSInternalInconsistencyException
                           format: @"[%@ -%@] with bad body part %lu in %@",
@@ -7948,7 +7958,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           /* For an XML document (subtype is xml) we can try to get the
            * characterset by examining the document header.
            */
-          if (nil == (charset = [documentClass charsetForXml: content]))
+          if (nil == (charset = [GSMimeDocument charsetForXml: content]))
             {
               charset = @"utf-8";
             }
@@ -7971,7 +7981,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       /* Get content as a data object, adjusting charset if necessary.
        */
-      e = [documentClass encodingFromCharset: charset];
+      e = [GSMimeDocument encodingFromCharset: charset];
       if (0 == e)
         {
           e = NSUTF8StringEncoding;
@@ -8156,7 +8166,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  NSUInteger	len;
 	  NSUInteger	pos = 0;
 
-	  d = [documentClass encodeBase64: d];
+	  d = [d base64EncodedDataWithOptions: 0];
 	  ptr = [d bytes];
 	  len = [d length];
 

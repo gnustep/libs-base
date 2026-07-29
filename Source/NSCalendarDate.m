@@ -864,7 +864,6 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     {
       fmt = [NSString stringWithCharacters: format length: formatLen];
     }
-  ASSIGN(_calendar_format, fmt);
 
   //
   // WARNING:
@@ -1471,6 +1470,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       if (self != nil)
 	{
 	  _seconds_since_ref += ((NSTimeInterval)milliseconds) / 1000.0;
+	  ASSIGN(_calendar_format, fmt);
 	}
     }
 
@@ -1543,6 +1543,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   NSTimeInterval	oldOffset;
   NSTimeInterval	newOffset;
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   if (month < 1 || month > 12)
     {
       NSWarnMLog(@"invalid month given - %"PRIuPTR, month);
@@ -1884,20 +1888,25 @@ static void Grow(DescriptionInfo *info, unsigned size)
 {
   if (info->offset + size >= info->length)
     {
+      /* Grow by at least 'size' so a single field larger than the fixed
+       * increment (e.g. a long locale-supplied month or weekday name) does
+       * not leave the buffer too small for the caller's write. */
+      unsigned	want = info->length + (size > 512 ? size : 512);
+
       if (info->t == info->base)
 	{
 	  unichar	*old = info->t;
 
 	  info->t = NSZoneMalloc(NSDefaultMallocZone(),
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	  memcpy(info->t, old, info->length*sizeof(unichar));
 	}
       else
 	{
 	  info->t = NSZoneRealloc(NSDefaultMallocZone(), info->t,
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	}
-      info->length += 512;
+      info->length = want;
     }
 }
 

@@ -2,15 +2,6 @@
 #import "ObjectTesting.h"
 #import "Testing.h"
 
-#if defined (__OBJC2__)
-#define FLAKY_ON_GCC_START
-#define FLAKY_ON_GCC_END
-#else
-#define FLAKY_ON_GCC_START \
-  testHopeful = YES;
-#define FLAKY_ON_GCC_END \
-  testHopeful = NO;
-#endif
 
 @class Bar;
 
@@ -195,7 +186,6 @@ main(int argc, char *argv[])
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
 
   START_SET("newoldvalues");
-  FLAKY_ON_GCC_START
 
   Bar *bar = [Bar new];
   [bar setX: 0];
@@ -229,7 +219,6 @@ main(int argc, char *argv[])
   PASS([obs1 receivedCalls] == 3, "num observe calls");
   PASS([obs2 receivedCalls] == 2, "num observe calls");
   
-  FLAKY_ON_GCC_END
   END_SET("newoldvalues");
 
 

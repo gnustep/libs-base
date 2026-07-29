@@ -80,6 +80,11 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 /**
  *  New autoreleased empty set.
  */
