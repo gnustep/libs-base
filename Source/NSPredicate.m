@@ -1384,10 +1384,31 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSFunctionExpression	*e;
   NSString		*s;
+  NSString		*implementation = name;
 
   e = AUTORELEASE([[GSFunctionExpression alloc]
     initWithExpressionType: NSFunctionExpressionType]);
-  s = [NSString stringWithFormat: @"_eval_%@:", name];
+
+  /* A function is named with its trailing colon on OS X, as in 'sum:', and
+   * without one here, as in 'sum'.  Take either.
+   */
+  if ([implementation hasSuffix: @":"])
+    {
+      implementation
+	= [implementation substringToIndex: [implementation length] - 1];
+    }
+
+  /* Two of them are implemented here under another name. */
+  if ([implementation isEqualToString: @"average"])
+    {
+      implementation = @"avg";
+    }
+  else if ([implementation isEqualToString: @"castObject:toType"])
+    {
+      implementation = @"CAST";
+    }
+
+  s = [NSString stringWithFormat: @"_eval_%@:", implementation];
   e->_selector = NSSelectorFromString(s);
   if (![e respondsToSelector: e->_selector])
     {
