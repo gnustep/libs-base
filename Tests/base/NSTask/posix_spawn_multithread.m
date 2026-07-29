@@ -1,6 +1,8 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSTask.h>
+#import <Foundation/NSDate.h>
 #import <Foundation/NSFileManager.h>
+#import <Foundation/NSRunLoop.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
