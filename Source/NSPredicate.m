@@ -1192,6 +1192,34 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 			      options: compareOptions
 				range: range] == NSOrderedSame ? YES : NO);
 	}
+      case NSContainsPredicateOperatorType:
+	/* The mirror of IN: the left hand side is the collection, or the
+	 * string, and the right hand side is what it has to hold.
+	 */
+	if (![leftResult isKindOfClass: [NSString class]])
+	  {
+	    NSEnumerator *e;
+	    id value;
+
+	    if (![leftResult respondsToSelector: @selector(objectEnumerator)])
+	      {
+		[NSException raise: NSInvalidArgumentException
+			    format: @"The left hand side for a CONTAINS "
+		  @"operator must be a collection"];
+	      }
+
+	    e = [leftResult objectEnumerator];
+	    while ((value = [e nextObject]))
+	      {
+		if ([value isEqual: rightResult])
+		  return YES;
+	      }
+
+	    return NO;
+	  }
+	return ([leftResult rangeOfString: rightResult
+				  options: compareOptions].location
+	  != NSNotFound ? YES : NO);
       case NSInPredicateOperatorType:
 	/* Handle special case where rightResult is a collection
 	 * and leftResult an element of it.
@@ -2764,7 +2792,6 @@ do { \
   NSExpression *right;
   NSPredicate *p;
   BOOL negate = NO;
-  BOOL swap = NO;
 
   if ([self scanPredicateKeyword: @"ANY"])
     {
@@ -2836,8 +2863,7 @@ do { \
     }
   else if ([self scanPredicateKeyword: @"CONTAINS"])
     {
-      type = NSInPredicateOperatorType;
-      swap = YES;
+      type = NSContainsPredicateOperatorType;
     }
   else if ([self scanPredicateKeyword: @"BETWEEN"])
     {
@@ -2894,15 +2920,8 @@ do { \
     }
 
   right = [self parseExpression];
-  if (swap == YES)
-    {
-      NSExpression      *tmp = left;
 
-      left = right;
-      right = tmp;
-    }
-
-  p = [NSComparisonPredicate predicateWithLeftExpression: left 
+  p = [NSComparisonPredicate predicateWithLeftExpression: left
                              rightExpression: right
                              modifier: modifier 
                              type: type 
