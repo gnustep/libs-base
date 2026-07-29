@@ -433,6 +433,16 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @implementation GSTruePredicate
 
+- (BOOL) isEqual: (id)other
+{
+  return (self == other) || [other isKindOfClass: [GSTruePredicate class]];
+}
+
+- (NSUInteger) hash
+{
+  return 1;
+}
+
 - (id) copyWithZone: (NSZone *)z
 {
   return RETAIN(self);
@@ -452,6 +462,16 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @implementation GSFalsePredicate
 
+- (BOOL) isEqual: (id)other
+{
+  return (self == other) || [other isKindOfClass: [GSFalsePredicate class]];
+}
+
+- (NSUInteger) hash
+{
+  return 0;
+}
+
 - (id) copyWithZone: (NSZone *)z
 {
   return RETAIN(self);
@@ -470,6 +490,30 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @implementation NSCompoundPredicate
+
+- (BOOL) isEqual: (id)other
+{
+  NSCompoundPredicate	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [NSCompoundPredicate class]])
+    {
+      return NO;
+    }
+  if ([o compoundPredicateType] != [self compoundPredicateType])
+    {
+      return NO;
+    }
+  return [[o subpredicates] isEqual: [self subpredicates]];
+}
+
+- (NSUInteger) hash
+{
+  return [[self subpredicates] hash] ^ (NSUInteger)[self compoundPredicateType];
+}
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list
 {
@@ -689,6 +733,39 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @implementation NSComparisonPredicate
+
+- (BOOL) isEqual: (id)other
+{
+  NSComparisonPredicate	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [NSComparisonPredicate class]])
+    {
+      return NO;
+    }
+  if ([o comparisonPredicateModifier] != [self comparisonPredicateModifier]
+    || [o predicateOperatorType] != [self predicateOperatorType]
+    || [o options] != [self options])
+    {
+      return NO;
+    }
+  if (NSCustomSelectorPredicateOperatorType == [self predicateOperatorType]
+    && NO == sel_isEqual([o customSelector], [self customSelector]))
+    {
+      return NO;
+    }
+  return [[o leftExpression] isEqual: [self leftExpression]]
+    && [[o rightExpression] isEqual: [self rightExpression]];
+}
+
+- (NSUInteger) hash
+{
+  return [[self leftExpression] hash] ^ [[self rightExpression] hash]
+    ^ (NSUInteger)[self predicateOperatorType];
+}
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left
                               rightExpression: (NSExpression *)right
@@ -1233,6 +1310,32 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     }
 }
 
+/* Two expressions of a kind that holds nothing further, such as the one
+ * standing for the object being evaluated, are the same expression.  The
+ * kinds that do hold something compare it themselves.
+ */
+- (BOOL) isEqual: (id)other
+{
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [NSExpression class]])
+    {
+      return NO;
+    }
+  if ([other class] != [self class])
+    {
+      return NO;
+    }
+  return ([(NSExpression *)other expressionType] == [self expressionType]);
+}
+
+- (NSUInteger) hash
+{
+  return (NSUInteger)[self expressionType];
+}
+
 + (NSExpression *) expressionForConstantValue: (id)obj
 {
   GSConstantValueExpression *e;
@@ -1523,6 +1626,30 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return _obj;
 }
 
+- (BOOL) isEqual: (id)other
+{
+  GSConstantValueExpression	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSConstantValueExpression class]])
+    {
+      return NO;
+    }
+  if (_obj == o->_obj)
+    {
+      return YES;
+    }
+  return [_obj isEqual: o->_obj];
+}
+
+- (NSUInteger) hash
+{
+  return [_obj hash];
+}
+
 - (NSString *) description
 {
   if ([_obj isKindOfClass: [NSString class]])
@@ -1629,6 +1756,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return [NSString stringWithFormat: @"$%@", _variable];
 }
 
+- (BOOL) isEqual: (id)other
+{
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSVariableExpression class]])
+    {
+      return NO;
+    }
+  return [_variable isEqual: ((GSVariableExpression *)other)->_variable];
+}
+
+- (NSUInteger) hash
+{
+  return [_variable hash];
+}
+
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
@@ -1678,6 +1823,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return _keyPath;
 }
 
+- (BOOL) isEqual: (id)other
+{
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSKeyPathExpression class]])
+    {
+      return NO;
+    }
+  return [_keyPath isEqual: ((GSKeyPathExpression *)other)->_keyPath];
+}
+
+- (NSUInteger) hash
+{
+  return [_keyPath hash];
+}
+
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
@@ -1712,6 +1875,26 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 @end
 
 @implementation GSBinaryExpression
+
+- (BOOL) isEqual: (id)other
+{
+  GSBinaryExpression	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if ([other class] != [self class])
+    {
+      return NO;
+    }
+  return [_left isEqual: o->_left] && [_right isEqual: o->_right];
+}
+
+- (NSUInteger) hash
+{
+  return [_left hash] ^ [_right hash];
+}
 
 - (id) copyWithZone: (NSZone*)zone
 {
@@ -1880,6 +2063,24 @@ do { \
 
 @implementation GSAggregateExpression
 
+- (BOOL) isEqual: (id)other
+{
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSAggregateExpression class]])
+    {
+      return NO;
+    }
+  return [_collection isEqual: ((GSAggregateExpression *)other)->_collection];
+}
+
+- (NSUInteger) hash
+{
+  return [_collection hash];
+}
+
 - (id) copyWithZone: (NSZone*)zone
 {
   GSAggregateExpression *copy;
@@ -1929,6 +2130,34 @@ do { \
 - (NSArray *) arguments
 {
   return _args;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  GSFunctionExpression	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSFunctionExpression class]])
+    {
+      return NO;
+    }
+  if (NO == [_function isEqual: o->_function])
+    {
+      return NO;
+    }
+  if (_args == o->_args)
+    {
+      return YES;
+    }
+  return [_args isEqual: o->_args];
+}
+
+- (NSUInteger) hash
+{
+  return [_function hash] ^ [_args hash];
 }
 
 - (NSString *) description
