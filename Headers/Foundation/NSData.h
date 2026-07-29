@@ -106,7 +106,7 @@ GS_EXPORT_CLASS
 // Allocating and Initializing a Data Object
 
 + (instancetype) data;
-+ (nonnull instancetype) dataWithBytes: (const void *_Nullable)bytes
++ (_Nonnull instancetype) dataWithBytes: (const void *_Nullable)bytes
                                 length: (NSUInteger)length;
 + (instancetype) dataWithBytesNoCopy: (void *_Nullable)bytes
                               length: (NSUInteger)length;
@@ -143,7 +143,7 @@ GS_EXPORT_CLASS
                               length: (NSUInteger)length
                          deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
-- (nonnull instancetype) initWithBytes: (const void *_Nullable)aBuffer
+- (_Nonnull instancetype) initWithBytes: (const void *_Nullable)aBuffer
                                 length: (NSUInteger)bufferSize;
 - (instancetype) initWithBytesNoCopy: (void *_Nullable)aBuffer
                               length: (NSUInteger)bufferSize;
