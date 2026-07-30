@@ -703,6 +703,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 	    c = [GSAndCompoundPredicate class];
 	    break;
 	  default:
+	    DESTROY(self);
 	    [NSException raise: NSInvalidArgumentException
 			format: @"Unknown compound predicate type %lu",
 	      (unsigned long)type];

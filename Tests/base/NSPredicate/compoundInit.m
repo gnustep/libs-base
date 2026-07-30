@@ -15,7 +15,8 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("compound init")
+
   NSArray *subs = [NSArray arrayWithObjects:
     [NSPredicate predicateWithFormat: @"name == 'a'"],
     [NSPredicate predicateWithFormat: @"size == 2"], nil];
@@ -71,22 +72,11 @@ main(int argc, char **argv)
   PASS_EQUAL(and, [NSCompoundPredicate andPredicateWithSubpredicates: subs],
              "it is equal to one made by the factory method");
 
-  {
-    BOOL raised = NO;
+  PASS_EXCEPTION(({id obj = [[NSCompoundPredicate alloc]
+    initWithType: (NSCompoundPredicateType)99 subpredicates: subs];
+    RELEASE(obj);}), NSInvalidArgumentException,
+    "a type that names no predicate raises")
 
-    NS_DURING
-      {
-        [[NSCompoundPredicate alloc] initWithType: (NSCompoundPredicateType)99
-                                    subpredicates: subs];
-      }
-    NS_HANDLER
-      {
-        raised = YES;
-      }
-    NS_ENDHANDLER
-    PASS(raised == YES, "a type that names no predicate raises");
-  }
-
-  [arp release];
+  END_SET("compound init")
   return 0;
 }
