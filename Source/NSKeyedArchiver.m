@@ -331,7 +331,15 @@ static NSDictionary *makeReference(unsigned ref)
 	}
       else
 	{
-	  c = NSClassFromString(classname);
+	  Class	named = NSClassFromString(classname);
+
+	  /* The name may be one for which there is no class here, in which
+	   * case the class we already have is the one to describe.
+	   */
+	  if (named != 0)
+	    {
+	      c = named;
+	    }
 	}
 
       /*
