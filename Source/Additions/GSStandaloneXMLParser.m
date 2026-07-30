@@ -35,6 +35,10 @@
 #import "Foundation/NSNull.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSStandaloneXMLParser.h"
+#import "GNUstepBase/Unicode.h"
+#ifndef GSUndefinedEncoding
+#define GSUndefinedEncoding 0
+#endif
 
 @interface GSMimeDocument (internal)
 + (NSString*) charsetForXml: (NSData*)xml;
@@ -205,7 +209,7 @@ static SEL	foundIgnorableSel;
     }
   else
     {
-      self = [super init];
+      self = [super init]; // NS_DESIGNATED_INITIALIZER
       if (self)
 	{
 	  NSStringEncoding	enc;
@@ -436,7 +440,7 @@ static SEL	foundIgnorableSel;
             }
           uri = [self _uriForPrefix: p];
         }
-      (*this->didEndElement)(_del,
+      ((void (*)(id, SEL, id, id, id, id))this->didEndElement)(_del,
 	didEndElementSel, self, tag, uri, qualified);
     }
 
@@ -453,7 +457,7 @@ static SEL	foundIgnorableSel;
 
               while ((k = [e nextObject]) != nil)
                 {
-                  (*this->didEndMappingPrefix)(_del,
+                  ((void (*)(id, SEL, id, id))this->didEndMappingPrefix)(_del,
 		    didEndMappingPrefixSel, self, k);
                 }
             }
@@ -798,7 +802,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     {
                       if (this->didStartMappingPrefix != 0)
                         {
-			  (*this->didStartMappingPrefix)(_del,
+			  ((void (*)(id, SEL, id, id, id))this->didStartMappingPrefix)(_del,
 			    didStartMappingPrefixSel, self, prefix, uri);
                         }
                     }
@@ -837,7 +841,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 {
                   uri = @"";
                 }
-	      (*this->didStartElement)(_del,
+	      ((void (*)(id, SEL, id, id, id, id, id))this->didStartElement)(_del,
 		didStartElementSel, self, tag, uri, qualified, attributes);
             }
 	  TEST_RELEASE(ns);
@@ -1194,7 +1198,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                                 {
                                   /* Process this data as characters
                                    */
-                                  (*this->foundCharacters)(_del,
+                                  ((void (*)(id, SEL, id, id))this->foundCharacters)(_del,
                                     foundCharactersSel, self, s);
                                   RELEASE(s);
                                 }
@@ -1214,7 +1218,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                                 {
                                   /* Process data as ignorable whitespace
                                    */
-                                  (*this->foundIgnorable)(_del,
+                                  ((void (*)(id, SEL, id, id))this->foundIgnorable)(_del,
                                     foundIgnorableSel, self, s);
                                   RELEASE(s);
                                 }
@@ -1231,7 +1235,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                                 {
                                   /* Process data as characters
                                    */
-                                  (*this->foundCharacters)(_del,
+                                  ((void (*)(id, SEL, id, id))this->foundCharacters)(_del,
                                     foundCharactersSel, self, s);
                                   RELEASE(s);
                                 }
@@ -1265,7 +1269,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                           }
                         else
                           {
-                            (*this->foundIgnorable)(_del,
+                            ((void (*)(id, SEL, id, id))this->foundIgnorable)(_del,
                               foundIgnorableSel, self, s);
 			    RELEASE(s);
                           }
@@ -1280,7 +1284,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                           }
                         else
                           {
-                            (*this->foundCharacters)(_del,
+                            ((void (*)(id, SEL, id, id))this->foundCharacters)(_del,
                               foundCharactersSel, self, s);
                             RELEASE(s);
 			  }
@@ -1346,7 +1350,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 }
 	      if (this->foundCharacters != 0)
 		{
-		  (*this->foundCharacters)(_del,
+		  ((void (*)(id, SEL, id, id))this->foundCharacters)(_del,
 		    foundCharactersSel, self, entity);
                 }
 	      RELEASE(entity);
@@ -1392,7 +1396,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                         }
                       else
                         {
-                          (*this->foundComment)(_del,
+                          ((void (*)(id, SEL, id, id))this->foundComment)(_del,
                             foundCommentSel, self, c);
 			  RELEASE(c);
                         }
@@ -1420,7 +1424,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 		      d = [[NSData alloc] initWithBytes: addr(tp)
 						 length: this->cp - tp];
-		      (*this->foundCDATA)(_del,
+		      ((void (*)(id, SEL, id, id))this->foundCDATA)(_del,
 			foundCDATASel, self, d);
 		      RELEASE(d);
 		    }
