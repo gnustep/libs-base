@@ -1265,10 +1265,10 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
         comp = @"<=";
         break;
       case NSGreaterThanPredicateOperatorType:
-        comp = @">=";
+        comp = @">";
         break;
       case NSGreaterThanOrEqualToPredicateOperatorType:
-        comp = @">";
+        comp = @">=";
         break;
       case NSEqualToPredicateOperatorType:
         comp = @"=";
