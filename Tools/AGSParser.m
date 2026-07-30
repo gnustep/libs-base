@@ -351,7 +351,10 @@ equalTypes(NSArray *t1, NSArray *t2)
   //The %@ tool
       [m replaceCharactersInRange: r withString: secHeading];
     }
-  [info setObject: m forKey: @"chapter"];
+  if (m)
+    {
+      [info setObject: m forKey: @"chapter"];
+    }
 }
 
 
