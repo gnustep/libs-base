@@ -48,7 +48,6 @@ extern "C" {
 @class NSInvocation;
 @class Protocol;
 
-NS_ASSUME_NONNULL_BEGIN
 
 /**
  * The NSObject protocol describes a minimal set of methods that all
@@ -295,7 +294,7 @@ NS_ASSUME_NONNULL_BEGIN
  * documentation for [NSCoder], [NSUnarchiver], [NSKeyedUnarchiver], and/or
  * [NSPortCoder] for more information.
  */
-- (id) initWithCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
+- (id _Nullable) initWithCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
 @end
 
 @protocol NSSecureCoding <NSCoding>
@@ -457,7 +456,6 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 #endif
 @end
 
-NS_ASSUME_NONNULL_END
 
 /**
  * Used to allocate memory to hold an object, and initialise the
@@ -524,7 +522,6 @@ NSIncrementExtraRefCount(id anObject);
  *  Declares some methods for sending messages to self after a fixed delay.
  *  (These methods <em>are</em> in OpenStep and OS X.)
  */
-NS_ASSUME_NONNULL_BEGIN
 
 @interface NSObject (TimedPerformers)
 
@@ -598,7 +595,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL) isContentDiscarded;
 @end
 
-NS_ASSUME_NONNULL_END
 #endif
 #if	defined(__cplusplus)
 }

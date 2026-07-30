@@ -146,8 +146,14 @@ extern "C" {
  * non-null sections.
  */
 #if __has_feature(nullability)
+#if defined(GNUSTEP_ASSUME_NONULL)
 #  define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
 #  define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#else
+#  define NS_ASSUME_NONNULL_BEGIN
+#  define NS_ASSUME_NONNULL_END
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#endif
 #else
 #  define NS_ASSUME_NONNULL_BEGIN
 #  define NS_ASSUME_NONNULL_END
