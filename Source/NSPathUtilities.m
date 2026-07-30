@@ -2068,7 +2068,8 @@ NSFullUserName(void)
 {
   if (theFullUserName == nil)
     {
-      NSString	*userName = NSUserName();
+      NSString	*loginName = NSUserName();
+      NSString	*userName = loginName;
       int	length;
 #if defined(_WIN32)
       struct _USER_INFO_2	*userInfo;
@@ -2131,6 +2132,14 @@ NSFullUserName(void)
 	      userName = [userName substringToIndex: --length];
 	      userName = [userName stringByTrimmingSpaces];
 	    }
+	}
+      /* An account may hold no name at all, only the separators between the
+       * fields where one would be, in which case the name the user logs in
+       * under is the only name there is.
+       */
+      if ([userName length] == 0)
+	{
+	  userName = loginName;
 	}
       ASSIGN(theFullUserName, userName);
     }
