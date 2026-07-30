@@ -488,14 +488,16 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 
   NS_DURING
     {
-      object = RETAIN([self _unarchivedRootFromData: data allowedClasses: classes error: error]);
+      object = RETAIN([self _unarchivedRootFromData: data
+				     allowedClasses: classes
+					      error: error]);
     }
   NS_HANDLER
     {
       if (error != 0)
-	      {
-	        *error = GSNSErrorFromUnarchiverException(localException);
-	      }
+	{
+	  *error = GSNSErrorFromUnarchiverException(localException);
+	}
       DESTROY(object);
     }
   NS_ENDHANDLER
@@ -1067,6 +1069,7 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 	  unsigned	i;
 
 	  IF_NO_ARC(RETAIN(_archive);)
+	  NS_DURING
 	  _archiverClass = [_archive objectForKey: @"$archiver"];
 	  _version = [_archive objectForKey: @"$version"];
 
@@ -1082,6 +1085,10 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 	    {
 	      GSIArrayAddItem(_objMap, (GSIArrayItem)(id)nil);
 	    }
+	  NS_HANDLER
+	  RELEASE(self);
+	  [localException raise];
+	  NS_ENDHANDLER
 	}
     }
   return self;
