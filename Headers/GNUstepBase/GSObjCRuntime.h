@@ -69,13 +69,15 @@
 
 #if defined(OBJC_CAP_ARC)
 #  include <objc/objc-arc.h>
-#elif !defined(__APPLE__)
+#else
 
 GS_EXPORT void objc_copyWeak(id *dest, id *src);
 GS_EXPORT void objc_destroyWeak(id *obj);
 GS_EXPORT id objc_initWeak(id *addr, id obj);
 GS_EXPORT id objc_loadWeakRetained(id *addr);
 GS_EXPORT void objc_moveWeak(id *dest, id *src);
+
+#if !defined(__APPLE__)
 
 GS_EXPORT id objc_loadWeak(id *object);
 GS_EXPORT id objc_storeWeak(id *addr, id obj);
@@ -115,6 +117,7 @@ GS_EXPORT void objc_removeAssociatedObjects(id object);
 GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
   id value, objc_AssociationPolicy policy);
 
+#endif
 #endif
 
 /*

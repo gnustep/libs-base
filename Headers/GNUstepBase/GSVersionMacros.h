@@ -507,6 +507,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 /* Other constants/types commonplace in OSX applications but otherwise unused.
  */
 
+#if !defined(__APPLE__)
 // noErr                   OSErr: function performed properly - no error
 enum {
   noErr                         = 0
@@ -533,5 +534,6 @@ enum {
 enum {
   kUnknownType                  = 0x3F3F3F3F /* "????" QuickTime 3.0: default unknown ResType or OSType */
 };
+#endif
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */
