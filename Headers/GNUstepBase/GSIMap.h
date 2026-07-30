@@ -561,7 +561,7 @@ GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
   if (vPtr) *vPtr = nil;
   if (zeroed)
     {
-      id	k;
+      id	k = nil;
 
       if (zeroed & 1)
 	{
