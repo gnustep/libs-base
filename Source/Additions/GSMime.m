@@ -547,9 +547,9 @@ wordData(NSString *word, BOOL *encoded)
  * Decode length bytes of data from sData and append the results to dData.<br />
  * Return YES on success, NO if there is an error.
  */
-- (BOOL) decodeData: (const void*)sData
+- (BOOL) decodeData: (const void *_Nonnull)sData
 	     length: (NSUInteger)length
-	   intoData: (NSMutableData*)dData
+	   intoData: (NSMutableData *_Nonnull)dData
 {
   NSUInteger	size = [dData length];
 

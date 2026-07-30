@@ -96,19 +96,6 @@ static  NSNull  *null = nil;
 
 @end
 
-static inline NSString *
-NewUTF8STR(const void *ptr, int len)
-{
-  NSString	*s;
-
-  s = [[NSString alloc] initWithBytes: ptr
-			       length: len
-			     encoding: NSUTF8StringEncoding];
-  if (s == nil)
-    NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
-  return s;
-}
-
 @interface GSXMLParserIvars : NSObject
 {
 @public
