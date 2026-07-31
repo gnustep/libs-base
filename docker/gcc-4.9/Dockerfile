@@ -2,15 +2,14 @@ FROM gcc:4.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Switch to the Debian archive.
-RUN sed -i \
-      -e 's|deb.debian.org|archive.debian.org|g' \
-      -e 's|security.debian.org|archive.debian.org|g' \
-      /etc/apt/sources.list && \
-    printf 'Acquire::Check-Valid-Until "false";\n' \
-      >/etc/apt/apt.conf.d/99no-check-valid
+RUN cat >/etc/apt/sources.list <<EOF
+deb http://archive.debian.org/debian jessie main
+EOF
 
-RUN apt-get update && \
+RUN printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\n' \
+    >/etc/apt/apt.conf.d/99archive
+
+RUN apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends \
       autoconf \
       automake \
@@ -33,3 +32,4 @@ RUN gcc --version && \
     echo '@interface Foo @end @implementation Foo @end' > test.m && \
     gcc -c test.m && \
     rm -f test.*
+
