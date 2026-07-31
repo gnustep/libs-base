@@ -33,6 +33,17 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+static inline void
+gsUpdateNsDoc(xmlNsPtr ns, xmlDocPtr doc)
+{
+#if LIBXML_VERSION < 21300
+  ns->context = doc;
+#else
+  (void)ns;
+  (void)doc;
+#endif
+}
+
 void
 cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
 {
@@ -172,7 +183,7 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
       /* Update namespace declarations */
       for (ns = node->nsDef; ns != NULL; ns = ns->next)
         {
-          ns->context = doc;
+          gsUpdateNsDoc(ns, doc);
           
           if (adoptStr)
             {
@@ -264,7 +275,6 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
   if (node->type == XML_TEXT_NODE && node->name != NULL)
     {
       /* Check if name is from a dictionary (shared pointer) */
-      const xmlChar *oldName = node->name;
       node->name = xmlStrdup((const xmlChar*)"text");
     }
   
@@ -297,7 +307,7 @@ updateTreeDocManually(xmlNodePtr node, xmlDocPtr doc)
           ns = node->nsDef;
           while (ns != NULL)
             {
-              ns->context = doc;
+	      gsUpdateNsDoc(ns, doc);
               ns = ns->next;
             }
           
