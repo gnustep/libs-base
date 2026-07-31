@@ -2,7 +2,7 @@ name: GCC 4.9 Docker image
 
 on:
   push:
-    branches: [ master ]
+    branches: [ gcc49-image ]
     paths:
       - docker/gcc-4.9/**
       - .github/workflows/gcc49-image.yml
