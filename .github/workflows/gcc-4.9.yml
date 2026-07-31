@@ -1,0 +1,60 @@
+name: GNUstep GCC 4.9
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/gnustep/gcc49-gobjc:latest
+
+    env:
+      PATH: /opt/gcc4.9.4/bin:/usr/local/bin:/usr/bin:/bin
+      LD_LIBRARY_PATH: /opt/gcc4.9.4/lib64:/opt/gcc4.9.4/lib
+      CC: gcc
+      CXX: g++
+      OBJC: gcc
+      GNUSTEP_INSTALLATION_DOMAIN: SYSTEM
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify compiler
+        run: |
+          which gcc
+          gcc --version
+
+      - name: Build gnustep-make
+        run: |
+          git clone https://github.com/gnustep/tools-make.git
+          cd tools-make
+          ./configure --prefix=/opt/GNUstep
+          make -j$(nproc)
+          make install
+
+      - name: Source GNUstep environment
+        run: |
+          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+          env | grep GNUSTEP
+
+      - name: Configure gnustep-base
+        shell: bash
+        run: |
+          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+          ./configure
+
+      - name: Build
+        shell: bash
+        run: |
+          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+          make -j$(nproc)
+
+      - name: Test
+        shell: bash
+        run: |
+          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+          make check
+
