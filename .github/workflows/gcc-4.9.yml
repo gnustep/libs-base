@@ -37,7 +37,7 @@ jobs:
 
               git clone https://github.com/gnustep/tools-make.git
               cd tools-make
-              ./configure --prefix=/opt/GNUstep
+              ./configure --prefix=/opt/GNUstep --with-layout=gnustep
               make -j$(nproc)
               make install
               cd ..
