@@ -29,8 +29,8 @@ jobs:
             -w /src \
             ghcr.io/gnustep/gcc-4.9-gnustep:latest \
             bash -c '
-              export PATH=/opt/gcc4.9.4/bin:$PATH
-              export LD_LIBRARY_PATH=/opt/gcc4.9.4/lib64:/opt/gcc4.9.4/lib
+              export PATH=/opt/gcc-4.9.4/bin:$PATH
+              export LD_LIBRARY_PATH=/opt/gcc-4.9.4/lib64:/opt/gcc-4.9.4/lib
 
               which gcc
               gcc --version
