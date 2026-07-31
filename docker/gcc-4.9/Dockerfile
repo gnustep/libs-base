@@ -42,7 +42,7 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       libjpeg-dev \
       libtiff-dev \
       libpng-dev \
-      libicnsdev \
+      libicns-dev \
       && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
