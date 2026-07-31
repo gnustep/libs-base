@@ -31,6 +31,7 @@ jobs:
             bash -c '
               export PATH=/opt/gcc-4.9.4/bin:$PATH
               export LD_LIBRARY_PATH=/opt/gcc-4.9.4/lib64:/opt/gcc-4.9.4/lib
+	      export GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
 
               which gcc
               gcc --version
@@ -38,7 +39,6 @@ jobs:
               git clone https://github.com/gnustep/tools-make.git
               cd tools-make
               ./configure --prefix=/opt/GNUstep --with-layout=gnustep
-              make -j$(nproc)
               make install
               cd ..
 
@@ -46,5 +46,6 @@ jobs:
 
               ./configure
               make -j$(nproc)
+	      make install
               make check
             '
