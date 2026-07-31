@@ -1,4 +1,4 @@
-name: GNUstep GCC 4.9
+name: GCC-4.9.4
 
 on:
   push:
