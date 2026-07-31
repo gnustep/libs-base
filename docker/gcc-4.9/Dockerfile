@@ -14,6 +14,7 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       autoconf \
       automake \
       ca-certificates \
+      gobjc \
       cmake \
       git \
       libcurl4-gnutls-dev \
