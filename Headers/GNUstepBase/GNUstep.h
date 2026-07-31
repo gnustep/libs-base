@@ -195,7 +195,7 @@ void *__object = (void*)(object);\
  */
 #define	ASSIGNCOPY(object,value)	({\
   void *__object = (void*)object; \
-  object = (__typeof__(object))[(value) copy];\
+  object = (__typeof__(object))[(id)(value) copy];\
   [(id)__object release]; \
 })
 #endif
@@ -208,7 +208,7 @@ void *__object = (void*)(object);\
  */
 #define	ASSIGNMUTABLECOPY(object,value)	({\
   void *__object = (void*)object; \
-  object = (__typeof__(object))[(value) mutableCopy];\
+  object = (__typeof__(object))[(id)(value) mutableCopy];\
   [(id)__object release]; \
 })
 #endif
@@ -223,7 +223,7 @@ void *__object = (void*)(object);\
  */
 #define	DESTROY(object) 	({ \
   void *__o = (void*)object; \
-  object = nil; \
+  object = (__typeof__(object))0; \
   [(id)__o release]; \
 })
 #endif

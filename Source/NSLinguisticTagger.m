@@ -387,7 +387,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
   NSUInteger maxPos;
   BOOL stop;
   
-  if (_string == nil || blockHandler == nil)
+  if (_string == nil || (id)blockHandler == nil)
     return;
     
   currentPos = range.location;
@@ -585,7 +585,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
   NSUInteger maxPos;
   BOOL stop;
   
-  if (_string == nil || blockHandler == nil)
+  if (_string == nil || (id)blockHandler == nil)
     return;
     
   currentPos = range.location;

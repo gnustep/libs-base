@@ -94,7 +94,12 @@ static void GS_WINAPI tls_current_progress_destroy(void *value)
 }
 static void tls_create_keys(void)
 {
-  GS_THREAD_KEY_INIT(tls_current_progress_key, tls_current_progress_destroy);
+  if (!GS_THREAD_KEY_INIT(tls_current_progress_key,
+    tls_current_progress_destroy))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Unable to initialise thread keyes"];
+    }
 }
 
 /* Returns an unretained pointer of the current progress */
