@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/gnustep/gcc49-gobjc:latest
+      image: ghcr.io/gnustep/gcc-4.9-gnustep:latest
 
     env:
       PATH: /opt/gcc4.9.4/bin:/usr/local/bin:/usr/bin:/bin
