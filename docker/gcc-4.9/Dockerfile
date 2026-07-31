@@ -29,6 +29,12 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
+RUN which gcc && \
+    gcc --version && \
+    gcc -print-prog-name=cc1obj && \
+    ls -l $(gcc -print-prog-name=cc1obj) || true && \
+    dpkg -L gobjc-4.9 | grep cc1obj || true
+
 RUN gcc --version && \
     echo '@interface Foo @end @implementation Foo @end' > test.m && \
     gcc -c test.m && \
