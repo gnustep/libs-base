@@ -10,7 +10,7 @@ RUN printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositor
     >/etc/apt/apt.conf.d/99archive
 
 RUN apt-get -o Acquire::Check-Valid-Until=false update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y --force-yes --no-install-recommends \
       autoconf \
       automake \
       ca-certificates \
