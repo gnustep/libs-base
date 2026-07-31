@@ -8,53 +8,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: ghcr.io/gnustep/gcc-4.9-gnustep:latest
-
-    env:
-      PATH: /opt/gcc4.9.4/bin:/usr/local/bin:/usr/bin:/bin
-      LD_LIBRARY_PATH: /opt/gcc4.9.4/lib64:/opt/gcc4.9.4/lib
-      CC: gcc
-      CXX: g++
-      OBJC: gcc
-      GNUSTEP_INSTALLATION_DOMAIN: SYSTEM
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify compiler
-        run: |
-          which gcc
-          gcc --version
-
-      - name: Build gnustep-make
-        run: |
-          git clone https://github.com/gnustep/tools-make.git
-          cd tools-make
-          ./configure --prefix=/opt/GNUstep
-          make -j$(nproc)
-          make install
-
-      - name: Source GNUstep environment
-        run: |
-          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
-          env | grep GNUSTEP
-
-      - name: Configure gnustep-base
-        shell: bash
-        run: |
-          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
-          ./configure
-
       - name: Build
-        shell: bash
         run: |
-          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
-          make -j$(nproc)
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ghcr.io/gnustep/gcc-4.9-gnustep:latest \
+            bash -c '
+              export PATH=/opt/gcc4.9.4/bin:$PATH
+              export LD_LIBRARY_PATH=/opt/gcc4.9.4/lib64:/opt/gcc4.9.4/lib
 
-      - name: Test
-        shell: bash
-        run: |
-          . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
-          make check
+              which gcc
+              gcc --version
 
+              git clone https://github.com/gnustep/tools-make.git
+              cd tools-make
+              ./configure --prefix=/opt/GNUstep
+              make -j$(nproc)
+              make install
+              cd ..
+
+              . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+              ./configure
+              make -j$(nproc)
+              make check
+            '
