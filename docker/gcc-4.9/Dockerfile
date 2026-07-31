@@ -1,11 +1,9 @@
-FROM debian:stretch
+FROM gcc:4.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN cat >/etc/apt/sources.list <<EOF
 deb http://archive.debian.org/debian jessie main
-deb http://archive.debian.org/debian jessie-updates main
-deb http://archive.debian.org/debian-security jessie/updates main
 EOF
 
 RUN printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\n' \
@@ -34,14 +32,8 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN which gcc && \
-    gcc --version && \
-    gcc -print-prog-name=cc1obj && \
-    ls -l $(gcc -print-prog-name=cc1obj) || true && \
-    dpkg -L gobjc-4.9 | grep cc1obj || true
-
-RUN gcc --version && \
+RUN /usr/bingcc --version && \
     echo '@interface Foo @end @implementation Foo @end' > test.m && \
-    gcc -c test.m && \
+    /usr/bin/gcc -c test.m && \
     rm -f test.*
 
