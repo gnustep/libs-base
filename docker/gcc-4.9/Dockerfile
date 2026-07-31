@@ -1,4 +1,4 @@
-FROM gcc:4.9
+FROM debian:jessie
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,8 +14,11 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       autoconf \
       automake \
       ca-certificates \
-      gobjc \
-      cmake \
+      make \
+      gcc-4.9 \
+      g++-4.9 \
+      gobjc-4.9 \
+      libobjc-4.9-dev \
       git \
       libcurl4-gnutls-dev \
       libffi-dev \
