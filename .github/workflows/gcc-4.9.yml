@@ -1,0 +1,51 @@
+name: GNUstep GCC 4.9
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            docker login ghcr.io \
+              -u ${{ github.actor }} \
+              --password-stdin
+
+      - name: Build
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ghcr.io/gnustep/gcc-4.9-gnustep:latest \
+            bash -c '
+              export PATH=/opt/gcc-4.9.4/bin:$PATH
+              export LD_LIBRARY_PATH=/opt/gcc-4.9.4/lib64:/opt/gcc-4.9.4/lib
+              export GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+
+              which gcc
+              gcc --version
+
+              git clone https://github.com/gnustep/tools-make.git
+              cd tools-make
+              ./configure --prefix=/opt/GNUstep --with-layout=gnustep
+              make install
+              cd ..
+
+              . /opt/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+              ./configure
+              make -j$(nproc)
+              make install
+              make check
+            '
