@@ -109,6 +109,8 @@ static SEL usSel;
 
 static xmlExternalEntityLoader  originalLoader = NULL;
 
+#define	SAXH(X)	((GSSAXHandler*)(((xmlParserCtxtPtr)X)->_private))
+
 /*
  * Macro to cast results to correct type for libxml2
  */
@@ -1982,6 +1984,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       xmlParserCtxtPtr	ctxt = (xmlParserCtxtPtr)lib;
 
+      SAXH(lib)->stopped = YES;
 #ifdef	HAVE_XMLSTOPPARSER
       xmlStopParser(ctxt);
 #else
@@ -2021,10 +2024,26 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) doValidityChecking: (BOOL)yesno
 {
-  BOOL	old;
+  xmlParserCtxtPtr	ctx = (xmlParserCtxtPtr)lib;
+  GSSAXHandler		*handler = (GSSAXHandler*)(ctx->_private);
+  BOOL			old = handler->validate;
 
-  old = (((xmlParserCtxtPtr)lib)->validate) ? YES : NO;
-  ((xmlParserCtxtPtr)lib)->validate = (yesno ? 1 : 0);
+  if (yesno != old)
+    {
+      int 	options = xmlCtxtGetOptions(ctx);
+
+      if (yesno)
+	{
+	  options |= XML_PARSE_DTDVALID;
+	  handler->validate = YES;
+	}
+      else
+	{
+	  options &= ~XML_PARSE_DTDVALID;
+	  handler->validate = NO;
+	}
+      xmlCtxtSetOptions(ctx, options);
+    }
   return old;
 }
 
@@ -2234,10 +2253,26 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) keepBlanks: (BOOL)yesno
 {
-  BOOL	old;
+  xmlParserCtxtPtr	ctx = (xmlParserCtxtPtr)lib;
+  GSSAXHandler		*handler = (GSSAXHandler*)(ctx->_private);
+  BOOL			old = handler->keepBlanks;
 
-  old = (((xmlParserCtxtPtr)lib)->keepBlanks) ? YES : NO;
-  ((xmlParserCtxtPtr)lib)->keepBlanks = (yesno ? 1 : 0);
+  if (yesno != old)
+    {
+      int 	options = xmlCtxtGetOptions(ctx);
+
+      if (yesno)
+	{
+	  options &= ~XML_PARSE_NOBLANKS;
+	  handler->keepBlanks = YES;
+	}
+      else
+	{
+	  options |= XML_PARSE_NOBLANKS;
+	  handler->keepBlanks = NO;
+	}
+      xmlCtxtSetOptions(ctx, options);
+    }
   return old;
 }
 
@@ -2338,7 +2373,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   RELEASE(tmp);
 
   if (((xmlParserCtxtPtr)lib)->wellFormed != 0
-    && (0 == ((xmlParserCtxtPtr)lib)->validate
+    && (NO == SAXH(lib)->validate
       || ((xmlParserCtxtPtr)lib)->valid != 0))
     {
       return YES;
@@ -2394,7 +2429,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 	  [self _parseChunk: nil];
 	  src = endMarker;
           if (((xmlParserCtxtPtr)lib)->wellFormed != 0
-            && (0 == ((xmlParserCtxtPtr)lib)->validate
+            && (NO == SAXH(lib)->validate
               || ((xmlParserCtxtPtr)lib)->valid != 0))
             {
               return YES;
@@ -2456,12 +2491,26 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) substituteEntities: (BOOL)yesno
 {
-  xmlParserCtxtPtr	context = (xmlParserCtxtPtr)lib;
-  BOOL			old;
+  xmlParserCtxtPtr	ctx = (xmlParserCtxtPtr)lib;
+  GSSAXHandler		*handler = (GSSAXHandler*)(ctx->_private);
+  BOOL			old = handler->replaceEntities;
 
-  old = context->replaceEntities ? YES : NO;
-  context->replaceEntities = (yesno ? 1 : 0);
-  
+  if (yesno != old)
+    {
+      int 	options = xmlCtxtGetOptions(ctx);
+
+      if (yesno)
+	{
+	  options |= XML_PARSE_NOENT;
+	  handler->replaceEntities = YES;
+	}
+      else
+	{
+	  options &= ~XML_PARSE_NOENT;
+	  handler->replaceEntities = NO;
+	}
+      xmlCtxtSetOptions(ctx, options);
+    }
   return old;
 }
 
@@ -2534,7 +2583,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 // nil data allowed
 - (void) _parseChunk: (NSData*)data
 {
-  if (lib == NULL || ((xmlParserCtxtPtr)lib)->disableSAX != 0)
+  if (lib == NULL || SAXH(lib)->stopped)
     {
       return;	// Parsing impossible or disabled.
     }
@@ -2636,6 +2685,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
 }
 
+
 /*
  * The context is a xmlParserCtxtPtr or htmlParserCtxtPtr.
  * Its _private member contains the address of our Sax Handler Object.
@@ -2694,7 +2744,7 @@ getEntityDefault(void *ctx, const xmlChar *name)
       /* In older versions we may need to parse the entity content.
        */
       if ((ret != NULL)
-        && ((ctxt->validate) || (ctxt->replaceEntities))
+        && ((SAXH(ctxt)->validate) || (ctxt->replaceEntities))
         && (ret->children == NULL)
         && (ret->etype == XML_EXTERNAL_GENERAL_PARSED_ENTITY))
         {
@@ -2716,7 +2766,7 @@ getEntityDefault(void *ctx, const xmlChar *name)
 	      ((((xmlParserCtxtPtr)ctxt)->sax)->fatalError)(ctxt,
 		"Failure to process entity %s\n", name);
 	      xmlStopParser(ctxt);
-	      ctxt->validate = 0;
+	      SAXH(ctxt)->validate = NO;
 	      return NULL;
 	    }
 	  ret->owner = 1;
@@ -2762,7 +2812,7 @@ loadEntityFunction(const unsigned char *url,
   parser = [HANDLER parser];
   if (NO == [parser _resolves])
     {
-      if (cp->inSubset && cp->validate)
+      if (cp->inSubset && SAXH(cp)->validate)
 	{
 	  /* Resolving of external entities is turned off, but we are
 	   * doing validity checking and are loading a subset, so we
