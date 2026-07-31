@@ -997,6 +997,8 @@ static GSMainQueueDrainer 	*drainer = nil;
    * that we must track whether it is scheduled in more than one mode to
    * know if we need to check other modes for repositionng.
    */
+NSLog(@"timer added to mode %lu", modeBit);
+  timer->_modeMask |= modeBit;
   [timerHeap push: timer];
   i = [timerHeap count];
   if (i % 1000 == 0 && i > context->maxTimers)
@@ -1005,8 +1007,6 @@ static GSMainQueueDrainer 	*drainer = nil;
       NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
 	i, mode, self);
     }
-
-  timer->_modeMask |= modeBit;
 }
 
 
@@ -1069,7 +1069,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  * not be zero), clearing the bits as they are processed.
  */
 #define	GET_INDEX_AND_CLEAR_BIT(mask) ({\
-  int	index = __builtin_clzll((unsigned long long)mask); \
+  int	index = __builtin_ctzll((unsigned long long)mask); \
   mask &= (mask - 1); \
   index; \
 })
@@ -1114,8 +1114,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  if (ti < now)
 	    {
 	      int		modeIndex;
-	      uint64_t	mask;
-	      uint64_t	save;
+	      uint64_t		mask;
+	      uint64_t		save;
 	      GSRunLoopCtxt	*c;
 
 	      timer = [timerHeap popRetained];
