@@ -32,7 +32,7 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN /usr/bingcc --version && \
+RUN /usr/bin/gcc --version && \
     echo '@interface Foo @end @implementation Foo @end' > test.m && \
     /usr/bin/gcc -c test.m && \
     rm -f test.*
