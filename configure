@@ -14415,6 +14415,12 @@ then :
   printf '%s\n' "#define HAVE_XMLSTOPPARSER 1" >>confdefs.h
 
 fi
+ac_fn_c_check_func "$LINENO" "xmlCtxtGetOptions" "ac_cv_func_xmlCtxtGetOptions"
+if test "x$ac_cv_func_xmlCtxtGetOptions" = xyes
+then :
+  printf '%s\n' "#define HAVE_XMLCTXTGETOPTIONS 1" >>confdefs.h
+
+fi
 
 
     #--------------------------------------------------------------------

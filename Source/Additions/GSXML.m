@@ -2030,19 +2030,22 @@ static NSString	*endMarker = @"At end of incremental parse";
 
   if (yesno != old)
     {
+#if	defined(HAVE_XMLCTXTGETOPTIONS)
       int 	options = xmlCtxtGetOptions(ctx);
 
       if (yesno)
 	{
 	  options |= XML_PARSE_DTDVALID;
-	  handler->validate = YES;
 	}
       else
 	{
 	  options &= ~XML_PARSE_DTDVALID;
-	  handler->validate = NO;
 	}
       xmlCtxtSetOptions(ctx, options);
+#else
+      ctx->validate = (yesno ? 1 : 0);
+#endif
+      handler->validate = (yesno ? YES : NO);
     }
   return old;
 }
@@ -2259,19 +2262,22 @@ static NSString	*endMarker = @"At end of incremental parse";
 
   if (yesno != old)
     {
+#if	defined(HAVE_XMLCTXTGETOPTIONS)
       int 	options = xmlCtxtGetOptions(ctx);
 
       if (yesno)
 	{
 	  options &= ~XML_PARSE_NOBLANKS;
-	  handler->keepBlanks = YES;
 	}
       else
 	{
 	  options |= XML_PARSE_NOBLANKS;
-	  handler->keepBlanks = NO;
 	}
       xmlCtxtSetOptions(ctx, options);
+#else
+      ctx->keepBlanks = (yesno ? 1 : 0);
+#endif
+      handler->keepBlanks = (yesno ? YES : NO);
     }
   return old;
 }
@@ -2497,19 +2503,22 @@ static NSString	*endMarker = @"At end of incremental parse";
 
   if (yesno != old)
     {
+#if     defined(HAVE_XMLCTXTGETOPTIONS)
       int 	options = xmlCtxtGetOptions(ctx);
 
       if (yesno)
 	{
 	  options |= XML_PARSE_NOENT;
-	  handler->replaceEntities = YES;
 	}
       else
 	{
 	  options &= ~XML_PARSE_NOENT;
-	  handler->replaceEntities = NO;
 	}
       xmlCtxtSetOptions(ctx, options);
+#else
+      ctx->replaceEntities = (yesno ? 1 : 0);
+#endif
+      handler->replaceEntities = (yesno ? YES : NO);
     }
   return old;
 }

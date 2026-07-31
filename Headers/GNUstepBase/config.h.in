@@ -883,6 +883,9 @@
 /* Define to 1 if you have the <ws2tcpip.h> header file. */
 #undef HAVE_WS2TCPIP_H
 
+/* Define to 1 if you have the 'xmlCtxtGetOptions' function. */
+#undef HAVE_XMLCTXTGETOPTIONS
+
 /* Define to 1 if you have the 'xmlStopParser' function. */
 #undef HAVE_XMLSTOPPARSER
 
