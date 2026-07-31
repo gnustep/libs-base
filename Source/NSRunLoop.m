@@ -997,7 +997,6 @@ static GSMainQueueDrainer 	*drainer = nil;
    * that we must track whether it is scheduled in more than one mode to
    * know if we need to check other modes for repositionng.
    */
-NSLog(@"timer added to mode %lu", modeBit);
   timer->_modeMask |= modeBit;
   [timerHeap push: timer];
   i = [timerHeap count];
