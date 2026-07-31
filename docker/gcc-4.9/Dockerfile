@@ -1,9 +1,9 @@
-FROM debian:jessie
+FROM debian:stretch
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN cat >/etc/apt/sources.list <<EOF
-deb http://archive.debian.org/debian jessie main
+deb http://archive.debian.org/debian stretch main
 EOF
 
 RUN printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\n' \
