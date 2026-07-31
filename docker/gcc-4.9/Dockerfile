@@ -23,6 +23,8 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       flex \
       bison \
       git \
+      gnutls-bin \
+      vim \
       libgmp-dev \
       libmpfr-dev \
       libmpc-dev \
@@ -36,6 +38,11 @@ RUN apt-get -o Acquire::Check-Valid-Until=false update && \
       libxslt1-dev \
       pkg-config \
       zlib1g-dev \
+      libcairo2-dev \
+      libjpeg-dev \
+      libtiff-dev \
+      libpng-dev \
+      libicnsdev \
       && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -60,5 +67,5 @@ RUN gcc --version && \
     gcc -c test.m && \
     rm -f test.o test.m
 
-RUN rm -rf gcc-4.9.4
+RUN rm -rf gcc-4.9.4 gcc-4.9.4.tar.bz2
 
