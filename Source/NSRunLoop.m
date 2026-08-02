@@ -870,15 +870,25 @@ compareWatchers(GSIArrayItem i0, GSIArrayItem i1)
       myvars->watcherToFind->data = data;
       i = GSIArrayInsertionPosition(watchers,
 	(GSIArrayItem)((id)myvars->watcherToFind), compareWatchers);
-      if (i-- > 0)
+      while (i-- > 0)
 	{
-	  GSRunLoopWatcher	*info;
+	  GSRunLoopWatcher	*watcher;
 
-	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info->data == data && info->type == type)
+	  watcher = GSIArrayItemAtIndex(watchers, i).obj;
+	  if (watcher->data != data || watcher->type != type)
 	    {
-	      return info;
+	      break;
 	    }
+	  if ([watcher isValid])
+	    {
+	      return watcher;
+	    }
+	  watcher->_modeMask &= ~(UINT64_C(1) << context->modeIndex);
+	  if (0 == watcher->_modeMask)
+	    {
+	      watcher->_loop = nil;
+	    }
+	  GSIArrayRemoveItemAtIndex(watchers, i);
 	}
     }
   return nil;
