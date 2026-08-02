@@ -139,97 +139,6 @@ static NSDate	*theFuture = nil;
 
 
 
-@implementation	GSRunLoopWatcher
-
-- (void) dealloc
-{
-  DEALLOC
-}
-
-- (id) initWithType: (RunLoopEventType)aType
-	   receiver: (id<RunLoopEvents>)anObj
-	       data: (const void*)item
-{
-  _invalidated = NO;
-  receiver = anObj;
-  data = item;
-  switch (aType)
-    {
-#if	defined(_WIN32)
-      case ET_HANDLE:   type = aType;   break;
-      case ET_WINMSG:   type = aType;   break;
-#else
-      case ET_EDESC: 	type = aType;	break;
-      case ET_RDESC: 	type = aType;	break;
-      case ET_WDESC: 	type = aType;	break;
-#endif
-      case ET_RPORT: 	type = aType;	break;
-      case ET_TRIGGER: 	type = aType;	break;
-      default: 
-	DESTROY(self);
-	[NSException raise: NSInvalidArgumentException
-		    format: @"NSRunLoop - unknown event type"];
-    }
-
-  if ([anObj respondsToSelector: @selector(runLoopShouldBlock:)])
-    {
-      checkBlocking = YES;
-    }
-
-  if (![anObj respondsToSelector:
-    @selector(receivedEvent:type:extra:forMode:)])
-    {
-      DESTROY(self);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"RunLoop listener has no event handling method"];
-    }
-  return self;
-}
-
-- (const void*) data
-{
-  return data;
-}
-
-- (void) invalidate
-{
-  _invalidated = YES;
-}
-
-- (BOOL) isValid
-{
-  return (_invalidated ? NO : YES);
-}
-
-- (void) fireEvent: (const void*)extra forMode: (NSString*)mode
-{
-  [receiver receivedEvent: data type: type extra: extra forMode: mode];
-}
-
-- (BOOL) runLoopShouldBlock: (BOOL*)trigger
-{
-  if (checkBlocking == YES)
-    {
-      BOOL result = [(id)receiver runLoopShouldBlock: trigger];
-      return result;
-    }
-  else if (type == ET_TRIGGER)
-    {
-      *trigger = YES;
-      return NO;	// By default triggers may fire immediately
-    }
-  *trigger = YES;
-  return YES;		// By default we must wait for input sources
-}
-
-- (RunLoopEventType) type
-{
-  return type;
-} 
-@end
-
-
-
 @interface NSRunLoop (TimedPerformers)
 - (NSMutableArray*) _timedPerformers;
 @end
@@ -526,6 +435,7 @@ typedef struct {
   uint64_t		commonModeMask;		/* Common modes as mask */
   NSMapTable		*contextMap;		/* Hash lookup by mode */
   GSRunLoopCtxt		*contexts[64];		/* Context for each mode */
+  GSRunLoopWatcher	*watcherToFind;		/* Use for lookup */
 } RunLoopInternal;
                                
 #define myvars	((RunLoopInternal*)_internal)
@@ -688,12 +598,14 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 
       _contextStack = [NSMutableArray new];
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-      _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
+      _internal
+	= (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
       myvars->contextMap = NSCreateMapTable(
 	NSNonRetainedObjectMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
       // The first mode must be NSDefaultRunLoopMode
       contextForMode(myvars, NSDefaultRunLoopMode, YES);
       myvars->commonModeMask |= UINT64_C(1);
+      myvars->watcherToFind = [GSRunLoopWatcher new];
     }
   return self;
 }
@@ -701,6 +613,98 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 @end
 
 
+
+@implementation	GSRunLoopWatcher
+
+- (void) dealloc
+{
+  DEALLOC
+}
+
+- (id) initWithType: (RunLoopEventType)aType
+	   receiver: (id<RunLoopEvents>)anObj
+	       data: (const void*)item
+{
+  _invalidated = NO;
+  receiver = anObj;
+  data = item;
+  switch (aType)
+    {
+#if	defined(_WIN32)
+      case ET_HANDLE:   type = aType;   break;
+      case ET_WINMSG:   type = aType;   break;
+#else
+      case ET_EDESC: 	type = aType;	break;
+      case ET_RDESC: 	type = aType;	break;
+      case ET_WDESC: 	type = aType;	break;
+#endif
+      case ET_RPORT: 	type = aType;	break;
+      case ET_TRIGGER: 	type = aType;	break;
+      default: 
+	DESTROY(self);
+	[NSException raise: NSInvalidArgumentException
+		    format: @"NSRunLoop - unknown event type"];
+    }
+
+  if ([anObj respondsToSelector: @selector(runLoopShouldBlock:)])
+    {
+      checkBlocking = YES;
+    }
+
+  if (![anObj respondsToSelector:
+    @selector(receivedEvent:type:extra:forMode:)])
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"RunLoop listener has no event handling method"];
+    }
+  return self;
+}
+
+- (const void*) data
+{
+  return data;
+}
+
+- (void) invalidate
+{
+  _invalidated = YES;
+}
+
+- (BOOL) isValid
+{
+  return (_invalidated ? NO : YES);
+}
+
+- (void) fireEvent: (const void*)extra forMode: (NSString*)mode
+{
+  [receiver receivedEvent: data type: type extra: extra forMode: mode];
+}
+
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  if (checkBlocking == YES)
+    {
+      BOOL result = [(id)receiver runLoopShouldBlock: trigger];
+      return result;
+    }
+  else if (type == ET_TRIGGER)
+    {
+      *trigger = YES;
+      return NO;	// By default triggers may fire immediately
+    }
+  *trigger = YES;
+  return YES;		// By default we must wait for input sources
+}
+
+- (RunLoopEventType) type
+{
+  return type;
+} 
+@end
+
+
+
 @implementation NSRunLoop(GNUstepExtensions)
 
 - (void) addEvent: (void*)data
@@ -771,6 +775,32 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
     }
 }
 
+
+static inline NSComparisonResult
+compareWatchers(GSIArrayItem i0, GSIArrayItem i1)
+{
+  GSRunLoopWatcher	*s0 = (GSRunLoopWatcher*)i0.obj;
+  GSRunLoopWatcher 	*s1 = (GSRunLoopWatcher*)i1.obj;
+
+  if (s0->type < s1->type)
+    {
+      return NSOrderedAscending;
+    }
+  if (s0->type > s1->type)
+    {
+      return NSOrderedDescending;
+    }
+  if (s0->data < s1->data)
+    {
+      return NSOrderedAscending;
+    }
+  if (s0->data > s1->data)
+    {
+      return NSOrderedDescending;
+    }
+  return NSOrderedSame;
+}
+
 /* Add a watcher to the list for the specified mode.
  */
 - (void) addWatcher: (GSRunLoopWatcher*)item forMode: (NSString*)mode
@@ -805,7 +835,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   item->_loop = self;
   item->_modeMask |= modeBit;
   watchers = context->watchers;
-  GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
+  GSIArrayInsertSorted(watchers, (GSIArrayItem)((id)item), compareWatchers);
   i = GSIArrayCount(watchers);
   if (i % 1000 == 0 && i > context->maxWatchers)
     {
@@ -834,9 +864,13 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
-      unsigned	i = GSIArrayCount(watchers);
+      unsigned	i;
 
-      while (i-- > 0)
+      myvars->watcherToFind->type = type;
+      myvars->watcherToFind->data = data;
+      i = GSIArrayInsertionPosition(watchers,
+	(GSIArrayItem)((id)myvars->watcherToFind), compareWatchers);
+      if (i-- > 0)
 	{
 	  GSRunLoopWatcher	*info;
 
@@ -884,12 +918,14 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	  return;	// Not present in this mode
 	}
 
-      while (i-- > 0)
+      i = GSIArrayInsertionPosition(watchers,
+	(GSIArrayItem)((id)watcher), compareWatchers);
+      if (i-- > 0)
 	{
 	  GSRunLoopWatcher	*info;
 
 	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info == watcher)
+	  if (info->data == watcher->data && info->type == watcher->type)
 	    {
 	      watcher->_modeMask &= ~modeBit;
 	      if (0 == watcher->_modeMask)
@@ -1027,6 +1063,7 @@ static GSMainQueueDrainer 	*drainer = nil;
   RELEASE(_timedPerformers);
   if (myvars)
     {
+      DESTROY(myvars->watcherToFind);
       if (myvars->contextMap != 0)
 	{
 	  NSFreeMapTable(myvars->contextMap);
@@ -1381,6 +1418,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
       while (NO == done)
         {
+	  NSUInteger	existingIndex;
+
           [arp emptyPool];
           when = [self _limitDateForContext: context];
           if (nil == when)
@@ -1435,10 +1474,21 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             @"accept I/P before %d millisec from now in %@",
             timeout_ms, mode);
 
-	  if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
+	  /* Make sure our context is only in the stack once.  This is
+	   * not really important but ought to work better if we have
+	   * a huge number of recursive calls.
+	   */
+	  existingIndex = [_contextStack indexOfObjectIdenticalTo: context];
+	  if (existingIndex == NSNotFound)
 	    {
 	      [_contextStack addObject: context];
 	    }
+	  else if (existingIndex < ([_contextStack count] - 1))
+	    {
+	      [_contextStack removeObjectAtIndex: existingIndex];
+	      [_contextStack addObject: context];
+	    }
+
           done = [context pollUntil: timeout_ms within: _contextStack];
           if (NO == done)
             {

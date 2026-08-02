@@ -418,10 +418,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	   * The watcher is still valid - so call its
 	   * receivers event handling method.
 	   */
-	  [watcher->receiver receivedEvent: watcher->data
-				      type: watcher->type
-				     extra: watcher->data
-				   forMode: mode];
+	  [watcher fireEvent: watcher->data forMode: mode];
 	}
       GSPrivateNotifyASAP(mode);
     }
@@ -493,10 +490,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  [watcher->receiver receivedEvent: watcher->data
-					      type: watcher->type
-					     extra: (void*)(uintptr_t)fd
-					   forMode: mode];
+		  [watcher fireEvent: (void*)(uintptr_t)fd forMode: mode];
 		}
 	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
@@ -525,10 +519,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  [watcher->receiver receivedEvent: watcher->data
-					      type: watcher->type
-					     extra: (void*)(uintptr_t)fd
-					   forMode: mode];
+		  [watcher fireEvent: (void*)(uintptr_t)fd forMode: mode];
 		}
 	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
@@ -566,10 +557,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  [watcher->receiver receivedEvent: watcher->data
-					      type: watcher->type
-					     extra: (void*)(uintptr_t)fd
-					   forMode: mode];
+		  [watcher fireEvent: (void*)(uintptr_t)fd forMode: mode];
 		}
 	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
@@ -836,10 +824,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	   * The watcher is still valid - so call its
 	   * receivers event handling method.
 	   */
-	  [watcher->receiver receivedEvent: watcher->data
-				      type: watcher->type
-				     extra: watcher->data
-				   forMode: mode];
+	  [watcher fireEvent: watcher->data forMode: mode];
 	}
       GSPrivateNotifyASAP(mode);
     }
@@ -897,10 +882,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      [watcher->receiver receivedEvent: watcher->data
-					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
-				       forMode: mode];
+	      [watcher fireEvent: (void*)(intptr_t)fdIndex forMode: mode];
 	    }
 	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)
@@ -929,10 +911,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      [watcher->receiver receivedEvent: watcher->data
-					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
-				       forMode: mode];
+	      [watcher fireEvent: (void*)(intptr_t)fdIndex forMode: mode];
 	    }
 	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)
@@ -970,10 +949,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      [watcher->receiver receivedEvent: watcher->data
-					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
-				       forMode: mode];
+	      [watcher fireEvent: (void*)(intptr_t)fdIndex forMode: mode];
 	    }
 	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)

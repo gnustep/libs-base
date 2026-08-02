@@ -143,10 +143,7 @@
 		   * The watcher is still valid - so call the
 		   * receiver's event handling method.
 		   */
-		  [watcher->receiver receivedEvent: watcher->data
-					      type: watcher->type
-					     extra: (void*)&msg
-					   forMode: mode];
+		  [watcher fireEvent: (void*)&msg forMode: mode];
 		  continue;
 		}
 	    }
@@ -181,10 +178,7 @@
 			    }
 			}
 		      handled = YES;
-		      [watcher->receiver receivedEvent: watcher->data
-						  type: watcher->type
-						 extra: (void*)&msg
-					       forMode: mode];
+		      [watcher fireEvent: (void*)&msg forMode: mode];
 		    }
 		}
 	      num--;
@@ -441,10 +435,7 @@
 	   * The watcher is still valid - so call its
 	   * receivers event handling method.
 	   */
-	  [watcher->receiver receivedEvent: watcher->data
-				      type: watcher->type
-				     extra: watcher->data
-				   forMode: mode];
+	  [watcher fireEvent: watcher->data forMode: mode];
 	}
       GSPrivateNotifyASAP(mode);
     }
@@ -506,10 +497,7 @@
 	   * The watcher is still valid - so call its receivers
 	   * event handling method.
 	   */
-	  [watcher->receiver receivedEvent: watcher->data
-				      type: watcher->type
-				     extra: (void*)handle
-				   forMode: mode];
+	  [watcher fireEvent: (void*)handle forMode: mode];
 	}
     }
   else
