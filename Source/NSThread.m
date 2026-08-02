@@ -2179,16 +2179,22 @@ GSRunLoopInfoForThread(NSThread *aThread)
     {
       aThread = GSCurrentThread();
     }
-  if (aThread->_runLoopInfo == nil)
+  if (nil == aThread->_runLoopInfo)
     {
       static gs_mutex_t	infoLock = GS_MUTEX_INIT_STATIC;
 
+      /* Avoid the possibility of deadlock on first use of the class by
+       * creating a new instance outside the locked region.
+       */
+      info = [GSRunLoopThreadInfo new];
       GS_MUTEX_LOCK(infoLock);
       if (aThread->_runLoopInfo == nil)
         {
-          aThread->_runLoopInfo = [GSRunLoopThreadInfo new];
+          aThread->_runLoopInfo = info;
+	  info = nil;
 	}
       GS_MUTEX_UNLOCK(infoLock);
+      IF_NO_GC(if (info) [info release];)	// allocated instance not used
     }
   info = aThread->_runLoopInfo;
   return info;
