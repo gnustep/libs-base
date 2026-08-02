@@ -43,8 +43,8 @@
 #import "Foundation/NSStream.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSInvocation.h"
+#import "GNUstepBase/NSRunLoop+GNUstepBase.h"
 #import "GSRunLoopCtxt.h"
-#import "GSRunLoopWatcher.h"
 #import "GSStream.h"
 
 #import "GSPrivate.h"
@@ -135,6 +135,97 @@ static NSDate	*theFuture = nil;
   return self;
 }
 
+@end
+
+
+
+@implementation	GSRunLoopWatcher
+
+- (void) dealloc
+{
+  DEALLOC
+}
+
+- (id) initWithType: (RunLoopEventType)aType
+	   receiver: (id<RunLoopEvents>)anObj
+	       data: (const void*)item
+{
+  _invalidated = NO;
+  receiver = anObj;
+  data = item;
+  switch (aType)
+    {
+#if	defined(_WIN32)
+      case ET_HANDLE:   type = aType;   break;
+      case ET_WINMSG:   type = aType;   break;
+#else
+      case ET_EDESC: 	type = aType;	break;
+      case ET_RDESC: 	type = aType;	break;
+      case ET_WDESC: 	type = aType;	break;
+#endif
+      case ET_RPORT: 	type = aType;	break;
+      case ET_TRIGGER: 	type = aType;	break;
+      default: 
+	DESTROY(self);
+	[NSException raise: NSInvalidArgumentException
+		    format: @"NSRunLoop - unknown event type"];
+    }
+
+  if ([anObj respondsToSelector: @selector(runLoopShouldBlock:)])
+    {
+      checkBlocking = YES;
+    }
+
+  if (![anObj respondsToSelector:
+    @selector(receivedEvent:type:extra:forMode:)])
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"RunLoop listener has no event handling method"];
+    }
+  return self;
+}
+
+- (const void*) data
+{
+  return data;
+}
+
+- (void) invalidate
+{
+  _invalidated = YES;
+}
+
+- (BOOL) isValid
+{
+  return (_invalidated ? NO : YES);
+}
+
+- (void) fireEvent: (const void*)extra forMode: (NSString*)mode
+{
+  [receiver receivedEvent: data type: type extra: extra forMode: mode];
+}
+
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  if (checkBlocking == YES)
+    {
+      BOOL result = [(id)receiver runLoopShouldBlock: trigger];
+      return result;
+    }
+  else if (type == ET_TRIGGER)
+    {
+      *trigger = YES;
+      return NO;	// By default triggers may fire immediately
+    }
+  *trigger = YES;
+  return YES;		// By default we must wait for input sources
+}
+
+- (RunLoopEventType) type
+{
+  return type;
+} 
 @end
 
 
@@ -504,40 +595,11 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 
 @interface NSRunLoop (Private)
 
-- (void) _addWatcher: (GSRunLoopWatcher*)item
-	     forMode: (NSString*)mode;
 - (BOOL) _checkPerformers: (GSRunLoopCtxt*)context;
-- (GSRunLoopWatcher*) _getWatcher: (void*)data
-			     type: (RunLoopEventType)type
-			  forMode: (NSString*)mode;
 - (id) _init;
-- (void) _removeWatcher: (void*)data
-		   type: (RunLoopEventType)type
-		forMode: (NSString*)mode;
-
 @end
 
 @implementation NSRunLoop (Private)
-
-/* Add a watcher to the list for the specified mode.  Keep the list in
-   limit-date order. */
-- (void) _addWatcher: (GSRunLoopWatcher*) item forMode: (NSString*)mode
-{
-  GSRunLoopCtxt	*context;
-  GSIArray	watchers;
-  unsigned	i;
-
-  context = contextForMode(myvars, mode, YES);
-  watchers = context->watchers;
-  GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
-  i = GSIArrayCount(watchers);
-  if (i % 1000 == 0 && i > context->maxWatchers)
-    {
-      context->maxWatchers = i;
-      NSLog(@"WARNING ... there are %u watchers scheduled in mode %@ of %@",
-	i, mode, self);
-    }
-}
 
 - (BOOL) _checkPerformers: (GSRunLoopCtxt*)context
 {
@@ -611,46 +673,6 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   return found;
 }
 
-/**
- * Locates a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
- */
-- (GSRunLoopWatcher*) _getWatcher: (void*)data
-			     type: (RunLoopEventType)type
-			  forMode: (NSString*)mode
-{
-  GSRunLoopCtxt	*context;
-
-  if (mode == nil)
-    {
-      mode = [self currentMode];
-      if (mode == nil)
-	{
-	  mode = NSDefaultRunLoopMode;
-	}
-    }
-
-  context = contextForMode(myvars, mode, NO);
-  if (context != nil)
-    {
-      GSIArray	watchers = context->watchers;
-      unsigned	i = GSIArrayCount(watchers);
-
-      while (i-- > 0)
-	{
-	  GSRunLoopWatcher	*info;
-
-	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info->type == type && info->data == data)
-	    {
-	      return info;
-	    }
-	}
-    }
-  return nil;
-}
-
 /* Just for debugging ... get at internals
  */
 - (RunLoopInternal*) internal
@@ -676,14 +698,126 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   return self;
 }
 
-/**
- * Removes a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
+@end
+
+
+@implementation NSRunLoop(GNUstepExtensions)
+
+- (void) addEvent: (void*)data
+             type: (RunLoopEventType)type
+          watcher: (id<RunLoopEvents>)watcher
+          forMode: (NSString*)mode
+{
+  GSRunLoopWatcher	*info;
+
+  if (mode == nil)
+    {
+      mode = [self currentMode];
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
+    }
+
+  info = [self findWatcherEvent: data type: type forMode: mode];
+
+  if (info != nil && (id)info->receiver == (id)watcher)
+    {
+      /* Increment usage count for this watcher. */
+      info->count++;
+    }
+  else
+    {
+      /* Remove any existing handler for another watcher. */
+      [self removeWatcher: info forMode: mode];
+
+      /* Create new object to hold information. */
+      info = [[GSRunLoopWatcher alloc] initWithType: type
+					   receiver: watcher
+					       data: data];
+      /* Add the object to the array for the mode. */
+      [self addWatcher: info forMode: mode];
+      RELEASE(info);		/* Now held in array.	*/
+    }
+}
+
+- (void) removeEvent: (void*)data
+                type: (RunLoopEventType)type
+             forMode: (NSString*)mode
+		 all: (BOOL)removeAll
+{
+  GSRunLoopWatcher	*info;
+
+  if (mode == nil)
+    {
+      mode = [self currentMode];
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
+    }
+
+  info = [self findWatcherEvent: data type: type forMode: mode];
+  if (info)
+    {
+      if (info->count == 0 || removeAll)
+	{
+	  [self removeWatcher: info forMode: mode];
+	}
+      else
+	{
+	  info->count--;
+	}
+    }
+}
+
+/* Add a watcher to the list for the specified mode.
  */
-- (void) _removeWatcher: (void*)data
-                   type: (RunLoopEventType)type
-                forMode: (NSString*)mode
+- (void) addWatcher: (GSRunLoopWatcher*)item forMode: (NSString*)mode
+{
+  GSRunLoopCtxt	*context;
+  uint64_t	modeBit;
+  GSIArray	watchers;
+  unsigned	i;
+
+  if (NO == [item isKindOfClass: [GSRunLoopWatcher class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-addWatcher:forMode: invalid watcher argument"];
+    }
+  if (item->_loop != nil && item->_loop != self)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-addWatcher:forMode: watcher is in another loop"];
+    }
+  if (NO == [item isValid])
+    {
+      return;
+    }
+  context = contextForMode(myvars, mode, YES);
+  modeBit = (UINT64_C(1) << context->modeIndex);
+
+  if ((item->_modeMask & modeBit) != 0)
+    {
+      return;	// Already present in this mode
+    }
+
+  item->_loop = self;
+  item->_modeMask |= modeBit;
+  watchers = context->watchers;
+  GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
+  i = GSIArrayCount(watchers);
+  if (i % 1000 == 0 && i > context->maxWatchers)
+    {
+      context->maxWatchers = i;
+      NSLog(@"WARNING ... there are %u watchers scheduled in mode %@ of %@",
+	i, mode, self);
+    }
+}
+
+- (GSRunLoopWatcher*) findWatcherEvent: (const void*)data
+                                  type: (RunLoopEventType)type
+                               forMode: (NSString*)mode
 {
   GSRunLoopCtxt	*context;
 
@@ -707,27 +841,28 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	  GSRunLoopWatcher	*info;
 
 	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info->type == type && info->data == data)
+	  if (info->data == data && info->type == type)
 	    {
-	      info->_invalidated = YES;
-	      GSIArrayRemoveItemAtIndex(watchers, i);
+	      return info;
 	    }
 	}
     }
+  return nil;
 }
 
-@end
-
-
-@implementation NSRunLoop(GNUstepExtensions)
-
-- (void) addEvent: (void*)data
-             type: (RunLoopEventType)type
-          watcher: (id<RunLoopEvents>)watcher
-          forMode: (NSString*)mode
+- (void) removeWatcher: (GSRunLoopWatcher*)watcher
+               forMode: (NSString*)mode
 {
-  GSRunLoopWatcher	*info;
+  GSRunLoopCtxt	*context;
 
+  if (nil == watcher)
+    {
+      return;
+    }
+  if (watcher->_loop != self)
+    {
+      return;
+    }
   if (mode == nil)
     {
       mode = [self currentMode];
@@ -737,60 +872,31 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	}
     }
 
-  info = [self _getWatcher: data type: type forMode: mode];
-
-  if (info != nil && (id)info->receiver == (id)watcher)
+  context = contextForMode(myvars, mode, NO);
+  if (context != nil)
     {
-      /* Increment usage count for this watcher. */
-      info->count++;
-    }
-  else
-    {
-      /* Remove any existing handler for another watcher. */
-      [self _removeWatcher: data type: type forMode: mode];
+      uint64_t	modeBit = (UINT64_C(1) << context->modeIndex);
+      GSIArray	watchers = context->watchers;
+      unsigned	i = GSIArrayCount(watchers);
 
-      /* Create new object to hold information. */
-      info = [[GSRunLoopWatcher alloc] initWithType: type
-					   receiver: watcher
-					       data: data];
-      /* Add the object to the array for the mode. */
-      [self _addWatcher: info forMode: mode];
-      RELEASE(info);		/* Now held in array.	*/
-    }
-}
-
-- (void) removeEvent: (void*)data
-                type: (RunLoopEventType)type
-             forMode: (NSString*)mode
-		 all: (BOOL)removeAll
-{
-  if (mode == nil)
-    {
-      mode = [self currentMode];
-      if (mode == nil)
+      if ((watcher->_modeMask & modeBit) == 0)
 	{
-	  mode = NSDefaultRunLoopMode;
+	  return;	// Not present in this mode
 	}
-    }
-  if (removeAll)
-    {
-      [self _removeWatcher: data type: type forMode: mode];
-    }
-  else
-    {
-      GSRunLoopWatcher	*info;
 
-      info = [self _getWatcher: data type: type forMode: mode];
-
-      if (info)
+      while (i-- > 0)
 	{
-	  if (info->count == 0)
+	  GSRunLoopWatcher	*info;
+
+	  info = GSIArrayItemAtIndex(watchers, i).obj;
+	  if (info == watcher)
 	    {
-	      [self _removeWatcher: data type: type forMode: mode];
-  	    }
-	  else
-	    {
-	      info->count--;
+	      watcher->_modeMask &= ~modeBit;
+	      if (0 == watcher->_modeMask)
+		{
+		  watcher->_loop = nil;
+		}
+	      GSIArrayRemoveItemAtIndex(watchers, i);
 	    }
 	}
     }

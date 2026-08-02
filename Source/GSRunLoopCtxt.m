@@ -12,10 +12,10 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSPort.h"
+#import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"
 #define	GENERICCTXT	1
 #import "GSRunLoopCtxt.h"
-#import "GSRunLoopWatcher.h"
 #import "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H

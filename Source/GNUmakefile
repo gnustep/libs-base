@@ -147,6 +147,7 @@ NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
+NSRunLoop+GNUstepBase.h \
 NSStream+GNUstepBase.h \
 NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
@@ -176,7 +177,6 @@ GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
 GSRunLoopCtxt.m \
-GSRunLoopWatcher.m \
 GSSet.m \
 GSShellSort.m \
 GSSocketStream.m \

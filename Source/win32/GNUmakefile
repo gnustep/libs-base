@@ -38,6 +38,8 @@ win32_OBJC_FILES =\
 	NSUserDefaults.m \
 	NSString+Win32Additions.m\
 
+DEFS = -DGNUSTEP_BASE_INTERNAL=1
+
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/subproject.make

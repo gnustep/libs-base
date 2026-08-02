@@ -9,9 +9,9 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSPort.h"
+#import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"
 #import "../GSRunLoopCtxt.h"
-#import "../GSRunLoopWatcher.h"
 #import "../GSPrivate.h"
 
 #define	FDCOUNT	1024

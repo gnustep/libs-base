@@ -33,6 +33,8 @@ unix_OBJC_FILES = \
 	GSRunLoopCtxt.m \
 	NSStream.m \
 
+DEFS = -DGNUSTEP_BASE_INTERNAL=1
+
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/subproject.make
