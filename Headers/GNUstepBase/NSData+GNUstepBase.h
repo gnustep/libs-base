@@ -46,6 +46,15 @@ extern "C" {
  */
 + (id) dataWithRandomBytesOfLength: (NSUInteger)length;
 
+/** Populates a buffer with pseudo-random bytes of the specified length.<br />
+ * Returns YES on succes, NO on failure.  Failure may be due to:<br />
+ * A NULL buffer pointer.<br />
+ * A zero length or unreasonably large length argument or,<br />
+ * Failure to allocate memory to hold the random data or,<br />
+ * Failure of the underlying random data generation.
+ */
++ (BOOL) randomBytes: (uint8_t*)buffer ofLength: (NSUInteger)length;
+
 /** Returns an NSString object containing a backslash escaped representation
  * of the receiver.
  */

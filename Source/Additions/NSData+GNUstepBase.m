@@ -115,6 +115,19 @@ randombytes(uint8_t *buf, unsigned len)
   return AUTORELEASE(d);
 }
 
++ (BOOL) randomBytes: (uint8_t*)buffer ofLength: (NSUInteger)length
+{
+  if (NULL == buffer || 0 == length || length > 0xffffffff)
+    {
+      return NO;
+    }
+  if (randombytes(buffer, (unsigned)length) < 0)
+    {
+      return NO;
+    }
+  return YES;
+}
+
 - (NSString*) escapedRepresentation
 {
   char          *buf;
