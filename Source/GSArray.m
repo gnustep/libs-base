@@ -232,7 +232,7 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
     {
       self = [super initWithCoder: aCoder];
     }
-  else
+  else if (nil != (self = [super init]))
     {
       /* for performance, we decode directly into memory rather than
        * using the superclass method. Must exactly match superclass. */
@@ -434,24 +434,27 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 }
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  _contents_array
-    = (id*)(((void*)self) + class_getInstanceSize([self class]));
-
-  if (count > 0)
+  if (nil != (self = [super init]))
     {
-      NSUInteger	i;
+      _contents_array
+	= (id*)(((void*)self) + class_getInstanceSize([self class]));
 
-      for (i = 0; i < count; i++)
+      if (count > 0)
 	{
-	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
+	  NSUInteger	i;
+
+	  for (i = 0; i < count; i++)
 	    {
-	      _count = i;
-	      DESTROY(self);
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to init array with nil object"];
+	      if ((_contents_array[i] = RETAIN(objects[i])) == nil)
+		{
+		  _count = i;
+		  DESTROY(self);
+		  [NSException raise: NSInvalidArgumentException
+			      format: @"Tried to init array with nil object"];
+		}
 	    }
+	  _count = count;
 	}
-      _count = count;
     }
   return self;
 }
@@ -554,13 +557,16 @@ else
 
 - (id) initWithCapacity: (NSUInteger)cap
 {
-  if (cap == 0)
+  if (nil != (self = [super init]))
     {
-      cap = 1;
+      if (cap == 0)
+	{
+	  cap = 1;
+	}
+      _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
+      _capacity = cap;
+      _grow_factor = cap > 1 ? cap/2 : 1;
     }
-  _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
-  _capacity = cap;
-  _grow_factor = cap > 1 ? cap/2 : 1;
   return self;
 }
 
@@ -570,24 +576,24 @@ else
     {
       self = [super initWithCoder: aCoder];
     }
-  else
+  else if (nil != (self = [super init]))
     {
-	unsigned    count;
+      unsigned    count;
 
-	[aCoder decodeValueOfObjCType: @encode(unsigned)
-			           at: &count];
-	if ((self = [self initWithCapacity: count]) == nil)
-	  {
-	    [NSException raise: NSMallocException
-			format: @"Unable to make array while initializing from coder"];
-	  }
-	if (count > 0)
-	  {
-	    [aCoder decodeArrayOfObjCType: @encode(id)
-		                    count: count
-				       at: _contents_array];
-	    _count = count;
-	  }
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
+				 at: &count];
+      if ((self = [self initWithCapacity: count]) == nil)
+	{
+	  [NSException raise: NSMallocException
+	    format: @"Unable to make array while initializing from coder"];
+	}
+      if (count > 0)
+	{
+	  [aCoder decodeArrayOfObjCType: @encode(id)
+				  count: count
+				     at: _contents_array];
+	  _count = count;
+	}
     }
   return self;
 }

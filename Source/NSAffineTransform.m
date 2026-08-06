@@ -99,25 +99,7 @@ static NSAffineTransformStruct identityTransform = {
  */
 + (NSAffineTransform*) transform
 {
-  NSAffineTransform	*t;
-
-  t = (NSAffineTransform*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  t->_matrix = identityTransform;
-  t->_isIdentity = YES;
-  return AUTORELEASE(t);
-}
-
-/**
- * Return an autoreleased instance of this class.
- */
-+ (id) new
-{
-  NSAffineTransform	*t;
-
-  t = (NSAffineTransform*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  t->_matrix = identityTransform;
-  t->_isIdentity = YES;
-  return t;
+  return AUTORELEASE([[self alloc] init]);
 }
 
 /**
@@ -210,8 +192,11 @@ static NSAffineTransformStruct identityTransform = {
  */ 
 - (id) init
 {
-  _matrix = identityTransform;
-  _isIdentity = YES;
+  if (nil != (self = [super init]))
+    {
+      _matrix = identityTransform;
+      _isIdentity = YES;
+    }
   return self;
 }
 
@@ -221,9 +206,12 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (id) initWithTransform: (NSAffineTransform*)aTransform
 {
-  _matrix = aTransform->_matrix;
-  _isIdentity = aTransform->_isIdentity;
-  _isFlipY = aTransform->_isFlipY;
+  if (nil != (self = [super init]))
+    {
+      _matrix = aTransform->_matrix;
+      _isIdentity = aTransform->_isIdentity;
+      _isFlipY = aTransform->_isFlipY;
+    }
   return self;
 }
 
@@ -571,7 +559,7 @@ static NSAffineTransformStruct identityTransform = {
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return NSCopyObject(self, 0, zone);
+  return [[[self class] alloc] initWithTransform: self]; 
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -594,99 +582,103 @@ static NSAffineTransformStruct identityTransform = {
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  NSAffineTransformStruct replace = identityTransform;
-    
-  if ([aCoder allowsKeyedCoding])
+  if (nil != (self = [super init]))
     {
-      if ([aCoder containsValueForKey: @"NSTransformStruct"])
-        {
-	  NSUInteger length;
-	  const uint8_t *data;
-          NSData *d;
-          unsigned int cursor = 0;
+      NSAffineTransformStruct replace = identityTransform;
+	
+      if ([aCoder allowsKeyedCoding])
+	{
+	  if ([aCoder containsValueForKey: @"NSTransformStruct"])
+	    {
+	      NSUInteger length;
+	      const uint8_t *data;
+	      NSData *d;
+	      unsigned int cursor = 0;
 
-          data = [aCoder decodeBytesForKey: @"NSTransformStruct"
-                              returnedLength: &length]; 
-          d = [NSData dataWithBytes: data length: length];
+	      data = [aCoder decodeBytesForKey: @"NSTransformStruct"
+				  returnedLength: &length]; 
+	      d = [NSData dataWithBytes: data length: length];
 
-          if (length == 9)
-            {
-              float f, g;
-              replace = identityTransform;
-              
-              cursor = 1;
-              [d deserializeDataAt: &f
-                        ofObjCType: "f"
-                          atCursor: &cursor
-                           context: nil];
-              [d deserializeDataAt: &g
-                        ofObjCType: "f"
-                          atCursor: &cursor
-                           context: nil];
-              if (data[0] == 1)
-                {
-                  replace.tX = f;
-                  replace.tY = g;
-                }
-              else if (data[0] == 2)
-                {
-                  replace.m11 = f;
-                  replace.m22 = g;
-                }
-              else
-                {
-                  // FIXME
-                  NSLog(@"Got type %d for affine transform", data[0]);
-                  return [self notImplemented: _cmd];
-                }
-            }
-          else if (16 == length)
-            {
-              float s[4];
-              
-              [d deserializeDataAt: s
-                        ofObjCType: "[4f]"
-                          atCursor: &cursor
-                           context: nil];
-              replace.m11 = s[0];
-              replace.m22 = s[1];
-              replace.tX = s[2];
-              replace.tY = s[3];
-            }
-          else if (24 == length)
-            {
-              float s[6];
-              
-              [d deserializeDataAt: s
-                        ofObjCType: "[6f]"
-                          atCursor: &cursor
-                           context: nil];
-              replace.m11 = s[0];
-              replace.m12 = s[1];
-              replace.m21 = s[2];
-              replace.m22 = s[3];
-              replace.tX = s[4];
-              replace.tY = s[5];
-            }
-          else
-            {
-              // FIXME
-              NSLog(@"Got data %@ len %d for affine transform", d, (int)length);
-              return [self notImplemented: _cmd];
-            }
-        }
+	      if (length == 9)
+		{
+		  float f, g;
+		  replace = identityTransform;
+		  
+		  cursor = 1;
+		  [d deserializeDataAt: &f
+			    ofObjCType: "f"
+			      atCursor: &cursor
+			       context: nil];
+		  [d deserializeDataAt: &g
+			    ofObjCType: "f"
+			      atCursor: &cursor
+			       context: nil];
+		  if (data[0] == 1)
+		    {
+		      replace.tX = f;
+		      replace.tY = g;
+		    }
+		  else if (data[0] == 2)
+		    {
+		      replace.m11 = f;
+		      replace.m22 = g;
+		    }
+		  else
+		    {
+		      // FIXME
+		      NSLog(@"Got type %d for affine transform", data[0]);
+		      return [self notImplemented: _cmd];
+		    }
+		}
+	      else if (16 == length)
+		{
+		  float s[4];
+		  
+		  [d deserializeDataAt: s
+			    ofObjCType: "[4f]"
+			      atCursor: &cursor
+			       context: nil];
+		  replace.m11 = s[0];
+		  replace.m22 = s[1];
+		  replace.tX = s[2];
+		  replace.tY = s[3];
+		}
+	      else if (24 == length)
+		{
+		  float s[6];
+		  
+		  [d deserializeDataAt: s
+			    ofObjCType: "[6f]"
+			      atCursor: &cursor
+			       context: nil];
+		  replace.m11 = s[0];
+		  replace.m12 = s[1];
+		  replace.m21 = s[2];
+		  replace.m22 = s[3];
+		  replace.tX = s[4];
+		  replace.tY = s[5];
+		}
+	      else
+		{
+		  // FIXME
+		  NSLog(@"Got data %@ len %d for affine transform",
+		    d, (int)length);
+		  return [self notImplemented: _cmd];
+		}
+	    }
+	  else
+	    {
+	      replace = identityTransform;
+	    }
+	}
       else
-        {
-          replace = identityTransform;
-        }
+	{
+	  [aCoder decodeArrayOfObjCType: @encode(CGFloat)
+				  count: 6
+				     at: (CGFloat*)&replace];
+	}
+      [self setTransformStruct: replace];
     }
-  else
-    {
-      [aCoder decodeArrayOfObjCType: @encode(CGFloat)
-                              count: 6
-                                 at: (CGFloat*)&replace];
-    }
-  [self setTransformStruct: replace];
   return self;
 }
 
