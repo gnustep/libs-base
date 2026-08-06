@@ -434,27 +434,28 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 }
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  if (nil != (self = [super init]))
+  /* GSArray -init calls -initWithObjects:count: on self, so this method
+   * must not chain to it.  The inline contents follow the instance and
+   * are not the superclass's to set up.
+   */
+  _contents_array
+    = (id*)(((void*)self) + class_getInstanceSize([self class]));
+
+  if (count > 0)
     {
-      _contents_array
-	= (id*)(((void*)self) + class_getInstanceSize([self class]));
+      NSUInteger	i;
 
-      if (count > 0)
+      for (i = 0; i < count; i++)
 	{
-	  NSUInteger	i;
-
-	  for (i = 0; i < count; i++)
+	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
-	      if ((_contents_array[i] = RETAIN(objects[i])) == nil)
-		{
-		  _count = i;
-		  DESTROY(self);
-		  [NSException raise: NSInvalidArgumentException
-			      format: @"Tried to init array with nil object"];
-		}
+	      _count = i;
+	      DESTROY(self);
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to init array with nil object"];
 	    }
-	  _count = count;
 	}
+      _count = count;
     }
   return self;
 }

@@ -1,3 +1,10 @@
+2026-08-06 Todd White <todd.white@thalion.global>
+
+	* Source/GSArray.m (-[GSInlineArray initWithObjects:count:]): Do not
+	chain to [super init].  GSArray -init calls -initWithObjects:count:
+	on self, so it re-enters this method and recurses until the stack is
+	exhausted.
+
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSData+GNUstepBase.h:
