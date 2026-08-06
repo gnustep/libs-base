@@ -434,7 +434,7 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 }
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  if (nil != (self = [super init]))
+  if (nil != (self = [super initWithObjects: 0 count: 0]))
     {
       _contents_array
 	= (id*)(((void*)self) + class_getInstanceSize([self class]));
