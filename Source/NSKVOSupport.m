@@ -1163,14 +1163,26 @@ _dispatchWillChange(id notifyingObject, NSString *key,
   /* The matching -unlockChange calls are in _dispatchDidChange. */
 }
 
+/* One observer call, held until every lock has been dropped. */
+typedef struct {
+  id                     observer;
+  NSString              *keypath;
+  id                     object;
+  NSMutableDictionary   *change;
+  void                  *context;
+} GSKVOPendingNotification;
+
 static void
 _dispatchDidChange(id notifyingObject, NSString *key,
                    DispatchChangeFunction fn, void *changeContext)
 {
   _NSKVOObservationInfo *observationInfo
     = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray    *observers;
-  NSUInteger  index;
+  GSKVOPendingNotification   held[8];
+  GSKVOPendingNotification  *pending = held;
+  NSUInteger                 count = 0;
+  NSArray                   *observers;
+  NSUInteger                 index;
 
   if (nil == observationInfo)
     {
@@ -1178,6 +1190,10 @@ _dispatchDidChange(id notifyingObject, NSString *key,
     }
   observers = [observationInfo observersForKey:key];
   index = [observers count];
+  if (index > sizeof(held) / sizeof(held[0]))
+    {
+      pending = malloc(index * sizeof(GSKVOPendingNotification));
+    }
   /* Notify in reverse order (a plain index loop avoids allocating an
    * NSReverseEnumerator on every change). */
   while (index-- > 0)
@@ -1197,31 +1213,43 @@ _dispatchDidChange(id notifyingObject, NSString *key,
       keypathObserver = keyObserver.keypathObserver;
       if ([keypathObserver popDidChange])
         {
-          id			observer;
-          NSString            	*keypath;
-          id                   	rootObject;
-          NSMutableDictionary 	*change;
-          void                	*context;
-
           // Call into the change function, which does set-up for finalizing
           // the changes dictionary
           fn(keyObserver, changeContext);
 
-          observer = keypathObserver.observer;
-          keypath = keypathObserver.keypath;
-          rootObject = keypathObserver.object;
-          change = keypathObserver.pendingChange;
-          context = keypathObserver.context;
-          [observer observeValueForKeyPath:keypath
-                                  ofObject:rootObject
-                                    change:change
-                                   context:context];
-          /* pendingChange is retained for reuse by the next notification
-           * (cleared/repopulated in the change function), not freed here. */
+          /* Held until the locks are dropped: an observer that sets a second
+           * observed object would otherwise deadlock against a thread taking
+           * the same two objects in the other order.  The change dictionary
+           * is not reused, so a retain is enough to keep it unchanged for the
+           * call; -pendingChange keeps it alive afterwards, for as long as it
+           * lived before.
+           */
+          pending[count].observer = [keypathObserver.observer retain];
+          pending[count].keypath = [keypathObserver.keypath retain];
+          pending[count].object = [keypathObserver.object retain];
+          pending[count].change = [keypathObserver.pendingChange retain];
+          pending[count].context = keypathObserver.context;
+          count++;
         }
       [keypathObserver unlockChange];
     }
   [observationInfo unlockChange];
+
+  for (index = 0; index < count; index++)
+    {
+      [pending[index].observer observeValueForKeyPath: pending[index].keypath
+                                             ofObject: pending[index].object
+                                               change: pending[index].change
+                                              context: pending[index].context];
+      [pending[index].observer release];
+      [pending[index].keypath release];
+      [pending[index].object release];
+      [pending[index].change release];
+    }
+  if (pending != held)
+    {
+      free(pending);
+    }
 }
 
 static void
@@ -1229,20 +1257,15 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
   _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
   NSKeyValueObservingOptions options = keypathObserver.options;
-  NSMutableDictionary *change = keypathObserver.pendingChange;
+  NSMutableDictionary *change;
 
-  /* Reuse the change dictionary across notifications rather than allocating
-   * (and rehashing) a fresh one every time the setter fires. */
-  if (change == nil)
-    {
-      change = [[NSMutableDictionary alloc] initWithCapacity: 3];
-      keypathObserver.pendingChange = change;
-      [change release];
-    }
-  else
-    {
-      [change removeAllObjects];
-    }
+  /* A fresh dictionary every time, because the last one was handed to an
+   * observer and may still be held.  The other change functions below build
+   * one the same way.
+   */
+  change = [[NSMutableDictionary alloc] initWithCapacity: 3];
+  keypathObserver.pendingChange = change;
+  [change release];
 
   [change setObject:[NSNumber numberWithUnsignedInteger: NSKeyValueChangeSetting]
              forKey:NSKeyValueChangeKindKey];
