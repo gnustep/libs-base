@@ -1179,12 +1179,8 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
 
 /* One observer call, held until every lock has been dropped. */
 typedef struct {
-  id                     observer;
-  NSString              *keypath;
-  id                     object;
-  NSMutableDictionary   *change;
-  void                  *context;
   _NSKVOKeypathObserver *keypathObserver;
+  NSMutableDictionary   *change;
 } GSKVOPendingNotification;
 
 static void
@@ -1235,15 +1231,12 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
            * observed object would otherwise deadlock against a thread taking
            * the same two objects in the other order.  The delivery is counted
            * so that a willChange elsewhere does not refill the dictionary
-           * while it is being read.
+           * while it is being read.  Holding the key path observer holds the
+           * observer, the key path and the context with it.
            */
           [keypathObserver beginDelivery];
-          pending[count].observer = [keypathObserver.observer retain];
-          pending[count].keypath = [keypathObserver.keypath retain];
-          pending[count].object = [keypathObserver.object retain];
-          pending[count].change = [keypathObserver.pendingChange retain];
-          pending[count].context = keypathObserver.context;
           pending[count].keypathObserver = [keypathObserver retain];
+          pending[count].change = [keypathObserver.pendingChange retain];
           count++;
         }
       [keypathObserver unlockChange];
@@ -1252,16 +1245,16 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
 
   for (index = 0; index < count; index++)
     {
-      [pending[index].observer observeValueForKeyPath: pending[index].keypath
-                                             ofObject: pending[index].object
-                                               change: pending[index].change
-                                              context: pending[index].context];
-      [pending[index].keypathObserver endDelivery];
-      [pending[index].observer release];
-      [pending[index].keypath release];
-      [pending[index].object release];
+      _NSKVOKeypathObserver *keypathObserver = pending[index].keypathObserver;
+
+      [keypathObserver.observer
+        observeValueForKeyPath: keypathObserver.keypath
+                      ofObject: keypathObserver.object
+                        change: pending[index].change
+                       context: keypathObserver.context];
+      [keypathObserver endDelivery];
       [pending[index].change release];
-      [pending[index].keypathObserver release];
+      [keypathObserver release];
     }
   if (pending != held)
     {
