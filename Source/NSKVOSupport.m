@@ -141,6 +141,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
       _keypath = [keypath copy];
       _options = options;
       _context = context;
+      GS_MUTEX_INIT_RECURSIVE(_changeLock);
     }
   return self;
 }
@@ -149,7 +150,18 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 {
   [_keypath release];
   [_pendingChange release];
+  GS_MUTEX_DESTROY(_changeLock);
   [super dealloc];
+}
+
+- (void) lockChange
+{
+  GS_MUTEX_LOCK(_changeLock);
+}
+
+- (void) unlockChange
+{
+  GS_MUTEX_UNLOCK(_changeLock);
 }
 
 - (BOOL) pushWillChange
@@ -247,8 +259,19 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
     {
       _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity: 1];
       GS_MUTEX_INIT(_lock);
+      GS_MUTEX_INIT_RECURSIVE(_changeLock);
     }
   return self;
+}
+
+- (void) lockChange
+{
+  GS_MUTEX_LOCK(_changeLock);
+}
+
+- (void) unlockChange
+{
+  GS_MUTEX_UNLOCK(_changeLock);
 }
 
 - (void) dealloc
@@ -277,6 +300,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   [_existingDependentKeys release];
 
   GS_MUTEX_DESTROY(_lock);
+  GS_MUTEX_DESTROY(_changeLock);
 
   [super dealloc];
 }
@@ -1088,7 +1112,14 @@ _dispatchWillChange(id notifyingObject, NSString *key,
 {
   _NSKVOObservationInfo *observationInfo
     = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray *observers = [observationInfo observersForKey:key];
+  NSArray *observers;
+
+  if (nil == observationInfo)
+    {
+      return;
+    }
+  [observationInfo lockChange];
+  observers = [observationInfo observersForKey:key];
   for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
@@ -1100,6 +1131,7 @@ _dispatchWillChange(id notifyingObject, NSString *key,
 
       // Skip any keypaths that are in the process of changing.
       keypathObserver = keyObserver.keypathObserver;
+      [keypathObserver lockChange];
       if ([keypathObserver pushWillChange])
         {
           NSKeyValueObservingOptions options;
@@ -1128,6 +1160,7 @@ _dispatchWillChange(id notifyingObject, NSString *key,
       // This must happen regardless of whether we are currently notifying.
       _removeNestedObserversAndOptionallyDependents(keyObserver, false);
     }
+  /* The matching -unlockChange calls are in _dispatchDidChange. */
 }
 
 static void
@@ -1136,9 +1169,15 @@ _dispatchDidChange(id notifyingObject, NSString *key,
 {
   _NSKVOObservationInfo *observationInfo
     = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray *observers =
-    [observationInfo observersForKey:key];
-  NSUInteger index = [observers count];
+  NSArray    *observers;
+  NSUInteger  index;
+
+  if (nil == observationInfo)
+    {
+      return;
+    }
+  observers = [observationInfo observersForKey:key];
+  index = [observers count];
   /* Notify in reverse order (a plain index loop avoids allocating an
    * NSReverseEnumerator on every change). */
   while (index-- > 0)
@@ -1180,7 +1219,9 @@ _dispatchDidChange(id notifyingObject, NSString *key,
           /* pendingChange is retained for reuse by the next notification
            * (cleared/repopulated in the change function), not freed here. */
         }
+      [keypathObserver unlockChange];
     }
+  [observationInfo unlockChange];
 }
 
 static void
