@@ -606,8 +606,24 @@ ExtractValuesFromConfig(NSDictionary *config)
 
   /* Check for user subdirectories.  Ones from the GNUstep file are added
    * second, so they override the XDG ones.
+   *
+   * Setting GNUSTEP_XDG_USER_DIRS to NO in the GNUstep configuration file
+   * turns the XDG lookup off, leaving the builtin names and the GNUSTEP_
+   * keys below.  An absent key leaves the lookup on.
    */
-  xdg = UserDirsParseXDG();
+  {
+    NSString	*useXDG = [c objectForKey: @"GNUSTEP_XDG_USER_DIRS"];
+
+    if (nil == useXDG || YES == [useXDG boolValue])
+      {
+	xdg = UserDirsParseXDG();
+      }
+    else
+      {
+	xdg = nil;
+      }
+  }
+  [c removeObjectForKey: @"GNUSTEP_XDG_USER_DIRS"];
   ASSIGN_IF_SET(gnustepUserDesktop, xdg, @"XDG_DESKTOP_DIR");
   ASSIGN_IF_SET(gnustepUserDesktop, c, @"GNUSTEP_DESKTOP_DIR");
   ASSIGN_IF_SET(gnustepUserDocuments, xdg, @"XDG_DOCUMENTS_DIR");
