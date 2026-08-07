@@ -120,7 +120,27 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 #pragma endregion
 
 #pragma region Keypath Observer
+/* The entire change dictionary for an observation registered with no options.
+ * The same dictionary serves every such observation and every change, rather
+ * than an equal one built per change.  It is immutable, so a write to it from
+ * observeValueForKeyPath:ofObject:change:context: raises rather than altering
+ * the next notification.
+ */
+static NSDictionary *_kvoSettingChange = nil;
+
 @implementation _NSKVOKeypathObserver
++ (void) initialize
+{
+  if (self == [_NSKVOKeypathObserver class] && nil == _kvoSettingChange)
+    {
+      _kvoSettingChange = [[NSDictionary alloc]
+        initWithObjects: (id[]){[NSNumber numberWithUnsignedInteger:
+                                  NSKeyValueChangeSetting]}
+                forKeys: (id[]){NSKeyValueChangeKindKey}
+                  count: 1];
+    }
+}
+
 @synthesize object = _object;
 @synthesize observer = _observer;
 @synthesize keypath = _keypath;
@@ -1269,12 +1289,28 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
   NSKeyValueObservingOptions options = keypathObserver.options;
   NSMutableDictionary *change = keypathObserver.pendingChange;
 
+  /* An observer that asked for no old, new or prior value is handed the same
+   * one entry every time, so it is handed a shared dictionary rather than one
+   * emptied and refilled per change.
+   */
+  if (0 == (options & (NSKeyValueObservingOptionOld
+    | NSKeyValueObservingOptionNew | NSKeyValueObservingOptionPrior)))
+    {
+      if (change != (NSMutableDictionary *)_kvoSettingChange)
+        {
+          keypathObserver.pendingChange
+            = (NSMutableDictionary *)_kvoSettingChange;
+        }
+      return;
+    }
+
   /* Reuse the change dictionary across notifications rather than allocating
    * (and rehashing) a fresh one every time the setter fires.  A delivery in
    * progress is still reading the last one, so that case gets a fresh
    * dictionary instead.
    */
-  if (change == nil || [keypathObserver isDelivering])
+  if (change == nil || change == (NSMutableDictionary *)_kvoSettingChange
+    || [keypathObserver isDelivering])
     {
       change = [[NSMutableDictionary alloc] initWithCapacity: 3];
       keypathObserver.pendingChange = change;
