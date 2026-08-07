@@ -1122,11 +1122,10 @@ _valueForPendingChangeAtIndexes(id notifyingObject, NSString *key,
 
 // void TFunc(_NSKVOKeyObserver* keyObserver);
 inline static void
-_dispatchWillChange(id notifyingObject, NSString *key,
+_dispatchWillChange(_NSKVOObservationInfo *observationInfo,
+                    id notifyingObject, NSString *key,
                     DispatchChangeFunction fn, void *changeContext)
 {
-  _NSKVOObservationInfo *observationInfo
-    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
   NSArray *observers;
 
   if (nil == observationInfo)
@@ -1189,11 +1188,10 @@ typedef struct {
 } GSKVOPendingNotification;
 
 static void
-_dispatchDidChange(id notifyingObject, NSString *key,
+_dispatchDidChange(_NSKVOObservationInfo *observationInfo,
+                   id notifyingObject, NSString *key,
                    DispatchChangeFunction fn, void *changeContext)
 {
-  _NSKVOObservationInfo *observationInfo
-    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
   GSKVOPendingNotification   held[8];
   GSKVOPendingNotification  *pending = held;
   NSUInteger                 count = 0;
@@ -1310,9 +1308,12 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 
 - (void) willChangeValueForKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
-      _dispatchWillChange(self, key, _kvoWillSetChange, NULL);
+      _dispatchWillChange(info, self, key, _kvoWillSetChange, NULL);
     }
 }
 
@@ -1336,9 +1337,12 @@ _kvoDidSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 
 - (void) didChangeValueForKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
-      _dispatchDidChange(self, key, _kvoDidSetChange, NULL);
+      _dispatchDidChange(info, self, key, _kvoDidSetChange, NULL);
     }
 }
 
@@ -1399,10 +1403,13 @@ _kvoWillIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
              forKey: (NSString *)key
 {
   NSKeyValueChange kind = changeKind;
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoIndexedWillContext ctx = { &kind, indexes, self, key };
-      _dispatchWillChange(self, key, _kvoWillIndexedChange, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillIndexedChange, &ctx);
     }
 }
 
@@ -1439,10 +1446,13 @@ _kvoDidIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
    valuesAtIndexes: (NSIndexSet *)indexes
             forKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoIndexedDidContext ctx = { self, key };
-      _dispatchDidChange(self, key, _kvoDidIndexedChange, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidIndexedChange, &ctx);
     }
 }
 
@@ -1525,11 +1535,14 @@ _kvoWillSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
               withSetMutation: (NSKeyValueSetMutationKind)mutationKind
                  usingObjects: (NSSet *)objects
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoSetWillContext ctx
         = { _changeFromSetMutationKind(mutationKind), mutationKind, objects };
-      _dispatchWillChange(self, key, _kvoWillSetMutation, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillSetMutation, &ctx);
     }
 }
 
@@ -1572,10 +1585,13 @@ _kvoDidSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
              withSetMutation: (NSKeyValueSetMutationKind)mutationKind
                 usingObjects: (NSSet *)objects
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoSetDidContext ctx = { mutationKind, objects };
-      _dispatchDidChange(self, key, _kvoDidSetMutation, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidSetMutation, &ctx);
     }
 }
 @end
@@ -1635,11 +1651,14 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
                               oldValue: (id)oldValue
                               newValue: (id)newValue
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoNotifyContext ctx = { oldValue, newValue };
-      _dispatchWillChange(self, key, _kvoWillNotifyChange, &ctx);
-      _dispatchDidChange(self, key, _kvoDidNotifyChange, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillNotifyChange, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidNotifyChange, &ctx);
     }
 }
 
