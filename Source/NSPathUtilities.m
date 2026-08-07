@@ -1761,20 +1761,92 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 static NSMutableDictionary *
 UserDirsParseXDG()
 {
+  NSDictionary		*env;
   NSMutableDictionary	*info;
+  NSMutableDictionary	*user;
+  NSArray		*configDirs;
   NSArray		*keys;
   NSString		*fileName;
   NSString		*userName;
   NSString		*home;
+  NSString		*dirs;
+  unsigned		count;
+
+  env = [[NSProcessInfo processInfo] environment];
 
   /* For XDG let the standard environment variable take precedence over
    * GNUstep specific rules.
    */
-  if (nil == (home = [[[NSProcessInfo processInfo] environment]
-    objectForKey: @"HOME"]))
+  if (nil == (home = [env objectForKey: @"HOME"]))
     {
       home = NSHomeDirectory();
     }
+
+  info = [NSMutableDictionary dictionary];
+
+  /* The system wide defaults are held in user-dirs.defaults in each of the
+   * directories listed in XDG_CONFIG_DIRS, /etc/xdg where that is not set.
+   * They name a subdirectory of the home directory and omit the XDG_ prefix
+   * and the _DIR suffix, so DESKTOP=Desktop there is XDG_DESKTOP_DIR set to
+   * $HOME/Desktop here.  An earlier directory in the list takes precedence,
+   * so the list is read backwards, and the user's own file read after these
+   * overrides all of them.
+   */
+  if (0 == [(dirs = [env objectForKey: @"XDG_CONFIG_DIRS"]) length])
+    {
+      dirs = @"/etc/xdg";
+    }
+  configDirs = [dirs componentsSeparatedByString: @":"];
+  count = [configDirs count];
+  while (count-- > 0)
+    {
+      NSMutableDictionary	*defaults;
+      NSString			*dir = [configDirs objectAtIndex: count];
+      NSArray			*names;
+
+      if (0 == [dir length])
+	{
+	  continue;
+	}
+      fileName = [dir stringByAppendingPathComponent: @"user-dirs.defaults"];
+
+      /* A system file is not owned by the user running the program, so no
+       * owner is given to check against.  ParseConfigurationFile() still
+       * refuses a file which anyone other than its owner may write.
+       */
+      defaults = [NSMutableDictionary dictionary];
+      if (NO == ParseConfigurationFile(fileName, defaults, nil))
+	{
+	  continue;
+	}
+      names = [defaults allKeys];
+      GS_FOR_IN(NSString*, name, names)
+	NSString	*value = [defaults objectForKey: name];
+
+	if ([value length] > 0)
+	  {
+	    /* The specification gives these relative to the home directory,
+	     * but take an absolute path or the $HOME form as written.
+	     */
+	    if ([value isEqualToString: @"$HOME"])
+	      {
+		value = home;
+	      }
+	    else if ([value hasPrefix: @"$HOME/"])
+	      {
+		value = [home stringByAppendingPathComponent:
+		  [value substringFromIndex: 6]];
+	      }
+	    else if (NO == [value isAbsolutePath])
+	      {
+		value = [home stringByAppendingPathComponent: value];
+	      }
+	    [info setObject: value
+		     forKey: [NSString stringWithFormat: @"XDG_%@_DIR", name]];
+	  }
+      GS_END_FOR(names)
+    }
+
   fileName = [home stringByAppendingPathComponent: @".config"];
   fileName = [fileName stringByAppendingPathComponent: @"user-dirs.dirs"];
 
@@ -1782,10 +1854,10 @@ UserDirsParseXDG()
    * to extract the key/value pairs from it.
    */
   userName = NSUserName();
-  info = [NSMutableDictionary dictionary];
-  if (NO == ParseConfigurationFile(fileName, info, userName))
+  user = [NSMutableDictionary dictionary];
+  if (YES == ParseConfigurationFile(fileName, user, userName))
     {
-      [info removeAllObjects];
+      [info addEntriesFromDictionary: user];
     }
 
   /* Now map XDG name/value pairs to GNUstep names with absolute
