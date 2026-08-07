@@ -429,6 +429,15 @@
   status = [_server setAddress: _address port: _port secure: secure];
   if (!status)
     {
+      if (nil != secure)
+	{
+	  /* A build without working TLS cannot serve HTTPS at all. The tests
+	   * that ask for it set testHopeful for that case, so they report it
+	   * themselves rather than the file being abandoned here.
+	   */
+	  NSLog(@"%@ cannot serve HTTPS on %@:%@", self, _address, _port);
+	  return;
+	}
       [NSException raise: NSInternalInconsistencyException
 	format: @"The server hasn't run on %@:%@", _address, _port];
     }
