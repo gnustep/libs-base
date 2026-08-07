@@ -22,9 +22,126 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "common.h"
 #import "Foundation/NSScriptCommandDescription.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSValue.h"
 
 @implementation NSScriptCommandDescription
+
+- (id) initWithSuiteName: (NSString *)suiteName
+             commandName: (NSString *)commandName
+          appleEventCode: (FourCharCode)appleEventCode
+      appleEventClassCode: (FourCharCode)appleEventClassCode
+{
+  if ((self = [super init]))
+    {
+      ASSIGN(_suiteName, suiteName);
+      ASSIGN(_commandName, commandName);
+      _appleEventCode = appleEventCode;
+      _appleEventClassCode = appleEventClassCode;
+      _arguments = [[NSMutableDictionary alloc] init];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_suiteName);
+  RELEASE(_commandName);
+  RELEASE(_commandClassName);
+  RELEASE(_returnType);
+  RELEASE(_arguments);
+  [super dealloc];
+}
+
+- (FourCharCode) appleEventCode
+{
+  return _appleEventCode;
+}
+
+- (FourCharCode) appleEventClassCode
+{
+  return _appleEventClassCode;
+}
+
+- (NSString *) commandName
+{
+  return _commandName;
+}
+
+- (NSString *) commandClassName
+{
+  return _commandClassName;
+}
+
+- (NSString *) suiteName
+{
+  return _suiteName;
+}
+
+- (NSString *) returnType
+{
+  return _returnType;
+}
+
+- (FourCharCode) returnAppleEventCode
+{
+  return _returnAppleEventCode;
+}
+
+- (NSArray *) argumentNames
+{
+  return [_arguments allKeys];
+}
+
+- (NSString *) typeForArgumentWithName: (NSString *)argumentName
+{
+  NSDictionary *argInfo;
+  
+  argInfo = [_arguments objectForKey: argumentName];
+  if (argInfo != nil)
+    {
+      return [argInfo objectForKey: @"type"];
+    }
+  return nil;
+}
+
+- (FourCharCode) appleEventCodeForArgumentWithName: (NSString *)argumentName
+{
+  NSDictionary *argInfo;
+  NSNumber *codeNum;
+  
+  argInfo = [_arguments objectForKey: argumentName];
+  if (argInfo != nil)
+    {
+      codeNum = [argInfo objectForKey: @"code"];
+      if (codeNum != nil)
+        {
+          return [codeNum unsignedIntValue];
+        }
+    }
+  return 0;
+}
+
+- (BOOL) isOptionalArgumentWithName: (NSString *)argumentName
+{
+  NSDictionary *argInfo;
+  NSNumber *optional;
+  
+  argInfo = [_arguments objectForKey: argumentName];
+  if (argInfo != nil)
+    {
+      optional = [argInfo objectForKey: @"optional"];
+      if (optional != nil)
+        {
+          return [optional boolValue];
+        }
+    }
+  return NO;
+}
 
 @end
 

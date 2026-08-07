@@ -32,8 +32,24 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
-GS_EXPORT_CLASS
-@interface NSScriptKeyValueCoding : NSObject
+@class NSString;
+
+@interface NSObject (NSScriptKeyValueCoding)
+
+- (id) valueAtIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key;
+- (id) valueWithName: (NSString *)name inPropertyWithKey: (NSString *)key;
+- (id) valueWithUniqueID: (id)uniqueID inPropertyWithKey: (NSString *)key;
+
+- (void) insertValue: (id)value atIndex: (NSUInteger)index inPropertyWithKey: (NSString *)key;
+- (void) insertValue: (id)value inPropertyWithKey: (NSString *)key;
+
+- (id) coerceValue: (id)value forKey: (NSString *)key;
+
+- (void) removeValueAtIndex: (NSUInteger)index fromPropertyWithKey: (NSString *)key;
+
+- (void) replaceValueAtIndex: (NSUInteger)index 
+          inPropertyWithKey: (NSString *)key
+                  withValue: (id)value;
 
 @end
 

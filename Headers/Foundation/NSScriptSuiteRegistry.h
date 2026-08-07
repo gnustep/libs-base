@@ -30,10 +30,47 @@
 extern "C" {
 #endif
 
+@class NSArray;
+@class NSBundle;
+@class NSDictionary;
+@class NSScriptClassDescription;
+@class NSScriptCommandDescription;
+@class NSString;
+
+typedef uint32_t FourCharCode;
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
 GS_EXPORT_CLASS
 @interface NSScriptSuiteRegistry : NSObject
+{
+  @private
+  NSMutableDictionary *_suiteDescriptions;
+  NSMutableDictionary *_classDescriptions;
+  NSMutableDictionary *_commandDescriptions;
+  NSMutableArray *_bundles;
+}
+
++ (NSScriptSuiteRegistry *) sharedScriptSuiteRegistry;
++ (void) setSharedScriptSuiteRegistry: (NSScriptSuiteRegistry *)registry;
+
+- (void) loadSuitesFromBundle: (NSBundle *)bundle;
+- (void) loadSuiteWithDictionary: (NSDictionary *)suiteDeclaration
+                    fromBundle: (NSBundle *)bundle;
+
+- (void) registerClassDescription: (NSScriptClassDescription *)classDescription;
+- (void) registerCommandDescription: (NSScriptCommandDescription *)commandDescription;
+
+- (NSScriptClassDescription *) classDescriptionWithAppleEventCode: (FourCharCode)appleEventCode;
+- (NSScriptCommandDescription *) commandDescriptionWithAppleEventClass: (FourCharCode)appleEventClassCode
+                                                 andAppleEventCode: (FourCharCode)appleEventCode;
+- (NSScriptCommandDescription *) commandDescriptionWithName: (NSString *)commandName
+                                                  inSuite: (NSString *)suiteName;
+
+- (NSArray *) suiteNames;
+- (FourCharCode) appleEventCodeForSuite: (NSString *)suiteName;
+
+- (NSBundle *) bundleForSuite: (NSString *)suiteName;
 
 @end
 

@@ -22,9 +22,42 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "common.h"
 #import "Foundation/NSScriptExecutionContext.h"
+#import "Foundation/NSScriptCommand.h"
 
 @implementation NSScriptExecutionContext
+
+static NSScriptExecutionContext *sharedContext = nil;
+
++ (void) initialize
+{
+  if (self == [NSScriptExecutionContext class])
+    {
+      sharedContext = [[NSScriptExecutionContext alloc] init];
+    }
+}
+
++ (NSScriptExecutionContext *) sharedScriptExecutionContext
+{
+  return sharedContext;
+}
+
+- (void) dealloc
+{
+  RELEASE(_topLevelObject);
+  [super dealloc];
+}
+
+- (NSScriptCommand *) topLevelObject
+{
+  return _topLevelObject;
+}
+
+- (void) setTopLevelObject: (NSScriptCommand *)obj
+{
+  ASSIGN(_topLevelObject, obj);
+}
 
 @end
 
