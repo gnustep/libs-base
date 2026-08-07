@@ -111,6 +111,7 @@
   void                      	*_context;
   NSMutableDictionary       	*_pendingChange;
   int                        	_changeDepth;
+  int                        	_deliveryCount;
   gs_mutex_t                 	_changeLock;
 }
 - (instancetype) initWithObject: (id)object
@@ -132,6 +133,14 @@
  */
 - (void) lockChange;
 - (void) unlockChange;
+
+/* Bracket the call to the observer, which happens with no lock held.  The
+ * change dictionary is read for the length of that call, so it may not be
+ * cleared and refilled by a willChange until every such call has returned.
+ */
+- (void) beginDelivery;
+- (void) endDelivery;
+- (BOOL) isDelivering;
 @end
 
 /* Observes on behalf of a key path whose intermediate object registers

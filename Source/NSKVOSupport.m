@@ -164,6 +164,21 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   GS_MUTEX_UNLOCK(_changeLock);
 }
 
+- (void) beginDelivery
+{
+  __atomic_fetch_add(&_deliveryCount, 1, __ATOMIC_SEQ_CST);
+}
+
+- (void) endDelivery
+{
+  __atomic_fetch_sub(&_deliveryCount, 1, __ATOMIC_SEQ_CST);
+}
+
+- (BOOL) isDelivering
+{
+  return __atomic_load_n(&_deliveryCount, __ATOMIC_SEQ_CST) != 0;
+}
+
 - (BOOL) pushWillChange
 {
   return __atomic_fetch_add(&_changeDepth, 1, __ATOMIC_SEQ_CST) == 0;
@@ -1170,6 +1185,7 @@ typedef struct {
   id                     object;
   NSMutableDictionary   *change;
   void                  *context;
+  _NSKVOKeypathObserver *keypathObserver;
 } GSKVOPendingNotification;
 
 static void
@@ -1219,16 +1235,17 @@ _dispatchDidChange(id notifyingObject, NSString *key,
 
           /* Held until the locks are dropped: an observer that sets a second
            * observed object would otherwise deadlock against a thread taking
-           * the same two objects in the other order.  The change dictionary
-           * is not reused, so a retain is enough to keep it unchanged for the
-           * call; -pendingChange keeps it alive afterwards, for as long as it
-           * lived before.
+           * the same two objects in the other order.  The delivery is counted
+           * so that a willChange elsewhere does not refill the dictionary
+           * while it is being read.
            */
+          [keypathObserver beginDelivery];
           pending[count].observer = [keypathObserver.observer retain];
           pending[count].keypath = [keypathObserver.keypath retain];
           pending[count].object = [keypathObserver.object retain];
           pending[count].change = [keypathObserver.pendingChange retain];
           pending[count].context = keypathObserver.context;
+          pending[count].keypathObserver = [keypathObserver retain];
           count++;
         }
       [keypathObserver unlockChange];
@@ -1241,10 +1258,12 @@ _dispatchDidChange(id notifyingObject, NSString *key,
                                              ofObject: pending[index].object
                                                change: pending[index].change
                                               context: pending[index].context];
+      [pending[index].keypathObserver endDelivery];
       [pending[index].observer release];
       [pending[index].keypath release];
       [pending[index].object release];
       [pending[index].change release];
+      [pending[index].keypathObserver release];
     }
   if (pending != held)
     {
@@ -1257,15 +1276,23 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
   _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
   NSKeyValueObservingOptions options = keypathObserver.options;
-  NSMutableDictionary *change;
+  NSMutableDictionary *change = keypathObserver.pendingChange;
 
-  /* A fresh dictionary every time, because the last one was handed to an
-   * observer and may still be held.  The other change functions below build
-   * one the same way.
+  /* Reuse the change dictionary across notifications rather than allocating
+   * (and rehashing) a fresh one every time the setter fires.  A delivery in
+   * progress is still reading the last one, so that case gets a fresh
+   * dictionary instead.
    */
-  change = [[NSMutableDictionary alloc] initWithCapacity: 3];
-  keypathObserver.pendingChange = change;
-  [change release];
+  if (change == nil || [keypathObserver isDelivering])
+    {
+      change = [[NSMutableDictionary alloc] initWithCapacity: 3];
+      keypathObserver.pendingChange = change;
+      [change release];
+    }
+  else
+    {
+      [change removeAllObjects];
+    }
 
   [change setObject:[NSNumber numberWithUnsignedInteger: NSKeyValueChangeSetting]
              forKey:NSKeyValueChangeKindKey];
