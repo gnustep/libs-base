@@ -831,68 +831,30 @@ ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
 }
 
 static void
-toOne_insertCallbackPost(NSString *keyPath, id object, NSDictionary *change,
-                         void *context)
+ToMany_ToOne_KeyPathThroughACollectionRaises()
 {
-  (void)keyPath;
-  (void)object;
-  (void)context;
+  START_SET("ToMany_ToOne_KeyPathThroughACollectionRaises");
 
-  PASS([change objectForKey: NSKeyValueChangeNotificationIsPriorKey] == nil, "Post change");
-  PASS_EQUAL(BOXI(NSKeyValueChangeSetting), [change objectForKey: NSKeyValueChangeKindKey],
-             "Change is a setting");
-  NSArray *expectedOld = [NSArray arrayWithObjects: @"Value", nil];
-  PASS_EQUAL(expectedOld, [change objectForKey: NSKeyValueChangeOldKey],
-             "Old value is correct");
-  NSArray *expectedNew = [NSArray arrayWithObjects: @"Value", @"Value", nil];
-  PASS_EQUAL(expectedNew, [change objectForKey: NSKeyValueChangeNewKey],
-             "New value is correct");
-  NSIndexSet *indexes = [change objectForKey: NSKeyValueChangeIndexesKey];
-  PASS(indexes == nil, "Indexes are nil");
-}
+  Observee     *observee = [Observee new];
+  TestObserver *observer = [TestObserver new];
 
-static void
-toOne_illegalChangeNotification(NSString *keyPath, id object,
-                                NSDictionary *change, void *context)
-{
-  (void)keyPath;
-  (void)object;
-  (void)change;
-  (void)context;
-  PASS(NO, "illegalChangeNotification");
-}
-
-static void
-toOne_insertMutation(Observee *observee)
-{
-  // This array is assisted by setter functions, and should also
-  // dispatch one notification per change.
-  [observee insertObject:[DummyObject makeDummy]
-    inArrayWithHelpersAtIndex:0];
-}
-
-static void
-ToMany_ToOne_ShouldDowngradeForOrderedObservation()
-{
-  START_SET("ToMany_ToOne_ShouldDowngradeForOrderedObservation");
-
-  Observee *observee = [Observee new];
   [observee insertObject:[DummyObject makeDummy] inArrayWithHelpersAtIndex:0];
 
-  TestFacade *facade = [TestFacade newWithObservee:observee];
-  [facade observeKeyPath:@"arrayWithHelpers.name"
-             withOptions:NSKeyValueObservingOptionOld
-                         | NSKeyValueObservingOptionNew
-            performingFn:toOne_insertMutation
-    andExpectChangeCallbacks:(ChangeCallback[]){
-      toOne_insertCallbackPost, toOne_illegalChangeNotification}
-                       count:2];
-  PASS([facade hits] == 1, "One notification was sent");
+  /* The key path names a property of the objects the collection holds, which
+   * the collection reports no change for.  Mutation helpers on the property
+   * make the collection itself observable, not the objects in it.
+   */
+  PASS_EXCEPTION([observee addObserver:observer
+                            forKeyPath:@"arrayWithHelpers.name"
+                               options:NSKeyValueObservingOptionNew
+                               context:nil],
+    NSInvalidArgumentException,
+    "a key path through an ordered to-many property raises");
 
-  [facade release];
+  [observer release];
   [observee release];
 
-  END_SET("ToMany_ToOne_ShouldDowngradeForOrderedObservation");
+  END_SET("ToMany_ToOne_KeyPathThroughACollectionRaises");
 }
 
 static void
@@ -1389,7 +1351,7 @@ main(int argc, char *argv[])
   ToMany_NotifyingArray();
   ToMany_KVCMediatedArrayWithHelpers_AggregateFunction();
 
-  ToMany_ToOne_ShouldDowngradeForOrderedObservation();
+  ToMany_ToOne_KeyPathThroughACollectionRaises();
   ObserverInformationShouldNotLeak();
 
   // NSArrayShouldNotBeObservable();
