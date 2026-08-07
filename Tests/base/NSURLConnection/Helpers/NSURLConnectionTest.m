@@ -555,13 +555,16 @@ didReceiveResponse:(NSURLResponse *)response
 	{
 	  address = @"localhost";
 	}
+      /* Port 0 asks for a port the system is free to give. The URLs below
+       * are corrected once a server of our own has been bound.
+       */
       if (nil == port)
 	{
-	  port = @"1234";
+	  port = @"0";
 	}
       if (nil == auxPort)
 	{
-	  auxPort = @"1235";
+	  auxPort = @"0";
 	}
       if (nil == path)
 	{
@@ -686,6 +689,31 @@ didReceiveResponse:(NSURLResponse *)response
       [_auxServer setDebug: _debug];
       [_auxServer setDelegate: self];
       [_auxServer start: d];
+    }
+
+  /* A server asked for port 0 has been given a port by the system, so the
+   * requests are pointed at the port it was given.
+   */
+  if (isOwnServer && nil != _request)
+    {
+      url = [NSURL URLWithString:
+	[NSString stringWithFormat:
+	  @"%@://%@:%@%@", protocol, address, [_server port], path]];
+      [(NSMutableURLRequest *)_request setURL: url];
+    }
+  if (isOwnAuxServer && nil != _redirectRequest)
+    {
+      url = [NSURL URLWithString:
+	[NSString stringWithFormat:
+	  @"%@://%@:%@%@", protocol, address, [_auxServer port], redirectPath]];
+      [(NSMutableURLRequest *)_redirectRequest setURL: url];
+    }
+  /* The redirect handler runs on the first server and sends a client to the
+   * second, so that server needs the port the second was given.
+   */
+  if (nil != _server && nil != _auxServer)
+    {
+      [_server setAuxPort: [_auxServer port]];
     }
 }
 

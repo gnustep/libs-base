@@ -27,7 +27,11 @@
 
 /* default 'constants' */
 #define DEFAULTADDRESS @"localhost"
-#define DEFAULTPORT @"1234"
+/* Port 0 asks for a port the system is free to give. A fixed port cannot be
+ * rebound while an earlier run's connections to it are in TIME_WAIT, and on
+ * Windows the bind then fails.
+ */
+#define DEFAULTPORT @"0"
 #define DEFAULTMODE NO
 #define DEFAULTLOGIN @"login"
 #define DEFAULTPASSWORD @"password"
@@ -137,6 +141,7 @@
   DESTROY(_lock);
   DESTROY(_address);
   DESTROY(_port);
+  DESTROY(_auxPort);
   DESTROY(_extra);
   DESTROY(_login);
   DESTROY(_password);
@@ -287,8 +292,11 @@
 	}
       else if ([handler isKindOfClass: [Handler301 class]])
 	{
-	  // by default http://localhost:1235/
-	  NSString *port = [NSString stringWithFormat: @"%u", [_port intValue] + 1]; // the TestWebServer's port + 1
+	  /* The auxiliary server's port, or the port after this one where it
+	   * has not been set.
+	   */
+	  NSString *port = (nil != _auxPort) ? _auxPort
+	    : [NSString stringWithFormat: @"%u", [_port intValue] + 1];
 	  NSString *urlString = [NSString stringWithFormat: @"%@://%@:%@/",
 				     _isSecure ? @"https" : @"http",
 					  _address,
@@ -356,6 +364,11 @@
   _delegate = delegate;
 }
 
+- (void)setAuxPort:(NSString *)port
+{
+  ASSIGN(_auxPort, port);
+}
+
 - (void)setDebug:(BOOL)mode
 {
   NSProcessInfo *pi = [NSProcessInfo processInfo];
@@ -417,9 +430,12 @@
   if (!status)
     {
       [NSException raise: NSInternalInconsistencyException
-	format: @"The server hasn't run. Perhaps the port %@ is invalid",
-	DEFAULTPORT];
+	format: @"The server hasn't run on %@:%@", _address, _port];
     }
+  /* Record the port bound, which is the port the system chose where 0 was
+   * asked for.
+   */
+  ASSIGN(_port, [_server port]);
 }
 
 - (void)_stopHTTPServer

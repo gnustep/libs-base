@@ -45,11 +45,11 @@ testHopeful = YES;
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
 	initWithAddress: @"localhost"
-	port: @"1231"
+	port: @"0"
 	mode: NO
         extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1231 HTTPS
+      [server start: d]; // localhost, HTTPS
 
       /* Simple GET via HTTPS without authorization with empty response's
        * body and the response's status code 204 (by default)
@@ -75,7 +75,7 @@ testHopeful = YES;
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess],
-	"HTTPS... no auth...GET https://localhost:1231/withoutauth");
+	"HTTPS... no auth...GET https://localhost/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -104,7 +104,7 @@ testHopeful = YES;
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost:1231/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -136,7 +136,7 @@ testHopeful = YES;
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost:1231/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -166,12 +166,12 @@ testHopeful = YES;
 	@"/301/withoutauth", @"Path", // request a redirect
 	@"/withoutauth", @"RedirectPath", // the URL's path of redirecting 
 	@"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
-        @"1238", @"AuxPort",   // the port of the auxilliary instance			
+        @"0", @"AuxPort",   // the port of the auxilliary instance			
 	refs, @"ReferenceFlags", // the expected reference set difference
 	nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost:1231/301/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost/301/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
