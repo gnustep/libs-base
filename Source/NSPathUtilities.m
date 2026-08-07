@@ -2619,7 +2619,7 @@ if (domainMask & mask) \
 
       case NSDesktopDirectory:
 	{
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Desktop");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDesktop);
 	}
 	break;
 
