@@ -3,10 +3,6 @@
 	* Headers/GNUstepBase/NSData+GNUstepBase.h:
 	* Source/Additions/NSData+GNUstepBase.m:
 	New method to more efficiently get randomness.
-	* Headers/Foundation/NSUUID.h
-	* Source/NSUUID.m
-	* Tests/base/NSUUID/extra.m
-	Extend NSUUID to support packing 64bits of data into the UUID.
 
 2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
 

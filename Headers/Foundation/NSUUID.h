@@ -58,16 +58,6 @@ GS_EXPORT_CLASS
 
 @end
 
-#if     OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
-/** Adds support for 64bits of data to be packed into the UUID while preserving
- * format/info (6 bits) and 58 bits of randomness.
- */
-@interface NSUUID (GSPacked)
-- (instancetype) initPacked: (uint64_t)value;
-- (uint64_t) packedValue;
-@end
-#endif
-
 #if     defined(__cplusplus)
 }
 #endif
