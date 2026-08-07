@@ -81,6 +81,7 @@ main(void)
 
 
   START_SET("NSUUID packed ignores randomness")
+  unsigned	i;
 
   NSUUID *u = AUTORELEASE([[NSUUID alloc] initPacked: 0x123456789abcdef0ULL]);
   uuid_t bytes;
@@ -91,7 +92,7 @@ main(void)
 
   bytes[8] ^= 0x30;      /* the two random bits in byte 8 */
 
-  for (unsigned i = 9; i < 16; i++)
+  for (i = 9; i < 16; i++)
     {
       bytes[i] ^= 0xff;
     }
