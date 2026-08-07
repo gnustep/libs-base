@@ -125,7 +125,10 @@
 @property (nonatomic, assign) NSKeyValueObservingOptions options;
 @property (nonatomic, assign) void                      *context;
 
-@property (retain) NSMutableDictionary *pendingChange;
+/* Read and written only with -lockChange held, so the accessors do not need
+ * to synchronize on their own.
+ */
+@property (nonatomic, retain) NSMutableDictionary *pendingChange;
 
 /* Held from a willChange to the matching didChange.  Two key paths reached
  * through different objects share one key path observer, so the observed
