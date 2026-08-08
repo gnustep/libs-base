@@ -1457,6 +1457,28 @@ static int		uninitialisedOffset = 100000;
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
 
+#if	GS_USE_ICU == 1
+      /*
+       * Try to get the timezone from ICU.  Platforms such as Android have
+       * no /etc/localtime and no zoneinfo directory, so the file based
+       * sources below cannot answer, but ICU tracks the system zone.
+       */
+      if (localZoneString == nil)
+	{
+	  UErrorCode	err = U_ZERO_ERROR;
+	  UChar		buf[128];
+	  int32_t	len;
+
+	  len = ucal_getDefaultTimeZone(buf, sizeof(buf)/sizeof(*buf), &err);
+	  if (U_SUCCESS(err) && len > 0)
+	    {
+	      localZoneSource = _(@"ICU");
+	      localZoneString = [NSString stringWithCharacters: (unichar*)buf
+							length: (NSUInteger)len];
+	    }
+	}
+#endif
+
       /*
        * Try to get timezone from LOCAL_TIME_FILE.
        */
