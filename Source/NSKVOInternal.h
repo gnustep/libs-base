@@ -111,6 +111,8 @@
   void                      	*_context;
   NSMutableDictionary       	*_pendingChange;
   int                        	_changeDepth;
+  int                        	_deliveryCount;
+  gs_mutex_t                 	_changeLock;
 }
 - (instancetype) initWithObject: (id)object
                        observer: (id)observer
@@ -123,7 +125,25 @@
 @property (nonatomic, assign) NSKeyValueObservingOptions options;
 @property (nonatomic, assign) void                      *context;
 
-@property (retain) NSMutableDictionary *pendingChange;
+/* Read and written only with -lockChange held, so the accessors do not need
+ * to synchronize on their own.
+ */
+@property (nonatomic, retain) NSMutableDictionary *pendingChange;
+
+/* Held from a willChange to the matching didChange.  Two key paths reached
+ * through different objects share one key path observer, so the observed
+ * object's own lock does not cover this.
+ */
+- (void) lockChange;
+- (void) unlockChange;
+
+/* Bracket the call to the observer, which happens with no lock held.  The
+ * change dictionary is read for the length of that call, so it may not be
+ * cleared and refilled by a willChange until every such call has returned.
+ */
+- (void) beginDelivery;
+- (void) endDelivery;
+- (BOOL) isDelivering;
 @end
 
 /* Observes on behalf of a key path whose intermediate object registers
@@ -148,11 +168,21 @@
   NSMutableSet          *_existingDependentKeys;
   NSMutableSet          *_dependencyAncestorKeys;
   gs_mutex_t            _lock;
+  gs_mutex_t            _changeLock;
 }
 - (void) addObserver: (_NSKVOKeyObserver *)observer;
 - (instancetype) init;
 - (BOOL) isEmpty;
 - (NSArray *) observersForKey: (NSString *)key;
+
+/* Held from a willChange to the matching didChange.  The change depth and the
+ * pending change of each key path observer are reachable from both, so a
+ * second thread setting the same object must not run between them.
+ * Recursive: a dependent key notifies while the key it depends on is
+ * notifying, on the same thread.
+ */
+- (void) lockChange;
+- (void) unlockChange;
 @end
 
 // From NSKVOSwizzling
