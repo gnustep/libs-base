@@ -489,11 +489,52 @@ _registersObservationsItself(id object)
       != class_getMethodImplementation([NSSet class], selector);
 }
 
+/* Whether the value refuses observer registration, which is what a plain
+ * collection does.  A key path cannot continue through one: the collection
+ * reports no change for a property of the objects it holds.
+ */
+static BOOL
+_refusesObservation(id object)
+{
+  SEL   selector = @selector(addObserver:forKeyPath:options:context:);
+  IMP   implementation;
+
+  if (nil == object)
+    {
+      return NO;
+    }
+  implementation
+    = class_getMethodImplementation(object_getClass(object), selector);
+
+  return implementation
+      == class_getMethodImplementation([NSArray class], selector)
+    || implementation
+      == class_getMethodImplementation([NSSet class], selector);
+}
+
 /* Observe the rest of a key path on the value of its first key. */
 static void
 _attachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
 {
   id value = [keyObserver.object valueForKey: keyObserver.key];
+
+  /* An operator reads through the collection and reports the result for the
+   * whole key path, so it is registered as any other key is.  Any other key
+   * names a property of the objects the collection holds, and the collection
+   * raises for it, as it does when the same key path is registered on it
+   * directly.
+   */
+  if (_refusesObservation(value)
+    && NO == [keyObserver.restOfKeypath hasPrefix: @"@"])
+    {
+      _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+
+      [value addObserver: keypathObserver.observer
+              forKeyPath: keyObserver.restOfKeypath
+                 options: keypathObserver.options
+                 context: keypathObserver.context];
+      return;
+    }
 
   if (_registersObservationsItself(value))
     {
