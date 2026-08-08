@@ -151,10 +151,24 @@ int main()
   url = [NSURL fileURLWithPath: @"/usr"];
   str = [url path];
   PASS_EQUAL(str, @"/usr", "Path of file URL /usr is /usr");
+  /* The trailing slash is appended only for a path that exists and is a
+   * directory, so both of these need /usr to be one.  Android has no /usr.
+   */
+  {
+    BOOL	isDir = NO;
+
+    if ([[NSFileManager defaultManager] fileExistsAtPath: @"/usr"
+					     isDirectory: &isDir] == NO
+      || NO == isDir)
+      {
+	testHopeful = YES;
+      }
+  }
   PASS_EQUAL([url description], @"file:///usr/",
     "File URL /usr is file:///usr/");
   PASS_EQUAL([url resourceSpecifier], @"/usr/",
     "resourceSpecifier of /usr is /usr/");
+  testHopeful = NO;
 #endif
 
   PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil isDirectory: YES],
