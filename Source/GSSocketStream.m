@@ -2993,15 +2993,13 @@ setNonBlocking(SOCKET fd)
 #if	defined(_WIN32)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
+  /* The socket's event is registered against this stream and carries the
+   * events of the sibling input stream as well, so the run loop is left to
+   * block on it. A delegate with more to write is driven by the loop in
+   * -_dispatch, which sends NSStreamEventHasSpaceAvailable for as long as
+   * the delegate keeps writing, so there is nothing to poll for here.
+   */
   *trigger = YES;
-  if ([self _unhandledData] == YES && [self streamStatus] == NSStreamStatusOpen)
-    {
-      /* In winsock, a writable status is only signalled if an earlier
-       * write failed (because it would block), so we must simulate the
-       * writable event by having the run loop trigger without blocking.
-       */
-      return NO;
-    }
   return YES;
 }
 #endif
