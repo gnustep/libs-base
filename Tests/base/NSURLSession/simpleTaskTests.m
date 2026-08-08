@@ -1000,6 +1000,7 @@ main(int argc, char *argv[])
     [server release];
     [countLock release];
   }
+  return 0;
 }
 
 #else
