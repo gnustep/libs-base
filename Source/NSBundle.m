@@ -1831,9 +1831,8 @@ GSPrivateInfoDictionary(NSString *rootPath)
 
       /* The Locale aliases map converts canonical names to old-style names
        */
-      file = [_gnustep_bundle pathForResource: @"Locale"
-                                       ofType: @"aliases"
-                                  inDirectory: @"Languages"];
+      file = GSPrivateResourcePath(@"Locale", @"aliases",
+        [_gnustep_bundle bundlePath], @"Languages", NOT_LOCALIZED);
       if (file != nil)
         {
           NSDictionary  *d;
@@ -1850,9 +1849,8 @@ GSPrivateInfoDictionary(NSString *rootPath)
        * and converts ISO 639-2 names to the preferred ISO 639-1 names where
        * an ISO 639-1 name exists.
        */
-      file = [_gnustep_bundle pathForResource: @"Locale"
-                                       ofType: @"canonical"
-                                  inDirectory: @"Languages"];
+      file = GSPrivateResourcePath(@"Locale", @"canonical",
+        [_gnustep_bundle bundlePath], @"Languages", NOT_LOCALIZED);
       if (file != nil)
         {
           NSDictionary  *d;
