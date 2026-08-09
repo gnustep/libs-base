@@ -1980,7 +1980,8 @@ NSHomeDirectoryForUser(NSString *loginName)
     {
       s = [[NSProcessInfo processInfo] androidFilesDir];
     }
-#elif !defined(_WIN32)
+#endif
+#if !defined(_WIN32)
 #if     defined(HAVE_GETPWNAM_R)
   if (nil == s)
     {
@@ -2094,12 +2095,10 @@ NSFullUserName(void)
       struct passwd *p;
       char buf[BUFSIZ*10];
 
-      if (getpwnam_r([userName cString], &pw, buf, sizeof(buf), &p) == 0)
+      if (getpwnam_r([userName cString], &pw, buf, sizeof(buf), &p) == 0
+	&& p != 0 && pw.pw_gecos != 0 && *pw.pw_gecos)
         {
-	  if (*pw.pw_gecos)
-	    {
-              userName = [NSString stringWithUTF8String: pw.pw_gecos];
-	    }
+          userName = [NSString stringWithUTF8String: pw.pw_gecos];
         }
 #endif /* HAVE_PW_GECOS_IN_PASSWD */
 #else
@@ -2248,8 +2247,8 @@ NSTemporaryDirectory(void)
 #endif
 
   /*
-   * If the user has supplied a directory name in the TEMP or TMP
-   * environment variable, attempt to use that unless we already
+   * If the user has supplied a directory name in the TEMP, TMP or
+   * TMPDIR environment variable, attempt to use that unless we already
    * have a temporary directory specified.
    */
   if (baseTempDirName == nil)
@@ -2260,23 +2259,27 @@ NSTemporaryDirectory(void)
       if (baseTempDirName == nil)
 	{
 	  baseTempDirName = [env objectForKey: @"TMP"];
-	  if (baseTempDirName == nil)
-	    {
+	}
+      if (baseTempDirName == nil)
+	{
+	  baseTempDirName = [env objectForKey: @"TMPDIR"];
+	}
+      if (baseTempDirName == nil)
+	{
 #if	defined(__CYGWIN__)
 #warning Basing temporary directory in /cygdrive/c; any reason?
-	      baseTempDirName = @"/cygdrive/c/";
+	  baseTempDirName = @"/cygdrive/c/";
 #elif	defined(_WIN32)
-	      baseTempDirName = @"C:\\";
+	  baseTempDirName = @"C:\\";
 #elif   defined(__APPLE__)
-	      /*
-	       * Create temporary directory on /var/tmp since /tmp is
-	       * cleaned regularly on Darwin by default
-	       */
-	      baseTempDirName = @"/var/tmp";
+	  /*
+	   * Create temporary directory on /var/tmp since /tmp is
+	   * cleaned regularly on Darwin by default
+	   */
+	  baseTempDirName = @"/var/tmp";
 #else
-	      baseTempDirName = @"/tmp";
+	  baseTempDirName = @"/tmp";
 #endif
-	    }
 	}
     }
 
