@@ -21,6 +21,10 @@ on:
         description: "tools-windows-msvc branch (leave empty to use latest pre-built release)"
         required: false
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   APT_PACKAGES: >-
     git
