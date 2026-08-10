@@ -1770,18 +1770,16 @@ UserDirsParseXDG()
   NSString		*userName;
   NSString		*home;
 
-  /* For XDG let the standard environment variable take precedence over
-   * GNUstep specific rules.
+  /* The XDG configuration lives in $XDG_CONFIG_HOME or $HOME/.config
    */
   if (nil == (home = [env objectForKey: @"XDG_CONFIG_HOME"]))
     {
-      if (nil == (home = [env objectForKey: @"HOME"]))
+      if ((home = [env objectForKey: @"HOME"]) != nil)
 	{
-	  home = NSHomeDirectory();
+	  home = [home stringByAppendingPathComponent: @".config"];
 	}
     }
-  fileName = [home stringByAppendingPathComponent: @".config"];
-  fileName = [fileName stringByAppendingPathComponent: @"user-dirs.dirs"];
+  fileName = [home stringByAppendingPathComponent: @"user-dirs.dirs"];
 
   /* If the xdg config is not there, try to set it up.
    */
