@@ -1,10 +1,9 @@
 2026-08-10 Todd White <todd.white@thalion.global>
 
-	* Source/NSKVOInternal.h:
-	* Source/NSKVOSupport.m:
-	* Tests/base/NSKVOSupport/changeset.m:
-	End a key value change on the observers it began on, rather than on
-	those registered when it ends.
+	* Source/NSBundle.m:
+	* Tests/base/NSTask/nopath.m:
+	Do not loop forever looking for an executable when the environment
+	has no PATH.
 
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 

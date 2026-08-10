@@ -224,15 +224,15 @@ static NSString *gnustepUserDirDocumentation = nil;
 static NSString *gnustepUserDirDocumentationInfo = nil;
 static NSString *gnustepUserDirDocumentationMan = nil;
 
-static NSString *gnustepUserDesktop = @"Desktop";
-static NSString *gnustepUserDocuments = @"Documents";
-static NSString *gnustepUserDownloads = @"Downloads";
-static NSString *gnustepUserMusic = @"Music";
-static NSString *gnustepUserPictures = @"Images";
-static NSString *gnustepUserProjects = @"Projects";
-static NSString *gnustepUserPublicShare = @"Public";
-static NSString *gnustepUserTemplates = @"Templates";
-static NSString *gnustepUserVideos = @"Videos";
+static NSString *gnustepUserDesktop = nil;
+static NSString *gnustepUserDocuments = nil;
+static NSString *gnustepUserDownloads = nil;
+static NSString *gnustepUserMusic = nil;
+static NSString *gnustepUserPictures = nil;
+static NSString *gnustepUserProjects = nil;
+static NSString *gnustepUserPublicShare = nil;
+static NSString *gnustepUserTemplates = nil;
+static NSString *gnustepUserVideos = nil;
   
 static NSString	*uninstalled = nil;
 
@@ -1763,7 +1763,6 @@ static NSMutableDictionary *
 UserDirsParseXDG()
 {
   NSDictionary		*env = [[NSProcessInfo processInfo] environment];
-  NSFileManager		*manager = [NSFileManager defaultManager];
   NSMutableDictionary	*info;
   NSArray		*keys;
   NSString		*fileName;
@@ -1781,9 +1780,16 @@ UserDirsParseXDG()
     }
   fileName = [home stringByAppendingPathComponent: @"user-dirs.dirs"];
 
-  /* If the xdg config is not there, try to set it up.
+#if 0
+  /* Every bit of documentation I've found says that the login process
+   * should run this tool before the user is logged in, so it should not
+   * need to be run by us.  However, Riccardo says that sometimes he sees
+   * systems where it hasn't been run.  I guess the question is whether
+   * there was something wrong on those systems that this would fix, or
+   * if it was just that xdg was uninstalled or switched off (so we should
+   * not be using it).
    */
-  if ([manager fileExistsAtPath: fileName] == NO)
+  if ([[NSFileManager defaultManager] fileExistsAtPath: fileName] == NO)
     {
       NSTask	*task = [NSTask new];
       NSString	*path;
@@ -1799,6 +1805,7 @@ UserDirsParseXDG()
 	}
       RELEASE(task);
     }
+#endif
 
   /* Use ParseConfigurationFile() to check that the XDG config is safe and
    * to extract the key/value pairs from it.
@@ -2572,6 +2579,8 @@ if (domainMask & mask) \
 
       case NSDesktopDirectory:
 	{
+	  if (nil == gnustepUserDesktop) gnustepUserDesktop
+	    = NSLocalizedString(@"Desktop", @"Desktop");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDesktop);
 	}
 	break;
@@ -2764,6 +2773,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	   * verified on Macintosh
 	   * despite the name it is Documents and not Document....
 	   */
+	  if (nil == gnustepUserDocuments) gnustepUserDocuments
+	    = NSLocalizedString(@"Documents", @"Documents");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDocuments);
 	}
 	break;
@@ -2771,6 +2782,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSDownloadsDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
+	  if (nil == gnustepUserVideos) gnustepUserVideos
+	    = NSLocalizedString(@"Videos", @"Videos");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDownloads);
 	}
 	break;
@@ -2791,6 +2804,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSMusicDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
+	  if (nil == gnustepUserMusic) gnustepUserMusic
+	    = NSLocalizedString(@"Music", @"Music");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserMusic);
 	}
 	break;
@@ -2798,6 +2813,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSPicturesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
+	  if (nil == gnustepUserPictures) gnustepUserPictures
+	    = NSLocalizedString(@"Images", @"Images");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPictures);
 	}
 	break;
@@ -2810,6 +2827,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
       case NSSharedPublicDirectory:
 	{
+	  if (nil == gnustepUserPublicShare) gnustepUserPublicShare
+	    = NSLocalizedString(@"Public", @"Public");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPublicShare);
 	}
 	break;
@@ -3015,6 +3034,14 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemWebApps);
 	}
 	break;
+
+/* Values in XDG but not GNUstep yet
+	if (nil == gnustepUserProjects) gnustepUserProjects
+	  = NSLocalizedString(@"Projects", @"Projects");
+	if (nil == gnustepUserTemplates) gnustepUserTemplates
+	  = NSLocalizedString(@"Templates", @"Templates");
+*/
+  
     }
 
 #undef ADD_PATH
