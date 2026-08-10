@@ -1,3 +1,11 @@
+2026-08-10 Todd White <todd.white@thalion.global>
+
+	* Source/NSProcessInfo.m:
+	* Tests/base/NSProcessInfo/initialise.m:
+	Use the process environment when a process is initialised without
+	one, and pass the environment given to
+	GSInitializeProcessAndroidWithArgs() on to the initialisation.
+
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSData+GNUstepBase.h:

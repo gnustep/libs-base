@@ -415,6 +415,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
+    BOOL		haveEnvironment = NO;
 
 #if defined(_WIN32)
     if (fallbackInitialisation == NO)
@@ -462,10 +463,26 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		  }
 	      }
 	    FreeEnvironmentStringsW(base);
+	    haveEnvironment = YES;
 	    env = 0;	// Suppress standard code.
 	  }
       }
 #endif
+    if (env == 0 && haveEnvironment == NO)
+      {
+	/* No environment was supplied, so we use the one the process was
+	 * started with rather than recording that it has none.
+	 */
+#if defined(_WIN32)
+	extern char	**_environ;
+
+	env = _environ;
+#else
+	extern char	**environ;
+
+	env = environ;
+#endif
+      }
     if (env != 0)
       {
 	i = 0;
@@ -1747,7 +1764,7 @@ GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char 
   // initialize process
   [procLock lock];
   fallbackInitialisation = YES;
-  _gnu_process_args(argc, argv, NULL);
+  _gnu_process_args(argc, argv, envp);
   [procLock unlock];
 
   jclass contextCls = (*env)->GetObjectClass(env, context);
