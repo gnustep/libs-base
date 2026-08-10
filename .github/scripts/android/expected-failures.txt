@@ -10,8 +10,3 @@ NSData/additions.m:49
 # The home directory is "/", so every absolute path is inside it and the tilde
 # is substituted where the test expects it not to be.
 NSString/tilde.m:48
-#
-# /usr does not exist, and the trailing slash is appended only for a path that
-# exists and is a directory.
-NSURL/basic.m:155
-NSURL/basic.m:157
