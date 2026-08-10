@@ -1,5 +1,10 @@
 2026-08-10 Todd White <todd.white@thalion.global>
 
+	* Source/NSProcessInfo.m:
+	* Tests/base/NSProcessInfo/initialise.m:
+	Use the process environment when a process is initialised without
+	one, and pass the environment given to
+	GSInitializeProcessAndroidWithArgs() on to the initialisation.
 	* Source/NSBundle.m:
 	* Tests/base/NSTask/nopath.m:
 	Do not loop forever looking for an executable when the environment

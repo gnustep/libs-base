@@ -417,7 +417,10 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
 #if defined(_WIN32)
-    if (fallbackInitialisation == NO)
+    /* Also used when the caller supplied no environment, so that a process
+     * initialised that way has the one it was started with.
+     */
+    if (fallbackInitialisation == NO || 0 == env)
       {
 	unichar	*base;
 
@@ -464,6 +467,16 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    FreeEnvironmentStringsW(base);
 	    env = 0;	// Suppress standard code.
 	  }
+      }
+#else
+    if (0 == env)
+      {
+	/* No environment was supplied, so we use the one the process was
+	 * started with rather than recording that it has none.
+	 */
+	extern char	**environ;
+
+	env = environ;
       }
 #endif
     if (env != 0)
@@ -1747,7 +1760,7 @@ GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char 
   // initialize process
   [procLock lock];
   fallbackInitialisation = YES;
-  _gnu_process_args(argc, argv, NULL);
+  _gnu_process_args(argc, argv, envp);
   [procLock unlock];
 
   jclass contextCls = (*env)->GetObjectClass(env, context);
