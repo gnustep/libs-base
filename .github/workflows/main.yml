@@ -51,6 +51,7 @@ env:
   RPM_PACKAGES: >-
     which
     gzip
+    findutils
     git
     cmake
     clang
