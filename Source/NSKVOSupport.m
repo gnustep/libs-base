@@ -309,6 +309,30 @@ static NSDictionary *_kvoSettingChange = nil;
   GS_MUTEX_UNLOCK(_changeLock);
 }
 
+- (void) pushChangeSet: (NSArray *)set
+{
+  if (nil == _changeSets)
+    {
+      _changeSets = [[NSMutableArray alloc] initWithCapacity: 2];
+    }
+  [_changeSets addObject: set];
+}
+
+- (NSArray *) popChangeSet
+{
+  NSArray	*set;
+  NSUInteger	last = [_changeSets count];
+
+  if (0 == last)
+    {
+      return nil;
+    }
+  last--;
+  set = AUTORELEASE(RETAIN([_changeSets objectAtIndex: last]));
+  [_changeSets removeObjectAtIndex: last];
+  return set;
+}
+
 - (void) dealloc
 {
   if (![self isEmpty])
@@ -333,6 +357,7 @@ static NSDictionary *_kvoSettingChange = nil;
     }
   [_keyObserverMap release];
   [_existingDependentKeys release];
+  [_changeSets release];
 
   GS_MUTEX_DESTROY(_lock);
   GS_MUTEX_DESTROY(_changeLock);
@@ -1146,7 +1171,8 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
                     id notifyingObject, NSString *key,
                     DispatchChangeFunction fn, void *changeContext)
 {
-  NSArray *observers;
+  NSArray        *observers;
+  NSMutableArray *locked;
 
   if (nil == observationInfo)
     {
@@ -1154,6 +1180,7 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
     }
   [observationInfo lockChange];
   observers = [observationInfo observersForKey:key];
+  locked = [NSMutableArray arrayWithCapacity: [observers count]];
   for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
@@ -1166,6 +1193,9 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
       // Skip any keypaths that are in the process of changing.
       keypathObserver = keyObserver.keypathObserver;
       [keypathObserver lockChange];
+      /* Recorded before anything below can register or remove an observer:
+       * _dispatchDidChange unlocks what is recorded here, not what it finds. */
+      [locked addObject: keyObserver];
       if ([keypathObserver pushWillChange])
         {
           NSKeyValueObservingOptions options;
@@ -1194,6 +1224,7 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
       // This must happen regardless of whether we are currently notifying.
       _removeNestedObserversAndOptionallyDependents(keyObserver, false);
     }
+  [observationInfo pushChangeSet: locked];
   /* The matching -unlockChange calls are in _dispatchDidChange. */
 }
 
@@ -1218,7 +1249,10 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
     {
       return;
     }
-  observers = [observationInfo observersForKey:key];
+  /* Exactly what _dispatchWillChange locked, so that an observer registered
+   * or removed while the change was in progress cannot leave a key path
+   * observer locked, or unlock one that was never locked. */
+  observers = [observationInfo popChangeSet];
   index = [observers count];
   if (index > sizeof(held) / sizeof(held[0]))
     {
@@ -1230,18 +1264,18 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
     {
       _NSKVOKeyObserver     *keyObserver = [observers objectAtIndex: index];
       _NSKVOKeypathObserver *keypathObserver;
+      BOOL                   removed = keyObserver.isRemoved;
 
-      if (keyObserver.isRemoved)
+      if (!removed)
         {
-          continue;
+          // This must happen regardless of whether we are currently notifying.
+          _addNestedObserversAndOptionallyDependents(keyObserver, false);
         }
 
-      // This must happen regardless of whether we are currently notifying.
-      _addNestedObserversAndOptionallyDependents(keyObserver, false);
-
-      // Skip any keypaths that are in the process of changing.
+      /* The change depth is popped even for an observer removed during the
+       * change, because the willChange pushed it. */
       keypathObserver = keyObserver.keypathObserver;
-      if ([keypathObserver popDidChange])
+      if ([keypathObserver popDidChange] && !removed)
         {
           // Call into the change function, which does set-up for finalizing
           // the changes dictionary
