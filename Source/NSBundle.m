@@ -304,6 +304,15 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch, NSString **err)
       pathArray = [pathlist componentsSeparatedByString: @":"];
 #endif
       pathArray = AUTORELEASE([pathArray mutableCopy]);
+      if (nil == pathArray)
+	{
+	  /* Neither PATH nor Path is in the environment, so the only
+	   * directory to search is the one added below.  Without an array
+	   * here -indexOfObject: answers 0 rather than NSNotFound and the
+	   * loop removing '.' never ends.
+	   */
+	  pathArray = [NSMutableArray arrayWithCapacity: 1];
+	}
 
       /* The directory value '.' can be replaced by either the
        * path to the current directory or the launch directory

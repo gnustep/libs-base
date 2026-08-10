@@ -1,3 +1,10 @@
+2026-08-10 Todd White <todd.white@thalion.global>
+
+	* Source/NSBundle.m:
+	* Tests/base/NSTask/nopath.m:
+	Do not loop forever looking for an executable when the environment
+	has no PATH.
+
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSData+GNUstepBase.h:
