@@ -369,7 +369,7 @@ jobs:
             CONFIGURE_OPTS="$CONFIGURE_OPTS --host=$HOST"
           fi
           ./configure $CONFIGURE_OPTS
-          make && make install
+          make -j$(nproc) && make install
 
       - name: Run tests
         continue-on-error: ${{ matrix.allow-test-failures || false }}
