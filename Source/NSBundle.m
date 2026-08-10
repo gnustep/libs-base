@@ -265,13 +265,18 @@ static AAssetManager *_assetManager = NULL;
  * use NSBundle *before* changing their working directories).
  */
 static NSString*
-AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
+AbsolutePathOfExecutable(NSString *path, BOOL atLaunch, NSString **err)
 {
+  NSString	*dummy;
   NSString	*tmp;
 
+  if (0 == err)
+    {
+      err = &dummy;
+    }
   if (0 == [path length])
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() empty path.\n");
+      *err = @"empty path.";
       return nil;
     }
   if (NO == [path isAbsolutePath])
@@ -309,8 +314,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	  prefix = _launchDirectory;
 	  if ([prefix length] == 0)
 	    {
-	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
-		" launch directory for '%s'.\n", [path UTF8String]);
+	      *err = [NSString stringWithFormat:
+		@"failed to getlaunch directory for '%@'.", path];
 	      return nil;
 	    }
 	}
@@ -319,8 +324,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	  prefix = [mgr currentDirectoryPath];
 	  if ([prefix length] == 0)
 	    {
-	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
-		" current directory for '%s'.\n", [path UTF8String]);
+	      *err = [NSString stringWithFormat:
+		@"failed to get current directory for '%@'.", path];
 	      return nil;
 	    }
 	}
@@ -382,9 +387,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	}
       if (nil == result)
 	{
-	  fprintf(stderr, "AbsolutePathOfExecutable() unable to find '%s'"
-	    " in any of %s.\n", [path UTF8String],
-	    [[pathArray description] UTF8String]);
+	  *err = [NSString stringWithFormat:
+	    @"unable to find '%@' in any of %@.", path, [pathArray description]];
 	  return nil;
 	}
       path = result;
@@ -393,16 +397,16 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
   path = [path stringByResolvingSymlinksInPath];
   if ([path length] == 0)
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() resolving symlinks failed"
-	" for '%s'.\n", [tmp UTF8String]);
+      *err = [NSString stringWithFormat:
+	@"resolving symlinks failed for '%@'.", tmp];
       return nil;
     }
   tmp = path;
   path = [path stringByStandardizingPath];
   if ([path length] == 0)
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() standardizing path failed"
-	" for '%s'.\n", [tmp UTF8String]);
+      *err = [NSString stringWithFormat:
+        @"standardizing path failed for '%@'.", tmp];
       return nil;
     }
   return path;
@@ -422,6 +426,8 @@ GSPrivateExecutablePath()
       [load_lock lock];
       if (beenHere == NO)
 	{
+	  NSString *err;
+
 #if	defined(PROCFS_EXE_LINK)
 	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
@@ -450,8 +456,12 @@ GSPrivateExecutablePath()
 		    "Unable to get executable path from NSProcessInfo.\n");
 		}
 	    }
-	  executablePath = AbsolutePathOfExecutable(executablePath, YES);
+	  executablePath = AbsolutePathOfExecutable(executablePath, YES, &err);
 	  IF_NO_ARC([executablePath retain];)
+	  if  (nil == err)
+	    {
+	      fprintf(stderr, "AbsolutePathOfExecutable() %s\n", [err UTF8String]);
+	    }
 	  beenHere = YES;
 	}
       [load_lock unlock];
@@ -1064,7 +1074,7 @@ _find_paths(NSString *rootPath, NSString *subPath, NSString *localization)
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path
 {
-  return AbsolutePathOfExecutable(path, NO);
+  return AbsolutePathOfExecutable(path, NO, NULL);
 }
 
 /* Nicola & Mirko:
