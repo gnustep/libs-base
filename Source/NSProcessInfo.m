@@ -415,10 +415,12 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
-    BOOL		haveEnvironment = NO;
 
 #if defined(_WIN32)
-    if (fallbackInitialisation == NO)
+    /* Also used when the caller supplied no environment, so that a process
+     * initialised that way has the one it was started with.
+     */
+    if (fallbackInitialisation == NO || 0 == env)
       {
 	unichar	*base;
 
@@ -463,26 +465,20 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		  }
 	      }
 	    FreeEnvironmentStringsW(base);
-	    haveEnvironment = YES;
 	    env = 0;	// Suppress standard code.
 	  }
       }
-#endif
-    if (env == 0 && haveEnvironment == NO)
+#else
+    if (0 == env)
       {
 	/* No environment was supplied, so we use the one the process was
 	 * started with rather than recording that it has none.
 	 */
-#if defined(_WIN32)
-	extern char	**_environ;
-
-	env = _environ;
-#else
 	extern char	**environ;
 
 	env = environ;
-#endif
       }
+#endif
     if (env != 0)
       {
 	i = 0;
