@@ -15,8 +15,16 @@ int main()
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSString		*key = @"AN_UNUSUAL_ENVIRONMENT_KEY";
-  char			*argv[] = { (char *)"initialise", 0 };
+  NSString		*executable;
+  char			*argv[2];
   NSDictionary		*env;
+
+  /* The zero'th argument has to be somewhere the executable can be found:
+   * the library works out its own location from it.
+   */
+  executable = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+  argv[0] = (char *)[executable UTF8String];
+  argv[1] = 0;
 
   putenv((char *)"AN_UNUSUAL_ENVIRONMENT_KEY=hello");
 
