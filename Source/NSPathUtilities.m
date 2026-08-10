@@ -68,6 +68,7 @@
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSTask.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
@@ -1761,6 +1762,8 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 static NSMutableDictionary *
 UserDirsParseXDG()
 {
+  NSDictionary		*env = [[NSProcessInfo processInfo] environment];
+  NSFileManager		*manager = [NSFileManager defaultManager];
   NSMutableDictionary	*info;
   NSArray		*keys;
   NSString		*fileName;
@@ -1770,13 +1773,34 @@ UserDirsParseXDG()
   /* For XDG let the standard environment variable take precedence over
    * GNUstep specific rules.
    */
-  if (nil == (home = [[[NSProcessInfo processInfo] environment]
-    objectForKey: @"HOME"]))
+  if (nil == (home = [env objectForKey: @"XDG_CONFIG_HOME"]))
     {
-      home = NSHomeDirectory();
+      if (nil == (home = [env objectForKey: @"HOME"]))
+	{
+	  home = NSHomeDirectory();
+	}
     }
   fileName = [home stringByAppendingPathComponent: @".config"];
   fileName = [fileName stringByAppendingPathComponent: @"user-dirs.dirs"];
+
+  /* If the xdg config is not there, try to set it up.
+   */
+  if ([manager fileExistsAtPath: fileName] == NO)
+    {
+      NSTask	*task = [NSTask new];
+      NSString	*path;
+
+      [task setLaunchPath: @"xdg-user-dirs-update"];
+      [task setEnvironment: env];
+      if ((path = [task validatedLaunchPath]) != nil)
+	{
+	  [task setStandardOutput: [NSFileHandle fileHandleWithNullDevice]]; 
+	  [task setStandardError: [NSFileHandle fileHandleWithNullDevice]]; 
+	  [task launch];
+	  [task waitUntilExit];
+	}
+      RELEASE(task);
+    }
 
   /* Use ParseConfigurationFile() to check that the XDG config is safe and
    * to extract the key/value pairs from it.
@@ -2550,7 +2574,7 @@ if (domainMask & mask) \
 
       case NSDesktopDirectory:
 	{
-	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Desktop");
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDesktop);
 	}
 	break;
 
