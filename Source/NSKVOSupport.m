@@ -315,22 +315,25 @@ static NSDictionary *_kvoSettingChange = nil;
     {
       _changeSets = [[NSMutableArray alloc] initWithCapacity: 2];
     }
-  [_changeSets addObject: set];
+  /* A key with no observers still needs an entry, so that the didChange pops
+   * what this willChange pushed. */
+  [_changeSets addObject: (nil == set) ? (NSArray *)[NSArray array] : set];
 }
 
-- (NSArray *) popChangeSet
+/* Borrowed: the stack holds it until -popChangeSet. */
+- (NSArray *) currentChangeSet
 {
-  NSArray	*set;
-  NSUInteger	last = [_changeSets count];
+  NSUInteger	count = [_changeSets count];
 
-  if (0 == last)
+  return (0 == count) ? nil : [_changeSets objectAtIndex: count - 1];
+}
+
+- (void) popChangeSet
+{
+  if ([_changeSets count] > 0)
     {
-      return nil;
+      [_changeSets removeLastObject];
     }
-  last--;
-  set = AUTORELEASE(RETAIN([_changeSets objectAtIndex: last]));
-  [_changeSets removeObjectAtIndex: last];
-  return set;
 }
 
 - (void) dealloc
@@ -1171,8 +1174,7 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
                     id notifyingObject, NSString *key,
                     DispatchChangeFunction fn, void *changeContext)
 {
-  NSArray        *observers;
-  NSMutableArray *locked;
+  NSArray *observers;
 
   if (nil == observationInfo)
     {
@@ -1180,23 +1182,21 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
     }
   [observationInfo lockChange];
   observers = [observationInfo observersForKey:key];
-  locked = [NSMutableArray arrayWithCapacity: [observers count]];
+  /* Held until the matching didChange, which locks and unlocks this same
+   * array.  Registering or removing an observer replaces the array rather
+   * than changing it, so what is locked here cannot be added to or taken
+   * away from before it is unlocked. */
+  [observationInfo pushChangeSet: observers];
   for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
 
-      if (keyObserver.isRemoved)
-        {
-          continue;
-        }
-
-      // Skip any keypaths that are in the process of changing.
+      /* Every observer in the array is locked, including one already marked
+       * removed, so that the didChange has the same set to unlock.  Whether
+       * there is work to do is a separate question, below. */
       keypathObserver = keyObserver.keypathObserver;
       [keypathObserver lockChange];
-      /* Recorded before anything below can register or remove an observer:
-       * _dispatchDidChange unlocks what is recorded here, not what it finds. */
-      [locked addObject: keyObserver];
-      if ([keypathObserver pushWillChange])
+      if ([keypathObserver pushWillChange] && !keyObserver.isRemoved)
         {
           NSKeyValueObservingOptions options;
 
@@ -1222,9 +1222,11 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
         }
 
       // This must happen regardless of whether we are currently notifying.
-      _removeNestedObserversAndOptionallyDependents(keyObserver, false);
+      if (!keyObserver.isRemoved)
+        {
+          _removeNestedObserversAndOptionallyDependents(keyObserver, false);
+        }
     }
-  [observationInfo pushChangeSet: locked];
   /* The matching -unlockChange calls are in _dispatchDidChange. */
 }
 
@@ -1252,7 +1254,7 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
   /* Exactly what _dispatchWillChange locked, so that an observer registered
    * or removed while the change was in progress cannot leave a key path
    * observer locked, or unlock one that was never locked. */
-  observers = [observationInfo popChangeSet];
+  observers = [observationInfo currentChangeSet];
   index = [observers count];
   if (index > sizeof(held) / sizeof(held[0]))
     {
@@ -1295,6 +1297,7 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
         }
       [keypathObserver unlockChange];
     }
+  [observationInfo popChangeSet];
   [observationInfo unlockChange];
 
   for (index = 0; index < count; index++)

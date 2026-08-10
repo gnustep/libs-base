@@ -182,7 +182,8 @@
  * held across the pair, so only the thread holding it uses this.
  */
 - (void) pushChangeSet: (NSArray *)set;
-- (NSArray *) popChangeSet;
+- (NSArray *) currentChangeSet;
+- (void) popChangeSet;
 
 /* Held from a willChange to the matching didChange.  The change depth and the
  * pending change of each key path observer are reachable from both, so a
