@@ -60,6 +60,53 @@ NSString (ServerAdditions)
 }
 @end
 
+/* The length of the complete request at the front of data, or 0 when the whole
+ * request has not arrived yet.  A request is complete once the blank line
+ * ending the headers has been read along with as many body bytes as
+ * Content-Length asks for.  A request without Content-Length has no body.
+ */
+static NSUInteger
+requestLength(NSData *data)
+{
+  NSRange            end;
+  NSString          *headers;
+  NSUInteger         bodyStart;
+  __block NSUInteger contentLength = 0;
+
+  end = [data rangeOfData:[NSData dataWithBytes:"\r\n\r\n" length:4]
+                  options:0
+                    range:NSMakeRange(0, [data length])];
+  if (NSNotFound == end.location)
+    {
+      return 0;
+    }
+  bodyStart = NSMaxRange(end);
+
+  headers = [[NSString alloc]
+    initWithData:[data subdataWithRange:NSMakeRange(0, end.location)]
+        encoding:NSASCIIStringEncoding];
+  [headers enumerateLinesUsingBlock2:^(NSString  *line,
+                                       NSUInteger lineEndIndex, BOOL *stop) {
+    NSRange range = [line rangeOfString:@":"];
+
+    if (NSNotFound != range.location
+        && NSOrderedSame == [[line substringToIndex:range.location]
+             caseInsensitiveCompare:@"Content-Length"])
+      {
+        contentLength = (NSUInteger)
+          [[line substringFromIndex:range.location + 1] integerValue];
+        *stop = YES;
+      }
+  }];
+
+  if ([data length] < bodyStart + contentLength)
+    {
+      return 0;
+    }
+
+  return bodyStart + contentLength;
+}
+
 @implementation Route
 {
   NSString           *_method;
@@ -225,7 +272,8 @@ NSString (ServerAdditions)
  * until the peer closes or an error occurs. */
 - (void) handleClientSocket: (NSNumber *)clientSocketNumber
 {
-  int clientSocket = [clientSocketNumber intValue];
+  int            clientSocket = [clientSocketNumber intValue];
+  NSMutableData *pending = [NSMutableData data];
 
   while (!_stop)
     {
@@ -238,8 +286,25 @@ NSString (ServerAdditions)
 
           if (bytesRead > 0)
             {
-              NSData *data = [NSData dataWithBytes: buffer length: bytesRead];
-              [self handleConnectionData: data forSocket: clientSocket];
+              NSUInteger length;
+
+              [pending appendBytes: buffer length: bytesRead];
+
+              /* One read is not one request.  The peer may send the headers
+               * and the body in separate segments, and a body larger than the
+               * buffer above always arrives in more than one read, so pass a
+               * request to the routes only once all of its body is here.
+               */
+              while ((length = requestLength(pending)) > 0)
+                {
+                  NSData *data;
+
+                  data = [pending subdataWithRange: NSMakeRange(0, length)];
+                  [self handleConnectionData: data forSocket: clientSocket];
+                  [pending replaceBytesInRange: NSMakeRange(0, length)
+                                     withBytes: NULL
+                                        length: 0];
+                }
             }
           else
             {
