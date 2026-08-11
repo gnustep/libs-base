@@ -858,7 +858,27 @@ ExtractValuesFromConfig(NSDictionary *config)
     @GNUSTEP_TARGET_NETWORK_USERS_DIR);
   ASSIGN_DEFAULT_PATH(gnustepLocalUsersDir,
     @GNUSTEP_TARGET_LOCAL_USERS_DIR);
+
 }
+
+#if	defined(__ANDROID__)
+NSString *
+GSPrivateAndroidToolsDirectory(void)
+{
+  static NSString	*dir = nil;
+
+  if (nil == dir)
+    {
+      NSString	*path = GSPrivateSymbolPath([NSProcessInfo class]);
+
+      if ([path length] > 0)
+	{
+	  dir = [[path stringByDeletingLastPathComponent] copy];
+	}
+    }
+  return dir;
+}
+#endif
 
 static void
 addDefaults(NSString *defs, NSMutableDictionary *conf)
@@ -2958,6 +2978,21 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 		}
 	    }
 
+#if	defined(__ANDROID__)
+	  /* Android mounts the directory an application may write with the
+	   * noexec option, and installs the executable files a package carries
+	   * into a directory of its own whose name is settled when the package
+	   * is installed.  A layout cannot name that directory, so it is added
+	   * here: it is the directory this library was loaded from.  It comes
+	   * first because a file of the same name below it is on the writable
+	   * directory and cannot be started.  The directories below are kept,
+	   * because a tool built and installed outside a package is in one of
+	   * them.
+	   */
+	  ADD_PLATFORM_PATH(NSSystemDomainMask,
+	    GSPrivateAndroidToolsDirectory());
+#endif
+
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserTools);
 	  if (full)
 	    ADD_PATH(NSUserDomainMask, gnustepUserTools, full);
@@ -2999,6 +3034,11 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 		  full = [part stringByAppendingPathComponent: library_combo];
 		}
 	    }
+
+#if	defined(__ANDROID__)
+	  ADD_PLATFORM_PATH(NSSystemDomainMask,
+	    GSPrivateAndroidToolsDirectory());
+#endif
 
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserAdminTools);
 	  if (full)
