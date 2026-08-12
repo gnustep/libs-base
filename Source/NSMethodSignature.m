@@ -35,6 +35,7 @@
 #define	EXPOSE_NSMethodSignature_IVARS	1
 
 #import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 
@@ -560,6 +561,15 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
  */
 #define SIGNATURE_SLOTS 1024
 
+/* An entry is never removed from the cache, so the number of sets of types
+ * which may be cached is limited.  Past the limit a signature is built and
+ * answered without being cached, which is what happened before there was a
+ * cache at all.  The busiest program in the base test suite caches 18.
+ */
+#define SIGNATURE_LIMIT 4096
+
+static unsigned		cachedSignatures = 0;
+
 struct signature_slot
 {
   const char		*types;
@@ -581,6 +591,12 @@ signatureSlotFor(const char *types)
   hash ^= hash >> 15;
   return (unsigned)(hash & (SIGNATURE_SLOTS - 1));
 }
+
+/* A signature which is not in the cache is owned by whoever asked for it, so
+ * it counts references where a cached one does not.
+ */
+@interface GSUncachedMethodSignature : NSMethodSignature
+@end
 
 @implementation NSMethodSignature
 
@@ -691,7 +707,11 @@ signatureSlotFor(const char *types)
 	}
 
       node = GSIMapNodeForKey(&cacheTable, (GSIMapKey)t);
-      if (node == 0)
+      if (node == 0 && cachedSignatures >= SIGNATURE_LIMIT)
+	{
+	  sig = nil;		// built without the lock below
+	}
+      else if (node == 0)
 	{
 	  char	*buf;
 	  int	len = strlen(t) + 1;
@@ -699,6 +719,7 @@ signatureSlotFor(const char *types)
 	  sig = [[self alloc] _initWithObjCTypes: t];
 	  buf = malloc(len);
 	  memcpy(buf, t, len);
+	  cachedSignatures++;
 
 	  /* We suppress the static analyser warning about the
 	   * intentional leak (until end of execution) of the cache
@@ -734,7 +755,19 @@ signatureSlotFor(const char *types)
   NS_ENDHANDLER
   GS_MUTEX_UNLOCK(cacheTableLock);
 
+  if (sig == nil)
+    {
+      return [self _uncachedSignatureWithObjCTypes: t];
+    }
   return sig;
+}
+
++ (NSMethodSignature*) _uncachedSignatureWithObjCTypes: (const char*)t
+{
+  NSMethodSignature	*sig;
+
+  sig = [[GSUncachedMethodSignature alloc] _initWithObjCTypes: t];
+  return AUTORELEASE(sig);
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index
@@ -807,9 +840,10 @@ signatureSlotFor(const char *types)
   return _numArgs;
 }
 
-/* Every signature is created by +signatureWithObjCTypes: and kept by its
- * cache for the life of the process, so one is never deallocated and the
- * count of references to it need not be kept.
+/* A signature in the cache is kept for the life of the process, so it is
+ * never deallocated and the count of references to it need not be kept.  One
+ * which is not in the cache is a GSUncachedMethodSignature, which counts them
+ * as any other object does.
  */
 - (id) retain
 {
@@ -909,4 +943,37 @@ signatureSlotFor(const char *types)
 {
   return _methodTypes;
 }
+@end
+
+@implementation GSUncachedMethodSignature
+
+/* The superclass does not count references, since a signature in the cache is
+ * kept for the life of the process, so this class does the counting itself
+ * rather than by a call to super.
+ */
+- (id) retain
+{
+  NSIncrementExtraRefCount(self);
+  return self;
+}
+
+- (oneway void) release
+{
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      [self dealloc];
+    }
+}
+
+- (id) autorelease
+{
+  [NSAutoreleasePool addObject: self];
+  return self;
+}
+
+- (NSUInteger) retainCount
+{
+  return NSExtraRefCount(self) + 1;
+}
+
 @end
