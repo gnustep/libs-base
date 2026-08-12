@@ -1,3 +1,11 @@
+2026-08-11 Todd White <todd.white@thalion.global>
+
+	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
+	records before writing it, and write it only when it has
+	changed, so that every thread asking for the time does not
+	dirty the line it sits in.  The read and the write are relaxed
+	atomic operations.
+
 2026-08-10 Todd White <todd.white@thalion.global>
 
 	* Source/NSProcessInfo.m:

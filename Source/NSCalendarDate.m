@@ -318,17 +318,26 @@ GSPrivateTimeNow(void)
  * system time to make sure we don't have a temporary glitch.
  */
 {
+  /* One value shared by every thread that asks for the time.  It is read
+   * before it is written, and written only when the second it holds has
+   * changed, so the line it sits in stays clean between one second and the
+   * next.
+   */
   static int	old = 0;
+  int		prev = __atomic_load_n(&old, __ATOMIC_RELAXED);
 
-  if (old == 0)
+  if (prev == 0)
     {
-      old = tp.tv_sec;
+      __atomic_store_n(&old, (int)tp.tv_sec, __ATOMIC_RELAXED);
     }
   else
     {
-      int	diff = tp.tv_sec - old;
+      int	diff = tp.tv_sec - prev;
 
-      old = tp.tv_sec;
+      if (prev != (int)tp.tv_sec)
+	{
+	  __atomic_store_n(&old, (int)tp.tv_sec, __ATOMIC_RELAXED);
+	}
       if (diff < -1 || diff > 3000)
 	{
 	  time_t	now = (time_t)tp.tv_sec;
