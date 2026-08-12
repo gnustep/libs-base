@@ -274,6 +274,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch, NSString **err)
     {
       err = &dummy;
     }
+  *err = nil;
   if (0 == [path length])
     {
       *err = @"empty path.";
@@ -467,9 +468,10 @@ GSPrivateExecutablePath()
 	    }
 	  executablePath = AbsolutePathOfExecutable(executablePath, YES, &err);
 	  IF_NO_ARC([executablePath retain];)
-	  if  (nil == err)
+	  if (err)
 	    {
-	      fprintf(stderr, "AbsolutePathOfExecutable() %s\n", [err UTF8String]);
+	      fprintf(stderr, "AbsolutePathOfExecutable() %s\n",
+		[err UTF8String]);
 	    }
 	  beenHere = YES;
 	}
@@ -3493,7 +3495,7 @@ IF_NO_ARC(
 {
   NSUInteger	plen = [_path length];
   NSEnumerator	*enumerator;
-  NSString		*path;
+  NSString	*path;
   
   [pathCacheLock lock];
   enumerator = [pathCache keyEnumerator];
