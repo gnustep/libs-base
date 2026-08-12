@@ -4,6 +4,11 @@
 	rather than allocating a string and initialising it from the
 	argument, so that a string which may be shared is shared.  A
 	subclass keeps the earlier path.
+	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
+	records before writing it, and write it only when it has
+	changed, so that every thread asking for the time does not
+	dirty the line it sits in.  The read and the write are relaxed
+	atomic operations.
 
 2026-08-10 Todd White <todd.white@thalion.global>
 
