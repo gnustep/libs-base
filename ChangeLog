@@ -1,3 +1,10 @@
+2026-08-12 Todd White <todd.white@thalion.global>
+
+	* Source/NSNotificationCenter.m: Take the table lock for the
+	cleanup of the array of observations only when the post put
+	something in it.  The array is local to the call, so its count
+	may be read without the lock.
+
 2026-08-11 Todd White <todd.white@thalion.global>
 
 	* Source/NSMethodSignature.m: Answer a set of types that has been
