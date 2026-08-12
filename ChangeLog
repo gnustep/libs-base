@@ -1,3 +1,12 @@
+2026-08-12 Todd White <todd.white@thalion.global>
+
+	* Source/NSUserDefaults.m: Answer a default from a small table
+	kept by the calling thread when nothing has changed the defaults
+	since that thread last asked, so that reads do not serialise on
+	the instance lock.  Every change to what a lookup can see
+	increments a generation counter, and an entry from an earlier
+	generation is not used.
+
 2026-08-11 Todd White <todd.white@thalion.global>
 
 	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
