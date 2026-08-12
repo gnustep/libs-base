@@ -81,6 +81,76 @@ static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
 static gs_mutex_t       _localizationsLock = GS_MUTEX_INIT_STATIC;
 
+/* _localizationsLock protects the localization tables and the information
+ * dictionary of every bundle.  A thread keeps the table it last used for a
+ * bundle and table name, holding a retain on it, so a lookup which asks for
+ * the same table again takes no lock and the table cannot be freed while it
+ * is being read.  Anything which changes what a lookup can see increments
+ * the counter below, and an entry stamped with an earlier value is not used,
+ * so -cleanPathCache is free to discard whatever it likes.  A bundle
+ * increments it as it is deallocated too, so an entry cannot survive into an
+ * unrelated bundle which happens to be allocated at the same address.
+ */
+#define	GS_LOCALIZATIONS_MEMO_SIZE	4
+
+typedef struct {
+  NSBundle	*owner;		// compared, never messaged
+  NSString	*name;		// retained
+  NSDictionary	*table;		// retained
+  uint64_t	generation;	// zero while the entry is unused
+} GSLocalizationsMemoEntry;
+
+static uint64_t		localizationsGeneration = 1;
+static gs_thread_key_t	localizationsMemoKey;
+static BOOL		localizationsMemoKeyReady = NO;
+
+static void
+localizationsMemoFree(void *memo)
+{
+  GSLocalizationsMemoEntry	*entries = (GSLocalizationsMemoEntry*)memo;
+  unsigned			i;
+
+  for (i = 0; i < GS_LOCALIZATIONS_MEMO_SIZE; i++)
+    {
+      RELEASE(entries[i].name);
+      RELEASE(entries[i].table);
+    }
+  free(entries);
+}
+
+static inline void
+localizationsDidChange(void)
+{
+  __atomic_fetch_add(&localizationsGeneration, 1, __ATOMIC_RELEASE);
+}
+
+static GSLocalizationsMemoEntry*
+localizationsMemo(void)
+{
+  GSLocalizationsMemoEntry	*memo;
+
+  if (NO == __atomic_load_n(&localizationsMemoKeyReady, __ATOMIC_ACQUIRE))
+    {
+      return 0;
+    }
+  memo = GS_THREAD_KEY_GET(localizationsMemoKey);
+  if (0 == memo)
+    {
+      memo = calloc(GS_LOCALIZATIONS_MEMO_SIZE,
+	sizeof(GSLocalizationsMemoEntry));
+      if (0 != memo)
+	{
+	  GS_THREAD_KEY_SET(localizationsMemoKey, memo);
+	  if (GS_THREAD_KEY_GET(localizationsMemoKey) != memo)
+	    {
+	      free(memo);
+	      memo = 0;
+	    }
+	}
+    }
+  return memo;
+}
+
 /* Map a language name to any alternative versions.   This function should
  * return an array of alternative language/localisation directory names in
  * the preferred order of precedence (ie resources in the directories named
@@ -1738,6 +1808,10 @@ GSPrivateInfoDictionary(NSString *rootPath)
        */
       mode = GSPathHandling("right");
       _emptyTable = [NSDictionary new];
+      if (GS_THREAD_KEY_INIT(localizationsMemoKey, localizationsMemoFree))
+	{
+	  __atomic_store_n(&localizationsMemoKeyReady, YES, __ATOMIC_RELEASE);
+	}
 
       /* Create basic mapping dictionaries for bootstrapping and
        * for use if the full dictionaries can't be loaded from the
@@ -2407,6 +2481,10 @@ IF_NO_ARC(
   TEST_RELEASE(_bundleClasses);
   TEST_RELEASE(_infoDict);
   TEST_RELEASE(_localizations);
+  /* A thread may hold this bundle in an entry of its own, and the address
+   * may be used by another bundle once this one is gone.
+   */
+  localizationsDidChange();
   [super dealloc];
 }
 
@@ -2973,70 +3051,42 @@ IF_NO_ARC(
   return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
 
-/* Publishes a map of localization tables holding one more table than the
- * map in place.  The caller holds _localizationsLock.  The map that was in
- * place is not freed, since another thread may be reading it.
+/* Answers the localization table of the given name, loading it if the bundle
+ * has not been asked for it before, and the value the generation counter had
+ * while the lock was held.  The table is retained and autoreleased.
  */
-- (void) _publishLocalizationTable: (NSDictionary *)table
-                           forName: (NSString *)name
+- (NSDictionary *) _localizationTable: (NSString *)tableName
+			   generation: (uint64_t *)generation
 {
-  NSMutableDictionary	*built;
-  NSDictionary		*published;
-
-  built = (nil == _localizations)
-    ? [[NSMutableDictionary alloc] initWithCapacity: 1]
-    : [_localizations mutableCopy];
-  [built setObject: table forKey: name];
-  published = [built copy];
-  RELEASE(built);
-  __atomic_store_n((void **)&_localizations, (void *)published,
-    __ATOMIC_RELEASE);
-}
-
-- (NSString *) localizedStringForKey: (NSString *)key
-                               value: (NSString *)value
-                               table: (NSString *)tableName
-{
-  NSDictionary	*localizations;
   NSDictionary	*table;
-  NSString	*newString = nil;
   NSString	*tablePath = nil;
   NSDictionary	*parsedTable = nil;
   BOOL		shouldLoad = NO;
 
-  if (tableName == nil || [tableName isEqualToString: @""] == YES)
-    {
-      tableName = @"Localizable";
-    }
+  // Lazily create and populate the per-bundle localization cache.
+  GS_MUTEX_LOCK(_localizationsLock);
+  if (_localizations == nil)
+    _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
 
-  /* The map of tables is replaced rather than changed in place, so a lookup
-   * reads the map as it stands and takes no lock.
-   */
-  localizations = (NSDictionary *)__atomic_load_n((void **)&_localizations,
-    __ATOMIC_ACQUIRE);
-  table = [localizations objectForKey: tableName];
+  table = [_localizations objectForKey: tableName];
   if (table == nil && [@"strings" isEqual: [tableName pathExtension]] == YES)
     {
       tableName = [tableName stringByDeletingPathExtension];
-      table = [localizations objectForKey: tableName];
+      table = [_localizations objectForKey: tableName];
     }
 
   if (table == nil)
     {
-      GS_MUTEX_LOCK(_localizationsLock);
-      table = [_localizations objectForKey: tableName];
-      if (table == nil)
-	{
-	  /*
-	   * Make sure we have an empty table in place in case anything
-	   * we do somehow causes recursion.  The recursive call will look
-	   * up the string in the empty table.
-	   */
-	  [self _publishLocalizationTable: _emptyTable forName: tableName];
-	  shouldLoad = YES;
-	}
-      GS_MUTEX_UNLOCK(_localizationsLock);
+      /*
+       * Make sure we have an empty table in place in case anything
+       * we do somehow causes recursion.  The recursive call will look
+       * up the string in the empty table.
+       */
+      [_localizations setObject: _emptyTable forKey: tableName];
+      localizationsDidChange();
+      shouldLoad = YES;
     }
+  GS_MUTEX_UNLOCK(_localizationsLock);
 
   if (shouldLoad == YES)
     {
@@ -3066,6 +3116,7 @@ IF_NO_ARC(
 	}
     }
 
+  GS_MUTEX_LOCK(_localizationsLock);
   if (shouldLoad == YES && parsedTable != nil)
     {
       /*
@@ -3073,22 +3124,93 @@ IF_NO_ARC(
        * of strings tables in this bundle, otherwise we will just be
        * keeping the empty table in the cache so we don't keep retrying.
        */
-      GS_MUTEX_LOCK(_localizationsLock);
-      [self _publishLocalizationTable: parsedTable forName: tableName];
-      GS_MUTEX_UNLOCK(_localizationsLock);
+      [_localizations setObject: parsedTable forKey: tableName];
+      localizationsDidChange();
       table = parsedTable;
     }
-  else if (table == nil)
+  else
     {
-      localizations = (NSDictionary *)__atomic_load_n((void **)&_localizations,
-    __ATOMIC_ACQUIRE);
-      table = [localizations objectForKey: tableName];
+      table = [_localizations objectForKey: tableName];
       if (table == nil)
 	table = _emptyTable;
     }
+  RETAIN(table);
+  *generation = __atomic_load_n(&localizationsGeneration, __ATOMIC_RELAXED);
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  return AUTORELEASE(table);
+}
+
+- (NSString *) localizedStringForKey: (NSString *)key
+                               value: (NSString *)value
+                               table: (NSString *)tableName
+{
+  GSLocalizationsMemoEntry	*memo = localizationsMemo();
+  GSLocalizationsMemoEntry	*entry = 0;
+  NSDictionary			*table = nil;
+  NSString			*newString = nil;
+
+  if (tableName == nil || [tableName isEqualToString: @""] == YES)
+    {
+      tableName = @"Localizable";
+    }
+
+  /* An entry holds a retain on the table it names, so a table this thread
+   * has been given before is read without the lock and cannot be freed
+   * while it is being read.  The entries are searched rather than indexed by
+   * the name, since there are few of them and a caller usually passes the
+   * same name object every time.
+   */
+  if (0 != memo)
+    {
+      uint64_t	generation
+	= __atomic_load_n(&localizationsGeneration, __ATOMIC_ACQUIRE);
+      unsigned	i;
+
+      for (i = 0; i < GS_LOCALIZATIONS_MEMO_SIZE; i++)
+	{
+	  GSLocalizationsMemoEntry	*e = memo + i;
+
+	  if (e->owner == self && e->generation == generation
+	    && (e->name == tableName || [e->name isEqual: tableName]))
+	    {
+	      table = e->table;
+	      break;
+	    }
+	  if (0 == entry || e->generation < entry->generation)
+	    {
+	      entry = e;	// the oldest entry, replaced if a table is loaded
+	    }
+	}
+    }
+
+  if (nil == table)
+    {
+      uint64_t	generation = 0;
+
+      table = [self _localizationTable: tableName generation: &generation];
+      if (0 != entry)
+	{
+	  NSString	*oldName = entry->name;
+	  NSDictionary	*oldTable = entry->table;
+
+	  entry->owner = self;
+	  entry->name = [tableName copy];
+	  entry->table = RETAIN(table);
+	  entry->generation = generation;
+	  RELEASE(oldName);
+	  /* A string this thread has been given came out of the table it is
+	   * letting go of here, so that table is kept until the pool the
+	   * string was asked for in is emptied.
+	   */
+	  AUTORELEASE(oldTable);
+	}
+    }
 
   if (key != nil)
-    newString = [table objectForKey: key];
+    {
+      newString = [table objectForKey: key];
+    }
 
   if (key == nil || newString == nil)
     {
@@ -3251,11 +3373,31 @@ IF_NO_ARC(
 
 - (NSDictionary *) infoDictionary
 {
-  if (nil == _infoDict)
+  NSDictionary	*d;
+
+  GS_MUTEX_LOCK(_localizationsLock);
+  d = AUTORELEASE(RETAIN(_infoDict));
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  if (nil == d)
     {
-      _infoDict = [GSPrivateInfoDictionary(_path) copy];
+      NSDictionary	*built = [GSPrivateInfoDictionary(_path) copy];
+
+      /* The dictionary is built without the lock, since reading it from disk
+       * may come back into the bundle, so another thread may have installed
+       * one by the time the lock is held.
+       */
+      GS_MUTEX_LOCK(_localizationsLock);
+      if (nil == _infoDict)
+	{
+	  _infoDict = built;
+	  built = nil;
+	}
+      d = AUTORELEASE(RETAIN(_infoDict));
+      GS_MUTEX_UNLOCK(_localizationsLock);
+      RELEASE(built);
     }
-  return _infoDict;
+  return d;
 }
 
 - (NSString *) builtInPlugInsPath
@@ -3555,10 +3697,13 @@ IF_NO_ARC(
 	}
     }
   [pathCacheLock unlock];
-  
+
   /* also destroy cached variables depending on bundle paths */
+  GS_MUTEX_LOCK(_localizationsLock);
   DESTROY(_infoDict);
   DESTROY(_localizations);
+  localizationsDidChange();
+  GS_MUTEX_UNLOCK(_localizationsLock);
 }
 
 #ifdef __ANDROID__

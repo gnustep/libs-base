@@ -117,7 +117,7 @@ GS_EXPORT_CLASS
   NSMutableArray	*_bundleClasses;
   Class			_principalClass;
   NSDictionary		*_infoDict;
-  NSDictionary		*_localizations;
+  NSMutableDictionary	*_localizations;
   unsigned		_bundleType;
   BOOL			_codeLoaded;
   unsigned		_version;
