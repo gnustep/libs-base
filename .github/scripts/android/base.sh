@@ -149,15 +149,17 @@ for R in "$GS_BASE"/Tests/base/*/Resources; do
   fi
 done
 
-# tools-make#76: check the framework soname is the versioned name and not a
-# stray argument, since a bad one only shows up as a load failure on device.
+# tools-make#76: check the framework soname is a library name and not a stray
+# argument off the link line, since a bad one only shows up as a load failure
+# on device.  Either the versionless or the versioned name is a library name;
+# which one the rule records is tools-make's to decide.
 for fw in "$GS_BASE"/Tests/base/*/Resources/*.framework; do
   [ -d "$fw" ] || continue
   so=$(find "$fw" -name 'lib*.so.*.*' -type f | head -1)
   [ -n "$so" ] || continue
   sn=$("$TOOLCHAIN/bin/llvm-readelf" -d "$so" | sed -n 's/.*SONAME.*\[\(.*\)\]/\1/p')
   echo "    $(basename "$fw") SONAME $sn"
-  case "$sn" in lib*.so.*) ;; *) echo "unexpected SONAME: $sn"; exit 1 ;; esac
+  case "$sn" in lib*.so|lib*.so.*) ;; *) echo "unexpected SONAME: $sn"; exit 1 ;; esac
 done
 
 say "base tools"
