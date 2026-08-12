@@ -2973,44 +2973,70 @@ IF_NO_ARC(
   return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
 
+/* Publishes a map of localization tables holding one more table than the
+ * map in place.  The caller holds _localizationsLock.  The map that was in
+ * place is not freed, since another thread may be reading it.
+ */
+- (void) _publishLocalizationTable: (NSDictionary *)table
+                           forName: (NSString *)name
+{
+  NSMutableDictionary	*built;
+  NSDictionary		*published;
+
+  built = (nil == _localizations)
+    ? [[NSMutableDictionary alloc] initWithCapacity: 1]
+    : [_localizations mutableCopy];
+  [built setObject: table forKey: name];
+  published = [built copy];
+  RELEASE(built);
+  __atomic_store_n((void **)&_localizations, (void *)published,
+    __ATOMIC_RELEASE);
+}
+
 - (NSString *) localizedStringForKey: (NSString *)key
                                value: (NSString *)value
                                table: (NSString *)tableName
 {
+  NSDictionary	*localizations;
   NSDictionary	*table;
   NSString	*newString = nil;
   NSString	*tablePath = nil;
   NSDictionary	*parsedTable = nil;
   BOOL		shouldLoad = NO;
 
-  // Lazily create and populate the per-bundle localization cache.
-  GS_MUTEX_LOCK(_localizationsLock);
-  if (_localizations == nil)
-    _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
-
   if (tableName == nil || [tableName isEqualToString: @""] == YES)
     {
       tableName = @"Localizable";
     }
 
-  table = [_localizations objectForKey: tableName];
+  /* The map of tables is replaced rather than changed in place, so a lookup
+   * reads the map as it stands and takes no lock.
+   */
+  localizations = (NSDictionary *)__atomic_load_n((void **)&_localizations,
+    __ATOMIC_ACQUIRE);
+  table = [localizations objectForKey: tableName];
   if (table == nil && [@"strings" isEqual: [tableName pathExtension]] == YES)
     {
       tableName = [tableName stringByDeletingPathExtension];
-      table = [_localizations objectForKey: tableName];
+      table = [localizations objectForKey: tableName];
     }
 
   if (table == nil)
     {
-      /*
-       * Make sure we have an empty table in place in case anything
-       * we do somehow causes recursion.  The recursive call will look
-       * up the string in the empty table.
-       */
-      [_localizations setObject: _emptyTable forKey: tableName];
-      shouldLoad = YES;
+      GS_MUTEX_LOCK(_localizationsLock);
+      table = [_localizations objectForKey: tableName];
+      if (table == nil)
+	{
+	  /*
+	   * Make sure we have an empty table in place in case anything
+	   * we do somehow causes recursion.  The recursive call will look
+	   * up the string in the empty table.
+	   */
+	  [self _publishLocalizationTable: _emptyTable forName: tableName];
+	  shouldLoad = YES;
+	}
+      GS_MUTEX_UNLOCK(_localizationsLock);
     }
-  GS_MUTEX_UNLOCK(_localizationsLock);
 
   if (shouldLoad == YES)
     {
@@ -3040,7 +3066,6 @@ IF_NO_ARC(
 	}
     }
 
-  GS_MUTEX_LOCK(_localizationsLock);
   if (shouldLoad == YES && parsedTable != nil)
     {
       /*
@@ -3048,19 +3073,22 @@ IF_NO_ARC(
        * of strings tables in this bundle, otherwise we will just be
        * keeping the empty table in the cache so we don't keep retrying.
        */
-      [_localizations setObject: parsedTable forKey: tableName];
+      GS_MUTEX_LOCK(_localizationsLock);
+      [self _publishLocalizationTable: parsedTable forName: tableName];
+      GS_MUTEX_UNLOCK(_localizationsLock);
       table = parsedTable;
     }
-  else
+  else if (table == nil)
     {
-      table = [_localizations objectForKey: tableName];
+      localizations = (NSDictionary *)__atomic_load_n((void **)&_localizations,
+    __ATOMIC_ACQUIRE);
+      table = [localizations objectForKey: tableName];
       if (table == nil)
 	table = _emptyTable;
     }
 
   if (key != nil)
     newString = [table objectForKey: key];
-  GS_MUTEX_UNLOCK(_localizationsLock);
 
   if (key == nil || newString == nil)
     {

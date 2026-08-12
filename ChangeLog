@@ -1,5 +1,14 @@
 2026-08-11 Todd White <todd.white@thalion.global>
 
+	* Headers/Foundation/NSBundle.h:
+	* Source/NSBundle.m: Publish the map of localization tables in a
+	bundle rather than changing it in place, so that a lookup by
+	-localizedStringForKey:value:table: reads the map without taking
+	the lock that every bundle in the process shares.  The lock is
+	taken only where a table is added.
+
+2026-08-11 Todd White <todd.white@thalion.global>
+
 	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
 	records before writing it, and write it only when it has
 	changed, so that every thread asking for the time does not
