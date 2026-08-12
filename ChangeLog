@@ -1,5 +1,12 @@
 2026-08-11 Todd White <todd.white@thalion.global>
 
+	* Source/NSMethodSignature.m: Answer a set of types that has been
+	seen before from a table read without the cache lock, and keep
+	every signature for the life of the process rather than counting
+	references to it, which is what its cache already does.
+
+2026-08-11 Todd White <todd.white@thalion.global>
+
 	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
 	records before writing it, and write it only when it has
 	changed, so that every thread asking for the time does not

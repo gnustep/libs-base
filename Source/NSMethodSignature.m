@@ -551,6 +551,37 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   return typePtr;
 }
 
+/* A signature is built once for a given set of types and then kept for the
+ * life of the process, so a set of types that has been seen before can be
+ * answered from a small table that is only ever added to.  Each entry is
+ * published with a release and read with an acquire, and neither an entry nor
+ * the key it holds is ever freed, so a reader may hold either.  A set of types
+ * that collides with another simply misses and takes the slower path.
+ */
+#define SIGNATURE_SLOTS 1024
+
+struct signature_slot
+{
+  const char		*types;
+  NSMethodSignature	*signature;
+};
+
+static struct signature_slot *signatureSlots[SIGNATURE_SLOTS];
+
+static inline unsigned
+signatureSlotFor(const char *types)
+{
+  uintptr_t	hash = 5381;
+  const char	*p = types;
+
+  while (*p != '\0')
+    {
+      hash = (hash << 5) + hash + (unsigned char)*p++;
+    }
+  hash ^= hash >> 15;
+  return (unsigned)(hash & (SIGNATURE_SLOTS - 1));
+}
+
 @implementation NSMethodSignature
 
 - (id) _initWithObjCTypes: (const char*)t
@@ -638,9 +669,18 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 {
   GSIMapNode node;
   NSMethodSignature	*sig;
+  struct signature_slot	*slot;
+  unsigned		index;
 
   static GSIMapTable_t cacheTable = {};
   static gs_mutex_t cacheTableLock = GS_MUTEX_INIT_STATIC;
+
+  index = signatureSlotFor(t);
+  slot = __atomic_load_n(&signatureSlots[index], __ATOMIC_ACQUIRE);
+  if (slot != NULL && strcmp(slot->types, t) == 0)
+    {
+      return slot->signature;
+    }
 
   GS_MUTEX_LOCK(cacheTableLock);
   NS_DURING
@@ -668,10 +708,22 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  [[clang::suppress]]
 #endif
 	  GSIMapAddPair(&cacheTable, (GSIMapKey)buf, (GSIMapVal)(id)sig);
+
+	  /* buf and sig both outlive the process, so the table in front of
+	   * the map may hold them.
+	   */
+	  slot = (struct signature_slot*)
+	    malloc(sizeof(struct signature_slot));
+	  if (slot != NULL)
+	    {
+	      slot->types = buf;
+	      slot->signature = sig;
+	      __atomic_store_n(&signatureSlots[index], slot, __ATOMIC_RELEASE);
+	    }
 	}
       else
 	{
-	  sig = RETAIN(node->value.obj);
+	  sig = node->value.obj;
 	}
     }
   NS_HANDLER
@@ -682,7 +734,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   NS_ENDHANDLER
   GS_MUTEX_UNLOCK(cacheTableLock);
 
-  return AUTORELEASE(sig);
+  return sig;
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index
@@ -753,6 +805,29 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 - (NSUInteger) numberOfArguments
 {
   return _numArgs;
+}
+
+/* Every signature is created by +signatureWithObjCTypes: and kept by its
+ * cache for the life of the process, so one is never deallocated and the
+ * count of references to it need not be kept.
+ */
+- (id) retain
+{
+  return self;
+}
+
+- (oneway void) release
+{
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
 }
 
 - (void) dealloc
