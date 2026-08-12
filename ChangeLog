@@ -1,3 +1,10 @@
+2026-08-11 Todd White <todd.white@thalion.global>
+
+	* Source/NSString.m: Answer a copy from +stringWithString:
+	rather than allocating a string and initialising it from the
+	argument, so that a string which may be shared is shared.  A
+	subclass keeps the earlier path.
+
 2026-08-10 Todd White <todd.white@thalion.global>
 
 	* Source/NSProcessInfo.m:
