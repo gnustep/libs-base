@@ -30,6 +30,14 @@
 
 2026-08-11 Todd White <todd.white@thalion.global>
 
+	* Source/NSKeyValueCoding+Caching.m: Let each thread keep the
+	slots it has most recently used, so that valueForKey: reads the
+	shared table, and takes its lock, only for a class and key that
+	thread has not seen.  A slot is added to the shared table once
+	and never removed, so a pointer to one stays valid.
+
+2026-08-11 Todd White <todd.white@thalion.global>
+
 	* Source/NSString.m: Answer a copy from +stringWithString:
 	rather than allocating a string and initialising it from the
 	argument, so that a string which may be shared is shared.  A
