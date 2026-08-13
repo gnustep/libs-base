@@ -762,14 +762,6 @@ signatureSlotFor(const char *types)
   return sig;
 }
 
-+ (NSMethodSignature*) _uncachedSignatureWithObjCTypes: (const char*)t
-{
-  NSMethodSignature	*sig;
-
-  sig = [[GSUncachedMethodSignature alloc] _initWithObjCTypes: t];
-  return AUTORELEASE(sig);
-}
-
 - (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index
 {
   if (index >= _numArgs)
@@ -911,6 +903,14 @@ signatureSlotFor(const char *types)
 @end
 
 @implementation NSMethodSignature(GNUstep)
++ (NSMethodSignature*) _uncachedSignatureWithObjCTypes: (const char*)t
+{
+  NSMethodSignature	*sig;
+
+  sig = [[GSUncachedMethodSignature alloc] _initWithObjCTypes: t];
+  return AUTORELEASE(sig);
+}
+
 - (NSArgumentInfo*) methodInfo
 {
   if (_inf == 0)
