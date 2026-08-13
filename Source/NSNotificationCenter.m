@@ -36,6 +36,7 @@
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSHashTable.h"
+#import "GSPThread.h"
 
 static NSZone	*_zone = 0;
 
@@ -249,12 +250,16 @@ static void obsDone(Observation *o);
  */
 #define	CHUNKSIZE	128
 #define	CACHESIZE	16
+#define	NCSTRIPES	32
 typedef struct NCTbl {
   Observation		*wildcard;	/* Get ALL messages.		*/
   GSIMapTable		nameless;	/* Get messages for any name.	*/
   GSIMapTable		named;		/* Getting named messages only.	*/
   unsigned		lockCount;	/* Count recursive operations.	*/
-  NSRecursiveLock	*_lock;		/* Lock out other threads.	*/
+  gs_mutex_t		stripe[NCSTRIPES];
+  gs_mutex_t		globalLock;	/* Guards wildcard and nameless.*/
+  gs_mutex_t		allocLock;	/* Guards the free list.	*/
+  unsigned		anyNameless;	/* Set once, never cleared.	*/
   Observation		*freeList;
   Observation		**chunks;
   unsigned		numChunks;
@@ -358,8 +363,6 @@ static void endNCTable(NCTable *t)
   GSIMapNode		n0;
   Observation		*l;
 
-  TEST_RELEASE(t->_lock);
-
   /* Free observations without notification names or numbers.
    */
   listFree(t->wildcard);
@@ -420,6 +423,7 @@ static void endNCTable(NCTable *t)
 static NCTable *newNCTable(void)
 {
   NCTable	*t;
+  unsigned	i;
 
   t = (NCTable*)NSAllocateCollectable(sizeof(NCTable), NSScannedOption);
   t->chunkIndex = CHUNKSIZE;
@@ -431,20 +435,47 @@ static NCTable *newNCTable(void)
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
   t->named->extra = YES;        // This table retains keys
 
-  t->_lock = [NSRecursiveLock new];
+  for (i = 0; i < NCSTRIPES; i++)
+    {
+      GS_MUTEX_INIT_RECURSIVE(t->stripe[i]);
+    }
+  GS_MUTEX_INIT_RECURSIVE(t->globalLock);
+  GS_MUTEX_INIT(t->allocLock);
+  t->anyNameless = 0;
   return t;
 }
 
+/* The whole table: every stripe, in index order.  This is what every caller
+ * outside the single name path in -_postAndRelease: takes, so it means exactly
+ * what the one lock it replaces meant.
+ */
 static inline void lockNCTable(NCTable* t)
 {
-  [t->_lock lock];
+  unsigned	i;
+
+  GS_MUTEX_LOCK(t->globalLock);
+  for (i = 0; i < NCSTRIPES; i++)
+    {
+      GS_MUTEX_LOCK(t->stripe[i]);
+    }
   t->lockCount++;
 }
 
 static inline void unlockNCTable(NCTable* t)
 {
+  unsigned	i = NCSTRIPES;
+
   t->lockCount--;
-  [t->_lock unlock];
+  while (i-- > 0)
+    {
+      GS_MUTEX_UNLOCK(t->stripe[i]);
+    }
+  GS_MUTEX_UNLOCK(t->globalLock);
+}
+
+static inline gs_mutex_t *stripeForName(NCTable* t, NSString *name)
+{
+  return &t->stripe[[name hash] % NCSTRIPES];
 }
 
 static void obsFree(Observation *o)
@@ -471,11 +502,14 @@ static void obsFree(Observation *o)
   objc_destroyWeak(&o->observer);
 
   /* This observation can now be placed in the free list if there is one.
+   * The list is shared by every stripe, so the push takes its own lock.
    */
   if ((t = o->link) != 0)
     {
+      GS_MUTEX_LOCK(t->allocLock);
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
+      GS_MUTEX_UNLOCK(t->allocLock);
     }
 }
 
@@ -900,6 +934,7 @@ static NSNotificationCenter *default_center = nil;
     }
   else if (object)
     {
+      __atomic_store_n(&TABLE->anyNameless, 1, __ATOMIC_RELEASE);
       n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
       if (n == 0)
 	{
@@ -915,6 +950,7 @@ static NSNotificationCenter *default_center = nil;
     }
   else
     {
+      __atomic_store_n(&TABLE->anyNameless, 1, __ATOMIC_RELEASE);
       o->next = WILDCARD;
       WILDCARD = o;
     }
@@ -1191,6 +1227,8 @@ addPost(Observation *head, GSIArray a)
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
+  gs_mutex_t	*stripe;
+  BOOL		global;
 
   if ((name = [notification name]) == nil)
     {
@@ -1210,25 +1248,39 @@ addPost(Observation *head, GSIArray a)
    */
   GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
 
-  lockNCTable(TABLE);
-
-  /* Find all the observers that specified neither NAME nor OBJECT.
+  /* A post always needs the stripe its name falls in.  It needs the lock over
+   * WILDCARD and NAMELESS as well only where an observer has been registered
+   * without a name; otherwise both are empty and there is nothing to consult.
    */
-  WILDCARD = addPost(WILDCARD, a);
-
-  /* Find the observers that specified OBJECT, but didn't specify NAME.
-   */
-  if (object)
+  stripe = stripeForName(TABLE, name);
+  global = (0 == __atomic_load_n(&TABLE->anyNameless, __ATOMIC_ACQUIRE))
+    ? NO : YES;
+  if (global)
     {
-      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
-      if (n)
-	{
-	  if (ENDOBS == (n->value.ext = addPost(n->value.ext, a)))
-	    {
-	      GSIMapBucket bucket = GSIMapBucketForKey(NAMELESS, n->key);
+      GS_MUTEX_LOCK(TABLE->globalLock);
+    }
+  GS_MUTEX_LOCK(*stripe);
 
-              GSIMapRemoveNodeFromMap(NAMELESS, bucket, n);
-              GSIMapFreeNode(NAMELESS, n);
+  if (global)
+    {
+      /* Find all the observers that specified neither NAME nor OBJECT.
+       */
+      WILDCARD = addPost(WILDCARD, a);
+
+      /* Find the observers that specified OBJECT, but didn't specify NAME.
+       */
+      if (object)
+	{
+	  n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+	  if (n)
+	    {
+	      if (ENDOBS == (n->value.ext = addPost(n->value.ext, a)))
+		{
+		  GSIMapBucket bucket = GSIMapBucketForKey(NAMELESS, n->key);
+
+		  GSIMapRemoveNodeFromMap(NAMELESS, bucket, n);
+		  GSIMapFreeNode(NAMELESS, n);
+		}
 	    }
 	}
     }
@@ -1284,7 +1336,11 @@ addPost(Observation *head, GSIArray a)
 
   /* Finished with the table ... we can unlock it,
    */
-  unlockNCTable(TABLE);
+  GS_MUTEX_UNLOCK(*stripe);
+  if (global)
+    {
+      GS_MUTEX_UNLOCK(TABLE->globalLock);
+    }
 
   /* Now send all the notifications.
    */
@@ -1328,9 +1384,17 @@ addPost(Observation *head, GSIArray a)
    */
   if (GSIArrayCount(a) > 0)
     {
-      lockNCTable(TABLE);
+      if (global)
+	{
+	  GS_MUTEX_LOCK(TABLE->globalLock);
+	}
+      GS_MUTEX_LOCK(*stripe);
       GSIArrayEmpty(a);
-      unlockNCTable(TABLE);
+      GS_MUTEX_UNLOCK(*stripe);
+      if (global)
+	{
+	  GS_MUTEX_UNLOCK(TABLE->globalLock);
+	}
     }
 
   /* Release the notification and any objects we autoreleased during posting
