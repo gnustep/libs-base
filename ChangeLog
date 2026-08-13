@@ -1,5 +1,14 @@
 2026-08-12 Todd White <todd.white@thalion.global>
 
+	* Source/NSBundle.m: Let a thread reuse the localization table it
+	was last given for a bundle and table name, holding a retain on
+	that table, so that -localizedStringForKey:value:table: takes the
+	lock every bundle shares only where a table is loaded.  Protect
+	-infoDictionary with the same lock, and take it in
+	-cleanPathCache, which destroyed the information dictionary and
+	the localization tables without it.
+2026-08-12 Todd White <todd.white@thalion.global>
+
 	* Source/NSNotificationCenter.m: Take the table lock for the
 	cleanup of the array of observations only when the post put
 	something in it.  The array is local to the call, so its count
