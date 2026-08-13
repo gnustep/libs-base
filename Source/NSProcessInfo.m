@@ -1797,9 +1797,41 @@ GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char 
   GS_JNI_CHECK(env, assetManagerJava);
   [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
 
+  // a process started with execve gets the platform's default linker search
+  // path, which does not include the directory the package's own libraries
+  // are in, so a tool started from here is given it
+  {
+    NSProcessInfo	*info = [NSProcessInfo processInfo];
+    NSString		*dir = GSPrivateAndroidToolsDirectory();
+    NSString		*existing;
+
+    existing = [[info environment] objectForKey: @"LD_LIBRARY_PATH"];
+    if ([dir length] > 0)
+      {
+	if ([existing length] > 0)
+	  {
+	    dir = [NSString stringWithFormat: @"%@:%@", dir, existing];
+	  }
+	[info setValue: dir inEnvironment: @"LD_LIBRARY_PATH"];
+      }
+  }
+
   // clean up our NSTemporaryDirectory() if it exists
   NSString *tempDirName = [_androidCacheDir stringByAppendingPathComponent: @"tmp"];
   [[NSFileManager defaultManager] removeItemAtPath:tempDirName error:NULL];
+
+  // a tool started from here has no context of its own, so it would take its
+  // temporary directory from the environment and use a different one; ports
+  // are named within that directory, so the two would never meet
+  {
+    NSProcessInfo	*info = [NSProcessInfo processInfo];
+    NSString		*tmp = NSTemporaryDirectory();
+
+    if ([tmp length] > 0)
+      {
+	[info setValue: tmp inEnvironment: @"TMPDIR"];
+      }
+  }
 }
 #endif
 

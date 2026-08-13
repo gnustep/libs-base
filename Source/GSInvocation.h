@@ -67,6 +67,11 @@ typedef struct	{
 @end
 
 @interface NSMethodSignature (GNUstep)
+/* Answers a signature which is not put in the cache and is deallocated like
+ * any other object.  For types which came from outside the process, so that
+ * a peer or an archive cannot fill the cache.
+ */
++ (NSMethodSignature*) _uncachedSignatureWithObjCTypes: (const char*)t;
 - (const char*) methodType;
 - (NSArgumentInfo*) methodInfo;
 @end
