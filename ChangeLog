@@ -1,3 +1,12 @@
+2026-08-13 Todd White <todd.white@thalion.global>
+
+	* Source/NSUserDefaults.m: Post NSUserDefaultsDidChangeNotification
+	from the methods which alter what a lookup can see and posted
+	nothing: addSuiteNamed:, removeSuiteNamed:, setSearchList:,
+	setVolatileDomain:forName:, removeVolatileDomainForName: and
+	registerDefaults:.
+	* Tests/base/NSUserDefaults/notifications.m: New test that each of
+	those methods posts the notification.
 2026-08-12 Todd White <todd.white@thalion.global>
 
 	* Source/NSBundle.m: Let a thread reuse the localization table it
