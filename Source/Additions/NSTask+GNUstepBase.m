@@ -181,6 +181,24 @@ executablePath(NSFileManager *mgr, NSString *path)
     {
       return path;
     }
+#if	defined(__ANDROID__)
+  /* A package may carry an executable file only as lib/<abi>/lib<name>.so, so
+   * a tool installed from one is named lib<name>.so rather than <name>.  A
+   * tool built and installed outside a package keeps its own name and is found
+   * above.
+   */
+  {
+    NSString	*dir = [path stringByDeletingLastPathComponent];
+    NSString	*name = [path lastPathComponent];
+
+    path = [dir stringByAppendingPathComponent:
+      [NSString stringWithFormat: @"lib%@.so", name]];
+    if ([mgr isExecutableFileAtPath: path])
+      {
+	return path;
+      }
+  }
+#endif
 #endif
   return nil;
 }
