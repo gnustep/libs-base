@@ -1322,11 +1322,16 @@ addPost(Observation *head, GSIArray a)
 	}
     }
 
-  /* Cleanup of the array of observations must be lock protected.
+  /* Cleanup of the array of observations must be lock protected, but an
+   * array we put nothing in has nothing to clean up.  The array is local
+   * to this call, so its count may be read without the lock.
    */
-  lockNCTable(TABLE);
-  GSIArrayEmpty(a);
-  unlockNCTable(TABLE);
+  if (GSIArrayCount(a) > 0)
+    {
+      lockNCTable(TABLE);
+      GSIArrayEmpty(a);
+      unlockNCTable(TABLE);
+    }
 
   /* Release the notification and any objects we autoreleased during posting
    */

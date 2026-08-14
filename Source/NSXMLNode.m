@@ -88,6 +88,44 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
     }
 }
 
+/* Move one string of a node to the document the node is joining.
+ * A parser interns short strings in the dictionary of the document it builds
+ * and allocates the rest, so a string reached from a node is owned either by
+ * that dictionary or by the node itself.  Replacing an allocated one without
+ * freeing it loses it, and freeing one the dictionary owns would free it
+ * twice, so which it is has to be asked.
+ */
+static const xmlChar *
+adoptString(const xmlChar *str, xmlDocPtr oldDoc, xmlDocPtr doc, int mode)
+{
+  int	owned;
+
+  if (str == NULL)
+    {
+      return NULL;
+    }
+  owned = (oldDoc != NULL && oldDoc->dict != NULL)
+    ? xmlDictOwns(oldDoc->dict, str) : 0;
+
+  if (mode == 1)
+    {
+      const xmlChar *adopted = xmlDictLookup(doc->dict, str, -1);
+
+      if (0 == owned && adopted != str)
+        {
+          xmlFree((xmlChar *)str);
+        }
+      return adopted;
+    }
+  if (mode == 2 && owned)
+    {
+      /* The dictionary of the old document is about to go, and the new
+       * document has none to put the string in. */
+      return xmlStrdup(str);
+    }
+  return str;
+}
+
 /* Recursively set document pointer for a node tree.
  * This is needed when we can't use xmlDOMWrapAdoptNode due to bugs.
  * Also handles string adoption from old dictionary to new dictionary.
@@ -123,20 +161,8 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
   /* Adopt or copy strings based on mode */
   if (node->type == XML_TEXT_NODE)
     {
-      if (node->content != NULL)
-        {
-          if (adoptStr == 1)
-            {
-              /* Adopt into new dict */
-              node->content
-		= (xmlChar *)xmlDictLookup(doc->dict, node->content, -1);
-            }
-          else if (adoptStr == 2)
-            {
-              /* Copy out of old dict */
-              node->content = xmlStrdup(node->content);
-            }
-        }
+      node->content
+	= (xmlChar *)adoptString(node->content, oldDoc, doc, adoptStr);
     }
   
   if (node->type == XML_ELEMENT_NODE)
@@ -145,36 +171,16 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
       xmlNsPtr ns;
       
       /* Adopt or copy element name */
-      if (node->name != NULL)
-        {
-          if (adoptStr == 1)
-            {
-              node->name = xmlDictLookup(doc->dict, node->name, -1);
-            }
-          else if (adoptStr == 2)
-            {
-              node->name = xmlStrdup(node->name);
-            }
-        }
-      
+      node->name = adoptString(node->name, oldDoc, doc, adoptStr);
+
       /* Update attributes */
       for (attr = node->properties; attr != NULL; attr = attr->next)
         {
           attr->doc = doc;
-          
+
           /* Adopt or copy attribute name */
-          if (attr->name != NULL)
-            {
-              if (adoptStr == 1)
-                {
-                  attr->name = xmlDictLookup(doc->dict, attr->name, -1);
-                }
-              else if (adoptStr == 2)
-                {
-                  attr->name = xmlStrdup(attr->name);
-                }
-            }
-          
+          attr->name = adoptString(attr->name, oldDoc, doc, adoptStr);
+
           /* Recursively handle attribute value nodes */
           if (attr->children)
             setTreeDoc(attr->children, doc);
@@ -185,31 +191,8 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
         {
           gsUpdateNsDoc(ns, doc);
           
-          if (adoptStr)
-            {
-              if (ns->href != NULL)
-                {
-                  if (adoptStr == 1)
-                    {
-                      ns->href = xmlDictLookup(doc->dict, ns->href, -1);
-                    }
-                  else if (adoptStr == 2)
-                    {
-                      ns->href = xmlStrdup(ns->href);
-                    }
-                }
-              if (ns->prefix != NULL)
-                {
-                  if (adoptStr == 1)
-                    {
-                      ns->prefix = xmlDictLookup(doc->dict, ns->prefix, -1);
-                    }
-                  else if (adoptStr == 2)
-                    {
-                      ns->prefix = xmlStrdup(ns->prefix);
-                    }
-                }
-            }
+          ns->href = adoptString(ns->href, oldDoc, doc, adoptStr);
+          ns->prefix = adoptString(ns->prefix, oldDoc, doc, adoptStr);
         }
     }
   

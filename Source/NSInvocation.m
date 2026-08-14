@@ -757,7 +757,9 @@ _arg_addr(NSInvocation *inv, int index)
   unsigned int		i;
 
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
-  newSig = [NSMethodSignature signatureWithObjCTypes: types];
+  /* The types came out of the archive, so the signature is not cached.
+   */
+  newSig = [NSMethodSignature _uncachedSignatureWithObjCTypes: types];
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
 
   DESTROY(self);

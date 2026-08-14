@@ -81,6 +81,76 @@ static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
 static gs_mutex_t       _localizationsLock = GS_MUTEX_INIT_STATIC;
 
+/* _localizationsLock protects the localization tables and the information
+ * dictionary of every bundle.  A thread keeps the table it last used for a
+ * bundle and table name, holding a retain on it, so a lookup which asks for
+ * the same table again takes no lock and the table cannot be freed while it
+ * is being read.  Anything which changes what a lookup can see increments
+ * the counter below, and an entry stamped with an earlier value is not used,
+ * so -cleanPathCache is free to discard whatever it likes.  A bundle
+ * increments it as it is deallocated too, so an entry cannot survive into an
+ * unrelated bundle which happens to be allocated at the same address.
+ */
+#define	GS_LOCALIZATIONS_MEMO_SIZE	4
+
+typedef struct {
+  NSBundle	*owner;		// compared, never messaged
+  NSString	*name;		// retained
+  NSDictionary	*table;		// retained
+  uint64_t	generation;	// zero while the entry is unused
+} GSLocalizationsMemoEntry;
+
+static uint64_t		localizationsGeneration = 1;
+static gs_thread_key_t	localizationsMemoKey;
+static BOOL		localizationsMemoKeyReady = NO;
+
+static void
+localizationsMemoFree(void *memo)
+{
+  GSLocalizationsMemoEntry	*entries = (GSLocalizationsMemoEntry*)memo;
+  unsigned			i;
+
+  for (i = 0; i < GS_LOCALIZATIONS_MEMO_SIZE; i++)
+    {
+      RELEASE(entries[i].name);
+      RELEASE(entries[i].table);
+    }
+  free(entries);
+}
+
+static inline void
+localizationsDidChange(void)
+{
+  __atomic_fetch_add(&localizationsGeneration, 1, __ATOMIC_RELEASE);
+}
+
+static GSLocalizationsMemoEntry*
+localizationsMemo(void)
+{
+  GSLocalizationsMemoEntry	*memo;
+
+  if (NO == __atomic_load_n(&localizationsMemoKeyReady, __ATOMIC_ACQUIRE))
+    {
+      return 0;
+    }
+  memo = GS_THREAD_KEY_GET(localizationsMemoKey);
+  if (0 == memo)
+    {
+      memo = calloc(GS_LOCALIZATIONS_MEMO_SIZE,
+	sizeof(GSLocalizationsMemoEntry));
+      if (0 != memo)
+	{
+	  GS_THREAD_KEY_SET(localizationsMemoKey, memo);
+	  if (GS_THREAD_KEY_GET(localizationsMemoKey) != memo)
+	    {
+	      free(memo);
+	      memo = 0;
+	    }
+	}
+    }
+  return memo;
+}
+
 /* Map a language name to any alternative versions.   This function should
  * return an array of alternative language/localisation directory names in
  * the preferred order of precedence (ie resources in the directories named
@@ -265,13 +335,19 @@ static AAssetManager *_assetManager = NULL;
  * use NSBundle *before* changing their working directories).
  */
 static NSString*
-AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
+AbsolutePathOfExecutable(NSString *path, BOOL atLaunch, NSString **err)
 {
+  NSString	*dummy;
   NSString	*tmp;
 
+  if (0 == err)
+    {
+      err = &dummy;
+    }
+  *err = nil;
   if (0 == [path length])
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() empty path.\n");
+      *err = @"empty path.";
       return nil;
     }
   if (NO == [path isAbsolutePath])
@@ -299,6 +375,15 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
       pathArray = [pathlist componentsSeparatedByString: @":"];
 #endif
       pathArray = AUTORELEASE([pathArray mutableCopy]);
+      if (nil == pathArray)
+	{
+	  /* Neither PATH nor Path is in the environment, so the only
+	   * directory to search is the one added below.  Without an array
+	   * here -indexOfObject: answers 0 rather than NSNotFound and the
+	   * loop removing '.' never ends.
+	   */
+	  pathArray = [NSMutableArray arrayWithCapacity: 1];
+	}
 
       /* The directory value '.' can be replaced by either the
        * path to the current directory or the launch directory
@@ -309,8 +394,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	  prefix = _launchDirectory;
 	  if ([prefix length] == 0)
 	    {
-	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
-		" launch directory for '%s'.\n", [path UTF8String]);
+	      *err = [NSString stringWithFormat:
+		@"failed to getlaunch directory for '%@'.", path];
 	      return nil;
 	    }
 	}
@@ -319,8 +404,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	  prefix = [mgr currentDirectoryPath];
 	  if ([prefix length] == 0)
 	    {
-	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
-		" current directory for '%s'.\n", [path UTF8String]);
+	      *err = [NSString stringWithFormat:
+		@"failed to get current directory for '%@'.", path];
 	      return nil;
 	    }
 	}
@@ -382,9 +467,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	}
       if (nil == result)
 	{
-	  fprintf(stderr, "AbsolutePathOfExecutable() unable to find '%s'"
-	    " in any of %s.\n", [path UTF8String],
-	    [[pathArray description] UTF8String]);
+	  *err = [NSString stringWithFormat:
+	    @"unable to find '%@' in any of %@.", path, [pathArray description]];
 	  return nil;
 	}
       path = result;
@@ -393,16 +477,16 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
   path = [path stringByResolvingSymlinksInPath];
   if ([path length] == 0)
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() resolving symlinks failed"
-	" for '%s'.\n", [tmp UTF8String]);
+      *err = [NSString stringWithFormat:
+	@"resolving symlinks failed for '%@'.", tmp];
       return nil;
     }
   tmp = path;
   path = [path stringByStandardizingPath];
   if ([path length] == 0)
     {
-      fprintf(stderr, "AbsolutePathOfExecutable() standardizing path failed"
-	" for '%s'.\n", [tmp UTF8String]);
+      *err = [NSString stringWithFormat:
+        @"standardizing path failed for '%@'.", tmp];
       return nil;
     }
   return path;
@@ -422,6 +506,8 @@ GSPrivateExecutablePath()
       [load_lock lock];
       if (beenHere == NO)
 	{
+	  NSString *err;
+
 #if	defined(PROCFS_EXE_LINK)
 	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
@@ -450,8 +536,13 @@ GSPrivateExecutablePath()
 		    "Unable to get executable path from NSProcessInfo.\n");
 		}
 	    }
-	  executablePath = AbsolutePathOfExecutable(executablePath, YES);
+	  executablePath = AbsolutePathOfExecutable(executablePath, YES, &err);
 	  IF_NO_ARC([executablePath retain];)
+	  if (err)
+	    {
+	      fprintf(stderr, "AbsolutePathOfExecutable() %s\n",
+		[err UTF8String]);
+	    }
 	  beenHere = YES;
 	}
       [load_lock unlock];
@@ -1059,7 +1150,7 @@ _find_paths(NSString *rootPath, NSString *subPath, NSString *localization)
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path
 {
-  return AbsolutePathOfExecutable(path, NO);
+  return AbsolutePathOfExecutable(path, NO, NULL);
 }
 
 /* Nicola & Mirko:
@@ -1714,6 +1805,10 @@ GSPrivateInfoDictionary(NSString *rootPath)
        */
       mode = GSPathHandling("right");
       _emptyTable = [NSDictionary new];
+      if (GS_THREAD_KEY_INIT(localizationsMemoKey, localizationsMemoFree))
+	{
+	  __atomic_store_n(&localizationsMemoKeyReady, YES, __ATOMIC_RELEASE);
+	}
 
       /* Create basic mapping dictionaries for bootstrapping and
        * for use if the full dictionaries can't be loaded from the
@@ -1826,9 +1921,8 @@ GSPrivateInfoDictionary(NSString *rootPath)
 
       /* The Locale aliases map converts canonical names to old-style names
        */
-      file = [_gnustep_bundle pathForResource: @"Locale"
-                                       ofType: @"aliases"
-                                  inDirectory: @"Languages"];
+      file = GSPrivateResourcePath(@"Locale", @"aliases",
+        [_gnustep_bundle bundlePath], @"Languages", NOT_LOCALIZED);
       if (file != nil)
         {
           NSDictionary  *d;
@@ -1845,9 +1939,8 @@ GSPrivateInfoDictionary(NSString *rootPath)
        * and converts ISO 639-2 names to the preferred ISO 639-1 names where
        * an ISO 639-1 name exists.
        */
-      file = [_gnustep_bundle pathForResource: @"Locale"
-                                       ofType: @"canonical"
-                                  inDirectory: @"Languages"];
+      file = GSPrivateResourcePath(@"Locale", @"canonical",
+        [_gnustep_bundle bundlePath], @"Languages", NOT_LOCALIZED);
       if (file != nil)
         {
           NSDictionary  *d;
@@ -2385,6 +2478,10 @@ IF_NO_ARC(
   TEST_RELEASE(_bundleClasses);
   TEST_RELEASE(_infoDict);
   TEST_RELEASE(_localizations);
+  /* A thread may hold this bundle in an entry of its own, and the address
+   * may be used by another bundle once this one is gone.
+   */
+  localizationsDidChange();
   [super dealloc];
 }
 
@@ -2951,12 +3048,14 @@ IF_NO_ARC(
   return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
 
-- (NSString *) localizedStringForKey: (NSString *)key
-                               value: (NSString *)value
-                               table: (NSString *)tableName
+/* Answers the localization table of the given name, loading it if the bundle
+ * has not been asked for it before, and the value the generation counter had
+ * while the lock was held.  The table is retained and autoreleased.
+ */
+- (NSDictionary *) _localizationTable: (NSString *)tableName
+			   generation: (uint64_t *)generation
 {
   NSDictionary	*table;
-  NSString	*newString = nil;
   NSString	*tablePath = nil;
   NSDictionary	*parsedTable = nil;
   BOOL		shouldLoad = NO;
@@ -2965,11 +3064,6 @@ IF_NO_ARC(
   GS_MUTEX_LOCK(_localizationsLock);
   if (_localizations == nil)
     _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
-
-  if (tableName == nil || [tableName isEqualToString: @""] == YES)
-    {
-      tableName = @"Localizable";
-    }
 
   table = [_localizations objectForKey: tableName];
   if (table == nil && [@"strings" isEqual: [tableName pathExtension]] == YES)
@@ -2986,6 +3080,7 @@ IF_NO_ARC(
        * up the string in the empty table.
        */
       [_localizations setObject: _emptyTable forKey: tableName];
+      localizationsDidChange();
       shouldLoad = YES;
     }
   GS_MUTEX_UNLOCK(_localizationsLock);
@@ -3027,6 +3122,7 @@ IF_NO_ARC(
        * keeping the empty table in the cache so we don't keep retrying.
        */
       [_localizations setObject: parsedTable forKey: tableName];
+      localizationsDidChange();
       table = parsedTable;
     }
   else
@@ -3035,10 +3131,83 @@ IF_NO_ARC(
       if (table == nil)
 	table = _emptyTable;
     }
+  RETAIN(table);
+  *generation = __atomic_load_n(&localizationsGeneration, __ATOMIC_RELAXED);
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  return AUTORELEASE(table);
+}
+
+- (NSString *) localizedStringForKey: (NSString *)key
+                               value: (NSString *)value
+                               table: (NSString *)tableName
+{
+  GSLocalizationsMemoEntry	*memo = localizationsMemo();
+  GSLocalizationsMemoEntry	*entry = 0;
+  NSDictionary			*table = nil;
+  NSString			*newString = nil;
+
+  if (tableName == nil || [tableName isEqualToString: @""] == YES)
+    {
+      tableName = @"Localizable";
+    }
+
+  /* An entry holds a retain on the table it names, so a table this thread
+   * has been given before is read without the lock and cannot be freed
+   * while it is being read.  The entries are searched rather than indexed by
+   * the name, since there are few of them and a caller usually passes the
+   * same name object every time.
+   */
+  if (0 != memo)
+    {
+      uint64_t	generation
+	= __atomic_load_n(&localizationsGeneration, __ATOMIC_ACQUIRE);
+      unsigned	i;
+
+      for (i = 0; i < GS_LOCALIZATIONS_MEMO_SIZE; i++)
+	{
+	  GSLocalizationsMemoEntry	*e = memo + i;
+
+	  if (e->owner == self && e->generation == generation
+	    && (e->name == tableName || [e->name isEqual: tableName]))
+	    {
+	      table = e->table;
+	      break;
+	    }
+	  if (0 == entry || e->generation < entry->generation)
+	    {
+	      entry = e;	// the oldest entry, replaced if a table is loaded
+	    }
+	}
+    }
+
+  if (nil == table)
+    {
+      uint64_t	generation = 0;
+
+      table = [self _localizationTable: tableName generation: &generation];
+      if (0 != entry)
+	{
+	  NSString	*oldName = entry->name;
+	  NSDictionary	*oldTable = entry->table;
+
+	  entry->owner = self;
+	  entry->name = [tableName copy];
+	  entry->table = RETAIN(table);
+	  entry->generation = generation;
+	  RELEASE(oldName);
+	  /* A string this thread has been given came out of the table it is
+	   * letting go of here, so that table is kept until the pool the
+	   * string was asked for in is emptied.
+	   */
+	  AUTORELEASE(oldTable);
+	}
+    }
 
   if (key != nil)
-    newString = [table objectForKey: key];
-  GS_MUTEX_UNLOCK(_localizationsLock);
+    {
+      newString = [table objectForKey: key];
+    }
 
   if (key == nil || newString == nil)
     {
@@ -3201,11 +3370,31 @@ IF_NO_ARC(
 
 - (NSDictionary *) infoDictionary
 {
-  if (nil == _infoDict)
+  NSDictionary	*d;
+
+  GS_MUTEX_LOCK(_localizationsLock);
+  d = AUTORELEASE(RETAIN(_infoDict));
+  GS_MUTEX_UNLOCK(_localizationsLock);
+
+  if (nil == d)
     {
-      _infoDict = [GSPrivateInfoDictionary(_path) copy];
+      NSDictionary	*built = [GSPrivateInfoDictionary(_path) copy];
+
+      /* The dictionary is built without the lock, since reading it from disk
+       * may come back into the bundle, so another thread may have installed
+       * one by the time the lock is held.
+       */
+      GS_MUTEX_LOCK(_localizationsLock);
+      if (nil == _infoDict)
+	{
+	  _infoDict = built;
+	  built = nil;
+	}
+      d = AUTORELEASE(RETAIN(_infoDict));
+      GS_MUTEX_UNLOCK(_localizationsLock);
+      RELEASE(built);
     }
-  return _infoDict;
+  return d;
 }
 
 - (NSString *) builtInPlugInsPath
@@ -3471,7 +3660,7 @@ IF_NO_ARC(
 {
   NSUInteger	plen = [_path length];
   NSEnumerator	*enumerator;
-  NSString		*path;
+  NSString	*path;
   
   [pathCacheLock lock];
   enumerator = [pathCache keyEnumerator];
@@ -3505,10 +3694,13 @@ IF_NO_ARC(
 	}
     }
   [pathCacheLock unlock];
-  
+
   /* also destroy cached variables depending on bundle paths */
+  GS_MUTEX_LOCK(_localizationsLock);
   DESTROY(_infoDict);
   DESTROY(_localizations);
+  localizationsDidChange();
+  GS_MUTEX_UNLOCK(_localizationsLock);
 }
 
 #ifdef __ANDROID__

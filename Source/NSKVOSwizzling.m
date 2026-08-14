@@ -138,17 +138,27 @@ _NSKVOEnsureObjectIsKVOAware(id object)
 static inline NSMapTable *
 _selectorMappingsForObject(id object)
 {
-  static char s_selMapKey;
-  Class       cls;
+  static char  s_selMapKey;
+  Class        cls;
+  NSMapTable  *selMappings;
 
   // here we explicitly want the public
   // (non-hidden) class associated with the object.
   cls = object_getClass(object);
 
+  /* Reading an association is synchronized by the runtime.  The class lock is
+   * only needed to stop two threads each building a table, so it is skipped
+   * once one exists, which is every call after the first.
+   */
+  selMappings = (NSMapTable *) objc_getAssociatedObject(cls, &s_selMapKey);
+  if (nil != selMappings)
+    {
+      return selMappings;
+    }
+
   @synchronized(cls)
   {
-    NSMapTable *selMappings
-      = (NSMapTable *) objc_getAssociatedObject(cls, &s_selMapKey);
+    selMappings = (NSMapTable *) objc_getAssociatedObject(cls, &s_selMapKey);
     if (!selMappings)
       {
         selMappings = [NSMapTable

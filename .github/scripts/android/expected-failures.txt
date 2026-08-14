@@ -1,0 +1,12 @@
+# Tests that fail on Android and are understood.  A failure whose
+# "directory/file.m:line" appears here does not fail the build; anything else
+# does.  Each entry is a test assumption that does not hold on Android rather
+# than a defect in gnustep-base.
+#
+# gzip level 9 is asserted to be smaller than level 5.  It is not, for this
+# input, with the zlib built for Android: 6068 bytes against 6089.
+NSData/additions.m:49
+#
+# The home directory is "/", so every absolute path is inside it and the tilde
+# is substituted where the test expects it not to be.
+NSString/tilde.m:48

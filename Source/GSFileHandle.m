@@ -143,7 +143,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
   if (NO == beenHere)
     {
       beenHere = YES;
-      [GSTcpTune class];
       [self registerAtExit];
     }
 }

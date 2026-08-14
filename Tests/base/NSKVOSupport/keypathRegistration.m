@@ -166,8 +166,23 @@ main(int argc, char **argv)
   PASS(watcher->count == 1,
        "no notification arrives once the observer is removed");
 
-  /* A plain array refuses an observer, so a key path through one is left as
-     it was: the observation is registered, and no change is reported. */
+  /* A plain array refuses an observer, and a key path through one reaches the
+     array with the rest of the key path, so that registration raises too. */
+  {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
+    [dict setObject: [NSArray arrayWithObject: element] forKey: @"list"];
+
+    PASS_EXCEPTION([dict addObserver: watcher
+                          forKeyPath: @"list.name"
+                             options: NSKeyValueObservingOptionNew
+                             context: NULL];,
+      NSInvalidArgumentException,
+      "a key path through a plain array raises");
+  }
+
+  /* An operator reads through the array rather than naming a property of the
+     objects it holds, so it is accepted. */
   {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     BOOL raised = NO;
@@ -177,10 +192,10 @@ main(int argc, char **argv)
     NS_DURING
       {
         [dict addObserver: watcher
-               forKeyPath: @"list.name"
+               forKeyPath: @"list.@count"
                   options: NSKeyValueObservingOptionNew
                   context: NULL];
-        [dict removeObserver: watcher forKeyPath: @"list.name"];
+        [dict removeObserver: watcher forKeyPath: @"list.@count"];
       }
     NS_HANDLER
       {
@@ -189,7 +204,7 @@ main(int argc, char **argv)
     NS_ENDHANDLER
 
     PASS(raised == NO,
-         "a key path through a plain array is still accepted");
+      "a key path through an array to an operator is accepted");
   }
 
   DESTROY(arp);

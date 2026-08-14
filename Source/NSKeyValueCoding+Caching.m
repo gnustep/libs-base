@@ -87,6 +87,31 @@ static void inline _KVCCacheSlotRelease(const void *ptr)
 #import "GNUstepBase/GSIMap.h"
 #import "GSPThread.h"
 
+/* A slot is added to the shared table once and never removed from it, so a
+ * pointer to one stays valid for the life of the process and each thread can
+ * keep a few of them to itself.  A thread that finds the slot it wants here
+ * reads nothing the other threads write.
+ */
+#define KVC_THREAD_CACHE_SIZE 8
+
+struct _KVCThreadCache
+{
+  struct _KVCCacheSlot *slots[KVC_THREAD_CACHE_SIZE];
+};
+
+static gs_thread_key_t  kvcThreadCacheKey;
+/* Read without the lock and written under it, so the flag is reached through
+ * atomic operations.  The release pairs with the acquire below, which is what
+ * publishes the key itself to a thread that finds the flag set.
+ */
+static BOOL             kvcThreadCacheKeyReady = NO;
+
+static void
+_KVCThreadCacheFree(void *cache)
+{
+  free(cache);
+}
+
 /*
  * Templating for poor people:
  * We need to call IMP with the correct function signature and box
@@ -578,15 +603,44 @@ valueForKeyWithCaching(id obj, NSString *aKey)
   static GSIMapTable_t  cacheTable = {};
   static gs_mutex_t     cacheTableLock = GS_MUTEX_INIT_STATIC;
 
+  struct _KVCThreadCache *threadCache = NULL;
+  unsigned int           threadCacheIndex = 0;
+
   Class cls = object_getClass(obj);
   // Fill out the required fields for hashing
   struct _KVCCacheSlot slot = {.cls = cls, .hash = [aKey hash]};
+
+  if (__atomic_load_n(&kvcThreadCacheKeyReady, __ATOMIC_ACQUIRE))
+    {
+      threadCache = GS_THREAD_KEY_GET(kvcThreadCacheKey);
+      threadCacheIndex = (unsigned int)
+        (((uintptr_t) cls ^ (uintptr_t) slot.hash) % KVC_THREAD_CACHE_SIZE);
+      if (threadCache != NULL)
+        {
+          cachedSlot = threadCache->slots[threadCacheIndex];
+          if (cachedSlot != NULL
+            && cachedSlot->cls == cls
+            && cachedSlot->hash == slot.hash
+            && cachedSlot->version == objc_method_cache_version)
+            {
+              return cachedSlot->get(cachedSlot, obj);
+            }
+          cachedSlot = NULL;
+        }
+    }
 
   GS_MUTEX_LOCK(cacheTableLock);
   if (cacheTable.zone == 0)
     {
       // TODO: Tweak initial capacity
       GSIMapInitWithZoneAndCapacity(&cacheTable, NSDefaultMallocZone(), 64);
+    }
+  if (!__atomic_load_n(&kvcThreadCacheKeyReady, __ATOMIC_RELAXED))
+    {
+      if (GS_THREAD_KEY_INIT(kvcThreadCacheKey, _KVCThreadCacheFree))
+        {
+          __atomic_store_n(&kvcThreadCacheKeyReady, YES, __ATOMIC_RELEASE);
+        }
     }
   node = GSIMapNodeForKey(&cacheTable, (GSIMapKey) (void *) &slot);
   GS_MUTEX_UNLOCK(cacheTableLock);
@@ -632,6 +686,28 @@ valueForKeyWithCaching(id obj, NSString *aKey)
       GS_MUTEX_LOCK(cacheTableLock);
       memcpy(cachedSlot, &slot, sizeof(struct _KVCCacheSlot));
       GS_MUTEX_UNLOCK(cacheTableLock);
+    }
+
+  if (__atomic_load_n(&kvcThreadCacheKeyReady, __ATOMIC_ACQUIRE))
+    {
+      if (threadCache == NULL)
+        {
+          threadCache = GS_THREAD_KEY_GET(kvcThreadCacheKey);
+          if (threadCache == NULL)
+            {
+              threadCache = calloc(1, sizeof(struct _KVCThreadCache));
+              if (threadCache != NULL)
+                {
+                  GS_THREAD_KEY_SET(kvcThreadCacheKey, threadCache);
+                }
+            }
+          threadCacheIndex = (unsigned int)
+            (((uintptr_t) cls ^ (uintptr_t) slot.hash) % KVC_THREAD_CACHE_SIZE);
+        }
+      if (threadCache != NULL)
+        {
+          threadCache->slots[threadCacheIndex] = cachedSlot;
+        }
     }
 
   return cachedSlot->get(cachedSlot, obj);

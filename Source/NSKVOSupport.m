@@ -120,7 +120,27 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 #pragma endregion
 
 #pragma region Keypath Observer
+/* The entire change dictionary for an observation registered with no options.
+ * The same dictionary serves every such observation and every change, rather
+ * than an equal one built per change.  It is immutable, so a write to it from
+ * observeValueForKeyPath:ofObject:change:context: raises rather than altering
+ * the next notification.
+ */
+static NSDictionary *_kvoSettingChange = nil;
+
 @implementation _NSKVOKeypathObserver
++ (void) initialize
+{
+  if (self == [_NSKVOKeypathObserver class] && nil == _kvoSettingChange)
+    {
+      _kvoSettingChange = [[NSDictionary alloc]
+        initWithObjects: (id[]){[NSNumber numberWithUnsignedInteger:
+                                  NSKeyValueChangeSetting]}
+                forKeys: (id[]){NSKeyValueChangeKindKey}
+                  count: 1];
+    }
+}
+
 @synthesize object = _object;
 @synthesize observer = _observer;
 @synthesize keypath = _keypath;
@@ -141,6 +161,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
       _keypath = [keypath copy];
       _options = options;
       _context = context;
+      GS_MUTEX_INIT_RECURSIVE(_changeLock);
     }
   return self;
 }
@@ -149,7 +170,33 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
 {
   [_keypath release];
   [_pendingChange release];
+  GS_MUTEX_DESTROY(_changeLock);
   [super dealloc];
+}
+
+- (void) lockChange
+{
+  GS_MUTEX_LOCK(_changeLock);
+}
+
+- (void) unlockChange
+{
+  GS_MUTEX_UNLOCK(_changeLock);
+}
+
+- (void) beginDelivery
+{
+  __atomic_fetch_add(&_deliveryCount, 1, __ATOMIC_SEQ_CST);
+}
+
+- (void) endDelivery
+{
+  __atomic_fetch_sub(&_deliveryCount, 1, __ATOMIC_SEQ_CST);
+}
+
+- (BOOL) isDelivering
+{
+  return __atomic_load_n(&_deliveryCount, __ATOMIC_SEQ_CST) != 0;
 }
 
 - (BOOL) pushWillChange
@@ -247,8 +294,46 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
     {
       _keyObserverMap = [[NSMutableDictionary alloc] initWithCapacity: 1];
       GS_MUTEX_INIT(_lock);
+      GS_MUTEX_INIT_RECURSIVE(_changeLock);
     }
   return self;
+}
+
+- (void) lockChange
+{
+  GS_MUTEX_LOCK(_changeLock);
+}
+
+- (void) unlockChange
+{
+  GS_MUTEX_UNLOCK(_changeLock);
+}
+
+- (void) pushChangeSet: (NSArray *)set
+{
+  if (nil == _changeSets)
+    {
+      _changeSets = [[NSMutableArray alloc] initWithCapacity: 2];
+    }
+  /* A key with no observers still needs an entry, so that the didChange pops
+   * what this willChange pushed. */
+  [_changeSets addObject: (nil == set) ? (NSArray *)[NSArray array] : set];
+}
+
+/* Borrowed: the stack holds it until -popChangeSet. */
+- (NSArray *) currentChangeSet
+{
+  NSUInteger	count = [_changeSets count];
+
+  return (0 == count) ? nil : [_changeSets objectAtIndex: count - 1];
+}
+
+- (void) popChangeSet
+{
+  if ([_changeSets count] > 0)
+    {
+      [_changeSets removeLastObject];
+    }
 }
 
 - (void) dealloc
@@ -275,8 +360,10 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
     }
   [_keyObserverMap release];
   [_existingDependentKeys release];
+  [_changeSets release];
 
   GS_MUTEX_DESTROY(_lock);
+  GS_MUTEX_DESTROY(_changeLock);
 
   [super dealloc];
 }
@@ -489,11 +576,52 @@ _registersObservationsItself(id object)
       != class_getMethodImplementation([NSSet class], selector);
 }
 
+/* Whether the value refuses observer registration, which is what a plain
+ * collection does.  A key path cannot continue through one: the collection
+ * reports no change for a property of the objects it holds.
+ */
+static BOOL
+_refusesObservation(id object)
+{
+  SEL   selector = @selector(addObserver:forKeyPath:options:context:);
+  IMP   implementation;
+
+  if (nil == object)
+    {
+      return NO;
+    }
+  implementation
+    = class_getMethodImplementation(object_getClass(object), selector);
+
+  return implementation
+      == class_getMethodImplementation([NSArray class], selector)
+    || implementation
+      == class_getMethodImplementation([NSSet class], selector);
+}
+
 /* Observe the rest of a key path on the value of its first key. */
 static void
 _attachRestOfKeypath(_NSKVOKeyObserver *keyObserver)
 {
   id value = [keyObserver.object valueForKey: keyObserver.key];
+
+  /* An operator reads through the collection and reports the result for the
+   * whole key path, so it is registered as any other key is.  Any other key
+   * names a property of the objects the collection holds, and the collection
+   * raises for it, as it does when the same key path is registered on it
+   * directly.
+   */
+  if (_refusesObservation(value)
+    && NO == [keyObserver.restOfKeypath hasPrefix: @"@"])
+    {
+      _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+
+      [value addObserver: keypathObserver.observer
+              forKeyPath: keyObserver.restOfKeypath
+                 options: keypathObserver.options
+                 context: keypathObserver.context];
+      return;
+    }
 
   if (_registersObservationsItself(value))
     {
@@ -1083,24 +1211,33 @@ _valueForPendingChangeAtIndexes(id notifyingObject, NSString *key,
 
 // void TFunc(_NSKVOKeyObserver* keyObserver);
 inline static void
-_dispatchWillChange(id notifyingObject, NSString *key,
+_dispatchWillChange(_NSKVOObservationInfo *observationInfo,
+                    id notifyingObject, NSString *key,
                     DispatchChangeFunction fn, void *changeContext)
 {
-  _NSKVOObservationInfo *observationInfo
-    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray *observers = [observationInfo observersForKey:key];
+  NSArray *observers;
+
+  if (nil == observationInfo)
+    {
+      return;
+    }
+  [observationInfo lockChange];
+  observers = [observationInfo observersForKey:key];
+  /* Held until the matching didChange, which locks and unlocks this same
+   * array.  Registering or removing an observer replaces the array rather
+   * than changing it, so what is locked here cannot be added to or taken
+   * away from before it is unlocked. */
+  [observationInfo pushChangeSet: observers];
   for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
 
-      if (keyObserver.isRemoved)
-        {
-          continue;
-        }
-
-      // Skip any keypaths that are in the process of changing.
+      /* Every observer in the array is locked, including one already marked
+       * removed, so that the didChange has the same set to unlock.  Whether
+       * there is work to do is a separate question, below. */
       keypathObserver = keyObserver.keypathObserver;
-      if ([keypathObserver pushWillChange])
+      [keypathObserver lockChange];
+      if ([keypathObserver pushWillChange] && !keyObserver.isRemoved)
         {
           NSKeyValueObservingOptions options;
 
@@ -1126,60 +1263,100 @@ _dispatchWillChange(id notifyingObject, NSString *key,
         }
 
       // This must happen regardless of whether we are currently notifying.
-      _removeNestedObserversAndOptionallyDependents(keyObserver, false);
+      if (!keyObserver.isRemoved)
+        {
+          _removeNestedObserversAndOptionallyDependents(keyObserver, false);
+        }
     }
+  /* The matching -unlockChange calls are in _dispatchDidChange. */
 }
 
+/* One observer call, held until every lock has been dropped. */
+typedef struct {
+  _NSKVOKeypathObserver *keypathObserver;
+  NSMutableDictionary   *change;
+} GSKVOPendingNotification;
+
 static void
-_dispatchDidChange(id notifyingObject, NSString *key,
+_dispatchDidChange(_NSKVOObservationInfo *observationInfo,
+                   id notifyingObject, NSString *key,
                    DispatchChangeFunction fn, void *changeContext)
 {
-  _NSKVOObservationInfo *observationInfo
-    = (_NSKVOObservationInfo *) [notifyingObject observationInfo];
-  NSArray *observers =
-    [observationInfo observersForKey:key];
-  NSUInteger index = [observers count];
+  GSKVOPendingNotification   held[8];
+  GSKVOPendingNotification  *pending = held;
+  NSUInteger                 count = 0;
+  NSArray                   *observers;
+  NSUInteger                 index;
+
+  if (nil == observationInfo)
+    {
+      return;
+    }
+  /* Exactly what _dispatchWillChange locked, so that an observer registered
+   * or removed while the change was in progress cannot leave a key path
+   * observer locked, or unlock one that was never locked. */
+  observers = [observationInfo currentChangeSet];
+  index = [observers count];
+  if (index > sizeof(held) / sizeof(held[0]))
+    {
+      pending = malloc(index * sizeof(GSKVOPendingNotification));
+    }
   /* Notify in reverse order (a plain index loop avoids allocating an
    * NSReverseEnumerator on every change). */
   while (index-- > 0)
     {
       _NSKVOKeyObserver     *keyObserver = [observers objectAtIndex: index];
       _NSKVOKeypathObserver *keypathObserver;
+      BOOL                   removed = keyObserver.isRemoved;
 
-      if (keyObserver.isRemoved)
+      if (!removed)
         {
-          continue;
+          // This must happen regardless of whether we are currently notifying.
+          _addNestedObserversAndOptionallyDependents(keyObserver, false);
         }
 
-      // This must happen regardless of whether we are currently notifying.
-      _addNestedObserversAndOptionallyDependents(keyObserver, false);
-
-      // Skip any keypaths that are in the process of changing.
+      /* The change depth is popped even for an observer removed during the
+       * change, because the willChange pushed it. */
       keypathObserver = keyObserver.keypathObserver;
-      if ([keypathObserver popDidChange])
+      if ([keypathObserver popDidChange] && !removed)
         {
-          id			observer;
-          NSString            	*keypath;
-          id                   	rootObject;
-          NSMutableDictionary 	*change;
-          void                	*context;
-
           // Call into the change function, which does set-up for finalizing
           // the changes dictionary
           fn(keyObserver, changeContext);
 
-          observer = keypathObserver.observer;
-          keypath = keypathObserver.keypath;
-          rootObject = keypathObserver.object;
-          change = keypathObserver.pendingChange;
-          context = keypathObserver.context;
-          [observer observeValueForKeyPath:keypath
-                                  ofObject:rootObject
-                                    change:change
-                                   context:context];
-          /* pendingChange is retained for reuse by the next notification
-           * (cleared/repopulated in the change function), not freed here. */
+          /* Held until the locks are dropped: an observer that sets a second
+           * observed object would otherwise deadlock against a thread taking
+           * the same two objects in the other order.  The delivery is counted
+           * so that a willChange elsewhere does not refill the dictionary
+           * while it is being read.  Holding the key path observer holds the
+           * observer, the key path and the context with it.
+           */
+          [keypathObserver beginDelivery];
+          pending[count].keypathObserver = [keypathObserver retain];
+          pending[count].change = [keypathObserver.pendingChange retain];
+          count++;
         }
+      [keypathObserver unlockChange];
+    }
+  [observationInfo popChangeSet];
+  [observationInfo unlockChange];
+
+  for (index = 0; index < count; index++)
+    {
+      _NSKVOKeypathObserver *keypathObserver = pending[index].keypathObserver;
+
+      [keypathObserver.observer
+        observeValueForKeyPath: keypathObserver.keypath
+                      ofObject: keypathObserver.object
+                        change: pending[index].change
+                       context: keypathObserver.context];
+      [keypathObserver endDelivery];
+      [pending[index].change release];
+      [keypathObserver release];
+    }
+  if (pending != held)
+    {
+      free(pending);
     }
 }
 
@@ -1190,9 +1367,28 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
   NSKeyValueObservingOptions options = keypathObserver.options;
   NSMutableDictionary *change = keypathObserver.pendingChange;
 
+  /* An observer that asked for no old, new or prior value is handed the same
+   * one entry every time, so it is handed a shared dictionary rather than one
+   * emptied and refilled per change.
+   */
+  if (0 == (options & (NSKeyValueObservingOptionOld
+    | NSKeyValueObservingOptionNew | NSKeyValueObservingOptionPrior)))
+    {
+      if (change != (NSMutableDictionary *)_kvoSettingChange)
+        {
+          keypathObserver.pendingChange
+            = (NSMutableDictionary *)_kvoSettingChange;
+        }
+      return;
+    }
+
   /* Reuse the change dictionary across notifications rather than allocating
-   * (and rehashing) a fresh one every time the setter fires. */
-  if (change == nil)
+   * (and rehashing) a fresh one every time the setter fires.  A delivery in
+   * progress is still reading the last one, so that case gets a fresh
+   * dictionary instead.
+   */
+  if (change == nil || change == (NSMutableDictionary *)_kvoSettingChange
+    || [keypathObserver isDelivering])
     {
       change = [[NSMutableDictionary alloc] initWithCapacity: 3];
       keypathObserver.pendingChange = change;
@@ -1219,9 +1415,12 @@ _kvoWillSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 
 - (void) willChangeValueForKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
-      _dispatchWillChange(self, key, _kvoWillSetChange, NULL);
+      _dispatchWillChange(info, self, key, _kvoWillSetChange, NULL);
     }
 }
 
@@ -1245,9 +1444,12 @@ _kvoDidSetChange(_NSKVOKeyObserver *keyObserver, void *context)
 
 - (void) didChangeValueForKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
-      _dispatchDidChange(self, key, _kvoDidSetChange, NULL);
+      _dispatchDidChange(info, self, key, _kvoDidSetChange, NULL);
     }
 }
 
@@ -1308,10 +1510,13 @@ _kvoWillIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
              forKey: (NSString *)key
 {
   NSKeyValueChange kind = changeKind;
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoIndexedWillContext ctx = { &kind, indexes, self, key };
-      _dispatchWillChange(self, key, _kvoWillIndexedChange, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillIndexedChange, &ctx);
     }
 }
 
@@ -1348,10 +1553,13 @@ _kvoDidIndexedChange(_NSKVOKeyObserver *keyObserver, void *context)
    valuesAtIndexes: (NSIndexSet *)indexes
             forKey: (NSString *)key
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoIndexedDidContext ctx = { self, key };
-      _dispatchDidChange(self, key, _kvoDidIndexedChange, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidIndexedChange, &ctx);
     }
 }
 
@@ -1434,11 +1642,14 @@ _kvoWillSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
               withSetMutation: (NSKeyValueSetMutationKind)mutationKind
                  usingObjects: (NSSet *)objects
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoSetWillContext ctx
         = { _changeFromSetMutationKind(mutationKind), mutationKind, objects };
-      _dispatchWillChange(self, key, _kvoWillSetMutation, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillSetMutation, &ctx);
     }
 }
 
@@ -1481,10 +1692,13 @@ _kvoDidSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
              withSetMutation: (NSKeyValueSetMutationKind)mutationKind
                 usingObjects: (NSSet *)objects
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoSetDidContext ctx = { mutationKind, objects };
-      _dispatchDidChange(self, key, _kvoDidSetMutation, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidSetMutation, &ctx);
     }
 }
 @end
@@ -1544,11 +1758,14 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
                               oldValue: (id)oldValue
                               newValue: (id)newValue
 {
-  if ([self observationInfo])
+  _NSKVOObservationInfo *info
+    = (_NSKVOObservationInfo *) [self observationInfo];
+
+  if (info)
     {
       struct _kvoNotifyContext ctx = { oldValue, newValue };
-      _dispatchWillChange(self, key, _kvoWillNotifyChange, &ctx);
-      _dispatchDidChange(self, key, _kvoDidNotifyChange, &ctx);
+      _dispatchWillChange(info, self, key, _kvoWillNotifyChange, &ctx);
+      _dispatchDidChange(info, self, key, _kvoDidNotifyChange, &ctx);
     }
 }
 

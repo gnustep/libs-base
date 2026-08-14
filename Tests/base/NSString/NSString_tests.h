@@ -79,12 +79,17 @@ test_encodings_helper(NSStringEncoding encoding,
 	  encodings++;
 	}
     }
-  PASS(encodings != 0 && encoding == *encodings,
-    "String encoding %d is supported", encoding);
-  if (NO == testPassed)
+  if (0 == encodings || encoding != *encodings)
     {
+      /* Which encodings exist is a property of the platform's iconv, not of
+       * gnustep-base: bionic supports far fewer of them than glibc does.
+       */
+      START_SET("string encoding")
+      SKIP("string encoding is not supported on this platform")
+      END_SET("string encoding")
       return;
     }
+  PASS(YES, "String encoding %d is supported", encoding);
   
   enc = [[NSString localizedNameOfStringEncoding: encoding] UTF8String];
 

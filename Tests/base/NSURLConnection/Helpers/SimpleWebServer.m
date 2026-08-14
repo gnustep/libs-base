@@ -155,7 +155,21 @@
 					      service: _port
 					     protocol: @"tcp"];
     }
+  if (nil == _fh)
+    {
+      /* The bind or listen failed and NSFileHandle has already logged the
+       * reason.  Report it rather than accepting connections on nil, which
+       * leaves every request to time out for no stated reason.
+       */
+      NSLog(@"%@ could not listen on %@:%@", self, _address, _port);
+      return NO;
+    }
   RETAIN(_fh);
+
+  /* A port of 0 asks the system for one, so record the port bound rather
+   * than the port requested.
+   */
+  ASSIGN(_port, [_fh socketService]);
 
   [[NSNotificationCenter defaultCenter] addObserver: self
 					  selector: @selector(_accept:)

@@ -568,6 +568,16 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
 NSString *
 GSPrivateSymbolPath(Class theClass) GS_ATTRIB_PRIVATE;
 
+#if	defined(__ANDROID__)
+/* GSPrivateAndroidToolsDirectory() returns the directory this library was
+ * loaded from, which on Android is the directory a package's executable files
+ * are installed into and the only directory a tool may be started from.
+ * Returns nil where the library's own location cannot be determined.
+ */
+NSString *
+GSPrivateAndroidToolsDirectory(void) GS_ATTRIB_PRIVATE;
+#endif
+
 /* Combining class for composite unichars
  */
 unsigned char
