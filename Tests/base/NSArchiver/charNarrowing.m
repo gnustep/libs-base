@@ -88,7 +88,7 @@ main(void)
     NSUnarchiver	*u;
     int			ints[4] = { 0, 1, 127, -5 };
     unsigned int	uints[3] = { 0, 1, 200 };
-    char		chars[4] = { 9, 9, 9, 9 };
+    signed char		chars[4] = { 9, 9, 9, 9 };
     unsigned char	uchars[3] = { 9, 9, 9 };
     BOOL		ok = YES;
 
