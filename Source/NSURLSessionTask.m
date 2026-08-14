@@ -1499,6 +1499,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
  * these are never reached (see +initialize).
  */
 #if __has_feature(blocks)
+/* These send the deprecated methods deliberately. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 - (void) _askDelegateToRedirectTo: (NSHTTPURLResponse *)response
 		       newRequest: (NSURLRequest *)request
 {
@@ -1536,6 +1540,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       [task resumeWithBodyStream: bodyStream];
     }];
 }
+
+#pragma GCC diagnostic pop
 #endif
 
 - (int) _heldCompletionCode

@@ -225,14 +225,14 @@ GS_NSURLSession_IVARS;
  * handler is called before this method returns.
  */
 - (void) getTasksWithCompletionHandler:
-  (GSNSURLSessionTasksCompletionHandler)completionHandler;
+  (GSNSURLSessionTasksCompletionHandler)completionHandler GS_DEPRECATED;
 
 /**
  * Deprecated: use -allTasks instead.  The completion handler is called
  * before this method returns.
  */
 - (void) getAllTasksWithCompletionHandler:
-  (GSNSURLSessionAllTasksCompletionHandler)completionHandler;
+  (GSNSURLSessionAllTasksCompletionHandler)completionHandler GS_DEPRECATED;
 
 /**
  * This serial NSOperationQueue queue is used for dispatching delegate messages
@@ -660,7 +660,8 @@ GS_EXPORT_CLASS
   task: (NSURLSessionTask *)task
   willPerformHTTPRedirection: (NSHTTPURLResponse *)response
   newRequest: (NSURLRequest *)request
-  completionHandler: (GSNSURLSessionRedirectHandler)completionHandler;
+  completionHandler: (GSNSURLSessionRedirectHandler)completionHandler
+  GS_DEPRECATED;
 
 /* An HTTP request is attempting to perform a redirection to a different URL.
  * Reply by sending -resumeWithRedirectRequest: to the task, with the request
@@ -679,7 +680,8 @@ GS_EXPORT_CLASS
  */
 - (void) URLSession: (NSURLSession *)session
   task: (NSURLSessionTask *)task
-  needNewBodyStream: (GSNSURLSessionBodyStreamHandler)completionHandler;
+  needNewBodyStream: (GSNSURLSessionBodyStreamHandler)completionHandler
+  GS_DEPRECATED;
 
 /* A new body stream is needed to continue the upload.  Reply by sending
  * -resumeWithBodyStream: to the task.  The reply may be sent at any time and
@@ -705,7 +707,8 @@ GS_EXPORT_CLASS
 - (void) URLSession: (NSURLSession *)session
   dataTask: (NSURLSessionDataTask *)dataTask
   didReceiveResponse: (NSURLResponse *)response
-  completionHandler: (GSNSURLSessionResponseDispositionHandler)completionHandler;
+  completionHandler: (GSNSURLSessionResponseDispositionHandler)completionHandler
+  GS_DEPRECATED;
 
 /** Informs the delegate of a response.  This message is sent when all the
  * response headers have arrived, before the body of the response arrives.
