@@ -130,12 +130,19 @@ DEFINE_BLOCK_TYPE(GSNSURLSessionChallengeHandler, void,
 GS_EXPORT_CLASS
 @interface NSURLSession : NSObject
 {
-@private
-  NSOperationQueue          *_delegateQueue;
-  id<NSURLSessionDelegate>   _delegate;
-  NSURLSessionConfiguration *_configuration;
-
-  NSString *_sessionDescription;
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSURLSession_IVARS)
+@public
+GS_NSURLSession_IVARS;
+#  endif
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+@private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 + (NSURLSession *) sharedSession;
