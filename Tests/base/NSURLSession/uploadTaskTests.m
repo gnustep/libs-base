@@ -25,7 +25,8 @@ static NSTimeInterval expectedCountOfTasksToComplete = 0;
 
 /* Accessed in delegate on different thread.
  */
-static _Atomic(NSInteger) currentCountOfCompletedTasks = 0;
+/* Updated under countLock. */
+static volatile NSInteger currentCountOfCompletedTasks = 0;
 static NSLock            *countLock;
 
 /* Expected Content */
@@ -56,7 +57,7 @@ static NSData   *largeBodyContent;
 
 static LargeUploadRoute *largeUploadRoute;
 
-static NSArray<Route *> *
+static NSArray *
 createRoutes(Class routeClass)
 {
   Route *routeOKWithContent;
@@ -81,7 +82,8 @@ createRoutes(Class routeClass)
           target:largeUploadRoute
         selector:@selector(responseForRequest:)];
 
-  return @[ routeOKWithContent, routeLargeUpload ];
+  return [NSArray arrayWithObjects:
+    routeOKWithContent, routeLargeUpload, nil];
 }
 
 #if __has_feature(blocks)
@@ -137,14 +139,14 @@ testLargeUploadWithBlock(NSURL *baseURL)
 int
 main(int argc, char *argv[])
 {
-  @autoreleasepool
   {
+  CREATE_AUTORELEASE_POOL(arp);
     NSBundle         *bundle;
     NSString         *helperPath;
     NSString         *currentDirectory;
     NSURL            *baseURL;
     NSFileManager    *fm;
-    NSArray<Route *> *routes;
+    NSArray          *routes;
     HTTPServer       *server;
     NSDate           *deadline;
 
@@ -204,7 +206,8 @@ main(int argc, char *argv[])
 
     [server release];
     [countLock release];
-  }
+  DESTROY(arp);
+}
   return 0;
 }
 

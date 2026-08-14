@@ -139,7 +139,7 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
 
 - (void)URLSession:(NSURLSession *)session
                   task:(NSURLSessionTask *)task
-  didCompleteWithError:(nullable NSError *)error
+  didCompleteWithError:(NSError * _Nullable)error
 {
   ASSIGN(currentSession, session);
   ASSIGN(didCompleteTask, task);

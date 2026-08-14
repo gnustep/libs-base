@@ -21,7 +21,8 @@ static NSTimeInterval expectedCountOfTasksToComplete = 0;
 
 /* Accessed in delegate on different thread.
  */
-static _Atomic(NSInteger) currentCountOfCompletedTasks = 0;
+/* Updated under countLock. */
+static volatile NSInteger currentCountOfCompletedTasks = 0;
 static NSLock            *countLock;
 
 /* All sessions share this single serial delegate queue so that delegate and
@@ -92,7 +93,7 @@ asciiData(NSString *s)
   return [s dataUsingEncoding:NSASCIIStringEncoding];
 }
 
-static NSArray<Route *> *
+static NSArray *
 createRoutes(Class routeClass, NSURL *baseURL)
 {
   Route *routeOKWithContent;
@@ -161,10 +162,9 @@ createRoutes(Class routeClass, NSURL *baseURL)
           @" ing\r\nFolded-Header-TAB: Test\r\n\ting\r\n\r\nHello "
           @"World!")];
 
-  return @[
+  return [NSArray arrayWithObjects:
     routeOKWithContent, routeTmpRedirectToOK, routeTmpRelativeRedirectToOK,
-    routeSetCookiesOK, routeFoldedHeaders, routeIncorrectlyFoldedHeaders
-  ];
+    routeSetCookiesOK, routeFoldedHeaders, routeIncorrectlyFoldedHeaders, nil];
 }
 
 @interface URLManagerCheck : NSObject
@@ -203,7 +203,7 @@ createRoutes(Class routeClass, NSURL *baseURL)
     NSURLResponse           *response = mgr->didReceiveResponse;
     NSError                 *error = mgr->didCompleteError;
     NSString                *string;
-    NSArray<NSHTTPCookie *> *cookieArray;
+    NSArray                 *cookieArray;
     NSDate                  *date;
     NSInteger                count = 0;
 
@@ -706,6 +706,7 @@ testParallelDataTransfer(NSURL *baseURL)
   const char                *prefix = "<DataTransfer>";
 
   NSInteger numberOfParallelTasks = 10;
+  NSInteger i;
 
   /* URL Delegate Setup */
   mgr = [URLManager new];
@@ -724,7 +725,7 @@ testParallelDataTransfer(NSURL *baseURL)
   check->numberOfParallelTasks = numberOfParallelTasks;
   [mgr setCheckTarget:check selector:@selector(checkParallel:)];
 
-  for (NSInteger i = 0; i < numberOfParallelTasks; i++)
+  for (i = 0; i < numberOfParallelTasks; i++)
     {
       NSURLSessionDataTask *task;
 
@@ -948,8 +949,8 @@ testSessionTeardownWithoutInvalidate(NSURL *baseURL)
 
   for (i = 0; i < 5; i++)
     {
-      @autoreleasepool
       {
+  CREATE_AUTORELEASE_POOL(arp);
         NSURLSessionConfiguration *configuration;
         NSURLSession              *session;
         TeardownDelegate          *delegate;
@@ -971,7 +972,8 @@ testSessionTeardownWithoutInvalidate(NSURL *baseURL)
           ;
         /* Draining the pool releases the session; its -dealloc stops and
          * joins the work thread. */
-      }
+  DESTROY(arp);
+}
     }
 
   PASS(YES, "%s sessions torn down without invalidate did not hang or crash",
@@ -981,8 +983,8 @@ testSessionTeardownWithoutInvalidate(NSURL *baseURL)
 int
 main(int argc, char *argv[])
 {
-  @autoreleasepool
   {
+  CREATE_AUTORELEASE_POOL(arp);
     NSBundle      *bundle;
     NSString      *helperPath;
     NSURL         *baseURL;
@@ -993,15 +995,15 @@ main(int argc, char *argv[])
     Class httpServerClass;
     Class routeClass;
 
-    requestCookieProperties = @{
-      NSHTTPCookieName : @"RequestCookie",
-      NSHTTPCookieValue : @"1234",
-      NSHTTPCookieDomain : @"127.0.0.1",
-      NSHTTPCookiePath : @"/",
-      NSHTTPCookieExpires :
-        [NSDate dateWithString:@"2100-06-09 12:18:14 +0000"],
-      NSHTTPCookieSecure : @NO,
-    };
+    requestCookieProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+      @"RequestCookie", NSHTTPCookieName,
+      @"1234", NSHTTPCookieValue,
+      @"127.0.0.1", NSHTTPCookieDomain,
+      @"/", NSHTTPCookiePath,
+      [NSDate dateWithString:@"2100-06-09 12:18:14 +0000"],
+        NSHTTPCookieExpires,
+      [NSNumber numberWithBool:NO], NSHTTPCookieSecure,
+      nil];
 
     fm = [NSFileManager defaultManager];
     helperPath = [[fm currentDirectoryPath]
@@ -1085,7 +1087,8 @@ main(int argc, char *argv[])
 
     [server release];
     [countLock release];
-  }
+  DESTROY(arp);
+}
   return 0;
 }
 

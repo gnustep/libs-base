@@ -14,6 +14,7 @@
 #endif
 
 #import "HTTPServer.h"
+#import "GNUstepBase/GNUstep.h"
 
 /* Line by line over an ASCII header block.  On entry *lineStart is where to
  * read from; on return it is where the next line begins and *lineEnd is the
@@ -99,8 +100,8 @@ requestLength(NSData *data)
 {
   Route *r = [[Route alloc] initWithURL:url method:method];
 
-  r->_response = response;
-  return r;
+  ASSIGN(r->_response, response);
+  return AUTORELEASE(r);
 }
 
 + (instancetype)routeWithURL:(NSURL *)url
@@ -110,9 +111,9 @@ requestLength(NSData *data)
 {
   Route *r = [[Route alloc] initWithURL:url method:method];
 
-  r->_target = target;
+  ASSIGN(r->_target, target);
   r->_selector = aSelector;
-  return r;
+  return AUTORELEASE(r);
 }
 
 + (instancetype)routeWithURL:(NSURL *)url
@@ -122,7 +123,7 @@ requestLength(NSData *data)
   Route *r = [[Route alloc] initWithURL:url method:method];
 
   r->_block = block;
-  return r;
+  return AUTORELEASE(r);
 }
 
 - (instancetype)initWithURL:(NSURL *)url
@@ -132,8 +133,8 @@ requestLength(NSData *data)
 
   if (self)
     {
-      _url = url;
-      _method = method;
+      ASSIGN(_url, url);
+      ASSIGN(_method, method);
     }
 
   return self;
@@ -164,6 +165,15 @@ requestLength(NSData *data)
 - (BOOL)acceptsURL:(NSURL *)url method:(NSString *)method
 {
   return [[_url path] isEqualTo:[url path]];
+}
+
+- (void)dealloc
+{
+  RELEASE(_url);
+  RELEASE(_method);
+  RELEASE(_response);
+  RELEASE(_target);
+  [super dealloc];
 }
 
 @end /* Route */
@@ -248,8 +258,8 @@ requestLength(NSData *data)
 {
   while (!_stop)
     {
-      @autoreleasepool
-        {
+      {
+  CREATE_AUTORELEASE_POOL(arp);
           struct sockaddr_in	clientAddr;
           socklen_t      	sin_size = sizeof(struct sockaddr_in);
           int                	clientSocket;
@@ -270,7 +280,8 @@ requestLength(NSData *data)
                                    toTarget: self
                                  withObject: [NSNumber numberWithInt:
                                    clientSocket]];
-        }
+  DESTROY(arp);
+}
     }
 }
 
@@ -285,8 +296,8 @@ requestLength(NSData *data)
     {
       BOOL done = NO;
 
-      @autoreleasepool
-        {
+      {
+  CREATE_AUTORELEASE_POOL(arp);
           char      buffer[4096];
           NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 
@@ -321,7 +332,8 @@ requestLength(NSData *data)
                 }
               done = YES;
             }
-        }
+  DESTROY(arp);
+}
 
       if (done)
         {
@@ -459,6 +471,7 @@ requestLength(NSData *data)
 
 - (void)dealloc
 {
+  RELEASE(_routes);
   close(_socket);
 #ifdef _WIN32
   WSACleanup();
