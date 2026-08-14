@@ -383,10 +383,12 @@ static NSURLSession * sharedSession = nil;
       [queueLabel release];
       [internal->_workHelper->thread start];
 
-      /* Use the provided delegateQueue if available */
+      /* Use the provided delegateQueue if available.  It is retained, since
+       * -dealloc releases it and the caller may share one queue between
+       * several sessions. */
       if (queue)
         {
-          internal->_delegateQueue = queue;
+          ASSIGN(internal->_delegateQueue, queue);
         }
       else
         {
