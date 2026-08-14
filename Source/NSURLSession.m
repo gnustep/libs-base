@@ -41,12 +41,27 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSInvocationOperation.h"
+#import "Foundation/NSMethodSignature.h"
 
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -notImplemented */
 #import "GSPThread.h"                        /* For nextSessionIdentifier() */
 
 NSString * GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
+
+NSInvocation *
+GSURLSessionInvocation(id target, SEL aSelector)
+{
+  NSInvocation	*inv;
+
+  inv = [NSInvocation invocationWithMethodSignature:
+    [target methodSignatureForSelector: aSelector]];
+  [inv setTarget: target];
+  [inv setSelector: aSelector];
+  return inv;
+}
 
 /* We need a globably unique label for the NSURLSession workQueues.
  */
@@ -230,7 +245,7 @@ socket_callback(CURL * easy,           /* easy handle */
 
   /* List of active tasks. Access is synchronised via the work thread.
    */
-  NSMutableArray<NSURLSessionTask *> * _tasks;
+  GS_GENERIC_CLASS(NSMutableArray, NSURLSessionTask *) * _tasks;
 
   /* PEM encoded blob of one or more certificates.
    *
@@ -426,26 +441,31 @@ static NSURLSession * sharedSession = nil;
 
 - (void) _resumeTask: (NSURLSessionTask *)task
 {
-  [self _performOnWorkThread: ^{
-    CURLMcode code;
-    CURLM * multiHandle = _multiHandle;
+  [self _performSelectorOnWorkThread: @selector(_workResumeTask:)
+			      target: self
+			  withObject: task];
+}
 
-    code = curl_multi_add_handle(multiHandle, [task _easyHandle]);
+- (void) _workResumeTask: (NSURLSessionTask *)task
+{
+  CURLMcode	code;
+  CURLM		*multiHandle = _multiHandle;
 
-    NSDebugMLLog(
-      GS_NSURLSESSION_DEBUG_KEY,
-      @"Added task=%@ easy=%p to multi=%p with return value %d",
-      task,
-      [task _easyHandle],
-      multiHandle,
-      code);
+  code = curl_multi_add_handle(multiHandle, [task _easyHandle]);
 
-    /* Kick the transfer off now rather than waiting for the timer callback
-     * (see -_addHandle:). */
-    curl_multi_socket_action(multiHandle, CURL_SOCKET_TIMEOUT, 0,
-      &_stillRunning);
-    [self _checkForCompletion];
-  }];
+  NSDebugMLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Added task=%@ easy=%p to multi=%p with return value %d",
+    task,
+    [task _easyHandle],
+    multiHandle,
+    code);
+
+  /* Kick the transfer off now rather than waiting for the timer callback
+   * (see -_addHandle:). */
+  curl_multi_socket_action(multiHandle, CURL_SOCKET_TIMEOUT, 0,
+    &_stillRunning);
+  [self _checkForCompletion];
 }
 
 - (void) _addHandle: (CURL *)easy
@@ -495,10 +515,16 @@ static NSURLSession * sharedSession = nil;
       [_delegate respondsToSelector: @selector(URLSession:
                                                didBecomeInvalidWithError:)])
     {
-      [_delegateQueue addOperationWithBlock:^{
-         /* We only support explicit invalidation for now, so error is nil. */
-         [_delegate URLSession: self didBecomeInvalidWithError: nil];
-       }];
+      /* We only support explicit invalidation for now, so error is nil. */
+      NSInvocation	*inv;
+      NSURLSession	*session = self;
+      NSError		*error = nil;
+
+      inv = GSURLSessionInvocation(_delegate,
+	@selector(URLSession:didBecomeInvalidWithError:));
+      [inv setArgument: &session atIndex: 2];
+      [inv setArgument: &error atIndex: 3];
+      [self _enqueueDelegateInvocation: inv];
     }
   RELEASE(self);
 }
@@ -560,29 +586,69 @@ static NSURLSession * sharedSession = nil;
 
 #pragma mark - Work thread
 
-- (void) _runWorkBlock: (id)block
+- (void) _runWorkInvocation: (NSInvocation *)anInvocation
 {
-  ((GSURLSessionWorkBlock)block)();
+  [anInvocation invoke];
 }
 
-- (void) _performOnWorkThread: (GSURLSessionWorkBlock)block
+- (void) _performSelectorOnWorkThread: (SEL)aSelector
+			       target: (id)target
+			   withObject: (id)anObject
+{
+  [self _performSelectorOnWorkThread: aSelector
+			      target: target
+			  withObject: anObject
+		       waitUntilDone: NO];
+}
+
+- (void) _performSelectorOnWorkThread: (SEL)aSelector
+			       target: (id)target
+			   withObject: (id)anObject
+			waitUntilDone: (BOOL)shouldWait
 {
   /* Run immediately if we are already on the work thread (e.g. called from
    * a libcurl callback), otherwise schedule on its run loop. */
   if ([NSThread currentThread] == _workHelper->thread)
     {
-      block();
+      [target performSelector: aSelector withObject: anObject];
     }
   else
     {
-      id copy = [block copy];
-
-      [self performSelector: @selector(_runWorkBlock:)
-                   onThread: _workHelper->thread
-                 withObject: copy
-              waitUntilDone: NO];
-      [copy release];
+      [target performSelector: aSelector
+		     onThread: _workHelper->thread
+		   withObject: anObject
+		waitUntilDone: shouldWait];
     }
+}
+
+- (void) _performInvocationOnWorkThread: (NSInvocation *)anInvocation
+{
+  if ([NSThread currentThread] == _workHelper->thread)
+    {
+      [anInvocation invoke];
+    }
+  else
+    {
+      [anInvocation retainArguments];
+      [self performSelector: @selector(_runWorkInvocation:)
+		   onThread: _workHelper->thread
+		 withObject: anInvocation
+	      waitUntilDone: NO];
+    }
+}
+
+- (void) _enqueueDelegateInvocation: (NSInvocation *)anInvocation
+{
+  NSInvocationOperation	*op;
+
+  if (nil == _delegateQueue)
+    {
+      return;
+    }
+  [anInvocation retainArguments];
+  op = [[NSInvocationOperation alloc] initWithInvocation: anInvocation];
+  [_delegateQueue addOperation: op];
+  RELEASE(op);
 }
 
 #pragma mark - Socket monitoring
@@ -899,17 +965,26 @@ static NSURLSession * sharedSession = nil;
 /* Adds task to _tasks and updates the delegate */
 - (void) _didCreateTask: (NSURLSessionTask *)task
 {
-  [self _performOnWorkThread: ^{
-    [_tasks addObject: task];
-  }];
+  [self _performSelectorOnWorkThread: @selector(_workAddTask:)
+			      target: self
+			  withObject: task];
 
   if ([_delegate respondsToSelector: @selector(URLSession:didCreateTask:)])
     {
-      [_delegateQueue addOperationWithBlock:^{
-         [(id<NSURLSessionTaskDelegate>) _delegate URLSession: self
-                                                didCreateTask  : task];
-       }];
+      NSInvocation	*inv;
+      NSURLSession	*session = self;
+
+      inv = GSURLSessionInvocation(_delegate,
+	@selector(URLSession:didCreateTask:));
+      [inv setArgument: &session atIndex: 2];
+      [inv setArgument: &task atIndex: 3];
+      [self _enqueueDelegateInvocation: inv];
     }
+}
+
+- (void) _workAddTask: (NSURLSessionTask *)task
+{
+  [_tasks addObject: task];
 }
 
 #pragma mark - Public API
@@ -921,9 +996,14 @@ static NSURLSession * sharedSession = nil;
       return;
     }
 
-  [self _performOnWorkThread: ^{
-    _invalidated = YES;
-  }];
+  [self _performSelectorOnWorkThread: @selector(_workInvalidate)
+			      target: self
+			  withObject: nil];
+}
+
+- (void) _workInvalidate
+{
+  _invalidated = YES;
 }
 
 - (void) invalidateAndCancel
@@ -933,15 +1013,20 @@ static NSURLSession * sharedSession = nil;
       return;
     }
 
-  [self _performOnWorkThread: ^{
-    _invalidated = YES;
+  [self _performSelectorOnWorkThread: @selector(_workInvalidateAndCancel)
+			      target: self
+			  withObject: nil];
+}
 
-    /* Cancel all tasks */
-    for (NSURLSessionTask * task in _tasks)
+- (void) _workInvalidateAndCancel
+{
+  _invalidated = YES;
+
+  /* Cancel all tasks */
+  for (NSURLSessionTask * task in _tasks)
     {
       [task cancel];
     }
-  }];
 }
 
 - (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
@@ -1083,58 +1168,75 @@ static NSURLSession * sharedSession = nil;
   return [self notImplemented: _cmd];
 }
 
-- (void) getTasksWithCompletionHandler:
-  (void (^)(
-     NSArray<NSURLSessionDataTask *> * dataTasks,
-     NSArray<NSURLSessionUploadTask *> * uploadTasks,
-     NSArray<NSURLSessionDownloadTask *> * downloadTasks))
-  completionHandler
+- (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks
 {
-  [self _performOnWorkThread: ^{
-    NSMutableArray<NSURLSessionDataTask *> * dataTasks;
-    NSMutableArray<NSURLSessionUploadTask *> * uploadTasks;
-    NSMutableArray<NSURLSessionDownloadTask *> * downloadTasks;
-    NSInteger numberOfTasks;
+  NSMutableArray	*collected = [NSMutableArray array];
 
-    Class dataTaskClass;
-    Class uploadTaskClass;
-    Class downloadTaskClass;
+  [self _performSelectorOnWorkThread: @selector(_workCollectTasksInto:)
+			      target: self
+			  withObject: collected
+		       waitUntilDone: YES];
+  return collected;
+}
 
-    numberOfTasks = [_tasks count];
-    dataTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
-    uploadTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
-    downloadTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
+- (void) _workCollectTasksInto: (NSMutableArray *)collected
+{
+  [collected addObjectsFromArray: _tasks];
+}
 
-    dataTaskClass = [NSURLSessionDataTask class];
-    uploadTaskClass = [NSURLSessionUploadTask class];
-    downloadTaskClass = [NSURLSessionDownloadTask class];
+- (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) tasksOfKind: (Class)aClass
+{
+  NSMutableArray	*matched = [NSMutableArray array];
+  NSEnumerator		*e = [[self allTasks] objectEnumerator];
+  NSURLSessionTask	*task;
 
-    for (NSURLSessionTask * task in _tasks)
+  while ((task = [e nextObject]) != nil)
     {
-      if ([task isKindOfClass: dataTaskClass])
-      {
-        [dataTasks addObject: (NSURLSessionDataTask *)task];
-      }
-      else if ([task isKindOfClass: uploadTaskClass])
-      {
-        [uploadTasks addObject: (NSURLSessionUploadTask *)task];
-      }
+      if ([task isKindOfClass: aClass])
+	{
+	  [matched addObject: task];
+	}
+    }
+  return matched;
+}
+
+- (void) getTasksWithCompletionHandler:
+  (GSNSURLSessionTasksCompletionHandler)completionHandler
+{
+  NSArray	*all = [self allTasks];
+  NSMutableArray *dataTasks = [NSMutableArray array];
+  NSMutableArray *uploadTasks = [NSMutableArray array];
+  NSMutableArray *downloadTasks = [NSMutableArray array];
+  Class		dataTaskClass = [NSURLSessionDataTask class];
+  Class		uploadTaskClass = [NSURLSessionUploadTask class];
+  Class		downloadTaskClass = [NSURLSessionDownloadTask class];
+  NSEnumerator	*e = [all objectEnumerator];
+  NSURLSessionTask *task;
+
+  while ((task = [e nextObject]) != nil)
+    {
+      /* An upload task is a kind of data task, so test for it first. */
+      if ([task isKindOfClass: uploadTaskClass])
+	{
+	  [uploadTasks addObject: task];
+	}
+      else if ([task isKindOfClass: dataTaskClass])
+	{
+	  [dataTasks addObject: task];
+	}
       else if ([task isKindOfClass: downloadTaskClass])
-      {
-        [downloadTasks addObject: (NSURLSessionDownloadTask *)task];
-      }
+	{
+	  [downloadTasks addObject: task];
+	}
     }
 
-    completionHandler(dataTasks, uploadTasks, downloadTasks);
-  }];
+  CALL_BLOCK(completionHandler, dataTasks, uploadTasks, downloadTasks);
 } /* getTasksWithCompletionHandler */
 
 - (void) getAllTasksWithCompletionHandler:
-  (void (^)(NSArray<__kindof NSURLSessionTask *> * tasks))completionHandler
+  (GSNSURLSessionAllTasksCompletionHandler)completionHandler
 {
-  [self _performOnWorkThread: ^{
-    completionHandler(_tasks);
-  }];
+  CALL_BLOCK(completionHandler, [self allTasks]);
 }
 
 #pragma mark - Getter and Setter

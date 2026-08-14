@@ -3920,7 +3920,7 @@ AC_SUBST(HAVE_LIBCURL)
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBCURL = 1; then
+if test $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
@@ -3930,12 +3930,6 @@ AC_ARG_ENABLE(nsurlsession,
   [Disable support for NSURLSession])],,
   enable_nsurlsession=$nsurlsessiondefault)
 if test $enable_nsurlsession = yes; then
-  if test "$OBJC_RUNTIME_LIB" != "ng"; then
-    AC_MSG_ERROR([Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-  fi
-  if test $HAVE_BLOCKS = 0; then
-    AC_MSG_ERROR([Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-  fi
   if test $HAVE_LIBCURL = 0; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi

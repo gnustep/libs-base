@@ -14,8 +14,10 @@ id __work_around_clang_bug2 = @"__unused__";
 #import "URLManager.h"
 #import "Testing.h"
 
-typedef void (^dataCompletionHandler)(NSData *data, NSURLResponse *response,
-                                      NSError *error);
+#if __has_feature(blocks)
+DEFINE_BLOCK_TYPE(dataCompletionHandler, void,
+  NSData *, NSURLResponse *, NSError *);
+#endif
 
 /* Timeout in Seconds */
 static NSInteger      testTimeOut = 60;
@@ -29,6 +31,30 @@ static NSLock            *countLock;
 /* Expected Content */
 static NSString *largeBodyPath;
 static NSData   *largeBodyContent;
+
+/* The large upload route checks the request, so it needs a target rather
+ * than a fixed response. */
+@interface LargeUploadRoute : NSObject
+- (NSData *)responseForRequest:(NSURLRequest *)req;
+@end
+
+@implementation LargeUploadRoute
+- (NSData *)responseForRequest:(NSURLRequest *)req
+{
+  PASS_EQUAL([req valueForHTTPHeaderField:@"Request-Key"],
+             @"Request-Value",
+             "Request contains user-specific header line");
+  PASS_EQUAL([req valueForHTTPHeaderField:@"Content-Type"],
+             @"text/plain",
+             "Request contains the correct Content-Type");
+  PASS_EQUAL([req HTTPBody], largeBodyContent, "HTTPBody is correct");
+
+  return [@"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nHeader-Key: "
+          @"Header-Value\r\n\r\n" dataUsingEncoding:NSASCIIStringEncoding];
+}
+@end
+
+static LargeUploadRoute *largeUploadRoute;
 
 static NSArray<Route *> *
 createRoutes(Class routeClass)
@@ -44,39 +70,21 @@ createRoutes(Class routeClass)
   routeOKWithContent = [routeClass
     routeWithURL:routeOKWithContentURL
           method:@"POST"
-         handler:^NSData *(NSURLRequest *req) {
-           NSData *response;
+        response:
+      [@"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nHeader-Key: "
+       @"Header-Value\r\n\r\n" dataUsingEncoding:NSASCIIStringEncoding]];
 
-           response =
-             [@"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nHeader-Key: "
-              @"Header-Value\r\n\r\n" dataUsingEncoding:NSASCIIStringEncoding];
-           return response;
-         }];
-
+  largeUploadRoute = [LargeUploadRoute new];
   routeLargeUpload = [routeClass
     routeWithURL:routeLargeUploadURL
           method:@"POST"
-         handler:^NSData *(NSURLRequest *req) {
-           NSData *response;
-
-           PASS_EQUAL([req valueForHTTPHeaderField:@"Request-Key"],
-                      @"Request-Value",
-                      "Request contains user-specific header line");
-           PASS_EQUAL([req valueForHTTPHeaderField:@"Content-Type"],
-                      @"text/plain",
-                      "Request contains the correct Content-Type");
-           PASS_EQUAL([req HTTPBody], largeBodyContent, "HTTPBody is correct");
-
-           response =
-             [@"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nHeader-Key: "
-              @"Header-Value\r\n\r\n" dataUsingEncoding:NSASCIIStringEncoding];
-
-           return response;
-         }];
+          target:largeUploadRoute
+        selector:@selector(responseForRequest:)];
 
   return @[ routeOKWithContent, routeLargeUpload ];
 }
 
+#if __has_feature(blocks)
 static void
 testLargeUploadWithBlock(NSURL *baseURL)
 {
@@ -124,6 +132,7 @@ testLargeUploadWithBlock(NSURL *baseURL)
   [dataTask resume];
   [uploadTask resume];
 }
+#endif
 
 int
 main(int argc, char *argv[])
@@ -137,6 +146,7 @@ main(int argc, char *argv[])
     NSFileManager    *fm;
     NSArray<Route *> *routes;
     HTTPServer       *server;
+    NSDate           *deadline;
 
     Class httpServerClass;
     Class routeClass;
@@ -179,13 +189,14 @@ main(int argc, char *argv[])
     [server resume];
 
     /* Call Test Functions here! */
+#if __has_feature(blocks)
     testLargeUploadWithBlock(baseURL);
+#endif
 
-    [[NSRunLoop currentRunLoop]
-       runForSeconds:testTimeOut
-      conditionBlock:^BOOL(void) {
-        return expectedCountOfTasksToComplete != currentCountOfCompletedTasks;
-      }];
+    deadline = [NSDate dateWithTimeIntervalSinceNow:testTimeOut];
+    while (expectedCountOfTasksToComplete != currentCountOfCompletedTasks
+      && [[NSRunLoop currentRunLoop] runSliceUntil:deadline])
+      ;
 
     [server suspend];
     PASS(expectedCountOfTasksToComplete == currentCountOfCompletedTasks,

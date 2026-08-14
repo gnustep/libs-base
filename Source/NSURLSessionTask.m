@@ -45,6 +45,8 @@
 #import "Foundation/NSURLResponse.h"
 #import "Foundation/NSHTTPCookie.h"
 #import "Foundation/NSStream.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
 
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
@@ -73,6 +75,22 @@ static SEL didFinishDownloadingToURLSel;
 static SEL didWriteDataSel;
 static SEL needNewBodyStreamSel;
 static SEL willPerformHTTPRedirectionSel;
+
+/* The replacements for the three delegate methods which answer through a
+ * completion handler.  A delegate implementing one of these is sent it
+ * instead, and replies by messaging the task.
+ */
+static SEL taskNeedsNewBodyStreamSel;
+static SEL willRedirectSel;
+static SEL didReceiveResponseNoHandlerSel;
+
+/* A deprecated selector is (SEL)0 where the compiler has no blocks. */
+static inline BOOL
+respondsToDeprecated(id delegate, SEL aSelector)
+{
+  return ((SEL)0 != aSelector && [delegate respondsToSelector: aSelector])
+    ? YES : NO;
+}
 
 static NSString *taskTransferDataKey = @"transferData";
 static NSString *taskTemporaryFileLocationKey = @"tempFileLocation";
@@ -515,8 +533,12 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                 statusCode,
                 redirectURL);
 
-              if ([delegate respondsToSelector: willPerformHTTPRedirectionSel])
+              if ([delegate respondsToSelector: willRedirectSel]
+		|| respondsToDeprecated(delegate,
+		  willPerformHTTPRedirectionSel))
                 {
+                  NSInvocation	*inv;
+
                   NSDebugLLog(
                     GS_NSURLSESSION_DEBUG_KEY,
                     @"task=%@ ask delegate for redirection "
@@ -530,68 +552,24 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
                    * until the delegate resolves the redirect. */
                   [task _setRedirectInProgress: YES];
 
-                  [[session delegateQueue] addOperationWithBlock:^{
-                     void (^completionHandler)(NSURLRequest *) = ^(
-                       NSURLRequest *userRequest) {
-                       /* Changes are performed on the work thread */
-                       [session _performOnWorkThread: ^{
-                           if (NULL == userRequest)
-                           {
-                             /* The delegate refused the redirect.  Remove the
-                              * intercepted transfer (whose completion was held
-                              * back) and deliver a cancellation for it. */
-                             [task _setRedirectInProgress: NO];
-                             [session _cancelTaskFromDelegate: task];
-                             NSDebugLLog(
-                               GS_NSURLSESSION_DEBUG_KEY,
-                               @"task=%@ willPerformHTTPRedirection "
-                               @"completionHandler called with nil "
-                               @"request",
-                               task);
-                           }
-                           else
-                           {
-                             NSString	*newURLString;
-
-                             newURLString = [[userRequest URL] absoluteString];
-
-                             NSDebugLLog(
-                               GS_NSURLSESSION_DEBUG_KEY,
-                               @"task=%@ willPerformHTTPRedirection "
-                               @"delegate completionHandler called "
-                               @"with new URL %@",
-                               task,
-                               newURLString);
-
-                             /* Remove handle for reconfiguration */
-                             [session _removeHandle: handle];
-
-                             /* Reset statistics */
-                             [task _setCountOfBytesReceived: 0];
-                             [task _setCountOfBytesSent: 0];
-                             [task _setCountOfBytesExpectedToReceive: 0];
-                             [task _setCountOfBytesExpectedToSend: 0];
-
-                             [task _setCurrentRequest: userRequest];
-
-                             /* Update URL in easy handle */
-                             curl_easy_setopt(
-                               handle,
-                               CURLOPT_URL,
-                               [newURLString UTF8String]);
-                             curl_easy_pause(handle, CURLPAUSE_CONT);
-
-                             [session _addHandle: handle];
-                           }
-                         }];
-                     };
-
-                     [delegate URLSession: session
-                                            task: task
-                      willPerformHTTPRedirection: response
-                                      newRequest: newRequest
-                               completionHandler: completionHandler];
-                   }];
+                  if ([delegate respondsToSelector: willRedirectSel])
+                    {
+                      inv = GSURLSessionInvocation(delegate, willRedirectSel);
+                      [inv setArgument: &session atIndex: 2];
+                      [inv setArgument: &task atIndex: 3];
+                      [inv setArgument: &response atIndex: 4];
+                      [inv setArgument: &newRequest atIndex: 5];
+                    }
+                  else
+                    {
+                      /* The delegate only has the deprecated method, which
+                       * answers through a block.  Ask the task to send it. */
+                      inv = GSURLSessionInvocation(task,
+			@selector(_askDelegateToRedirectTo:newRequest:));
+                      [inv setArgument: &response atIndex: 2];
+                      [inv setArgument: &newRequest atIndex: 3];
+                    }
+                  [session _enqueueDelegateInvocation: inv];
 
                   [headerFields removeAllObjects];
                   return size * nitems;
@@ -663,44 +641,35 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
        */
       if ([task _properties] & GSURLSessionUpdatesDelegate
 	&& [task isKindOfClass: dataTaskClass]
-	&& [delegate respondsToSelector: didReceiveResponseSel])
+	&& ([delegate respondsToSelector: didReceiveResponseNoHandlerSel]
+	  || respondsToDeprecated(delegate, didReceiveResponseSel)))
         {
-          /* Pause until the completion handler is called.  libcurl may report
-           * the buffered response as complete before the delegate answers, so
-           * hold that completion back (see -_checkForCompletion) until we know
-           * the disposition. */
+          NSInvocation	*inv;
+
+          /* Pause until the delegate answers.  libcurl may report the
+           * buffered response as complete before that happens, so hold that
+           * completion back (see -_checkForCompletion) until we know the
+           * disposition. */
           [task _setAwaitingResponseDisposition: YES];
           curl_easy_pause(handle, CURLPAUSE_ALL);
 
-          [[session delegateQueue] addOperationWithBlock:^{
-             [delegate URLSession: session
-                         dataTask: (NSURLSessionDataTask *)task
-               didReceiveResponse: response
-                completionHandler:^(
-                NSURLSessionResponseDisposition disposition) {
-                /* FIXME: Implement NSURLSessionResponseBecomeDownload */
-                if (disposition == NSURLSessionResponseCancel)
-		  {
-		    [task _setShouldStopTransfer: YES];
-		    [session _performOnWorkThread: ^{
-			/* Deliver a cancellation (any held completion is
-			 * discarded in favour of it). */
-			[task _setAwaitingResponseDisposition: NO];
-			[session _cancelTaskFromDelegate: task];
-		      }];
-		  }
-                else
-		  {
-		    [session _performOnWorkThread: ^{
-			[task _setAwaitingResponseDisposition: NO];
-			/* Unpause to flush the buffered body, then deliver any
-			 * completion that was held while awaiting the delegate. */
-			curl_easy_pause(handle, CURLPAUSE_CONT);
-			[session _deliverHeldCompletionForTask: task];
-		      }];
-		  }
-              }];
-           }];
+          if ([delegate respondsToSelector: didReceiveResponseNoHandlerSel])
+            {
+              inv = GSURLSessionInvocation(delegate,
+		didReceiveResponseNoHandlerSel);
+              [inv setArgument: &session atIndex: 2];
+              [inv setArgument: &task atIndex: 3];
+              [inv setArgument: &response atIndex: 4];
+            }
+          else
+            {
+              /* The delegate only has the deprecated method, which answers
+               * through a block.  Ask the task to send it. */
+              inv = GSURLSessionInvocation(task,
+		@selector(_askDelegateAboutResponse:));
+              [inv setArgument: &response atIndex: 2];
+            }
+          [session _enqueueDelegateInvocation: inv];
         }
     }
 
@@ -731,18 +700,26 @@ read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
         @"task=%@ requesting new body stream from delegate",
         task);
 
-      if ([delegate respondsToSelector: needNewBodyStreamSel])
+      if ([delegate respondsToSelector: taskNeedsNewBodyStreamSel]
+	|| respondsToDeprecated(delegate, needNewBodyStreamSel))
         {
-          [[[task _session] delegateQueue] addOperationWithBlock:^{
-             [delegate URLSession: session
-                             task: task
-                needNewBodyStream:^(NSInputStream *bodyStream) {
-                /* Add input stream to task data */
-                [taskData setObject: bodyStream forKey: taskInputStreamKey];
-                /* Continue with the transfer */
-                curl_easy_pause([task _easyHandle], CURLPAUSE_CONT);
-              }];
-           }];
+          NSInvocation	*inv;
+
+          if ([delegate respondsToSelector: taskNeedsNewBodyStreamSel])
+            {
+              inv = GSURLSessionInvocation(delegate,
+		taskNeedsNewBodyStreamSel);
+              [inv setArgument: &session atIndex: 2];
+              [inv setArgument: &task atIndex: 3];
+            }
+          else
+            {
+              /* The delegate only has the deprecated method, which answers
+               * through a block.  Ask the task to send it. */
+              inv = GSURLSessionInvocation(task,
+		@selector(_askDelegateForNewBodyStream));
+            }
+          [session _enqueueDelegateInvocation: inv];
 
           return CURL_READFUNC_PAUSE;
         }
@@ -751,7 +728,7 @@ read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
           NSDebugLLog(
             GS_NSURLSESSION_DEBUG_KEY,
             @"task=%@ no input stream was given and delegate does "
-            @"not respond to URLSession:task:needNewBodyStream:",
+            @"not respond to URLSession:taskNeedsNewBodyStream:",
             task);
 
           return CURL_READFUNC_ABORT;
@@ -842,11 +819,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       if ([task isKindOfClass: dataTaskClass] &&
           [delegate respondsToSelector: didReceiveDataSel])
         {
-          [[session delegateQueue] addOperationWithBlock:^{
-             [delegate URLSession: session
-                         dataTask: (NSURLSessionDataTask *)task
-                   didReceiveData: dataFragment];
-           }];
+          NSInvocation		*inv;
+
+          inv = GSURLSessionInvocation(delegate, didReceiveDataSel);
+          [inv setArgument: &session atIndex: 2];
+          [inv setArgument: &task atIndex: 3];
+          [inv setArgument: &dataFragment atIndex: 4];
+          [session _enqueueDelegateInvocation: inv];
         }
 
       /* Notify delegate about the download process */
@@ -857,6 +836,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           int64_t bytesWritten;
           int64_t totalBytesWritten;
           int64_t totalBytesExpectedToReceive;
+          NSInvocation		*inv;
 
           downloadTask = (NSURLSessionDownloadTask *)task;
           bytesWritten = [dataFragment length];
@@ -867,13 +847,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           totalBytesExpectedToReceive =
             [downloadTask countOfBytesExpectedToReceive];
 
-          [[session delegateQueue] addOperationWithBlock:^{
-             [delegate URLSession: session
-                           downloadTask: downloadTask
-                           didWriteData: bytesWritten
-                      totalBytesWritten: totalBytesWritten
-              totalBytesExpectedToWrite: totalBytesExpectedToReceive];
-           }];
+          inv = GSURLSessionInvocation(delegate, didWriteDataSel);
+          [inv setArgument: &session atIndex: 2];
+          [inv setArgument: &downloadTask atIndex: 3];
+          [inv setArgument: &bytesWritten atIndex: 4];
+          [inv setArgument: &totalBytesWritten atIndex: 5];
+          [inv setArgument: &totalBytesExpectedToReceive atIndex: 6];
+          [session _enqueueDelegateInvocation: inv];
         }
     }
 
@@ -924,17 +904,31 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   dataTaskClass = [NSURLSessionDataTask class];
   downloadTaskClass = [NSURLSessionDownloadTask class];
   didReceiveDataSel = @selector(URLSession:dataTask:didReceiveData:);
-  didReceiveResponseSel =
-    @selector(URLSession:dataTask:didReceiveResponse:completionHandler:);
   didCompleteWithErrorSel = @selector(URLSession:task:didCompleteWithError:);
   didFinishDownloadingToURLSel =
     @selector(URLSession:downloadTask:didFinishDownloadingToURL:);
   didWriteDataSel = @selector
     (URLSession:
      downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:);
+  taskNeedsNewBodyStreamSel = @selector(URLSession:taskNeedsNewBodyStream:);
+  willRedirectSel = @selector
+    (URLSession:task:willRedirectToResponse:newRequest:);
+  didReceiveResponseNoHandlerSel =
+    @selector(URLSession:dataTask:didReceiveResponse:);
+
+  /* The deprecated delegate methods answer through a completion handler, so
+   * they are only usable where the compiler can build one to pass. */
+#if __has_feature(blocks)
+  didReceiveResponseSel =
+    @selector(URLSession:dataTask:didReceiveResponse:completionHandler:);
   needNewBodyStreamSel = @selector(URLSession:task:needNewBodyStream:);
   willPerformHTTPRedirectionSel = @selector
     (URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:);
+#else
+  didReceiveResponseSel = (SEL)0;
+  needNewBodyStreamSel = (SEL)0;
+  willPerformHTTPRedirectionSel = (SEL)0;
+#endif
 }
 
 - (instancetype) initWithSession: (NSURLSession *)session
@@ -1151,7 +1145,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       if (nil != storage && [configuration HTTPShouldSetCookies])
         {
           NSDictionary			*cookieHeaders;
-          NSArray<NSHTTPCookie*>	*cookies;
+          GS_GENERIC_CLASS(NSArray, NSHTTPCookie *)	*cookies;
 
           /* No headers were set */
           if (nil == requestHeaders)
@@ -1240,9 +1234,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setVerbose: (BOOL)flag
 {
-  [_session _performOnWorkThread: ^{
-    curl_easy_setopt(_easyHandle, CURLOPT_VERBOSE, flag ? 1L : 0L);
-  }];
+  [_session _performSelectorOnWorkThread: @selector(_workSetVerbose:)
+				  target: self
+			      withObject: [NSNumber numberWithBool: flag]];
+}
+
+- (void) _workSetVerbose: (NSNumber *)flag
+{
+  curl_easy_setopt(_easyHandle, CURLOPT_VERBOSE, [flag boolValue] ? 1L : 0L);
 }
 
 - (void) _setBodyStream: (NSInputStream *)stream
@@ -1333,6 +1332,154 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   _awaitingResponseDisposition = flag;
 }
+
+/* The delegate replies to URLSession:task:willRedirectToResponse:newRequest:
+ * here.  A nil request refuses the redirect. */
+- (void) resumeWithRedirectRequest: (NSURLRequest *)request
+{
+  [_session _performSelectorOnWorkThread:
+    @selector(_workResumeWithRedirectRequest:)
+				  target: self
+			      withObject: request];
+}
+
+- (void) _workResumeWithRedirectRequest: (NSURLRequest *)userRequest
+{
+  if (nil == userRequest)
+    {
+      /* The delegate refused the redirect.  Remove the intercepted transfer
+       * (whose completion was held back) and deliver a cancellation for it. */
+      [self _setRedirectInProgress: NO];
+      [_session _cancelTaskFromDelegate: self];
+      NSDebugLLog(
+	GS_NSURLSESSION_DEBUG_KEY,
+	@"task=%@ redirect refused by the delegate",
+	self);
+    }
+  else
+    {
+      NSString	*newURLString = [[userRequest URL] absoluteString];
+
+      NSDebugLLog(
+	GS_NSURLSESSION_DEBUG_KEY,
+	@"task=%@ redirect accepted by the delegate with new URL %@",
+	self,
+	newURLString);
+
+      /* Remove handle for reconfiguration */
+      [_session _removeHandle: _easyHandle];
+
+      /* Reset statistics */
+      [self _setCountOfBytesReceived: 0];
+      [self _setCountOfBytesSent: 0];
+      [self _setCountOfBytesExpectedToReceive: 0];
+      [self _setCountOfBytesExpectedToSend: 0];
+
+      [self _setCurrentRequest: userRequest];
+
+      /* Update URL in easy handle */
+      curl_easy_setopt(_easyHandle, CURLOPT_URL, [newURLString UTF8String]);
+      curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+
+      [_session _addHandle: _easyHandle];
+    }
+}
+
+/* The delegate replies to URLSession:dataTask:didReceiveResponse: here. */
+- (void) resumeWithResponseDisposition:
+  (NSURLSessionResponseDisposition)disposition
+{
+  /* FIXME: Implement NSURLSessionResponseBecomeDownload */
+  if (NSURLSessionResponseCancel == disposition)
+    {
+      [self _setShouldStopTransfer: YES];
+      [_session _performSelectorOnWorkThread:
+	@selector(_workCancelForResponseDisposition)
+				      target: self
+				  withObject: nil];
+    }
+  else
+    {
+      [_session _performSelectorOnWorkThread:
+	@selector(_workContinueForResponseDisposition)
+				      target: self
+				  withObject: nil];
+    }
+}
+
+- (void) _workCancelForResponseDisposition
+{
+  /* Deliver a cancellation (any held completion is discarded in favour
+   * of it). */
+  [self _setAwaitingResponseDisposition: NO];
+  [_session _cancelTaskFromDelegate: self];
+}
+
+- (void) _workContinueForResponseDisposition
+{
+  [self _setAwaitingResponseDisposition: NO];
+  /* Unpause to flush the buffered body, then deliver any completion that was
+   * held while awaiting the delegate. */
+  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+  [_session _deliverHeldCompletionForTask: self];
+}
+
+/* The delegate replies to URLSession:taskNeedsNewBodyStream: here. */
+- (void) resumeWithBodyStream: (NSInputStream *)bodyStream
+{
+  if (nil != bodyStream)
+    {
+      [_taskData setObject: bodyStream forKey: taskInputStreamKey];
+    }
+  /* Continue with the transfer */
+  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+}
+
+/* The three bridges below send the deprecated form of a delegate method,
+ * the one which answers through a completion handler, and forward the answer
+ * to the reply method above.  A compiler without blocks cannot build a
+ * handler to pass, so the deprecated selectors are not looked for there and
+ * these are never reached (see +initialize).
+ */
+#if __has_feature(blocks)
+- (void) _askDelegateToRedirectTo: (NSHTTPURLResponse *)response
+		       newRequest: (NSURLRequest *)request
+{
+  NSURLSessionTask	*task = self;
+
+  [[self delegate] URLSession: _session
+			 task: self
+   willPerformHTTPRedirection: response
+		   newRequest: request
+	    completionHandler: ^(NSURLRequest *userRequest) {
+      [task resumeWithRedirectRequest: userRequest];
+    }];
+}
+
+- (void) _askDelegateAboutResponse: (NSURLResponse *)response
+{
+  NSURLSessionDataTask	*task = (NSURLSessionDataTask *)self;
+
+  [(id<NSURLSessionDataDelegate>)[self delegate]
+		   URLSession: _session
+		     dataTask: task
+	   didReceiveResponse: response
+	    completionHandler: ^(NSURLSessionResponseDisposition disposition) {
+      [task resumeWithResponseDisposition: disposition];
+    }];
+}
+
+- (void) _askDelegateForNewBodyStream
+{
+  NSURLSessionTask	*task = self;
+
+  [[self delegate] URLSession: _session
+			 task: self
+	    needNewBodyStream: ^(NSInputStream *bodyStream) {
+      [task resumeWithBodyStream: bodyStream];
+    }];
+}
+#endif
 
 - (int) _heldCompletionCode
 {
@@ -1434,22 +1581,28 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 	&& [_delegate respondsToSelector: didFinishDownloadingToURLSel])
         {
           NSURL	*url = [_taskData objectForKey: taskTemporaryFileLocationKey];
+          NSInvocation		*inv;
+          NSURLSession		*session = _session;
+          NSURLSessionTask	*task = self;
 
-          [[_session delegateQueue] addOperationWithBlock:^{
-             [(id<NSURLSessionDownloadDelegate>) _delegate
-              URLSession: _session
-                           downloadTask: (NSURLSessionDownloadTask *)self
-              didFinishDownloadingToURL: url];
-           }];
+          inv = GSURLSessionInvocation(_delegate, didFinishDownloadingToURLSel);
+          [inv setArgument: &session atIndex: 2];
+          [inv setArgument: &task atIndex: 3];
+          [inv setArgument: &url atIndex: 4];
+          [_session _enqueueDelegateInvocation: inv];
         }
 
       if ([_delegate respondsToSelector: didCompleteWithErrorSel])
         {
-          [[_session delegateQueue] addOperationWithBlock:^{
-             [_delegate URLSession: _session
-                              task: self
-              didCompleteWithError: error];
-           }];
+          NSInvocation		*inv;
+          NSURLSession		*session = _session;
+          NSURLSessionTask	*task = self;
+
+          inv = GSURLSessionInvocation(_delegate, didCompleteWithErrorSel);
+          [inv setArgument: &session atIndex: 2];
+          [inv setArgument: &task atIndex: 3];
+          [inv setArgument: &error atIndex: 4];
+          [_session _enqueueDelegateInvocation: inv];
         }
     }
 
@@ -1463,12 +1616,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       NSURLSessionDataTask	*dataTask;
       NSData 			*data;
 
+      NSInvocation	*inv;
+      NSURLResponse	*response = _response;
+
       dataTask = (NSURLSessionDataTask *)self;
       data = [_taskData objectForKey: taskTransferDataKey];
 
-      [[_session delegateQueue] addOperationWithBlock:^{
-         [dataTask _completionHandler](data, _response, error);
-       }];
+      inv = GSURLSessionInvocation(dataTask,
+	@selector(_callDataCompletionHandlerWithData:response:error:));
+      [inv setArgument: &data atIndex: 2];
+      [inv setArgument: &response atIndex: 3];
+      [inv setArgument: &error atIndex: 4];
+      [_session _enqueueDelegateInvocation: inv];
     }
   else if ((_properties & GSURLSessionWritesDataToFile)
     && (_properties & GSURLSessionHasCompletionHandler)
@@ -1477,12 +1636,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       NSURLSessionDownloadTask	*downloadTask;
       NSURL			*tempFile;
 
+      NSInvocation	*inv;
+      NSURLResponse	*response = _response;
+
       downloadTask = (NSURLSessionDownloadTask *)self;
       tempFile = [_taskData objectForKey: taskTemporaryFileLocationKey];
 
-      [[_session delegateQueue] addOperationWithBlock:^{
-         [downloadTask _completionHandler](tempFile, _response, error);
-       }];
+      inv = GSURLSessionInvocation(downloadTask,
+	@selector(_callDownloadCompletionHandlerWithURL:response:error:));
+      [inv setArgument: &tempFile atIndex: 2];
+      [inv setArgument: &response atIndex: 3];
+      [inv setArgument: &error atIndex: 4];
+      [_session _enqueueDelegateInvocation: inv];
     }
 
   RELEASE(_session);
@@ -1555,20 +1720,25 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    * URLSession:task:didCompleteWithError: is called after receiving
    * CURLMSG_DONE in -[NSURLSessionTask _checkForCompletion].
    */
-  [_session _performOnWorkThread: ^{
-    /* Unpause the easy handle if previously paused */
-    curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+  [_session _performSelectorOnWorkThread: @selector(_workCancel)
+				  target: self
+			      withObject: nil];
+}
 
-    _shouldStopTransfer = YES;
-    _state = NSURLSessionTaskStateCanceling;
+- (void) _workCancel
+{
+  /* Unpause the easy handle if previously paused */
+  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
 
-    /* If the task was awaiting a didReceiveResponse disposition its completion
-     * was being held back; resolve that state so the cancellation is delivered
-     * (as a cancellation, since _shouldStopTransfer is set) rather than left
-     * pending a disposition that will never arrive. */
-    _awaitingResponseDisposition = NO;
-    [_session _deliverHeldCompletionForTask: self];
-  }];
+  _shouldStopTransfer = YES;
+  _state = NSURLSessionTaskStateCanceling;
+
+  /* If the task was awaiting a didReceiveResponse disposition its completion
+   * was being held back; resolve that state so the cancellation is delivered
+   * (as a cancellation, since _shouldStopTransfer is set) rather than left
+   * pending a disposition that will never arrive. */
+  _awaitingResponseDisposition = NO;
+  [_session _deliverHeldCompletionForTask: self];
 }
 
 - (float) priority
@@ -1733,12 +1903,29 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setCompletionHandler: (GSNSURLSessionDataCompletionHandler)handler
 {
-  _completionHandler = _Block_copy(handler);
+  if (NULL != handler)
+    {
+      _completionHandler = Block_copy(handler);
+    }
+}
+
+/* Called on the delegate queue so that the handler runs there, as it did
+ * when the queue was given a block to run. */
+- (void) _callDataCompletionHandlerWithData: (NSData *)data
+				   response: (NSURLResponse *)response
+				      error: (NSError *)error
+{
+  GSNSURLSessionDataCompletionHandler	handler = [self _completionHandler];
+
+  CALL_BLOCK(handler, data, response, error);
 }
 
 - (void) dealloc
 {
-  _Block_release(_completionHandler);
+  if (NULL != _completionHandler)
+    {
+      Block_release(_completionHandler);
+    }
   [super dealloc];
 }
 
@@ -1756,7 +1943,21 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setCompletionHandler: (GSNSURLSessionDownloadCompletionHandler)handler
 {
-  _completionHandler = _Block_copy(handler);
+  if (NULL != handler)
+    {
+      _completionHandler = Block_copy(handler);
+    }
+}
+
+/* Called on the delegate queue so that the handler runs there, as it did
+ * when the queue was given a block to run. */
+- (void) _callDownloadCompletionHandlerWithURL: (NSURL *)location
+				      response: (NSURLResponse *)response
+					 error: (NSError *)error
+{
+  GSNSURLSessionDownloadCompletionHandler handler = [self _completionHandler];
+
+  CALL_BLOCK(handler, location, response, error);
 }
 
 - (int64_t) _countOfBytesWritten
@@ -1771,7 +1972,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) dealloc
 {
-  _Block_release(_completionHandler);
+  if (NULL != _completionHandler)
+    {
+      Block_release(_completionHandler);
+    }
   [super dealloc];
 }
 
