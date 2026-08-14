@@ -25,8 +25,9 @@
 	* configure:
 	* configure.ac:
 	* standalone.conf:
-	Update to match gnustep-make changes in non-bundled resource locations.
-	Add path utilitites option to locate resources, and use it for tools.
+	Update to match gnustep-make changes for resource location config.
+	Add path utilitites option GSResourcesDirectory to locate resources
+	stored outside app bundles (use it for tool bundles).
 
 2026-08-12 Todd White <todd.white@thalion.global>
 
