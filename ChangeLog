@@ -1,3 +1,15 @@
+2026-08-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* configure:
+	* configure.ac:
+	* standalone.conf:
+	Update to match gnustep-make changes in non-bundled resource locations.
+	Add path utilitites option to locate resources, and use it for tools.
+
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSData+GNUstepBase.h:

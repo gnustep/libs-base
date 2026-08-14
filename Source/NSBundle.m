@@ -474,7 +474,6 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
   NSEnumerator 	*enumerator;
   NSString 	*best = nil;
   NSString 	*path;
-  NSString 	*tail;
   NSFileManager *fm = manager();
   BOOL 		isDir;
 
@@ -485,10 +484,6 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
       return nil;
     }
 
-  tail = [@"Tools" stringByAppendingPathComponent:
-    [@"Resources" stringByAppendingPathComponent: toolName]];
-
-
   /* We try to infer the domain that the tool is installed in from the
    * path to the tool, and if there is a resource bundle in that domain
    * we use it.
@@ -498,9 +493,9 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
     || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
     NSUserDomainMask, YES) lastObject] isEqual: toolPath])
     {
-      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+      path = [[NSSearchPathForDirectoriesInDomains(GSResourcesDirectory,
 	NSUserDomainMask, YES) firstObject]
-	stringByAppendingPathComponent: tail];
+        stringByAppendingPathComponent: toolName];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  if (found) *found = YES;
@@ -514,9 +509,9 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
     || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
     NSLocalDomainMask, YES) lastObject] isEqual: toolPath])
     {
-      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+      path = [[NSSearchPathForDirectoriesInDomains(GSResourcesDirectory,
 	NSLocalDomainMask, YES) firstObject]
-	stringByAppendingPathComponent: tail];
+        stringByAppendingPathComponent: toolName];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  if (found) *found = YES;
@@ -530,9 +525,9 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
     || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
     NSNetworkDomainMask, YES) lastObject] isEqual: toolPath])
     {
-      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+      path = [[NSSearchPathForDirectoriesInDomains(GSResourcesDirectory,
 	NSNetworkDomainMask, YES) firstObject]
-	stringByAppendingPathComponent: tail];
+        stringByAppendingPathComponent: toolName];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  if (found) *found = YES;
@@ -546,9 +541,9 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
     || [[NSSearchPathForDirectoriesInDomains(GSAdminToolsDirectory,
     NSSystemDomainMask, YES) lastObject] isEqual: toolPath])
     {
-      path = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+      path = [[NSSearchPathForDirectoriesInDomains(GSResourcesDirectory,
 	NSSystemDomainMask, YES) firstObject]
-	stringByAppendingPathComponent: tail];
+        stringByAppendingPathComponent: toolName];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  if (found) *found = YES;
@@ -559,12 +554,12 @@ _find_main_bundle_for_tool(NSString *toolPath, NSString *toolName, BOOL *found)
   /* No exact match for resource bundle found, so check all domains to see
    * if we can find the resource bundle.
    */
-  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+  paths = NSSearchPathForDirectoriesInDomains(GSResourcesDirectory,
     NSAllDomainsMask, YES);
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]))
     {
-      path = [path stringByAppendingPathComponent: tail];
+      path = [path stringByAppendingPathComponent: toolName];
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  if (found) *found = YES;
