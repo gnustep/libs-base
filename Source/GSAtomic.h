@@ -13,7 +13,14 @@
 #define __has_extension(x) 0
 #endif
 
-#if __has_extension(c_atomic) || __has_extension(cxx_atomic)
+/* __c11_atomic_load and __c11_atomic_store are clang builtins, and
+ * __has_extension answers for clang, so ask for the compiler as well as the
+ * extension.  Where GNUstepBase/GNUstep.h has already defined
+ * __has_extension in terms of __has_feature, gcc can otherwise reach this
+ * branch and then has neither the builtins nor a usable _Atomic.
+ */
+#if defined(__clang__) \
+  && (__has_extension(c_atomic) || __has_extension(cxx_atomic))
 
 /*
  * Use native C11 atomic operations. _Atomic() should be defined by the
