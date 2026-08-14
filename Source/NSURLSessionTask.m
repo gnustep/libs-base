@@ -26,6 +26,72 @@
  * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  */
 
+/* The ivar macro below is expanded by Foundation/NSURLSession.h, so the
+ * types it names have to be known before that header is imported.
+ */
+#import "common.h"
+#include <curl/curl.h>
+
+@class NSProgress;
+@class NSURLSession;
+
+#define	GS_NSURLSessionTask_IVARS \
+  NSUInteger    _taskIdentifier; \
+  NSURLRequest *_originalRequest; \
+ \
+  id<NSURLSessionTaskDelegate> _delegate; \
+  NSURLSessionTaskState        _state; \
+  NSURLRequest                *_currentRequest; \
+  NSURLResponse               *_response; \
+  NSProgress                  *_progress; \
+  NSDate                      *_earliestBeginDate; \
+ \
+  _Atomic(int64_t) _countOfBytesClientExpectsToSend; \
+  _Atomic(int64_t) _countOfBytesClientExpectsToReceive; \
+  _Atomic(int64_t) _countOfBytesSent; \
+  _Atomic(int64_t) _countOfBytesReceived; \
+  _Atomic(int64_t) _countOfBytesExpectedToSend; \
+  _Atomic(int64_t) _countOfBytesExpectedToReceive; \
+  _Atomic(double)  _priority; \
+ \
+  NSString *_taskDescription; \
+  NSError  *_error; \
+ \
+  _Atomic(BOOL) _shouldStopTransfer; \
+ \
+  /* Set while an intercepted 3xx response is being handled by the delegate \
+   * (or automatically) and the easy handle is about to be re-added for the \
+   * new location.  libcurl reports the intercepted response as a completed \
+   * transfer (CURLOPT_FOLLOWLOCATION is off), so completion must be held \
+   * back until the redirect resolves; otherwise the task delivers a spurious \
+   * early -URLSession:task:didCompleteWithError:. */ \
+  _Atomic(BOOL) _redirectInProgress; \
+ \
+  /* Set while the handle is paused waiting for the delegate to answer \
+   * -URLSession:dataTask:didReceiveResponse:completionHandler:.  libcurl can \
+   * report the already-buffered response as complete before the delegate \
+   * answers, so completion is held back (its CURLcode saved in \
+   * _heldCompletionCode) and delivered once the disposition is known. */ \
+  _Atomic(BOOL) _awaitingResponseDisposition; \
+  /* The CURLcode of a completion held back while _awaitingResponseDisposition, \
+   * or -1 if none has been held. */ \
+  int _heldCompletionCode; \
+ \
+  /* Opaque value for storing task specific properties */ \
+  NSInteger _properties; \
+ \
+  /* Internal task data */ \
+  NSMutableDictionary	*_taskData; \
+  NSInteger 		_numberOfRedirects; \
+  NSInteger 		_headerCallbackCount; \
+  NSUInteger 		_suspendCount; \
+ \
+  char _curlErrorBuffer[CURL_ERROR_SIZE]; \
+  struct curl_slist	*_headerList; \
+ \
+  CURL			*_easyHandle; \
+  NSURLSession 		*_session;
+
 #import "NSURLSessionPrivate.h"
 #include <curl/curl.h>
 #import "NSURLSessionTaskPrivate.h"
@@ -52,6 +118,11 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
 
 #import "GSURLPrivate.h"
+
+#define	GSInternal	NSURLSessionTaskInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLSessionTask)
+
 
 @interface _GSInsensitiveDictionary : NSDictionary
 @end
@@ -862,42 +933,6 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 } /* write_callback */
 
 @implementation NSURLSessionTask
-{
-  _Atomic(BOOL) _shouldStopTransfer;
-
-  /* Set while an intercepted 3xx response is being handled by the delegate
-   * (or automatically) and the easy handle is about to be re-added for the
-   * new location.  libcurl reports the intercepted response as a completed
-   * transfer (CURLOPT_FOLLOWLOCATION is off), so completion must be held
-   * back until the redirect resolves; otherwise the task delivers a spurious
-   * early -URLSession:task:didCompleteWithError:. */
-  _Atomic(BOOL) _redirectInProgress;
-
-  /* Set while the handle is paused waiting for the delegate to answer
-   * -URLSession:dataTask:didReceiveResponse:completionHandler:.  libcurl can
-   * report the already-buffered response as complete before the delegate
-   * answers, so completion is held back (its CURLcode saved in
-   * _heldCompletionCode) and delivered once the disposition is known. */
-  _Atomic(BOOL) _awaitingResponseDisposition;
-  /* The CURLcode of a completion held back while _awaitingResponseDisposition,
-   * or -1 if none has been held. */
-  int _heldCompletionCode;
-
-  /* Opaque value for storing task specific properties */
-  NSInteger _properties;
-
-  /* Internal task data */
-  NSMutableDictionary	*_taskData;
-  NSInteger 		_numberOfRedirects;
-  NSInteger 		_headerCallbackCount;
-  NSUInteger 		_suspendCount;
-
-  char _curlErrorBuffer[CURL_ERROR_SIZE];
-  struct curl_slist	*_headerList;
-
-  CURL			*_easyHandle;
-  NSURLSession 		*_session;
-}
 
 + (void) initialize
 {
@@ -931,6 +966,17 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 #endif
 }
 
+/* -copyWithZone: makes its copy with a plain -init, so the internal ivars
+ * have to be created here too. */
+- (instancetype) init
+{
+  if (nil != (self = [super init]))
+    {
+      GS_CREATE_INTERNAL(NSURLSessionTask);
+    }
+  return self;
+}
+
 - (instancetype) initWithSession: (NSURLSession *)session
   request: (NSURLRequest *)request
   taskIdentifier: (NSUInteger)identifier
@@ -950,22 +996,24 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       _GSMutableInsensitiveDictionary	*requestHeaders = nil;
       _GSMutableInsensitiveDictionary	*configHeaders = nil;
 
-      _taskIdentifier = identifier;
-      _taskData = [[NSMutableDictionary alloc] init];
-      _shouldStopTransfer = NO;
-      _redirectInProgress = NO;
-      _awaitingResponseDisposition = NO;
-      _heldCompletionCode = -1;
-      _numberOfRedirects = -1;
-      _headerCallbackCount = 0;
+      GS_CREATE_INTERNAL(NSURLSessionTask);
 
-      ASSIGNCOPY(_originalRequest, request);
-      ASSIGNCOPY(_currentRequest, request);
+      internal->_taskIdentifier = identifier;
+      internal->_taskData = [[NSMutableDictionary alloc] init];
+      internal->_shouldStopTransfer = NO;
+      internal->_redirectInProgress = NO;
+      internal->_awaitingResponseDisposition = NO;
+      internal->_heldCompletionCode = -1;
+      internal->_numberOfRedirects = -1;
+      internal->_headerCallbackCount = 0;
 
-      httpMethod = [[_originalRequest HTTPMethod] lowercaseString];
-      url = [_originalRequest URL];
+      ASSIGNCOPY(internal->_originalRequest, request);
+      ASSIGNCOPY(internal->_currentRequest, request);
+
+      httpMethod = [[internal->_originalRequest HTTPMethod] lowercaseString];
+      url = [internal->_originalRequest URL];
       requestHeaders
-	= AUTORELEASE([[_originalRequest _insensitiveHeaders] mutableCopy]);
+	= AUTORELEASE([[internal->_originalRequest _insensitiveHeaders] mutableCopy]);
       configuration = [session configuration];
 
       /* Only retain the session once the -resume method is called
@@ -973,60 +1021,60 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * task has completed. This avoids a retain loop causing
        * session and tasks to be leaked.
        */
-      _session = session;
-      _suspendCount = 0;
-      _state = NSURLSessionTaskStateSuspended;
-      _curlErrorBuffer[0] = '\0';
+      internal->_session = session;
+      internal->_suspendCount = 0;
+      internal->_state = NSURLSessionTaskStateSuspended;
+      internal->_curlErrorBuffer[0] = '\0';
 
       /* Configure initial task data
        */
-      [_taskData setObject: [NSMutableDictionary dictionary]
+      [internal->_taskData setObject: [NSMutableDictionary dictionary]
 		    forKey: @"headers"];
 
       /* Easy Handle Configuration
        */
-      _easyHandle = curl_easy_init();
+      internal->_easyHandle = curl_easy_init();
 
       if ([@"head" isEqualToString: httpMethod])
         {
-          curl_easy_setopt(_easyHandle, CURLOPT_NOBODY, 1L);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_NOBODY, 1L);
         }
 
       /* Setup upload data if a HTTPBody or HTTPBodyStream is present in the
        * URLRequest
        */
-      if (nil != [_originalRequest HTTPBody])
+      if (nil != [internal->_originalRequest HTTPBody])
         {
-          NSData	*body = [_originalRequest HTTPBody];
+          NSData	*body = [internal->_originalRequest HTTPBody];
 
-          curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
           curl_easy_setopt(
-            _easyHandle,
+            internal->_easyHandle,
             CURLOPT_POSTFIELDSIZE_LARGE,
             (curl_off_t)[body length]);
-          curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDS, [body bytes]);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDS, [body bytes]);
         }
-      else if (nil != [_originalRequest HTTPBodyStream])
+      else if (nil != [internal->_originalRequest HTTPBodyStream])
         {
-          NSInputStream	*stream = [_originalRequest HTTPBodyStream];
+          NSInputStream	*stream = [internal->_originalRequest HTTPBodyStream];
 
-          [_taskData setObject: stream forKey: taskInputStreamKey];
+          [internal->_taskData setObject: stream forKey: taskInputStreamKey];
 
-          curl_easy_setopt(_easyHandle, CURLOPT_READFUNCTION, read_callback);
-          curl_easy_setopt(_easyHandle, CURLOPT_READDATA, self);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_READFUNCTION, read_callback);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_READDATA, self);
 
-          curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
-          curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
         }
 
       /* Configure HTTP method and URL */
       curl_easy_setopt(
-        _easyHandle,
+        internal->_easyHandle,
         CURLOPT_CUSTOMREQUEST,
-        [[_originalRequest HTTPMethod] UTF8String]);
+        [[internal->_originalRequest HTTPMethod] UTF8String]);
 
       curl_easy_setopt(
-        _easyHandle,
+        internal->_easyHandle,
         CURLOPT_URL,
         [[url absoluteString] UTF8String]);
 
@@ -1037,8 +1085,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * This is directly mapped to -[NSURLSessionDataDelegate
        * URLSession:dataTask:didReceiveData:].
        */
-      curl_easy_setopt(_easyHandle, CURLOPT_WRITEFUNCTION, write_callback);
-      curl_easy_setopt(_easyHandle, CURLOPT_WRITEDATA, self);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEFUNCTION, write_callback);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEDATA, self);
 
       /* Retrieve the header data
        *
@@ -1046,26 +1094,26 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * - URLSession:dataTask:didReceiveResponse:completionHandler:
        * we can notify it about the header response.
        */
-      curl_easy_setopt(_easyHandle, CURLOPT_HEADERFUNCTION, header_callback);
-      curl_easy_setopt(_easyHandle, CURLOPT_HEADERDATA, self);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERFUNCTION, header_callback);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERDATA, self);
 
-      curl_easy_setopt(_easyHandle, CURLOPT_ERRORBUFFER, _curlErrorBuffer);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_ERRORBUFFER, internal->_curlErrorBuffer);
 
       /* The task is now associated with the easy handle and can be accessed
        * using curl_easy_getinfo with CURLINFO_PRIVATE.
        */
-      curl_easy_setopt(_easyHandle, CURLOPT_PRIVATE, self);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_PRIVATE, self);
 
       /* Disable libcurl's build-in progress reporting */
-      curl_easy_setopt(_easyHandle, CURLOPT_NOPROGRESS, 0L);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_NOPROGRESS, 0L);
       /* Specifiy our own progress function with the user pointer being the
        * current object
        */
       curl_easy_setopt(
-        _easyHandle,
+        internal->_easyHandle,
         CURLOPT_XFERINFOFUNCTION,
         progress_callback);
-      curl_easy_setopt(_easyHandle, CURLOPT_XFERINFODATA, self);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_XFERINFODATA, self);
 
       /* Do not Follow redirects by default
        *
@@ -1073,17 +1121,17 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * for redirect notification. We have implemented our own redirection
        * system in header_callback.
        */
-      curl_easy_setopt(_easyHandle, CURLOPT_FOLLOWLOCATION, 0L);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION, 0L);
 
       /* Set timeout in connect phase */
       curl_easy_setopt(
-        _easyHandle,
+        internal->_easyHandle,
         CURLOPT_CONNECTTIMEOUT,
         (NSInteger)[request timeoutInterval]);
 
       /* Set overall timeout */
       curl_easy_setopt(
-        _easyHandle,
+        internal->_easyHandle,
         CURLOPT_TIMEOUT,
         (curl_off_t)[configuration timeoutIntervalForResource]);
 
@@ -1092,14 +1140,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
         {
 #if CURL_AT_LEAST_VERSION(7, 66, 0)
           curl_easy_setopt(
-            _easyHandle,
+            internal->_easyHandle,
             CURLOPT_HTTP_VERSION,
             CURL_HTTP_VERSION_3);
 #endif
         }
 
       /* Configure the custom CA certificate if available */
-      if (nil != (certificateBlob = [_session _certificateBlob]))
+      if (nil != (certificateBlob = [internal->_session _certificateBlob]))
         {
 // CURLOPT_CAINFO_BLOB was added in 7.77.0
 #if LIBCURL_VERSION_NUM >= 0x074D00
@@ -1111,12 +1159,12 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
            * end of transfer. */
           blob.flags = CURL_BLOB_NOCOPY;
 
-          curl_easy_setopt(_easyHandle, CURLOPT_CAINFO_BLOB, &blob);
+          curl_easy_setopt(internal->_easyHandle, CURLOPT_CAINFO_BLOB, &blob);
 #else
           curl_easy_setopt(
-            _easyHandle,
+            internal->_easyHandle,
             CURLOPT_CAINFO,
-            [_session _certificatePath]);
+            [internal->_session _certificatePath]);
 #endif
         }
 
@@ -1172,9 +1220,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
 
           /* We have removed all reserved headers in NSURLRequest */
-          _headerList = curl_slist_append(_headerList, [headerLine UTF8String]);
+          internal->_headerList = curl_slist_append(internal->_headerList, [headerLine UTF8String]);
         }
-      curl_easy_setopt(_easyHandle, CURLOPT_HTTPHEADER, _headerList);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_HTTPHEADER, internal->_headerList);
       LEAVE_POOL
     }
 
@@ -1183,161 +1231,161 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _enableAutomaticRedirects: (BOOL)flag
 {
-  curl_easy_setopt(_easyHandle, CURLOPT_FOLLOWLOCATION, flag ? 1L : 0L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION, flag ? 1L : 0L);
 }
 
 - (void) _enableUploadWithData: (NSData *)data
 {
-  curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
 
   /* Retain data */
-  [_taskData setObject: data forKey: taskUploadData];
+  [internal->_taskData setObject: data forKey: taskUploadData];
 
-  curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE,
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE,
     (curl_off_t)[data length]);
-  curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDS, [data bytes]);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDS, [data bytes]);
 
   /* The method is overwritten by CURLOPT_UPLOAD. Change it back. */
   curl_easy_setopt(
-    _easyHandle,
+    internal->_easyHandle,
     CURLOPT_CUSTOMREQUEST,
-    [[_originalRequest HTTPMethod] UTF8String]);
+    [[internal->_originalRequest HTTPMethod] UTF8String]);
 }
 
 - (void) _enableUploadWithSize: (NSInteger)size
 {
-  curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
 
-  curl_easy_setopt(_easyHandle, CURLOPT_READFUNCTION, read_callback);
-  curl_easy_setopt(_easyHandle, CURLOPT_READDATA, self);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_READFUNCTION, read_callback);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_READDATA, self);
 
   if (size > 0)
     {
-      curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE, size);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE, size);
     }
   else
     {
-      curl_easy_setopt(_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
     }
 
   /* The method is overwritten by CURLOPT_UPLOAD. Change it back. */
   curl_easy_setopt(
-    _easyHandle,
+    internal->_easyHandle,
     CURLOPT_CUSTOMREQUEST,
-    [[_originalRequest HTTPMethod] UTF8String]);
+    [[internal->_originalRequest HTTPMethod] UTF8String]);
 } /* _enableUploadWithSize */
 
 - (CURL *) _easyHandle
 {
-  return _easyHandle;
+  return internal->_easyHandle;
 }
 
 - (void) _setVerbose: (BOOL)flag
 {
-  [_session _performSelectorOnWorkThread: @selector(_workSetVerbose:)
+  [internal->_session _performSelectorOnWorkThread: @selector(_workSetVerbose:)
 				  target: self
 			      withObject: [NSNumber numberWithBool: flag]];
 }
 
 - (void) _workSetVerbose: (NSNumber *)flag
 {
-  curl_easy_setopt(_easyHandle, CURLOPT_VERBOSE, [flag boolValue] ? 1L : 0L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_VERBOSE, [flag boolValue] ? 1L : 0L);
 }
 
 - (void) _setBodyStream: (NSInputStream *)stream
 {
-  [_taskData setObject: stream forKey: taskInputStreamKey];
+  [internal->_taskData setObject: stream forKey: taskInputStreamKey];
 }
 
 - (void) _setOriginalRequest: (NSURLRequest *)request
 {
-  ASSIGNCOPY(_originalRequest, request);
+  ASSIGNCOPY(internal->_originalRequest, request);
 }
 
 - (void) _setCurrentRequest: (NSURLRequest *)request
 {
-  ASSIGNCOPY(_currentRequest, request);
+  ASSIGNCOPY(internal->_currentRequest, request);
 }
 
 - (void) _setResponse: (NSURLResponse *)response
 {
-  NSURLResponse	*oldResponse = _response;
+  NSURLResponse	*oldResponse = internal->_response;
 
-  _response = [response retain];
+  internal->_response = [response retain];
   [oldResponse release];
 }
 
 - (void) _setCountOfBytesSent: (int64_t)count
 {
-  _countOfBytesSent = count;
+  internal->_countOfBytesSent = count;
 }
 - (void) _setCountOfBytesReceived: (int64_t)count
 {
-  _countOfBytesReceived = count;
+  internal->_countOfBytesReceived = count;
 }
 - (void) _setCountOfBytesExpectedToSend: (int64_t)count
 {
-  _countOfBytesExpectedToSend = count;
+  internal->_countOfBytesExpectedToSend = count;
 }
 - (void) _setCountOfBytesExpectedToReceive: (int64_t)count
 {
-  _countOfBytesExpectedToReceive = count;
+  internal->_countOfBytesExpectedToReceive = count;
 }
 
 - (NSMutableDictionary *) _taskData
 {
-  return _taskData;
+  return internal->_taskData;
 }
 
 - (NSInteger) _properties
 {
-  return _properties;
+  return internal->_properties;
 }
 - (void) _setProperties: (NSInteger)properties
 {
-  _properties = properties;
+  internal->_properties = properties;
 }
 
 - (NSURLSession *) _session
 {
-  return _session;
+  return internal->_session;
 }
 
 - (BOOL) _shouldStopTransfer
 {
-  return _shouldStopTransfer;
+  return internal->_shouldStopTransfer;
 }
 
 - (void) _setShouldStopTransfer: (BOOL)flag
 {
-  _shouldStopTransfer = flag;
+  internal->_shouldStopTransfer = flag;
 }
 
 - (BOOL) _redirectInProgress
 {
-  return _redirectInProgress;
+  return internal->_redirectInProgress;
 }
 
 - (void) _setRedirectInProgress: (BOOL)flag
 {
-  _redirectInProgress = flag;
+  internal->_redirectInProgress = flag;
 }
 
 - (BOOL) _awaitingResponseDisposition
 {
-  return _awaitingResponseDisposition;
+  return internal->_awaitingResponseDisposition;
 }
 
 - (void) _setAwaitingResponseDisposition: (BOOL)flag
 {
-  _awaitingResponseDisposition = flag;
+  internal->_awaitingResponseDisposition = flag;
 }
 
 /* The delegate replies to URLSession:task:willRedirectToResponse:newRequest:
  * here.  A nil request refuses the redirect. */
 - (void) resumeWithRedirectRequest: (NSURLRequest *)request
 {
-  [_session _performSelectorOnWorkThread:
+  [internal->_session _performSelectorOnWorkThread:
     @selector(_workResumeWithRedirectRequest:)
 				  target: self
 			      withObject: request];
@@ -1350,7 +1398,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       /* The delegate refused the redirect.  Remove the intercepted transfer
        * (whose completion was held back) and deliver a cancellation for it. */
       [self _setRedirectInProgress: NO];
-      [_session _cancelTaskFromDelegate: self];
+      [internal->_session _cancelTaskFromDelegate: self];
       NSDebugLLog(
 	GS_NSURLSESSION_DEBUG_KEY,
 	@"task=%@ redirect refused by the delegate",
@@ -1367,7 +1415,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 	newURLString);
 
       /* Remove handle for reconfiguration */
-      [_session _removeHandle: _easyHandle];
+      [internal->_session _removeHandle: internal->_easyHandle];
 
       /* Reset statistics */
       [self _setCountOfBytesReceived: 0];
@@ -1378,10 +1426,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       [self _setCurrentRequest: userRequest];
 
       /* Update URL in easy handle */
-      curl_easy_setopt(_easyHandle, CURLOPT_URL, [newURLString UTF8String]);
-      curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_URL, [newURLString UTF8String]);
+      curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
-      [_session _addHandle: _easyHandle];
+      [internal->_session _addHandle: internal->_easyHandle];
     }
 }
 
@@ -1393,14 +1441,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   if (NSURLSessionResponseCancel == disposition)
     {
       [self _setShouldStopTransfer: YES];
-      [_session _performSelectorOnWorkThread:
+      [internal->_session _performSelectorOnWorkThread:
 	@selector(_workCancelForResponseDisposition)
 				      target: self
 				  withObject: nil];
     }
   else
     {
-      [_session _performSelectorOnWorkThread:
+      [internal->_session _performSelectorOnWorkThread:
 	@selector(_workContinueForResponseDisposition)
 				      target: self
 				  withObject: nil];
@@ -1412,7 +1460,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   /* Deliver a cancellation (any held completion is discarded in favour
    * of it). */
   [self _setAwaitingResponseDisposition: NO];
-  [_session _cancelTaskFromDelegate: self];
+  [internal->_session _cancelTaskFromDelegate: self];
 }
 
 - (void) _workContinueForResponseDisposition
@@ -1420,8 +1468,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   [self _setAwaitingResponseDisposition: NO];
   /* Unpause to flush the buffered body, then deliver any completion that was
    * held while awaiting the delegate. */
-  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
-  [_session _deliverHeldCompletionForTask: self];
+  curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
+  [internal->_session _deliverHeldCompletionForTask: self];
 }
 
 /* The delegate replies to URLSession:taskNeedsNewBodyStream: here. */
@@ -1429,10 +1477,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   if (nil != bodyStream)
     {
-      [_taskData setObject: bodyStream forKey: taskInputStreamKey];
+      [internal->_taskData setObject: bodyStream forKey: taskInputStreamKey];
     }
   /* Continue with the transfer */
-  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+  curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 }
 
 /* The three bridges below send the deprecated form of a delegate method,
@@ -1447,7 +1495,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   NSURLSessionTask	*task = self;
 
-  [[self delegate] URLSession: _session
+  [[self delegate] URLSession: internal->_session
 			 task: self
    willPerformHTTPRedirection: response
 		   newRequest: request
@@ -1461,7 +1509,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   NSURLSessionDataTask	*task = (NSURLSessionDataTask *)self;
 
   [(id<NSURLSessionDataDelegate>)[self delegate]
-		   URLSession: _session
+		   URLSession: internal->_session
 		     dataTask: task
 	   didReceiveResponse: response
 	    completionHandler: ^(NSURLSessionResponseDisposition disposition) {
@@ -1473,7 +1521,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   NSURLSessionTask	*task = self;
 
-  [[self delegate] URLSession: _session
+  [[self delegate] URLSession: internal->_session
 			 task: self
 	    needNewBodyStream: ^(NSInputStream *bodyStream) {
       [task resumeWithBodyStream: bodyStream];
@@ -1483,30 +1531,30 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (int) _heldCompletionCode
 {
-  return _heldCompletionCode;
+  return internal->_heldCompletionCode;
 }
 
 - (void) _setHeldCompletionCode: (int)code
 {
-  _heldCompletionCode = code;
+  internal->_heldCompletionCode = code;
 }
 
 - (NSInteger) _numberOfRedirects
 {
-  return _numberOfRedirects;
+  return internal->_numberOfRedirects;
 }
 - (void) _setNumberOfRedirects: (NSInteger)redirects
 {
-  _numberOfRedirects = redirects;
+  internal->_numberOfRedirects = redirects;
 }
 
 - (NSInteger) _headerCallbackCount
 {
-  return _headerCallbackCount;
+  return internal->_headerCallbackCount;
 }
 - (void) _setHeaderCallbackCount: (NSInteger)count
 {
-  _headerCallbackCount = count;
+  internal->_headerCallbackCount = count;
 }
 
 /* Creates a temporary file and opens a file handle for writing */
@@ -1522,7 +1570,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   path = [path stringByAppendingPathComponent: [[NSUUID UUID] UUIDString]];
 
   url = [NSURL fileURLWithPath: path];
-  [_taskData setObject: url forKey: taskTemporaryFileLocationKey];
+  [internal->_taskData setObject: url forKey: taskTemporaryFileLocationKey];
 
   if (![mgr createFileAtPath: path contents: nil attributes: nil])
     {
@@ -1543,7 +1591,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
 
   handle = [NSFileHandle fileHandleForWritingAtPath: path];
-  [_taskData setObject: handle forKey: taskTemporaryFileHandleKey];
+  [internal->_taskData setObject: handle forKey: taskTemporaryFileHandleKey];
 
   return handle;
 } /* _createTemporaryFileHandleWithError */
@@ -1562,95 +1610,95 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       code = CURLE_ABORTED_BY_CALLBACK;
     }
 
-  error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
+  error = errorForCURLcode(internal->_easyHandle, code, internal->_curlErrorBuffer);
 
-  if (_properties & GSURLSessionWritesDataToFile)
+  if (internal->_properties & GSURLSessionWritesDataToFile)
     {
       NSFileHandle	*handle;
 
       if (nil !=
-          (handle = [_taskData objectForKey: taskTemporaryFileHandleKey]))
+          (handle = [internal->_taskData objectForKey: taskTemporaryFileHandleKey]))
         {
           [handle closeFile];
         }
     }
 
-  if (_properties & GSURLSessionUpdatesDelegate)
+  if (internal->_properties & GSURLSessionUpdatesDelegate)
     {
-      if (_properties & GSURLSessionWritesDataToFile
-	&& [_delegate respondsToSelector: didFinishDownloadingToURLSel])
+      if (internal->_properties & GSURLSessionWritesDataToFile
+	&& [internal->_delegate respondsToSelector: didFinishDownloadingToURLSel])
         {
-          NSURL	*url = [_taskData objectForKey: taskTemporaryFileLocationKey];
+          NSURL	*url = [internal->_taskData objectForKey: taskTemporaryFileLocationKey];
           NSInvocation		*inv;
-          NSURLSession		*session = _session;
+          NSURLSession		*session = internal->_session;
           NSURLSessionTask	*task = self;
 
-          inv = GSURLSessionInvocation(_delegate, didFinishDownloadingToURLSel);
+          inv = GSURLSessionInvocation(internal->_delegate, didFinishDownloadingToURLSel);
           [inv setArgument: &session atIndex: 2];
           [inv setArgument: &task atIndex: 3];
           [inv setArgument: &url atIndex: 4];
-          [_session _enqueueDelegateInvocation: inv];
+          [internal->_session _enqueueDelegateInvocation: inv];
         }
 
-      if ([_delegate respondsToSelector: didCompleteWithErrorSel])
+      if ([internal->_delegate respondsToSelector: didCompleteWithErrorSel])
         {
           NSInvocation		*inv;
-          NSURLSession		*session = _session;
+          NSURLSession		*session = internal->_session;
           NSURLSessionTask	*task = self;
 
-          inv = GSURLSessionInvocation(_delegate, didCompleteWithErrorSel);
+          inv = GSURLSessionInvocation(internal->_delegate, didCompleteWithErrorSel);
           [inv setArgument: &session atIndex: 2];
           [inv setArgument: &task atIndex: 3];
           [inv setArgument: &error atIndex: 4];
-          [_session _enqueueDelegateInvocation: inv];
+          [internal->_session _enqueueDelegateInvocation: inv];
         }
     }
 
   /* NSURLSessionUploadTask is a subclass of a NSURLSessionDataTask with the
    * same completion handler signature. It thus follows the same code path.
    */
-  if ((_properties & GSURLSessionStoresDataInMemory)
-    && (_properties & GSURLSessionHasCompletionHandler)
+  if ((internal->_properties & GSURLSessionStoresDataInMemory)
+    && (internal->_properties & GSURLSessionHasCompletionHandler)
     && [self isKindOfClass: dataTaskClass])
     {
       NSURLSessionDataTask	*dataTask;
       NSData 			*data;
 
       NSInvocation	*inv;
-      NSURLResponse	*response = _response;
+      NSURLResponse	*response = internal->_response;
 
       dataTask = (NSURLSessionDataTask *)self;
-      data = [_taskData objectForKey: taskTransferDataKey];
+      data = [internal->_taskData objectForKey: taskTransferDataKey];
 
       inv = GSURLSessionInvocation(dataTask,
 	@selector(_callDataCompletionHandlerWithData:response:error:));
       [inv setArgument: &data atIndex: 2];
       [inv setArgument: &response atIndex: 3];
       [inv setArgument: &error atIndex: 4];
-      [_session _enqueueDelegateInvocation: inv];
+      [internal->_session _enqueueDelegateInvocation: inv];
     }
-  else if ((_properties & GSURLSessionWritesDataToFile)
-    && (_properties & GSURLSessionHasCompletionHandler)
+  else if ((internal->_properties & GSURLSessionWritesDataToFile)
+    && (internal->_properties & GSURLSessionHasCompletionHandler)
     && [self isKindOfClass: downloadTaskClass])
     {
       NSURLSessionDownloadTask	*downloadTask;
       NSURL			*tempFile;
 
       NSInvocation	*inv;
-      NSURLResponse	*response = _response;
+      NSURLResponse	*response = internal->_response;
 
       downloadTask = (NSURLSessionDownloadTask *)self;
-      tempFile = [_taskData objectForKey: taskTemporaryFileLocationKey];
+      tempFile = [internal->_taskData objectForKey: taskTemporaryFileLocationKey];
 
       inv = GSURLSessionInvocation(downloadTask,
 	@selector(_callDownloadCompletionHandlerWithURL:response:error:));
       [inv setArgument: &tempFile atIndex: 2];
       [inv setArgument: &response atIndex: 3];
       [inv setArgument: &error atIndex: 4];
-      [_session _enqueueDelegateInvocation: inv];
+      [internal->_session _enqueueDelegateInvocation: inv];
     }
 
-  RELEASE(_session);
+  RELEASE(internal->_session);
 } /* _transferFinishedWithCode */
 
 /* Called in header_callback */
@@ -1660,8 +1708,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   NSArray 			*cookies;
   NSURLSessionConfiguration 	*config;
 
-  config = [_session configuration];
-  url = [_currentRequest URL];
+  config = [internal->_session configuration];
+  url = [internal->_currentRequest URL];
 
   /* FIXME: Implement NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain */
   if (NSHTTPCookieAcceptPolicyNever != [config HTTPCookieAcceptPolicy]
@@ -1682,8 +1730,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) suspend
 {
-  _suspendCount += 1;
-  if (_suspendCount == 1)
+  internal->_suspendCount += 1;
+  if (internal->_suspendCount == 1)
     {
       /* If there is an active transfer associated with this task, it will be
        * aborted in the next libcurl progress_callback.
@@ -1691,26 +1739,26 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * TODO: Pause the easy handle put do not abort the full transfer!
        * .     What if the handle is currently paused?
        */
-      _shouldStopTransfer = YES;
+      internal->_shouldStopTransfer = YES;
     }
 }
 - (void) resume
 {
   /* Only resume a transfer if the task is not suspended and in suspended state
    */
-  if (_suspendCount == 0 && [self state] == NSURLSessionTaskStateSuspended)
+  if (internal->_suspendCount == 0 && [self state] == NSURLSessionTaskStateSuspended)
     {
       /*
        * Properly retain the session to keep a reference
        * to the task. This ensures correct API behaviour.
        */
-      RETAIN(_session);
+      RETAIN(internal->_session);
 
-      _state = NSURLSessionTaskStateRunning;
-      [_session _resumeTask: self];
+      internal->_state = NSURLSessionTaskStateRunning;
+      [internal->_session _resumeTask: self];
       return;
     }
-  _suspendCount -= 1;
+  internal->_suspendCount -= 1;
 }
 - (void) cancel
 {
@@ -1720,7 +1768,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    * URLSession:task:didCompleteWithError: is called after receiving
    * CURLMSG_DONE in -[NSURLSessionTask _checkForCompletion].
    */
-  [_session _performSelectorOnWorkThread: @selector(_workCancel)
+  [internal->_session _performSelectorOnWorkThread: @selector(_workCancel)
 				  target: self
 			      withObject: nil];
 }
@@ -1728,26 +1776,26 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (void) _workCancel
 {
   /* Unpause the easy handle if previously paused */
-  curl_easy_pause(_easyHandle, CURLPAUSE_CONT);
+  curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
-  _shouldStopTransfer = YES;
-  _state = NSURLSessionTaskStateCanceling;
+  internal->_shouldStopTransfer = YES;
+  internal->_state = NSURLSessionTaskStateCanceling;
 
   /* If the task was awaiting a didReceiveResponse disposition its completion
    * was being held back; resolve that state so the cancellation is delivered
-   * (as a cancellation, since _shouldStopTransfer is set) rather than left
+   * (as a cancellation, since internal->_shouldStopTransfer is set) rather than left
    * pending a disposition that will never arrive. */
-  _awaitingResponseDisposition = NO;
-  [_session _deliverHeldCompletionForTask: self];
+  internal->_awaitingResponseDisposition = NO;
+  [internal->_session _deliverHeldCompletionForTask: self];
 }
 
 - (float) priority
 {
-  return _priority;
+  return internal->_priority;
 }
 - (void) setPriority: (float)priority
 {
-  _priority = priority;
+  internal->_priority = priority;
 }
 
 - (id) copyWithZone: (NSZone *)zone
@@ -1756,15 +1804,15 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (copy)
     {
-      copy->_originalRequest = [_originalRequest copyWithZone: zone];
-      copy->_currentRequest = [_currentRequest copyWithZone: zone];
-      copy->_response = [_response copyWithZone: zone];
+      GSIVar(copy, _originalRequest) = [internal->_originalRequest copyWithZone: zone];
+      GSIVar(copy, _currentRequest) = [internal->_currentRequest copyWithZone: zone];
+      GSIVar(copy, _response) = [internal->_response copyWithZone: zone];
       /* FIXME: Seems like copyWithZone: is not implemented for NSProgress */
-      copy->_progress = [_progress copy];
-      copy->_earliestBeginDate = [_earliestBeginDate copyWithZone: zone];
-      copy->_taskDescription = [_taskDescription copyWithZone: zone];
-      copy->_taskData = [_taskData copyWithZone: zone];
-      copy->_easyHandle = curl_easy_duphandle(_easyHandle);
+      GSIVar(copy, _progress) = [internal->_progress copy];
+      GSIVar(copy, _earliestBeginDate) = [internal->_earliestBeginDate copyWithZone: zone];
+      GSIVar(copy, _taskDescription) = [internal->_taskDescription copyWithZone: zone];
+      GSIVar(copy, _taskData) = [internal->_taskData copyWithZone: zone];
+      GSIVar(copy, _easyHandle) = curl_easy_duphandle(internal->_easyHandle);
     }
 
   return copy;
@@ -1774,100 +1822,100 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (NSUInteger) taskIdentifier
 {
-  return _taskIdentifier;
+  return internal->_taskIdentifier;
 }
 
 - (NSURLRequest *) originalRequest
 {
-  return AUTORELEASE([_originalRequest copy]);
+  return AUTORELEASE([internal->_originalRequest copy]);
 }
 
 - (NSURLRequest *) currentRequest
 {
-  return AUTORELEASE([_currentRequest copy]);
+  return AUTORELEASE([internal->_currentRequest copy]);
 }
 
 - (NSURLResponse *) response
 {
-  return AUTORELEASE([_response copy]);
+  return AUTORELEASE([internal->_response copy]);
 }
 
 - (NSURLSessionTaskState) state
 {
-  return _state;
+  return internal->_state;
 }
 
 - (NSProgress *) progress
 {
-  return _progress;
+  return internal->_progress;
 }
 
 - (NSError *) error
 {
-  return _error;
+  return internal->_error;
 }
 
 - (id<NSURLSessionTaskDelegate>) delegate
 {
-  return _delegate;
+  return internal->_delegate;
 }
 
 - (void) setDelegate: (id<NSURLSessionTaskDelegate>)delegate
 {
-  id<NSURLSessionTaskDelegate> oldDelegate = _delegate;
+  id<NSURLSessionTaskDelegate> oldDelegate = internal->_delegate;
 
-  _delegate = RETAIN(delegate);
+  internal->_delegate = RETAIN(delegate);
   RELEASE(oldDelegate);
 }
 
 - (NSDate *) earliestBeginDate
 {
-  return _earliestBeginDate;
+  return internal->_earliestBeginDate;
 }
 
 - (void) setEarliestBeginDate: (NSDate *)date
 {
-  NSDate	*oldDate = _earliestBeginDate;
+  NSDate	*oldDate = internal->_earliestBeginDate;
 
-  _earliestBeginDate = RETAIN(date);
+  internal->_earliestBeginDate = RETAIN(date);
   RELEASE(oldDate);
 }
 
 - (int64_t) countOfBytesClientExpectsToSend
 {
-  return _countOfBytesClientExpectsToSend;
+  return internal->_countOfBytesClientExpectsToSend;
 }
 - (int64_t) countOfBytesClientExpectsToReceive
 {
-  return _countOfBytesClientExpectsToReceive;
+  return internal->_countOfBytesClientExpectsToReceive;
 }
 - (int64_t) countOfBytesSent
 {
-  return _countOfBytesSent;
+  return internal->_countOfBytesSent;
 }
 - (int64_t) countOfBytesReceived
 {
-  return _countOfBytesReceived;
+  return internal->_countOfBytesReceived;
 }
 - (int64_t) countOfBytesExpectedToSend
 {
-  return _countOfBytesExpectedToSend;
+  return internal->_countOfBytesExpectedToSend;
 }
 - (int64_t) countOfBytesExpectedToReceive
 {
-  return _countOfBytesExpectedToReceive;
+  return internal->_countOfBytesExpectedToReceive;
 }
 
 - (NSString *) taskDescription
 {
-  return _taskDescription;
+  return internal->_taskDescription;
 }
 
 - (void) setTaskDescription: (NSString *)description
 {
-  NSString	*oldDescription = _taskDescription;
+  NSString	*oldDescription = internal->_taskDescription;
 
-  _taskDescription = [description copy];
+  internal->_taskDescription = [description copy];
   RELEASE(oldDescription);
 }
 
@@ -1878,17 +1926,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    *
    * It is save to release the curl handle here.
    */
-  curl_easy_cleanup(_easyHandle);
-  curl_slist_free_all(_headerList);
+  curl_easy_cleanup(internal->_easyHandle);
+  curl_slist_free_all(internal->_headerList);
 
-  RELEASE(_originalRequest);
-  RELEASE(_currentRequest);
-  RELEASE(_response);
-  RELEASE(_progress);
-  RELEASE(_earliestBeginDate);
-  RELEASE(_taskDescription);
-  RELEASE(_taskData);
+  RELEASE(internal->_originalRequest);
+  RELEASE(internal->_currentRequest);
+  RELEASE(internal->_response);
+  RELEASE(internal->_progress);
+  RELEASE(internal->_earliestBeginDate);
+  RELEASE(internal->_taskDescription);
+  RELEASE(internal->_taskData);
 
+  GS_DESTROY_INTERNAL(NSURLSessionTask);
   [super dealloc];
 }
 

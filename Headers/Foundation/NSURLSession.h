@@ -342,26 +342,19 @@ GS_EXPORT const int64_t NSURLSessionTransferSizeUnknown;
 GS_EXPORT_CLASS
 @interface NSURLSessionTask : NSObject <NSCopying, NSProgressReporting>
 {
-  NSUInteger    _taskIdentifier;
-  NSURLRequest *_originalRequest;
-
-  id<NSURLSessionTaskDelegate> _delegate;
-  NSURLSessionTaskState        _state;
-  NSURLRequest                *_currentRequest;
-  NSURLResponse               *_response;
-  NSProgress                  *_progress;
-  NSDate                      *_earliestBeginDate;
-
-  _Atomic(int64_t) _countOfBytesClientExpectsToSend;
-  _Atomic(int64_t) _countOfBytesClientExpectsToReceive;
-  _Atomic(int64_t) _countOfBytesSent;
-  _Atomic(int64_t) _countOfBytesReceived;
-  _Atomic(int64_t) _countOfBytesExpectedToSend;
-  _Atomic(int64_t) _countOfBytesExpectedToReceive;
-  _Atomic(double)  _priority;
-
-  NSString *_taskDescription;
-  NSError  *_error;
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSURLSessionTask_IVARS)
+@public
+GS_NSURLSessionTask_IVARS;
+#  endif
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+@private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 /**
