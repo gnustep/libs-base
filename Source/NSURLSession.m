@@ -112,9 +112,10 @@
   /* Path to PEM encoded CA certificate file. */ \
   NSString * _certificatePath; \
  \
-  /* The task identifier for the next task \
+  /* The task identifier for the next task.  Read and incremented under \
+   * _taskLock, so it needs no atomic type of its own. \
    */ \
-  _Atomic(NSInteger) _taskIdentifier; \
+  NSInteger _taskIdentifier; \
   /* Lock for _taskIdentifier and _tasks \
    */ \
   gs_mutex_t _taskLock;

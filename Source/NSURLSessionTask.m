@@ -32,6 +32,12 @@
 #import "common.h"
 #include <curl/curl.h>
 
+/* Where the compiler has no usable _Atomic, GSAtomic.h supplies a fallback
+ * for it along with gs_atomic_load and gs_atomic_store.  It has to be seen
+ * before the header expands the ivar macro below.
+ */
+#include "GSAtomic.h"
+
 @class NSProgress;
 @class NSURLSession;
 
@@ -52,7 +58,10 @@
   _Atomic(int64_t) _countOfBytesReceived; \
   _Atomic(int64_t) _countOfBytesExpectedToSend; \
   _Atomic(int64_t) _countOfBytesExpectedToReceive; \
-  _Atomic(double)  _priority; \
+  /* Advisory, and only ever read or written by -priority and -setPriority:, \
+   * both of which take a float. \
+   */ \
+  float _priority; \
  \
   NSString *_taskDescription; \
   NSError  *_error; \
@@ -1000,9 +1009,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       internal->_taskIdentifier = identifier;
       internal->_taskData = [[NSMutableDictionary alloc] init];
-      internal->_shouldStopTransfer = NO;
-      internal->_redirectInProgress = NO;
-      internal->_awaitingResponseDisposition = NO;
+      gs_atomic_store(&internal->_shouldStopTransfer, NO);
+      gs_atomic_store(&internal->_redirectInProgress, NO);
+      gs_atomic_store(&internal->_awaitingResponseDisposition, NO);
       internal->_heldCompletionCode = -1;
       internal->_numberOfRedirects = -1;
       internal->_headerCallbackCount = 0;
@@ -1317,19 +1326,19 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setCountOfBytesSent: (int64_t)count
 {
-  internal->_countOfBytesSent = count;
+  gs_atomic_store(&internal->_countOfBytesSent, count);
 }
 - (void) _setCountOfBytesReceived: (int64_t)count
 {
-  internal->_countOfBytesReceived = count;
+  gs_atomic_store(&internal->_countOfBytesReceived, count);
 }
 - (void) _setCountOfBytesExpectedToSend: (int64_t)count
 {
-  internal->_countOfBytesExpectedToSend = count;
+  gs_atomic_store(&internal->_countOfBytesExpectedToSend, count);
 }
 - (void) _setCountOfBytesExpectedToReceive: (int64_t)count
 {
-  internal->_countOfBytesExpectedToReceive = count;
+  gs_atomic_store(&internal->_countOfBytesExpectedToReceive, count);
 }
 
 - (NSMutableDictionary *) _taskData
@@ -1353,32 +1362,32 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (BOOL) _shouldStopTransfer
 {
-  return internal->_shouldStopTransfer;
+  return gs_atomic_load(&internal->_shouldStopTransfer);
 }
 
 - (void) _setShouldStopTransfer: (BOOL)flag
 {
-  internal->_shouldStopTransfer = flag;
+  gs_atomic_store(&internal->_shouldStopTransfer, flag);
 }
 
 - (BOOL) _redirectInProgress
 {
-  return internal->_redirectInProgress;
+  return gs_atomic_load(&internal->_redirectInProgress);
 }
 
 - (void) _setRedirectInProgress: (BOOL)flag
 {
-  internal->_redirectInProgress = flag;
+  gs_atomic_store(&internal->_redirectInProgress, flag);
 }
 
 - (BOOL) _awaitingResponseDisposition
 {
-  return internal->_awaitingResponseDisposition;
+  return gs_atomic_load(&internal->_awaitingResponseDisposition);
 }
 
 - (void) _setAwaitingResponseDisposition: (BOOL)flag
 {
-  internal->_awaitingResponseDisposition = flag;
+  gs_atomic_store(&internal->_awaitingResponseDisposition, flag);
 }
 
 /* The delegate replies to URLSession:task:willRedirectToResponse:newRequest:
@@ -1739,7 +1748,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * TODO: Pause the easy handle put do not abort the full transfer!
        * .     What if the handle is currently paused?
        */
-      internal->_shouldStopTransfer = YES;
+      gs_atomic_store(&internal->_shouldStopTransfer, YES);
     }
 }
 - (void) resume
@@ -1778,14 +1787,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   /* Unpause the easy handle if previously paused */
   curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
-  internal->_shouldStopTransfer = YES;
+  gs_atomic_store(&internal->_shouldStopTransfer, YES);
   internal->_state = NSURLSessionTaskStateCanceling;
 
   /* If the task was awaiting a didReceiveResponse disposition its completion
    * was being held back; resolve that state so the cancellation is delivered
    * (as a cancellation, since internal->_shouldStopTransfer is set) rather than left
    * pending a disposition that will never arrive. */
-  internal->_awaitingResponseDisposition = NO;
+  gs_atomic_store(&internal->_awaitingResponseDisposition, NO);
   [internal->_session _deliverHeldCompletionForTask: self];
 }
 
@@ -1883,27 +1892,27 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (int64_t) countOfBytesClientExpectsToSend
 {
-  return internal->_countOfBytesClientExpectsToSend;
+  return gs_atomic_load(&internal->_countOfBytesClientExpectsToSend);
 }
 - (int64_t) countOfBytesClientExpectsToReceive
 {
-  return internal->_countOfBytesClientExpectsToReceive;
+  return gs_atomic_load(&internal->_countOfBytesClientExpectsToReceive);
 }
 - (int64_t) countOfBytesSent
 {
-  return internal->_countOfBytesSent;
+  return gs_atomic_load(&internal->_countOfBytesSent);
 }
 - (int64_t) countOfBytesReceived
 {
-  return internal->_countOfBytesReceived;
+  return gs_atomic_load(&internal->_countOfBytesReceived);
 }
 - (int64_t) countOfBytesExpectedToSend
 {
-  return internal->_countOfBytesExpectedToSend;
+  return gs_atomic_load(&internal->_countOfBytesExpectedToSend);
 }
 - (int64_t) countOfBytesExpectedToReceive
 {
-  return internal->_countOfBytesExpectedToReceive;
+  return gs_atomic_load(&internal->_countOfBytesExpectedToReceive);
 }
 
 - (NSString *) taskDescription
