@@ -1,15 +1,18 @@
 #import <Foundation/NSURLSession.h>
 #import <Foundation/NSData.h>
+#import <GNUstepBase/GSBlocks.h>
 
 @class URLManager;
 
-typedef void (^URLManagerCheckBlock)(URLManager *);
+DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
 
 @interface URLManager
   : NSObject <NSURLSessionDataDelegate, NSURLSessionTaskDelegate,
               NSURLSessionDelegate, NSURLSessionDownloadDelegate>
 {
   URLManagerCheckBlock _checkBlock;
+  id                   _checkTarget;
+  SEL                  _checkSelector;
 
 @public
   NSURLSession                   *currentSession;
@@ -55,6 +58,11 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 
 - (void)setCheckBlock:(URLManagerCheckBlock)block;
 
+/* The check to run once the expected number of tasks has completed, stated
+ * without a block.  aSelector takes the URLManager.
+ */
+- (void)setCheckTarget:(id)target selector:(SEL)aSelector;
+
 @end
 
 @implementation URLManager
@@ -73,7 +81,17 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 
 - (void)setCheckBlock:(URLManagerCheckBlock)block
 {
-  _checkBlock = _Block_copy(block);
+  if (NULL != block)
+    {
+      _checkBlock = Block_copy(block);
+    }
+}
+
+- (void)setCheckTarget:(id)target selector:(SEL)aSelector
+{
+  /* The check runs later, from a delegate callback, so the target is held. */
+  ASSIGN(_checkTarget, target);
+  _checkSelector = aSelector;
 }
 
 #pragma mark - Session Lifecycle
@@ -98,10 +116,9 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 #pragma mark - Task Updates
 
 - (void)URLSession:(NSURLSession *)session
-                        task:(NSURLSessionTask *)task
-  willPerformHTTPRedirection:(NSHTTPURLResponse *)response
-                  newRequest:(NSURLRequest *)request
-           completionHandler:(void (^)(NSURLRequest *))completionHandler
+                    task:(NSURLSessionTask *)task
+  willRedirectToResponse:(NSHTTPURLResponse *)response
+              newRequest:(NSURLRequest *)request
 {
   ASSIGN(currentSession, session);
   ASSIGN(httpRedirectionTask, task);
@@ -110,11 +127,11 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 
   if (cancelRedirect)
     {
-      completionHandler(NULL);
+      [task resumeWithRedirectRequest:nil];
     }
   else
     {
-      completionHandler(request);
+      [task resumeWithRedirectRequest:request];
     }
 
   httpRedirectionCount += 1;
@@ -122,17 +139,23 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 
 - (void)URLSession:(NSURLSession *)session
                   task:(NSURLSessionTask *)task
-  didCompleteWithError:(nullable NSError *)error
+  didCompleteWithError:(NSError * _Nullable)error
 {
   ASSIGN(currentSession, session);
   ASSIGN(didCompleteTask, task);
   ASSIGN(didCompleteError, error);
 
   didCompleteCount += 1;
-  if (didCompleteCount == numberOfExpectedTasksBeforeCheck
-      && _checkBlock != NULL)
+  if (didCompleteCount == numberOfExpectedTasksBeforeCheck)
     {
-      _checkBlock(self);
+      if (nil != _checkTarget)
+        {
+          [_checkTarget performSelector:_checkSelector withObject:self];
+        }
+      else
+        {
+          CALL_BLOCK(_checkBlock, self);
+        }
     }
 }
 
@@ -141,8 +164,6 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 - (void)URLSession:(NSURLSession *)session
             dataTask:(NSURLSessionDataTask *)dataTask
   didReceiveResponse:(NSURLResponse *)response
-   completionHandler:
-     (void (^)(NSURLSessionResponseDisposition))completionHandler
 {
   ASSIGN(currentSession, session);
   ASSIGN(didReceiveResponseTask, dataTask);
@@ -150,7 +171,7 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
 
   didReceiveResponseCount += 1;
 
-  completionHandler(responseAnswer);
+  [dataTask resumeWithResponseDisposition:responseAnswer];
 }
 
 - (void)URLSession:(NSURLSession *)session
@@ -217,7 +238,11 @@ typedef void (^URLManagerCheckBlock)(URLManager *);
   RELEASE(didReceiveDataTask);
   RELEASE(accumulatedData);
 
-  _Block_release(_checkBlock);
+  RELEASE(_checkTarget);
+  if (NULL != _checkBlock)
+    {
+      Block_release(_checkBlock);
+    }
   [super dealloc];
 }
 
