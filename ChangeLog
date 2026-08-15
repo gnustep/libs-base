@@ -1,3 +1,13 @@
+2026-08-13 Todd White <todd.white@thalion.global>
+
+	* Source/NSUserDefaults.m: Post NSUserDefaultsDidChangeNotification
+	from the methods which alter what a lookup can see and posted
+	nothing: addSuiteNamed:, removeSuiteNamed:, setSearchList:,
+	setVolatileDomain:forName:, removeVolatileDomainForName: and
+	registerDefaults:.
+	* Tests/base/NSUserDefaults/notifications.m: New test that each of
+	those methods posts the notification.
+  
 2026-08-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPathUtilities.h:
@@ -72,7 +82,6 @@
 	* Tests/base/NSTask/nopath.m:
 	Do not loop forever looking for an executable when the environment
 	has no PATH.
->>>>>>> refs/remotes/origin/master
 
 2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
