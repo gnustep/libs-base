@@ -14,51 +14,32 @@
 #endif
 
 #import "HTTPServer.h"
+#import "GNUstepBase/GNUstep.h"
 
-@interface
-NSString (ServerAdditions)
-- (void)enumerateLinesUsingBlock2:
-  (void (^)(NSString *line, NSUInteger lineEndIndex, BOOL *stop))block;
-@end
-
-@implementation
-NSString (ServerAdditions)
-
-- (void)enumerateLinesUsingBlock2:
-  (void (^)(NSString *line, NSUInteger lineEndIndex, BOOL *stop))block
+/* Line by line over an ASCII header block.  On entry *lineStart is where to
+ * read from; on return it is where the next line begins and *lineEnd is the
+ * index just past the line just read.  Returns nil once the string is spent.
+ */
+static NSString *
+nextLine(NSString *s, NSUInteger *lineStart, NSUInteger *lineEnd)
 {
-  NSUInteger length;
-  NSUInteger lineStart, lineEnd, contentsEnd;
-  NSRange    currentLocationRange;
-  BOOL       stop;
+  NSUInteger	start = *lineStart;
+  NSUInteger	end = 0;
+  NSUInteger	contentsEnd = 0;
 
-  length = [self length];
-  lineStart = lineEnd = contentsEnd = 0;
-  stop = NO;
-
-  // Enumerate through the string line by line
-  while (lineStart < length && !stop)
+  if (start >= [s length])
     {
-      NSString *line;
-      NSRange   lineRange;
-
-      currentLocationRange = NSMakeRange(lineStart, 0);
-      [self getLineStart:&lineStart
-                     end:&lineEnd
-             contentsEnd:&contentsEnd
-                forRange:currentLocationRange];
-
-      lineRange = NSMakeRange(lineStart, contentsEnd - lineStart);
-      line = [self substringWithRange:lineRange];
-
-      // Execute the block
-      block(line, lineEnd, &stop);
-
-      // Move to the next line
-      lineStart = lineEnd;
+      return nil;
     }
+  [s getLineStart:&start
+              end:&end
+      contentsEnd:&contentsEnd
+         forRange:NSMakeRange(start, 0)];
+
+  *lineStart = end;
+  *lineEnd = end;
+  return [s substringWithRange:NSMakeRange(start, contentsEnd - start)];
 }
-@end
 
 /* The length of the complete request at the front of data, or 0 when the whole
  * request has not arrived yet.  A request is complete once the blank line
@@ -68,10 +49,13 @@ NSString (ServerAdditions)
 static NSUInteger
 requestLength(NSData *data)
 {
-  NSRange            end;
-  NSString          *headers;
-  NSUInteger         bodyStart;
-  __block NSUInteger contentLength = 0;
+  NSRange     end;
+  NSString   *headers;
+  NSString   *line;
+  NSUInteger  bodyStart;
+  NSUInteger  contentLength = 0;
+  NSUInteger  lineStart = 0;
+  NSUInteger  lineEnd = 0;
 
   end = [data rangeOfData:[NSData dataWithBytes:"\r\n\r\n" length:4]
                   options:0
@@ -85,19 +69,20 @@ requestLength(NSData *data)
   headers = [[NSString alloc]
     initWithData:[data subdataWithRange:NSMakeRange(0, end.location)]
         encoding:NSASCIIStringEncoding];
-  [headers enumerateLinesUsingBlock2:^(NSString  *line,
-                                       NSUInteger lineEndIndex, BOOL *stop) {
-    NSRange range = [line rangeOfString:@":"];
 
-    if (NSNotFound != range.location
-        && NSOrderedSame == [[line substringToIndex:range.location]
-             caseInsensitiveCompare:@"Content-Length"])
-      {
-        contentLength = (NSUInteger)
-          [[line substringFromIndex:range.location + 1] integerValue];
-        *stop = YES;
-      }
-  }];
+  while ((line = nextLine(headers, &lineStart, &lineEnd)) != nil)
+    {
+      NSRange range = [line rangeOfString:@":"];
+
+      if (NSNotFound != range.location
+          && NSOrderedSame == [[line substringToIndex:range.location]
+               caseInsensitiveCompare:@"Content-Length"])
+        {
+          contentLength = (NSUInteger)
+            [[line substringFromIndex:range.location + 1] integerValue];
+          break;
+        }
+    }
 
   if ([data length] < bodyStart + contentLength)
     {
@@ -108,29 +93,48 @@ requestLength(NSData *data)
 }
 
 @implementation Route
+
++ (instancetype)routeWithURL:(NSURL *)url
+                      method:(NSString *)method
+                    response:(NSData *)response
 {
-  NSString           *_method;
-  NSURL              *_url;
-  RequestHandlerBlock _block;
+  Route *r = [[Route alloc] initWithURL:url method:method];
+
+  ASSIGN(r->_response, response);
+  return AUTORELEASE(r);
 }
+
++ (instancetype)routeWithURL:(NSURL *)url
+                      method:(NSString *)method
+                      target:(id)target
+                    selector:(SEL)aSelector
+{
+  Route *r = [[Route alloc] initWithURL:url method:method];
+
+  ASSIGN(r->_target, target);
+  r->_selector = aSelector;
+  return AUTORELEASE(r);
+}
+
 + (instancetype)routeWithURL:(NSURL *)url
                       method:(NSString *)method
                      handler:(RequestHandlerBlock)block
 {
-  return [[Route alloc] initWithURL:url method:method handler:block];
+  Route *r = [[Route alloc] initWithURL:url method:method];
+
+  r->_block = block;
+  return AUTORELEASE(r);
 }
 
 - (instancetype)initWithURL:(NSURL *)url
                      method:(NSString *)method
-                    handler:(RequestHandlerBlock)block
 {
   self = [super init];
 
   if (self)
     {
-      _url = url;
-      _method = method;
-      _block = block;
+      ASSIGN(_url, url);
+      ASSIGN(_method, method);
     }
 
   return self;
@@ -144,9 +148,18 @@ requestLength(NSData *data)
 {
   return _url;
 }
-- (RequestHandlerBlock)block
+
+- (NSData *)responseForRequest:(NSURLRequest *)request
 {
-  return _block;
+  if (nil != _target)
+    {
+      return [_target performSelector:_selector withObject:request];
+    }
+  if (nil != _response)
+    {
+      return _response;
+    }
+  return CALL_BLOCK_RET(_block, NSData *, request);
 }
 
 - (BOOL)acceptsURL:(NSURL *)url method:(NSString *)method
@@ -154,17 +167,20 @@ requestLength(NSData *data)
   return [[_url path] isEqualTo:[url path]];
 }
 
+- (void)dealloc
+{
+  RELEASE(_url);
+  RELEASE(_method);
+  RELEASE(_response);
+  RELEASE(_target);
+  [super dealloc];
+}
+
 @end /* Route */
 
 @implementation HTTPServer
-{
-  _Atomic(BOOL)     _stop;
-  int               _socket;
-  NSInteger         _port;
-  NSArray<Route *> *_routes;
-}
 
-- initWithPort:(NSInteger)port routes:(NSArray<Route *> *)routes
+- initWithPort:(NSInteger)port routes:(NSArray *)routes
 {
   self = [super init];
   if (!self)
@@ -242,8 +258,8 @@ requestLength(NSData *data)
 {
   while (!_stop)
     {
-      @autoreleasepool
-        {
+      {
+  CREATE_AUTORELEASE_POOL(arp);
           struct sockaddr_in	clientAddr;
           socklen_t      	sin_size = sizeof(struct sockaddr_in);
           int                	clientSocket;
@@ -264,7 +280,8 @@ requestLength(NSData *data)
                                    toTarget: self
                                  withObject: [NSNumber numberWithInt:
                                    clientSocket]];
-        }
+  DESTROY(arp);
+}
     }
 }
 
@@ -279,8 +296,8 @@ requestLength(NSData *data)
     {
       BOOL done = NO;
 
-      @autoreleasepool
-        {
+      {
+  CREATE_AUTORELEASE_POOL(arp);
           char      buffer[4096];
           NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 
@@ -315,7 +332,8 @@ requestLength(NSData *data)
                 }
               done = YES;
             }
-        }
+  DESTROY(arp);
+}
 
       if (done)
         {
@@ -335,9 +353,13 @@ requestLength(NSData *data)
   NSScanner *scanner;
   Route     *selectedRoute = nil;
 
-  __block NSString            *firstLine = nil;
-  __block NSMutableURLRequest *request = [NSMutableURLRequest new];
-  __block NSUInteger           headerEndIndex = 1;
+  NSString            *firstLine = nil;
+  NSMutableURLRequest *request = [NSMutableURLRequest new];
+  NSUInteger           headerEndIndex = 1;
+  NSUInteger           lineStart = 0;
+  NSUInteger           lineEnd = 0;
+  NSString            *line;
+  NSCharacterSet      *set = [NSCharacterSet whitespaceCharacterSet];
 
   reqString = [[NSString alloc] initWithData:reqData
                                     encoding:NSUTF8StringEncoding];
@@ -349,42 +371,39 @@ requestLength(NSData *data)
    *                    [ message-body ]
    * Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
    */
-  [reqString enumerateLinesUsingBlock2:^(NSString  *line,
-                                         NSUInteger lineEndIndex, BOOL *stop) {
-    NSRange         range;
-    NSString       *key, *value;
-    NSCharacterSet *set;
+  while ((line = nextLine(reqString, &lineStart, &lineEnd)) != nil)
+    {
+      NSRange   range;
+      NSString *key, *value;
 
-    set = [NSCharacterSet whitespaceCharacterSet];
+      /* Parse Request Line */
+      if (nil == firstLine)
+        {
+          firstLine = [line stringByTrimmingCharactersInSet:set];
+          continue;
+        }
 
-    /* Parse Request Line */
-    if (nil == firstLine)
-      {
-        firstLine = [line stringByTrimmingCharactersInSet:set];
-        return;
-      }
+      /* Reached end of message header. Stop. */
+      if ([line length] == 0)
+        {
+          headerEndIndex = lineEnd;
+          break;
+        }
 
-    /* Reached end of message header. Stop. */
-    if ([line length] == 0)
-      {
-        *stop = YES;
-        headerEndIndex = lineEndIndex;
-      }
+      range = [line rangeOfString:@":"];
+      /* Ignore this line */
+      if (NSNotFound == range.location)
+        {
+          continue;
+        }
 
-    range = [line rangeOfString:@":"];
-    /* Ignore this line */
-    if (NSNotFound == range.location)
-      {
-        return;
-      }
+      key = [[line substringToIndex:range.location]
+        stringByTrimmingCharactersInSet:set];
+      value = [[line substringFromIndex:range.location + 1]
+        stringByTrimmingCharactersInSet:set];
 
-    key = [[line substringToIndex:range.location]
-      stringByTrimmingCharactersInSet:set];
-    value = [[line substringFromIndex:range.location + 1]
-      stringByTrimmingCharactersInSet:set];
-
-    [request addValue:value forHTTPHeaderField:key];
-  }];
+      [request addValue:value forHTTPHeaderField:key];
+    }
 
   /* Calculate remaining body range */
   bodyRange = NSMakeRange(headerEndIndex, [reqData length] - headerEndIndex);
@@ -414,7 +433,7 @@ requestLength(NSData *data)
   NSData *responseData;
   if (selectedRoute)
     {
-      responseData = [selectedRoute block]([request copy]);
+      responseData = [selectedRoute responseForRequest:[request copy]];
     }
   else
     {
@@ -425,7 +444,7 @@ requestLength(NSData *data)
   send(sock, [responseData bytes], [responseData length], 0);
 }
 
-- (void)setRoutes:(NSArray<Route *> *)routes
+- (void)setRoutes:(NSArray *)routes
 {
   _routes = [routes copy];
 }
@@ -452,6 +471,7 @@ requestLength(NSData *data)
 
 - (void)dealloc
 {
+  RELEASE(_routes);
   close(_socket);
 #ifdef _WIN32
   WSACleanup();

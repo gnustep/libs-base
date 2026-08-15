@@ -7,6 +7,19 @@
 	registerDefaults:.
 	* Tests/base/NSUserDefaults/notifications.m: New test that each of
 	those methods posts the notification.
+  
+2026-08-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* configure:
+	* configure.ac:
+	* standalone.conf:
+	Update to match gnustep-make changes in non-bundled resource locations.
+	Add path utilitites option to locate resources, and use it for tools.
+
 2026-08-12 Todd White <todd.white@thalion.global>
 
 	* Source/NSBundle.m: Let a thread reuse the localization table it
@@ -16,6 +29,7 @@
 	-infoDictionary with the same lock, and take it in
 	-cleanPathCache, which destroyed the information dictionary and
 	the localization tables without it.
+
 2026-08-12 Todd White <todd.white@thalion.global>
 
 	* Source/NSNotificationCenter.m: Take the table lock for the

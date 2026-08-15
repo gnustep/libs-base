@@ -3,24 +3,27 @@
 
 @interface
 NSRunLoop (TimeOutAdditions)
-- (void)runForSeconds:(NSTimeInterval)seconds conditionBlock:(BOOL (^)())block;
+/* Run the run loop for a short slice.  Returns NO once deadline has passed,
+ * so a caller waits with
+ *
+ *   while (<still waiting> && [rl runSliceUntil: deadline]) ;
+ *
+ * which states the condition without needing a block.
+ */
+- (BOOL)runSliceUntil:(NSDate *)deadline;
 @end
 
 @implementation
 NSRunLoop (TimeOutAdditions)
-- (void)runForSeconds:(NSTimeInterval)seconds conditionBlock:(BOOL (^)())block
+- (BOOL)runSliceUntil:(NSDate *)deadline
 {
-  NSDate        *startDate = [NSDate date];
-  NSTimeInterval endTime = [startDate timeIntervalSince1970] + seconds;
-  NSTimeInterval interval = 0.1; // Interval to check the condition
-
-  while (block() && [[NSDate date] timeIntervalSince1970] < endTime)
+  if ([deadline timeIntervalSinceNow] <= 0.0)
     {
-      @autoreleasepool
-      {
-        [[NSRunLoop currentRunLoop]
-          runUntilDate:[NSDate dateWithTimeIntervalSinceNow:interval]];
-      }
+      return NO;
     }
+  ENTER_POOL
+  [self runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+  LEAVE_POOL
+  return YES;
 }
 @end

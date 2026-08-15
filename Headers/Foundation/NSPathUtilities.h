@@ -180,7 +180,8 @@ enum
   GSFontsDirectory,			/** font storage */
   GSFrameworksDirectory, 		/** frameworks */
   GSWebApplicationsDirectory,		/** web applications (GSWeb or SOPE) */
-  GSAdminToolsDirectory	        	/** admin non-gui programs */
+  GSAdminToolsDirectory,	       	/** admin non-gui programs */
+  GSResourcesDirectory			/** resource bundles not in apps */
 };
 /**
  * Enumeration of possible requested directory type specifiers for
@@ -211,8 +212,9 @@ enum
   GSToolsDirectory,
   GSAdminToolsDirectory,
   GSFontsDirectory,
+  GSWebApplicationsDirectory,
   GSFrameworksDirectory,
-  GSWebApplicationsDirectory
+  GSResourcesDirectory
 }
  </example>
  */
