@@ -1,5 +1,13 @@
 2026-08-13 Todd White <todd.white@thalion.global>
 
+	* Source/NSNotificationCenter.m: Post under a lock chosen by the
+	notification name, so that posts of different names do not
+	serialise against each other.  The one table lock becomes an array
+	of stripes which lockNCTable takes in full and in order, so it
+	means what it meant before and every other caller is unchanged.
+	Observations registered with no name get a lock of their own,
+	consulted only where such an observation exists, and the free list
+	shared by the stripes is guarded where it is pushed.
 	* Source/NSUserDefaults.m: Post NSUserDefaultsDidChangeNotification
 	from the methods which alter what a lookup can see and posted
 	nothing: addSuiteNamed:, removeSuiteNamed:, setSearchList:,
