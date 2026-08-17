@@ -1583,6 +1583,15 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
+ * Returns the first run loop mode that the NSConnection
+ * uses when waiting for an incoming request.
+ */
+- (NSString*) requestMode
+{
+  return [[self requestModes] firstObject];
+}
+
+/**
  * Returns an array of all the run loop modes that the NSConnection
  * uses when waiting for an incoming request.
  */

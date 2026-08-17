@@ -145,6 +145,7 @@ GS_NSConnection_IVARS;
 - (void) removeRequestMode: (NSString*)mode;
 - (void) removeRunLoop: (NSRunLoop *)loop;
 - (NSTimeInterval) replyTimeout;
+- (NSString*) requestMode;
 - (NSArray*) requestModes;
 - (NSTimeInterval) requestTimeout;
 - (id) rootObject;
