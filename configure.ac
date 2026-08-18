@@ -1174,6 +1174,10 @@ AC_TYPE_OFF_T
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
 
+AC_SEARCH_LIBS([__atomic_load_8], [atomic],
+  [AC_MSG_NOTICE([64-bit atomic operations available])],
+  [AC_MSG_ERROR([64-bit atomic operations unavailable])])
+
 AC_LANG_PUSH(C)
 AC_MSG_CHECKING([whether the compiler supports atomic operations]);
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
@@ -1240,7 +1244,6 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
     fi
   fi
 AC_LANG_POP(C)
-
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 PKG_PROG_PKG_CONFIG
