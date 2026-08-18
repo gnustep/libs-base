@@ -6427,7 +6427,8 @@ then :
   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations available" >&5
 printf '%s\n' "$as_me: 64-bit atomic operations available" >&6;}
 else case e in #(
-  e) as_fn_error $? "64-bit atomic operations unavailable" "$LINENO" 5 ;;
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations unavailable in libatomic" >&5
+printf '%s\n' "$as_me: 64-bit atomic operations unavailable in libatomic" >&6;} ;;
 esac
 fi
 

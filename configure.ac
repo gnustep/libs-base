@@ -1176,7 +1176,7 @@ AC_TYPE_OFF_T
 
 AC_SEARCH_LIBS([__atomic_load_8], [atomic],
   [AC_MSG_NOTICE([64-bit atomic operations available])],
-  [AC_MSG_ERROR([64-bit atomic operations unavailable])])
+  [AC_MSG_NOTICE([64-bit atomic operations unavailable in libatomic])])
 
 AC_LANG_PUSH(C)
 AC_MSG_CHECKING([whether the compiler supports atomic operations]);
