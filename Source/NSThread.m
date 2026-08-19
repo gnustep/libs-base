@@ -1049,6 +1049,10 @@ unregisterActiveThread(NSThread *thread)
     return NO;
   }
   return YES;
+#elif defined(__EMSCRIPTEN__)
+  /* Emscripten advertises POSIX priority scheduling but does not implement
+   * the scheduler entry points. */
+  return NO;
 #elif defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int res;
   int	policy;
