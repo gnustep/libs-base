@@ -39,7 +39,7 @@
 
 // Dummy implementatation
 // cleaner than IFDEF'ing the code everywhere
-#ifndef HAVE_PTHREAD_SPIN_LOCK
+#if !defined(HAVE_PTHREAD_SPIN_LOCK) && !defined(__DEFINED_pthread_spinlock_t)
 typedef volatile int pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {

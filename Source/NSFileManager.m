@@ -1330,7 +1330,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
   if (getcwd(path, PATH_MAX-1) == 0)
     return nil;
 #else
-  if (getwd(path) == 0)
+  if (getcwd(path, PATH_MAX) == 0)
     return nil;
 #endif /* HAVE_GETCWD */
   currentDir = [self stringWithFileSystemRepresentation: path
