@@ -831,7 +831,7 @@ static SEL	appSel;
 
       for (i = 0; i < c; i++)
 	{
-	  k[i] = (*nxtObj)(e, nxtSel);
+	  k[i] = ((id (*)(id, SEL))nxtObj)(e, nxtSel);
 	  NSAssert (k[i], NSInternalInconsistencyException);
 	}
       result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
@@ -862,7 +862,7 @@ static SEL	appSel;
 
       for (i = 0; i < c; i++)
 	{
-	  k[i] = (*nxtObj)(e, nxtSel);
+	  k[i] = ((id (*)(id, SEL))nxtObj)(e, nxtSel);
 	}
       result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
 	initWithObjects: k count: c];
