@@ -640,6 +640,7 @@ HAVE_DOT
 DOT
 USE_GMP
 GS_HAVE_NSURLSESSION
+GS_HAVE_NSURLSESSION_WEBSOCKETS
 HAVE_LIBCURL
 HAVE_NEWKVO
 HAVE_LIBDISPATCH_RUNLOOP
@@ -15770,6 +15771,7 @@ if test "$with_curl" != ""; then
 fi
 
 HAVE_LIBCURL=0
+CURL_HAS_WEBSOCKETS=0
 SKIP_CURL_CONFIG=0
 curl_all=no
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for libcurl" >&5
@@ -15809,6 +15811,9 @@ fi
 done
     if test "$curl_ok" = yes; then
       HAVE_LIBCURL=1
+      if test $curl_maj -gt 8 -o \( $curl_maj -eq 8 -a $curl_min -ge 16 \); then
+        CURL_HAS_WEBSOCKETS=1
+      fi
       CURLCFLAGS=`$CURL_CONFIG --cflags`
       CURLLIBS=`$CURL_CONFIG --libs`
       CFLAGS="$CFLAGS $CURLCFLAGS"
@@ -15837,6 +15842,9 @@ fi
 done
         if test "$curl_ok" = yes; then
           HAVE_LIBCURL=1
+          if $PKG_CONFIG --atleast-version 8.16.0 libcurl; then
+            CURL_HAS_WEBSOCKETS=1
+          fi
           CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
           CURLLIBS=`$PKG_CONFIG --libs libcurl`
           CFLAGS="$CFLAGS $CURLCFLAGS"
@@ -15870,6 +15878,7 @@ if test $HAVE_LIBCURL = 1; then
 fi
 
 GS_HAVE_NSURLSESSION=0
+GS_HAVE_NSURLSESSION_WEBSOCKETS=0
 # Check whether --enable-nsurlsession was given.
 if test ${enable_nsurlsession+y}
 then :
@@ -15884,6 +15893,9 @@ if test $enable_nsurlsession = yes; then
     as_fn_error $? "Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi
   GS_HAVE_NSURLSESSION=1
+  if test $CURL_HAS_WEBSOCKETS = 1; then
+    GS_HAVE_NSURLSESSION_WEBSOCKETS=1
+  fi
 fi
 
 
@@ -17503,5 +17515,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 printf '%s\n' "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 

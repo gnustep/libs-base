@@ -60,7 +60,9 @@
 @class NSURLSessionDataTask;
 @class NSURLSessionUploadTask;
 @class NSURLSessionDownloadTask;
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 @class NSURLSessionWebSocketTask;
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -213,7 +215,8 @@ GS_NSURLSession_IVARS;
  */
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks;
 
-/* Creates a WebSocket task to download the contents of the given URL. */
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+/* Creates a WebSocket task to connect to the given URL. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url;
 
 /* Creates a WebSocket task to download the contents of the given URL
@@ -224,6 +227,7 @@ GS_NSURLSession_IVARS;
 
 /* Creates a WebSocket task with the given request. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request;
+#endif
 
 /**
  * Returns the tasks the session currently holds which are a kind of aClass.
@@ -486,6 +490,7 @@ typedef  NS_ENUM(NSInteger, NSURLSessionWebSocketCloseCode) {
   NSURLSessionWebSocketCloseCodeTLSHandshakeFailure = 1015,
 };
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 typedef NS_ENUM(NSInteger, NSURLSessionWebSocketMessageType) {
   NSURLSessionWebSocketMessageTypeData = 0,
   NSURLSessionWebSocketMessageTypeString = 1,
@@ -521,11 +526,20 @@ GS_EXPORT_CLASS
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode
                       reason: (nullable NSData *)reason;
 
+- (void) sendMessage: (NSURLSessionWebSocketMessage *)message
+   completionHandler: (void (^)(NSError *_Nullable error))completionHandler;
+- (void) receiveMessageWithCompletionHandler:
+  (void (^)(NSURLSessionWebSocketMessage *_Nullable message,
+    NSError *_Nullable error))completionHandler;
+- (void) sendPingWithPongReceiveHandler:
+  (void (^)(NSError *_Nullable error))pongReceiveHandler;
+
 - (NSInteger) maximumMessageSize;
 - (void) setMaximumMessageSize: (NSInteger)maximumMessageSize;
 - (NSURLSessionWebSocketCloseCode) closeCode;
 - (nullable NSData *) closeReason;
 @end
+#endif
 
 /*
  * Configuration options for an NSURLSession.  When a session is
@@ -774,6 +788,7 @@ GS_EXPORT_CLASS
 
 @end
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 @protocol NSURLSessionWebSocketDelegate <NSURLSessionTaskDelegate>
 @optional
 
@@ -787,6 +802,7 @@ GS_EXPORT_CLASS
   reason: (nullable NSData *)reason;
 
 @end
+#endif
 
 @protocol NSURLSessionDataDelegate <NSURLSessionTaskDelegate>
 @optional

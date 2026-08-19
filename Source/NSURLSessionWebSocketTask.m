@@ -15,6 +15,8 @@
 #import "NSURLSessionPrivate.h"
 #import "NSURLSessionTaskPrivate.h"
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+
 @implementation NSURLSessionWebSocketMessage
 
 - (instancetype) initWithData: (NSData *)data
@@ -102,3 +104,5 @@
 }
 
 @end
+
+#endif

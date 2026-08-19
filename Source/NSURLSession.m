@@ -1202,6 +1202,7 @@ static NSURLSession * sharedSession = nil;
   return [self notImplemented: _cmd];
 }
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
 {
   NSURLRequest * request;
@@ -1234,6 +1235,7 @@ static NSURLSession * sharedSession = nil;
   [self _didCreateTask: task];
   return AUTORELEASE(task);
 }
+#endif
 
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks
 {
