@@ -225,11 +225,6 @@ GS_NSURLSession_IVARS;
 /* Creates a WebSocket task with the given request. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request;
 
-- (void) getTasksWithCompletionHandler:
-  (void (^)(NSArray<NSURLSessionDataTask *> *dataTasks,
-    NSArray<NSURLSessionUploadTask *> *uploadTasks,
-    NSArray<NSURLSessionDownloadTask *> *downloadTasks)) completionHandler;
-
 /**
  * Returns the tasks the session currently holds which are a kind of aClass.
  * Use this in preference to -getTasksWithCompletionHandler:, which requires a
