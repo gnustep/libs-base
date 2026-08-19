@@ -3479,8 +3479,18 @@ register_printf_atsign ()
 
 - (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
 {
+  NSUInteger    length;
   NSRange	startRange;
 
+  length = [self length];
+  if (NSMaxRange(range) > length)
+    {
+      [NSException raise: NSRangeException format:@"Invalid location."];
+    }
+  else if (range.location == length)
+    {
+      return range;
+    }
   startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
   if (NSMaxRange(startRange) >= NSMaxRange(range))
     {

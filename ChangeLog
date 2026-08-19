@@ -1,3 +1,8 @@
+2026-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSString.m(rangeOfComposedCharacterSequencesForRange:):
+	Add extra guards for the range argument.
+
 2026-08-13 Todd White <todd.white@thalion.global>
 
 	* Source/NSNotificationCenter.m: Post under a lock chosen by the
@@ -15,7 +20,7 @@
 	registerDefaults:.
 	* Tests/base/NSUserDefaults/notifications.m: New test that each of
 	those methods posts the notification.
-  
+
 2026-08-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPathUtilities.h:
