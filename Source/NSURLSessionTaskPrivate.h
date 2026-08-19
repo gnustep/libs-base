@@ -153,6 +153,8 @@
 
 @end
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 @interface NSURLSessionWebSocketTask(Private)
 
 @end
+#endif
