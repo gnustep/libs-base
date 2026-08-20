@@ -1982,7 +1982,7 @@ GSAutoreleasedBuffer(unsigned size)
   static Class	buffer_class = 0;
   static Class	autorelease_class;
   static SEL	autorelease_sel;
-  static id	(*autorelease_imp)(Class, SEL, id);
+  static void	(*autorelease_imp)(Class, SEL, id);
   static int	instance_size;
   static int	offset;
   NSObject	*o;
@@ -1994,7 +1994,7 @@ GSAutoreleasedBuffer(unsigned size)
       offset = instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
-      autorelease_imp = (id (*)(Class, SEL, id))
+      autorelease_imp = (void (*)(Class, SEL, id))
         [autorelease_class methodForSelector: autorelease_sel];
     }
   o = (NSObject*)NSAllocateObject(buffer_class,
@@ -2333,4 +2333,3 @@ GSObjCPrint(void *base, void *item)
       fprintf(fptr, "}\n");
     }
 }
-

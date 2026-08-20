@@ -429,19 +429,21 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 
 + (id) new
 {
-  static IMP	allocImp = 0;
-  static IMP	initImp = 0;
+  typedef id (*GSAllocIMP)(id, SEL, NSZone *);
+  typedef id (*GSInitIMP)(id, SEL);
+  static GSAllocIMP	allocImp = 0;
+  static GSInitIMP	initImp = 0;
   id		arp;
 
   if (0 == allocImp)
     {
-      allocImp
-	= [NSAutoreleasePool methodForSelector: @selector(allocWithZone:)];
-      initImp
-	= [NSAutoreleasePool instanceMethodForSelector: @selector(init)];
+      allocImp = (GSAllocIMP)
+	[NSAutoreleasePool methodForSelector: @selector(allocWithZone:)];
+      initImp = (GSInitIMP)
+	[NSAutoreleasePool instanceMethodForSelector: @selector(init)];
     }
-  arp = (*allocImp)(self, @selector(allocWithZone:), NSDefaultMallocZone());
-  return (*initImp)(arp, @selector(init));
+  arp = allocImp(self, @selector(allocWithZone:), NSDefaultMallocZone());
+  return initImp(arp, @selector(init));
 }
 
 #ifdef ARC_RUNTIME
@@ -735,4 +737,3 @@ pop_pool_from_cache(struct autorelease_thread_vars *tv)
 }
 
 @end
-
