@@ -88,6 +88,17 @@ main(int argc, char **argv)
       "now returns the current date");
   }
 
+  e = [NSExpression expressionWithFormat: @"uppercase:('Hello')"];
+  PASS_EQUAL([e function], @"uppercase:",
+       "the colon form of a call parses as a function");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "and the parsed function evaluates");
+
+  e = [NSExpression expressionWithFormat: @"now()"];
+  PASS([[e expressionValueWithObject: nil context: nil]
+           isKindOfClass: [NSDate class]],
+       "now() parses in a format string");
+
   {
     BOOL raised = NO;
 

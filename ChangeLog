@@ -1,5 +1,14 @@
 2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
 
+	* Source/NSPredicate.m(parseFunctionalExpression): Accept the
+	colon form of a function call OS X writes in format strings, as
+	in "uppercase:(name)"; the colon becomes part of the function
+	name.
+	* Tests/base/NSPredicate/functionNames.m: Test it, and that
+	"now()" parses.
+
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
 	* Source/NSPredicate.m: Implement the uppercase:, lowercase: and
 	now functions of NSExpression, named as OS X names them.
 	* Tests/base/NSPredicate/functionNames.m: Test them.

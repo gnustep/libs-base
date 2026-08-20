@@ -4020,16 +4020,26 @@ do { \
     
   while (YES)
     {
-      if ([self scanString: @"(" intoString: NULL])
-        { 
-          // function - this parser allows for (max)(a, b, c) to be properly 
-          // recognized and even (%K)(a, b, c) if %K evaluates to "max"
-          NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+      BOOL colonCall = NO;
 
-          if (![left keyPath])
+      if ([self scanString: @"(" intoString: NULL]
+        || (colonCall = [self scanString: @":(" intoString: NULL]))
+        {
+          // function - this parser allows for (max)(a, b, c) to be properly
+          // recognized and even (%K)(a, b, c) if %K evaluates to "max".
+          // The name may take its trailing colon as OS X writes it, as in
+          // uppercase:(name); the colon becomes part of the function name.
+          NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+          NSString *name = [left keyPath];
+
+          if (!name)
             {
-              [NSException raise: NSInvalidArgumentException 
+              [NSException raise: NSInvalidArgumentException
                           format: @"Invalid function identifier: %@", left];
+            }
+          if (colonCall)
+            {
+              name = [name stringByAppendingString: @":"];
             }
 
           if (![self scanString: @")" intoString: NULL])
@@ -4045,11 +4055,11 @@ do { \
 
               if (![self scanString: @")" intoString: NULL])
                 {
-                  [NSException raise: NSInvalidArgumentException 
+                  [NSException raise: NSInvalidArgumentException
                               format: @"Missing ) in function arguments"];
                 }
             }
-          left = [NSExpression expressionForFunction: [left keyPath] 
+          left = [NSExpression expressionForFunction: name
                                            arguments: args];
         }
       else if ([self scanString: @"[" intoString: NULL])
