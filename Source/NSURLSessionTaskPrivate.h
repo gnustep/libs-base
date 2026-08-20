@@ -39,6 +39,23 @@
  request: (NSURLRequest *)request
  taskIdentifier: (NSUInteger)identifier;
 
+- (void)_initializeTaskStateWithSession: (NSURLSession *)session
+                                request: (NSURLRequest *)request
+                         taskIdentifier: (NSUInteger)identifier;
+- (void)_configureEasyHandleForRequest: (NSURLRequest *)request;
+- (void)_configureRequestBodyForRequest: (NSURLRequest *)request;
+- (void)_configureTransferCallbacks;
+- (void)_configureProtocolOptionsForRequest: (NSURLRequest *)request
+                              configuration: (NSURLSessionConfiguration *)configuration;
+- (NSMutableDictionary *)_mergedRequestHeadersForRequest:
+  (NSURLRequest *)request
+                                                        configuration:
+  (NSURLSessionConfiguration *)configuration
+                                                                 URL:
+  (NSURL *)url;
+- (void)_installRequestHeaders:
+  (NSDictionary *)requestHeaders;
+
 -(CURL *)_easyHandle;
 
 /* Enable or disable libcurl verbose output. Disabled by default. */
@@ -135,3 +152,9 @@
 -(void)_setCompletionHandler: (GSNSURLSessionDownloadCompletionHandler)handler;
 
 @end
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+@interface NSURLSessionWebSocketTask(Private)
+
+@end
+#endif
