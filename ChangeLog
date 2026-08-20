@@ -1,3 +1,9 @@
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m: Implement the uppercase:, lowercase: and
+	now functions of NSExpression, named as OS X names them.
+	* Tests/base/NSPredicate/functionNames.m: Test them.
+
 2026-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSString.m(rangeOfComposedCharacterSequencesForRange:):

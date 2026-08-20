@@ -3278,7 +3278,22 @@ do { \
   return nil;
 }
 
-// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
+- (id) _eval_uppercase: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] uppercaseString];
+}
+
+- (id) _eval_lowercase: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] lowercaseString];
+}
+
+- (id) _eval_now: (NSArray *)expressions
+{
+  return [NSDate date];
+}
+
+// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn
 
 @end
 

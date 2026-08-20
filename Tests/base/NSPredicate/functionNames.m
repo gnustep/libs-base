@@ -5,11 +5,21 @@
 */
 #import <Foundation/NSArray.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDate.h>
 #import <Foundation/NSExpression.h>
 #import <Foundation/NSPredicate.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
 #import "ObjectTesting.h"
+
+static NSExpression *
+functionOfString(NSString *name, NSString *string)
+{
+  return [NSExpression expressionForFunction: name
+                                   arguments:
+    [NSArray arrayWithObject:
+      [NSExpression expressionForConstantValue: string]]];
+}
 
 static NSExpression *
 functionOf(NSString *name, NSArray *numbers)
@@ -59,6 +69,24 @@ main(int argc, char **argv)
   e = functionOf(@"min:", numbers);
   PASS([[e expressionValueWithObject: nil context: nil] doubleValue] == 1.0,
        "so does min");
+
+  e = functionOfString(@"uppercase:", @"Hello");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "uppercase: uppercases its argument");
+
+  e = functionOfString(@"lowercase:", @"Hello");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"hello",
+       "lowercase: lowercases its argument");
+
+  e = [NSExpression expressionForFunction: @"now" arguments: [NSArray array]];
+  {
+    id value = [e expressionValueWithObject: nil context: nil];
+
+    PASS([value isKindOfClass: [NSDate class]]
+      && [value timeIntervalSinceNow] > -60.0
+      && [value timeIntervalSinceNow] < 60.0,
+      "now returns the current date");
+  }
 
   {
     BOOL raised = NO;
