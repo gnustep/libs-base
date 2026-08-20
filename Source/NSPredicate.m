@@ -332,11 +332,14 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return p;
 }
 
-+ (NSPredicate *) predicateWithFormat: (NSString *)format
-                            arguments: (va_list)args
+/* Walks a format string, consuming one typed variadic argument for each
+ * conversion specification and collecting them for the scanner, which
+ * substitutes them while parsing (%@ as a constant, %K as a key path).
+ * Text inside quoted literals is passed over without consuming anything.
+ */
+static NSMutableArray *
+argumentsFromFormat(NSString *format, va_list args)
 {
-  GSPredicateScanner	*s;
-  NSPredicate		*p;
   const char            *ptr = [format UTF8String];
   NSMutableArray        *arr = [NSMutableArray arrayWithCapacity: 10];
 
@@ -458,6 +461,16 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
             }
         }
     }
+  return arr;
+}
+
++ (NSPredicate *) predicateWithFormat: (NSString *)format
+                            arguments: (va_list)args
+{
+  GSPredicateScanner	*s;
+  NSPredicate		*p;
+  NSMutableArray        *arr = argumentsFromFormat(format, args);
+
   s = AUTORELEASE([[GSPredicateScanner alloc] initWithString: format
 							args: arr]);
   p = [s parse];
@@ -2024,11 +2037,16 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 + (NSExpression *) expressionWithFormat: (NSString *)format
 			      arguments: (va_list)args
 {
-  NSString *expString = AUTORELEASE([[NSString alloc] initWithFormat: format
-							   arguments: args]);
+  /* The arguments are handed to the scanner and substituted where the
+   * format references them, %@ becoming a constant expression and %K a
+   * key path, as they are for a predicate format.  (Formatting them
+   * into the string and parsing the result would lose what they were:
+   * a string substituted for %@ would parse as a key path.)
+   */
+  NSMutableArray *arr = argumentsFromFormat(format, args);
   GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
-					      initWithString: expString
-							args: nil]);
+					      initWithString: format
+							args: arr]);
   return [scanner parseExpression];
 }
 

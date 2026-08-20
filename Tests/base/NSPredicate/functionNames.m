@@ -5,6 +5,7 @@
 */
 #import <Foundation/NSArray.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSDate.h>
 #import <Foundation/NSExpression.h>
 #import <Foundation/NSPredicate.h>
@@ -98,6 +99,23 @@ main(int argc, char **argv)
   PASS([[e expressionValueWithObject: nil context: nil]
            isKindOfClass: [NSDate class]],
        "now() parses in a format string");
+
+  e = [NSExpression expressionWithFormat: @"%@", @"Hello"];
+  PASS([e expressionType] == NSConstantValueExpressionType
+    && [[e constantValue] isEqual: @"Hello"],
+       "a string given for %%@ substitutes as a constant, not a key path");
+
+  e = [NSExpression expressionWithFormat: @"uppercase:(%@)", @"Hello"];
+  PASS_EQUAL([e function], @"uppercase:",
+       "a %%@ argument parses inside a function call");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "and the substituted constant is what the function receives");
+
+  e = [NSExpression expressionWithFormat: @"uppercase:(%K)", @"name"];
+  PASS_EQUAL([e expressionValueWithObject:
+    [NSDictionary dictionaryWithObject: @"Hello" forKey: @"name"]
+                                  context: nil], @"HELLO",
+       "a %%K argument substitutes as a key path");
 
   {
     BOOL raised = NO;
