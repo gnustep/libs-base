@@ -5,11 +5,22 @@
 */
 #import <Foundation/NSArray.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSDate.h>
 #import <Foundation/NSExpression.h>
 #import <Foundation/NSPredicate.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
 #import "ObjectTesting.h"
+
+static NSExpression *
+functionOfString(NSString *name, NSString *string)
+{
+  return [NSExpression expressionForFunction: name
+                                   arguments:
+    [NSArray arrayWithObject:
+      [NSExpression expressionForConstantValue: string]]];
+}
 
 static NSExpression *
 functionOf(NSString *name, NSArray *numbers)
@@ -59,6 +70,52 @@ main(int argc, char **argv)
   e = functionOf(@"min:", numbers);
   PASS([[e expressionValueWithObject: nil context: nil] doubleValue] == 1.0,
        "so does min");
+
+  e = functionOfString(@"uppercase:", @"Hello");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "uppercase: uppercases its argument");
+
+  e = functionOfString(@"lowercase:", @"Hello");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"hello",
+       "lowercase: lowercases its argument");
+
+  e = [NSExpression expressionForFunction: @"now" arguments: [NSArray array]];
+  {
+    id value = [e expressionValueWithObject: nil context: nil];
+
+    PASS([value isKindOfClass: [NSDate class]]
+      && [value timeIntervalSinceNow] > -60.0
+      && [value timeIntervalSinceNow] < 60.0,
+      "now returns the current date");
+  }
+
+  e = [NSExpression expressionWithFormat: @"uppercase:('Hello')"];
+  PASS_EQUAL([e function], @"uppercase:",
+       "the colon form of a call parses as a function");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "and the parsed function evaluates");
+
+  e = [NSExpression expressionWithFormat: @"now()"];
+  PASS([[e expressionValueWithObject: nil context: nil]
+           isKindOfClass: [NSDate class]],
+       "now() parses in a format string");
+
+  e = [NSExpression expressionWithFormat: @"%@", @"Hello"];
+  PASS([e expressionType] == NSConstantValueExpressionType
+    && [[e constantValue] isEqual: @"Hello"],
+       "a string given for %%@ substitutes as a constant, not a key path");
+
+  e = [NSExpression expressionWithFormat: @"uppercase:(%@)", @"Hello"];
+  PASS_EQUAL([e function], @"uppercase:",
+       "a %%@ argument parses inside a function call");
+  PASS_EQUAL([e expressionValueWithObject: nil context: nil], @"HELLO",
+       "and the substituted constant is what the function receives");
+
+  e = [NSExpression expressionWithFormat: @"uppercase:(%K)", @"name"];
+  PASS_EQUAL([e expressionValueWithObject:
+    [NSDictionary dictionaryWithObject: @"Hello" forKey: @"name"]
+                                  context: nil], @"HELLO",
+       "a %%K argument substitutes as a key path");
 
   {
     BOOL raised = NO;
