@@ -18,7 +18,7 @@ stringFromSet(NSCharacterSet *set)
             {
               if ([set longCharacterIsMember: c])
                 {
-                  UTF32Char     c1 = GSSwapHostI64ToLittle(c);
+                  UTF32Char     c1 = GSSwapHostI32ToLittle(c);
                   NSString      *s;
 
                   s = [[NSString alloc] initWithBytes: &c1
