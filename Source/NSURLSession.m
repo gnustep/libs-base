@@ -1212,7 +1212,8 @@ static NSURLSession * sharedSession = nil;
 }
 
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
-                                          protocols: (NSArray<NSString *> *)protocols
+                                          protocols:
+  (GS_GENERIC_CLASS(NSArray, NSString *) *)protocols
 {
   NSURLRequest * request;
 
@@ -1230,7 +1231,7 @@ static NSURLSession * sharedSession = nil;
   task = [[NSURLSessionWebSocketTask alloc] initWithSession: self
                                                     request: request
                                              taskIdentifier: identifier];
-  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)internal->_delegate];
   [task _setProperties: GSURLSessionUpdatesDelegate];
   [self _didCreateTask: task];
   return AUTORELEASE(task);

@@ -223,7 +223,8 @@ GS_NSURLSession_IVARS;
  * and an Array of strings to negotiate the WebSocket protocol with the server
  */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
-                                          protocols: (NSArray <NSString *> *)protocols;
+                                          protocols:
+  (GS_GENERIC_CLASS(NSArray, NSString *) *)protocols;
 
 /* Creates a WebSocket task with the given request. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request;
@@ -508,8 +509,8 @@ GS_EXPORT_CLASS
 - (instancetype) initWithString: (NSString *)string;
 
 - (NSURLSessionWebSocketMessageType) type;
-- (nullable NSData *) data;
-- (nullable NSString *) string;
+- (NSData * _Nullable) data;
+- (NSString * _Nullable) string;
 @end
 
 GS_EXPORT_CLASS
@@ -524,7 +525,7 @@ GS_EXPORT_CLASS
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode
-                      reason: (nullable NSData *)reason;
+                      reason: (NSData * _Nullable)reason;
 
 - (void) sendMessage: (NSURLSessionWebSocketMessage *)message
    completionHandler: (void (^)(NSError *_Nullable error))completionHandler;
@@ -537,7 +538,7 @@ GS_EXPORT_CLASS
 - (NSInteger) maximumMessageSize;
 - (void) setMaximumMessageSize: (NSInteger)maximumMessageSize;
 - (NSURLSessionWebSocketCloseCode) closeCode;
-- (nullable NSData *) closeReason;
+- (NSData * _Nullable) closeReason;
 @end
 #endif
 
@@ -794,12 +795,12 @@ GS_EXPORT_CLASS
 
 - (void) URLSession: (NSURLSession *)session
   webSocketTask: (NSURLSessionWebSocketTask *)webSocketTask
-  didOpenWithProtocol: (nullable NSString *)protocol;
+  didOpenWithProtocol: (NSString * _Nullable)protocol;
 
 - (void) URLSession: (NSURLSession *)session
   webSocketTask: (NSURLSessionWebSocketTask *)webSocketTask
   didCloseWithCode: (NSURLSessionWebSocketCloseCode)closeCode
-  reason: (nullable NSData *)reason;
+  reason: (NSData * _Nullable)reason;
 
 @end
 #endif
