@@ -1,22 +1,121 @@
-/* WebSocket task implementation. */
-#include <curl/curl.h>
+/* Implementation of class NSURLSessionWebSocketTask
+   Copyright (C) 2026 Free Software Foundation, Inc.
+
+   By: Hendrik Huebner <hendrik.huebner@algoriddim.com>
+   Date: July 2026
+
+   This file is part of the GNUstep Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
+*/
+
+#import "GSPThread.h"
+
+@class NSData;
+@class NSMutableArray;
+@class NSMutableData;
+
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketSendQueueEntryKind) {
+  GSURLSessionWebSocketSendQueueEntryKindData = 0,
+  GSURLSessionWebSocketSendQueueEntryKindPing = 1,
+  GSURLSessionWebSocketSendQueueEntryKindClose = 2,
+};
+
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketLifecyclePhase) {
+  GSURLSessionWebSocketLifecycleStateOpen = 0,
+  GSURLSessionWebSocketLifecycleStateClosing = 1,
+  GSURLSessionWebSocketLifecycleStateClosed = 2,
+  GSURLSessionWebSocketLifecycleStateFailed = 3,
+};
+
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketReceivePhase) {
+  GSURLSessionWebSocketReceiveStateIdle = 0,
+  GSURLSessionWebSocketReceiveStateText = 1,
+  GSURLSessionWebSocketReceiveStateBinary = 2,
+};
+
+typedef struct
+{
+  void *entry;
+  GSURLSessionWebSocketSendQueueEntryKind kind;
+  NSInteger dataType;
+  size_t payloadOffset;
+  BOOL frameStarted;
+} GSURLSessionWebSocketMessageSendState;
+
+typedef struct
+{
+  NSMutableArray *queue;
+  NSMutableArray *pingHandlers;
+  NSData *pingPayload;
+  GSURLSessionWebSocketMessageSendState active;
+  unsigned long long nextPingIdentifier;
+  BOOL frameStartRetryPending;
+} GSURLSessionWebSocketSendState;
+
+typedef struct
+{
+  NSMutableArray *handlers;
+  NSMutableData *buffer;
+  NSMutableData *controlBuffer;
+  GSURLSessionWebSocketReceivePhase phase;
+  size_t frameOffset;
+  size_t controlOffset;
+  unsigned int controlFlags;
+  NSInteger maximumMessageSize;
+} GSURLSessionWebSocketReceiveContext;
+
+typedef struct
+{
+  GSURLSessionWebSocketLifecyclePhase phase;
+  NSInteger closeCode;
+  NSData *closeReason;
+  BOOL closeFrameSent;
+  BOOL closeFrameReceived;
+} GSURLSessionWebSocketLifecycleState;
+
+#define GS_NSURLSessionWebSocketTask_IVARS \
+  GSURLSessionWebSocketSendState send; \
+  GSURLSessionWebSocketReceiveContext receive; \
+  GSURLSessionWebSocketLifecycleState lifecycle; \
+  gs_mutex_t mutex;
+
+#include "Foundation/NSArray.h"
 #include "Foundation/NSURLSession.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSOperation.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSError.h"
-#include "Foundation/NSException.h"
 #import "NSURLSessionPrivate.h"
 #import "NSURLSessionTaskPrivate.h"
 #import "GSDispatch.h"
+
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSOperation.h"
+#import "Foundation/NSValue.h"
+
 #import "GSURLPrivate.h"
-#import "GSPThread.h"
 #include <assert.h>
 
-@interface _GSMutableInsensitiveDictionary : NSMutableDictionary
-@end
+#define GSInternal NSURLSessionWebSocketTaskInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLSessionWebSocketTask)
 
 #if GS_HAVE_NSURLSESSION_WEBSOCKETS
+static NSString *taskWebSocketDidOpenKey = @"webSocketDidOpen";
+static NSString *taskWebSocketDidCloseKey = @"webSocketDidClose";
+
 @implementation NSURLSessionWebSocketMessage
 
 - (instancetype) initWithData: (NSData *)data
@@ -87,35 +186,27 @@ GSURLSessionWebSocketDataSendQueueEntryCreate(
   NSURLSessionWebSocketMessageType type;
 
   entry = malloc(sizeof (*entry));
+  if (NULL == entry)
+    {
+      [NSException raise: NSMallocException
+                  format: @"Unable to allocate WebSocket send queue entry"];
+      return NULL;
+    }
   entry->message = RETAIN(message);
   type = [message type];
+  assert(type == NSURLSessionWebSocketMessageTypeString
+    || type == NSURLSessionWebSocketMessageTypeData);
 
   if (type == NSURLSessionWebSocketMessageTypeString)
     {
       payload = [[message string] dataUsingEncoding: NSUTF8StringEncoding];
     }
-  else if (type == NSURLSessionWebSocketMessageTypeData)
+  else
     {
       payload = [message data];
     }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"Unsupported websocket message type %ld",
-                  (long)type];
-      RELEASE(entry->message);
-      free(entry);
-      return NULL;
-    }
 
-  if (nil == payload || [payload length] == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"Websocket message payload must not be empty"];
-      RELEASE(entry->message);
-      free(entry);
-      return NULL;
-    }
+  assert(nil != payload);
 
   entry->kind = GSURLSessionWebSocketSendQueueEntryKindData;
   entry->payload = RETAIN(payload);
@@ -131,21 +222,12 @@ GSURLSessionWebSocketControlSendQueueEntryCreate(
 {
   GSURLSessionWebSocketSendQueueEntry *entry;
 
-  if (kind != GSURLSessionWebSocketSendQueueEntryKindPing
-      && kind != GSURLSessionWebSocketSendQueueEntryKindClose)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"Unsupported websocket control frame kind %lu",
-                  (unsigned long)kind];
-      return NULL;
-    }
-
-  if (nil == payload)
-    {
-      payload = [NSData data];
-    }
+  assert(kind == GSURLSessionWebSocketSendQueueEntryKindPing
+    || kind == GSURLSessionWebSocketSendQueueEntryKindClose);
+  assert(nil != payload);
 
   entry = calloc(1, sizeof (*entry));
+  assert(NULL != entry);
   entry->kind = kind;
   entry->payload = RETAIN(payload);
   return entry;
@@ -174,6 +256,57 @@ typedef void (^GSURLSessionWebSocketPingHandler)(NSError *error);
 
 static NSString *GSURLSessionWebSocketExceptionKey = @"GSWebSocketException";
 
+static BOOL
+GSURLSessionWebSocketMarkDelegateCallback(
+  NSURLSessionWebSocketTask *task,
+  NSString *key)
+{
+  NSMutableDictionary *taskData;
+
+  taskData = [task _taskData];
+  if ([[taskData objectForKey: key] boolValue])
+    {
+      return NO;
+    }
+
+  [taskData setObject: [NSNumber numberWithBool: YES] forKey: key];
+  return YES;
+}
+
+static void
+GSURLSessionWebSocketNotifyDidClose(
+  NSURLSessionWebSocketTask *task,
+  NSURLSessionWebSocketCloseCode closeCode,
+  NSData *reason)
+{
+  id delegate;
+  NSURLSession *session;
+  BOOL shouldNotify;
+
+  delegate = [task delegate];
+  session = [task _session];
+  shouldNotify = NO;
+
+  GS_MUTEX_LOCK(GSIVar(task, mutex));
+  shouldNotify = GSURLSessionWebSocketMarkDelegateCallback(task,
+    taskWebSocketDidCloseKey);
+  GS_MUTEX_UNLOCK(GSIVar(task, mutex));
+
+  if (NO == shouldNotify
+      || ![delegate respondsToSelector:
+        @selector(URLSession:webSocketTask:didCloseWithCode:reason:)])
+    {
+      return;
+    }
+
+  [[session delegateQueue] addOperationWithBlock:^{
+    [(id<NSURLSessionWebSocketDelegate>)delegate URLSession: session
+                                              webSocketTask: task
+                                           didCloseWithCode: closeCode
+                                                     reason: reason];
+  }];
+}
+
 static NSError *
 GSURLSessionWebSocketError(NSInteger code, NSString *description)
 {
@@ -200,9 +333,12 @@ GSURLSessionWebSocketErrorFromException(NSException *exception)
 static void
 GSURLSessionWebSocketResetReceiveStateLocked(NSURLSessionWebSocketTask *task)
 {
-  [task->_receiveBuffer setLength: 0];
-  task->_receiveState = GSURLSessionWebSocketReceiveStateIdle;
-  task->_receiveFrameOffset = 0;
+  [GSIVar(task, receive).buffer setLength: 0];
+  [GSIVar(task, receive).controlBuffer setLength: 0];
+  GSIVar(task, receive).phase = GSURLSessionWebSocketReceiveStateIdle;
+  GSIVar(task, receive).frameOffset = 0;
+  GSIVar(task, receive).controlOffset = 0;
+  GSIVar(task, receive).controlFlags = 0;
 }
 
 static NSData *
@@ -257,44 +393,9 @@ GSURLSessionWebSocketFramePayloadMatchesData(
   NSUInteger length,
   NSData *data)
 {
-  if (nil == data)
-    {
-      return NO;
-    }
-
-  if ([data length] != length)
-    {
-      return NO;
-    }
-
-  if (0 == length)
-    {
-      return YES;
-    }
-
-  return (0 == memcmp(bytes, [data bytes], length));
-}
-
-static NSUInteger
-GSURLSessionWebSocketPriorityInsertionIndexLocked(NSURLSessionWebSocketTask *task)
-{
-  if (NULL != task->_messageSendState.entry)
-    {
-      return 1;
-    }
-
-  return 0;
-}
-
-static void
-GSURLSessionWebSocketInsertPrioritySendEntryLocked(
-  NSURLSessionWebSocketTask *task,
-  GSURLSessionWebSocketSendQueueEntry *entry)
-{
-  NSUInteger index;
-
-  index = GSURLSessionWebSocketPriorityInsertionIndexLocked(task);
-  [task->_sendQueue insertObject: [NSValue valueWithPointer: entry] atIndex: index];
+  return (nil != data
+    && [data length] == length
+    && (0 == length || 0 == memcmp(bytes, [data bytes], length)));
 }
 
 static BOOL
@@ -304,13 +405,13 @@ GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
 {
   NSValue *entryValue;
 
-  if (NULL != task->_messageSendState.entry
-      && task->_messageSendState.kind == kind)
+  if (NULL != GSIVar(task, send).active.entry
+      && GSIVar(task, send).active.kind == kind)
     {
       return YES;
     }
 
-  for (entryValue in task->_sendQueue)
+  for (entryValue in GSIVar(task, send).queue)
     {
       GSURLSessionWebSocketSendQueueEntry *entry;
 
@@ -330,8 +431,9 @@ GSURLSessionWebSocketQueueNextPingLocked(NSURLSessionWebSocketTask *task)
   GSURLSessionWebSocketSendQueueEntry *entry;
   NSData *payload;
 
-  if (task->_lifecycleState != GSURLSessionWebSocketLifecycleStateOpen
-      || nil != task->_currentPingPayload
+  if (GSIVar(task, lifecycle).phase != GSURLSessionWebSocketLifecycleStateOpen
+      || nil != GSIVar(task, send).pingPayload
+      || [GSIVar(task, send).pingHandlers count] == 0
       || YES == GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
         task,
         GSURLSessionWebSocketSendQueueEntryKindPing))
@@ -339,54 +441,11 @@ GSURLSessionWebSocketQueueNextPingLocked(NSURLSessionWebSocketTask *task)
       return;
     }
 
-  if ([task->_pendingPingHandlers count] == 0)
-    {
-      return;
-    }
-
-  payload = GSURLSessionWebSocketPingPayload(task->_nextPingIdentifier++);
+  payload = GSURLSessionWebSocketPingPayload(GSIVar(task, send).nextPingIdentifier++);
   entry = GSURLSessionWebSocketControlSendQueueEntryCreate(
     GSURLSessionWebSocketSendQueueEntryKindPing,
     payload);
-  GSURLSessionWebSocketInsertPrioritySendEntryLocked(task, entry);
-}
-
-static NSArray *
-GSURLSessionWebSocketTakeQueuedSendEntriesFromIndexLocked(
-  NSURLSessionWebSocketTask *task,
-  NSUInteger firstIndex)
-{
-  NSArray *sendEntries;
-  NSRange range;
-
-  if ([task->_sendQueue count] <= firstIndex)
-    {
-      return [[NSArray alloc] init];
-    }
-
-  range = NSMakeRange(firstIndex, [task->_sendQueue count] - firstIndex);
-  sendEntries = [[task->_sendQueue subarrayWithRange: range] copy];
-  [task->_sendQueue removeObjectsInRange: range];
-  return sendEntries;
-}
-
-static NSArray *
-GSURLSessionWebSocketTakePendingPingHandlersLocked(
-  NSURLSessionWebSocketTask *task,
-  NSUInteger keepCount)
-{
-  NSArray *handlers;
-  NSRange range;
-
-  if ([task->_pendingPingHandlers count] <= keepCount)
-    {
-      return [[NSArray alloc] init];
-    }
-
-  range = NSMakeRange(keepCount, [task->_pendingPingHandlers count] - keepCount);
-  handlers = [[task->_pendingPingHandlers subarrayWithRange: range] copy];
-  [task->_pendingPingHandlers removeObjectsInRange: range];
-  return handlers;
+  [GSIVar(task, send).queue insertObject: [NSValue valueWithPointer: entry] atIndex: 0];
 }
 
 static GSURLSessionWebSocketSendQueueEntry *
@@ -394,34 +453,75 @@ GSURLSessionWebSocketPopNextSendEntryLocked(NSURLSessionWebSocketTask *task)
 {
   GSURLSessionWebSocketSendQueueEntry *entry;
 
-  if (NULL != task->_messageSendState.entry)
+  if (NULL != GSIVar(task, send).active.entry)
     {
-      return (GSURLSessionWebSocketSendQueueEntry *)task->_messageSendState.entry;
+      return (GSURLSessionWebSocketSendQueueEntry *)GSIVar(task, send).active.entry;
     }
 
-  if ([task->_sendQueue count] == 0)
+  if ([GSIVar(task, send).queue count] == 0)
     {
       return NULL;
     }
 
-  entry = [[task->_sendQueue objectAtIndex: 0] pointerValue];
-  [task->_sendQueue removeObjectAtIndex: 0];
-  task->_messageSendState.entry = entry;
-  task->_messageSendState.kind = entry->kind;
-  task->_messageSendState.dataType = entry->dataType;
-  task->_messageSendState.payloadOffset = 0;
-  task->_messageSendState.frameStarted = NO;
+  entry = [[GSIVar(task, send).queue objectAtIndex: 0] pointerValue];
+  [GSIVar(task, send).queue removeObjectAtIndex: 0];
+  GSIVar(task, send).active.entry = entry;
+  GSIVar(task, send).active.kind = entry->kind;
+  GSIVar(task, send).active.dataType = entry->dataType;
+  GSIVar(task, send).active.payloadOffset = 0;
+  GSIVar(task, send).active.frameStarted = NO;
   return entry;
 }
 
 static void
 GSURLSessionWebSocketClearActiveSendEntryLocked(NSURLSessionWebSocketTask *task)
 {
-  task->_messageSendState.entry = NULL;
-  task->_messageSendState.kind = GSURLSessionWebSocketSendQueueEntryKindData;
-  task->_messageSendState.dataType = NSURLSessionWebSocketMessageTypeData;
-  task->_messageSendState.payloadOffset = 0;
-  task->_messageSendState.frameStarted = NO;
+  GSIVar(task, send).active.entry = NULL;
+  GSIVar(task, send).active.kind = GSURLSessionWebSocketSendQueueEntryKindData;
+  GSIVar(task, send).active.dataType = NSURLSessionWebSocketMessageTypeData;
+  GSIVar(task, send).active.payloadOffset = 0;
+  GSIVar(task, send).active.frameStarted = NO;
+}
+
+static void
+GSURLSessionWebSocketBeginClosingLocked(
+  NSURLSessionWebSocketTask *task,
+  NSData *closePayload,
+  NSArray **sendEntries,
+  NSArray **receiveHandlers,
+  NSArray **pingHandlers)
+{
+  GSURLSessionWebSocketSendQueueEntry *closeEntry;
+
+  assert(GSIVar(task, lifecycle).phase == GSURLSessionWebSocketLifecycleStateOpen);
+  GSIVar(task, lifecycle).phase = GSURLSessionWebSocketLifecycleStateClosing;
+  *sendEntries = [GSIVar(task, send).queue copy];
+  *receiveHandlers = [GSIVar(task, receive).handlers copy];
+  *pingHandlers = [GSIVar(task, send).pingHandlers copy];
+  [GSIVar(task, send).queue removeAllObjects];
+  [GSIVar(task, receive).handlers removeAllObjects];
+  [GSIVar(task, send).pingHandlers removeAllObjects];
+  DESTROY(GSIVar(task, send).pingPayload);
+  GSURLSessionWebSocketResetReceiveStateLocked(task);
+
+  closeEntry = GSURLSessionWebSocketControlSendQueueEntryCreate(
+    GSURLSessionWebSocketSendQueueEntryKindClose,
+    closePayload);
+  [GSIVar(task, send).queue addObject: [NSValue valueWithPointer: closeEntry]];
+}
+
+static BOOL
+WSTaskCompleteClosingIfReadyLocked(NSURLSessionWebSocketTask *task)
+{
+  if (GSIVar(task, lifecycle).phase == GSURLSessionWebSocketLifecycleStateClosing
+      && GSIVar(task, lifecycle).closeFrameSent
+      && GSIVar(task, lifecycle).closeFrameReceived)
+    {
+      GSIVar(task, lifecycle).phase = GSURLSessionWebSocketLifecycleStateClosed;
+      return YES;
+    }
+
+  return NO;
 }
 
 static GSURLSessionWebSocketReceiveHandler
@@ -429,14 +529,14 @@ GSURLSessionWebSocketPopReceiveHandlerLocked(NSURLSessionWebSocketTask *task)
 {
   GSURLSessionWebSocketReceiveHandler handler;
 
-  if ([task->_recvQueue count] == 0)
+  if ([GSIVar(task, receive).handlers count] == 0)
     {
       return nil;
     }
 
   handler = RETAIN((GSURLSessionWebSocketReceiveHandler)
-    [task->_recvQueue objectAtIndex: 0]);
-  [task->_recvQueue removeObjectAtIndex: 0];
+    [GSIVar(task, receive).handlers objectAtIndex: 0]);
+  [GSIVar(task, receive).handlers removeObjectAtIndex: 0];
   return AUTORELEASE(handler);
 }
 
@@ -453,38 +553,37 @@ GSURLSessionWebSocketDrainOutstandingWorkLocked(
   if (sendEntries != NULL)
     {
       allSendEntries = [[NSMutableArray alloc] init];
-      if (NULL != task->_messageSendState.entry)
+      if (NULL != GSIVar(task, send).active.entry)
         {
           [allSendEntries addObject:
-            [NSValue valueWithPointer: task->_messageSendState.entry]];
+            [NSValue valueWithPointer: GSIVar(task, send).active.entry]];
         }
-      [allSendEntries addObjectsFromArray: task->_sendQueue];
+      [allSendEntries addObjectsFromArray: GSIVar(task, send).queue];
       *sendEntries = [allSendEntries copy];
       [allSendEntries release];
     }
 
   if (receiveHandlers != NULL)
     {
-      *receiveHandlers = [task->_recvQueue copy];
+      *receiveHandlers = [GSIVar(task, receive).handlers copy];
     }
 
   if (pingHandlers != NULL)
     {
-      *pingHandlers = [task->_pendingPingHandlers copy];
+      *pingHandlers = [GSIVar(task, send).pingHandlers copy];
     }
 
-  [task->_sendQueue removeAllObjects];
-  [task->_recvQueue removeAllObjects];
-  [task->_pendingPingHandlers removeAllObjects];
-  [task->_pendingReceivedMessages removeAllObjects];
-  DESTROY(task->_currentPingPayload);
+  [GSIVar(task, send).queue removeAllObjects];
+  [GSIVar(task, receive).handlers removeAllObjects];
+  [GSIVar(task, send).pingHandlers removeAllObjects];
+  DESTROY(GSIVar(task, send).pingPayload);
   GSURLSessionWebSocketClearActiveSendEntryLocked(task);
-  task->_sendFrameStartRetryPending = NO;
+  GSIVar(task, send).frameStartRetryPending = NO;
   GSURLSessionWebSocketResetReceiveStateLocked(task);
 }
 
 static void
-GSURLSessionWebSocketCompleteReceive(
+WSTaskNotifyReceiveCompletionHandler(
   NSURLSessionWebSocketTask *task,
   GSURLSessionWebSocketReceiveHandler handler,
   NSURLSessionWebSocketMessage *message,
@@ -501,7 +600,7 @@ GSURLSessionWebSocketCompleteReceive(
 }
 
 static void
-GSURLSessionWebSocketCompleteSend(
+WSTaskNotifyCompletionHandler(
   NSURLSessionWebSocketTask *task,
   void (^completionHandler)(NSError *error),
   NSError *error)
@@ -517,7 +616,21 @@ GSURLSessionWebSocketCompleteSend(
 }
 
 static void
-GSURLSessionWebSocketCompletePingHandlers(
+WSTaskResume(NSURLSessionWebSocketTask *task, int direction)
+{
+  curl_easy_pause([task _easyHandle], direction);
+}
+
+static void
+WSTaskScheduleResume(NSURLSessionWebSocketTask *task, int direction)
+{
+  [[task _session] _performOnWorkThread: ^{
+      WSTaskResume(task, direction);
+    }];
+}
+
+static void
+WSTaskNotifyPingCompletionHandlers(
   NSURLSessionWebSocketTask *task,
   NSArray *pingHandlers,
   NSError *error)
@@ -526,12 +639,12 @@ GSURLSessionWebSocketCompletePingHandlers(
 
   for (handler in pingHandlers)
     {
-      GSURLSessionWebSocketCompleteSend(task, handler, error);
+      WSTaskNotifyCompletionHandler(task, handler, error);
     }
 }
 
 static void
-GSURLSessionWebSocketDestroySendEntries(
+WSTaskDestroySendEntriesAndNotifyCompletionHandlers(
   NSArray *sendEntries,
   NSURLSessionWebSocketTask *task,
   NSError *error)
@@ -547,7 +660,7 @@ GSURLSessionWebSocketDestroySendEntries(
         {
           if (entry->kind == GSURLSessionWebSocketSendQueueEntryKindData)
             {
-              GSURLSessionWebSocketCompleteSend(task,
+              WSTaskNotifyCompletionHandler(task,
                                                 entry->completionHandler,
                                                 error);
             }
@@ -557,7 +670,7 @@ GSURLSessionWebSocketDestroySendEntries(
 }
 
 static void
-GSURLSessionWebSocketCompleteReceiveHandlers(
+WSTaskNotifyReceiveCompletionHandlers(
   NSArray *receiveHandlers,
   NSURLSessionWebSocketTask *task,
   NSError *error)
@@ -566,17 +679,35 @@ GSURLSessionWebSocketCompleteReceiveHandlers(
 
   for (handler in receiveHandlers)
     {
-      GSURLSessionWebSocketCompleteReceive(task, handler, nil, error);
+      WSTaskNotifyReceiveCompletionHandler(task, handler, nil, error);
     }
 }
 
-static size_t
-GSURLSessionWebSocketFailReceive(
+static void
+WSTaskNotifyOutstandingCompletionHandlers(
   NSURLSessionWebSocketTask *task,
-  GSURLSessionWebSocketReceiveHandler handler,
+  NSArray *sendEntries,
+  NSArray *receiveHandlers,
+  NSArray *pingHandlers,
+  NSError *error)
+{
+  WSTaskDestroySendEntriesAndNotifyCompletionHandlers(sendEntries, task, error);
+  WSTaskNotifyReceiveCompletionHandlers(receiveHandlers, task, error);
+  WSTaskNotifyPingCompletionHandlers(task, pingHandlers, error);
+  [sendEntries release];
+  [receiveHandlers release];
+  [pingHandlers release];
+}
+
+static void
+GSURLSessionWebSocketFailReceiveLocked(
+  NSURLSessionWebSocketTask *task,
   NSInteger code,
   NSString *description)
 {
+  NSArray *sendEntries;
+  NSArray *receiveHandlers;
+  NSArray *pingHandlers;
   NSError *error;
 
   error = GSURLSessionWebSocketError(code, description);
@@ -585,13 +716,19 @@ GSURLSessionWebSocketFailReceive(
               task,
               description);
 
-  GS_MUTEX_LOCK(task->_mutex);
   [task _setStoredTaskError: error];
-  GSURLSessionWebSocketResetReceiveStateLocked(task);
-  GS_MUTEX_UNLOCK(task->_mutex);
+  GSIVar(task, lifecycle).phase = GSURLSessionWebSocketLifecycleStateFailed;
+  GSURLSessionWebSocketDrainOutstandingWorkLocked(task,
+                                                  &sendEntries,
+                                                  &receiveHandlers,
+                                                  &pingHandlers);
+  GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
-  GSURLSessionWebSocketCompleteReceive(task, handler, nil, error);
-  return 0;
+  WSTaskNotifyOutstandingCompletionHandlers(task,
+                                             sendEntries,
+                                             receiveHandlers,
+                                             pingHandlers,
+                                             error);
 }
 
 static size_t
@@ -615,20 +752,19 @@ GSURLSessionWebSocketFailSend(
               task,
               description);
 
-  GS_MUTEX_LOCK(task->_mutex);
+  GS_MUTEX_LOCK(GSIVar(task, mutex));
   [task _setStoredTaskError: error];
   GSURLSessionWebSocketDrainOutstandingWorkLocked(task,
                                                   &sendEntries,
                                                   &receiveHandlers,
                                                   &pingHandlers);
-  GS_MUTEX_UNLOCK(task->_mutex);
+  GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
-  GSURLSessionWebSocketDestroySendEntries(sendEntries, task, error);
-  GSURLSessionWebSocketCompleteReceiveHandlers(receiveHandlers, task, error);
-  GSURLSessionWebSocketCompletePingHandlers(task, pingHandlers, error);
-  [sendEntries release];
-  [receiveHandlers release];
-  [pingHandlers release];
+  WSTaskNotifyOutstandingCompletionHandlers(task,
+                                               sendEntries,
+                                               receiveHandlers,
+                                               pingHandlers,
+                                               error);
   return CURL_READFUNC_ABORT;
 }
 
@@ -639,34 +775,112 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   GSURLSessionWebSocketReceiveHandler handler;
   const struct curl_ws_frame *meta;
   NSURLSessionWebSocketMessage *message;
-  GSURLSessionWebSocketReceiveState messageState;
+  GSURLSessionWebSocketReceivePhase messageState;
   NSMutableData *buffer;
   NSUInteger bytesInCallback;
   NSUInteger bytesInChunk;
   NSUInteger existingLength;
   NSUInteger requiredLength;
   BOOL messageContinuesInNextFrame;
+  NSData *controlPayload;
+  BOOL controlFrameComplete;
+  BOOL controlFrameInvalid;
+  unsigned int controlFlags;
   NSString *string;
 
   task = (NSURLSessionWebSocketTask *)userdata;
   bytesInCallback = size * nmemb;
+  controlPayload = nil;
+  controlFrameComplete = NO;
+  controlFrameInvalid = NO;
+  controlFlags = 0;
 
   /* Extract websocket frame metadata */
   meta = curl_ws_meta([task _easyHandle]);
   if (NULL == meta)
     {
-      GS_MUTEX_LOCK(task->_mutex);
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      return GSURLSessionWebSocketFailReceive(
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      GSURLSessionWebSocketFailReceiveLocked(
         task,
-        handler,
         NSURLErrorCannotParseResponse,
         @"curl_ws_meta returned NULL while receiving WebSocket data");
+      return 0;
     }
 
-  if ((meta->flags & CURLWS_PONG) != 0)
+  if (meta->len != bytesInCallback || meta->len != nmemb)
+    {
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      GSURLSessionWebSocketFailReceiveLocked(
+        task,
+        NSURLErrorCannotParseResponse,
+        [NSString stringWithFormat:
+                    @"WebSocket callback length mismatch: received %lu bytes "
+                    @"(%lu items) but curl metadata announced %lu",
+                    (unsigned long)bytesInCallback,
+                    (unsigned long)nmemb,
+                    (unsigned long)meta->len]);
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"libcurl delivered a WebSocket callback whose "
+                          @"length did not match curl_ws_meta()->len. "
+                          @"Please upgrade libcurl."];
+    }
+
+  if ((meta->flags & (CURLWS_PONG | CURLWS_CLOSE | CURLWS_PING)) != 0)
+    {
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      if (meta->offset == 0)
+        {
+          [GSIVar(task, receive).controlBuffer setLength: 0];
+          GSIVar(task, receive).controlOffset = 0;
+          GSIVar(task, receive).controlFlags =
+            meta->flags & (CURLWS_PONG | CURLWS_CLOSE | CURLWS_PING);
+        }
+
+      if (meta->offset < 0
+          || meta->bytesleft < 0
+          || (meta->offset > 0
+              && GSIVar(task, receive).controlFlags
+                   != (meta->flags & (CURLWS_PONG | CURLWS_CLOSE | CURLWS_PING)))
+          || (unsigned long long)meta->offset
+               > (unsigned long long)GSIVar(task, receive).controlOffset
+          || (NSUInteger)meta->offset != GSIVar(task, receive).controlOffset
+          || bytesInCallback > NSUIntegerMax - GSIVar(task, receive).controlOffset)
+        {
+          controlFrameInvalid = YES;
+        }
+      else
+        {
+          [GSIVar(task, receive).controlBuffer appendBytes: ptr
+                                                    length: bytesInCallback];
+          GSIVar(task, receive).controlOffset += bytesInCallback;
+          if (meta->bytesleft == 0)
+            {
+              controlPayload = [GSIVar(task, receive).controlBuffer copy];
+              controlFlags = GSIVar(task, receive).controlFlags;
+              controlFrameComplete = YES;
+              [GSIVar(task, receive).controlBuffer setLength: 0];
+              GSIVar(task, receive).controlOffset = 0;
+              GSIVar(task, receive).controlFlags = 0;
+            }
+        }
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
+
+      if (YES == controlFrameInvalid)
+        {
+          GS_MUTEX_LOCK(GSIVar(task, mutex));
+          GSURLSessionWebSocketFailReceiveLocked(
+            task,
+            NSURLErrorCannotParseResponse,
+            @"WebSocket control-frame callback metadata was inconsistent");
+          return 0;
+        }
+      if (NO == controlFrameComplete)
+        {
+          return bytesInCallback;
+        }
+    }
+
+  if ((controlFlags & CURLWS_PONG) != 0)
     {
       GSURLSessionWebSocketPingHandler pingHandler;
       BOOL shouldQueueNextPing;
@@ -674,72 +888,73 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       pingHandler = nil;
       shouldQueueNextPing = NO;
 
-      GS_MUTEX_LOCK(task->_mutex);
-      if (nil != task->_currentPingPayload
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      if (nil != GSIVar(task, send).pingPayload
           && YES == GSURLSessionWebSocketFramePayloadMatchesData(
-            ptr,
-            bytesInCallback,
-            task->_currentPingPayload))
+            [controlPayload bytes],
+            [controlPayload length],
+            GSIVar(task, send).pingPayload))
         {
-          if ([task->_pendingPingHandlers count] > 0)
+          if ([GSIVar(task, send).pingHandlers count] > 0)
             {
               pingHandler = RETAIN((GSURLSessionWebSocketPingHandler)
-                [task->_pendingPingHandlers objectAtIndex: 0]);
-              [task->_pendingPingHandlers removeObjectAtIndex: 0];
+                [GSIVar(task, send).pingHandlers objectAtIndex: 0]);
+              [GSIVar(task, send).pingHandlers removeObjectAtIndex: 0];
             }
 
-          DESTROY(task->_currentPingPayload);
+          DESTROY(GSIVar(task, send).pingPayload);
           GSURLSessionWebSocketQueueNextPingLocked(task);
           shouldQueueNextPing = GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
             task,
             GSURLSessionWebSocketSendQueueEntryKindPing);
         }
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
       if (nil != pingHandler)
         {
-          GSURLSessionWebSocketCompleteSend(task, pingHandler, nil);
+          WSTaskNotifyCompletionHandler(task, pingHandler, nil);
           [pingHandler release];
         }
 
       if (YES == shouldQueueNextPing)
         {
-          curl_easy_pause([task _easyHandle], CURLPAUSE_SEND_CONT);
+          WSTaskScheduleResume(task, CURLPAUSE_SEND_CONT);
         }
 
+      [controlPayload release];
       return bytesInCallback;
     }
 
-  if ((meta->flags & CURLWS_CLOSE) != 0)
+  if ((controlFlags & CURLWS_CLOSE) != 0)
     {
       NSArray *cancelledSendEntries;
+      NSArray *cancelledReceiveHandlers;
       NSArray *cancelledPingHandlers;
       NSError *cancelError;
       NSData *closeReason;
       NSData *closePayload;
-      GSURLSessionWebSocketSendQueueEntry *closeEntry;
-      NSUInteger preservedSendCount;
-      NSUInteger preservedPingCount;
       NSUInteger payloadLength;
       NSURLSessionWebSocketCloseCode closeCode;
+      BOOL shouldNotifyClose;
       BOOL shouldSendCloseReply;
 
       cancelledSendEntries = nil;
+      cancelledReceiveHandlers = nil;
       cancelledPingHandlers = nil;
       cancelError = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket closing handshake canceled queued work");
       closeReason = nil;
       closePayload = nil;
-      closeEntry = NULL;
       closeCode = NSURLSessionWebSocketCloseCodeInvalid;
+      shouldNotifyClose = NO;
       shouldSendCloseReply = NO;
-      payloadLength = bytesInCallback;
+      payloadLength = [controlPayload length];
 
       if (payloadLength >= 2)
         {
           const unsigned char *closeBytes;
 
-          closeBytes = (const unsigned char *)ptr;
+          closeBytes = (const unsigned char *)[controlPayload bytes];
           closeCode = (NSURLSessionWebSocketCloseCode)
             (((NSUInteger)closeBytes[0] << 8) | (NSUInteger)closeBytes[1]);
           if (payloadLength > 2)
@@ -749,103 +964,52 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
             }
         }
 
-      GS_MUTEX_LOCK(task->_mutex);
-      task->_closeCode = closeCode;
-      ASSIGNCOPY(task->_closeReason, closeReason);
-
-      if (task->_lifecycleState == GSURLSessionWebSocketLifecycleStateCloseSent)
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      GSIVar(task, lifecycle).closeCode = closeCode;
+      ASSIGNCOPY(GSIVar(task, lifecycle).closeReason, closeReason);
+      shouldNotifyClose = !GSIVar(task, lifecycle).closeFrameReceived;
+      GSIVar(task, lifecycle).closeFrameReceived = YES;
+      if (GSIVar(task, lifecycle).phase == GSURLSessionWebSocketLifecycleStateOpen)
         {
-          task->_lifecycleState = GSURLSessionWebSocketLifecycleStateClosed;
-          DESTROY(task->_currentPingPayload);
-          cancelledPingHandlers = [task->_pendingPingHandlers copy];
-          [task->_pendingPingHandlers removeAllObjects];
+          closePayload = controlPayload;
+          GSURLSessionWebSocketBeginClosingLocked(task,
+                                                  closePayload,
+                                                  &cancelledSendEntries,
+                                                  &cancelledReceiveHandlers,
+                                                  &cancelledPingHandlers);
+          shouldSendCloseReply = YES;
+        }
+      if (YES == WSTaskCompleteClosingIfReadyLocked(task))
+        {
           [task _setShouldStopTransfer: YES];
         }
-      else
-        {
-          if (task->_lifecycleState == GSURLSessionWebSocketLifecycleStateOpen
-              || task->_lifecycleState == GSURLSessionWebSocketLifecycleStateCloseRequested)
-            {
-              task->_lifecycleState = GSURLSessionWebSocketLifecycleStatePeerCloseReceived;
-            }
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
-          if (NO == GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
-            task,
-            GSURLSessionWebSocketSendQueueEntryKindClose))
-            {
-              if (payloadLength > 0)
-                {
-                  closePayload = [NSData dataWithBytes: ptr length: payloadLength];
-                }
-              else
-                {
-                  closePayload = [NSData data];
-                }
-              closeEntry = GSURLSessionWebSocketControlSendQueueEntryCreate(
-                GSURLSessionWebSocketSendQueueEntryKindClose,
-                closePayload);
-              preservedSendCount = GSURLSessionWebSocketPriorityInsertionIndexLocked(task);
-              cancelledSendEntries = GSURLSessionWebSocketTakeQueuedSendEntriesFromIndexLocked(
-                task,
-                preservedSendCount);
-              [task->_sendQueue insertObject: [NSValue valueWithPointer: closeEntry]
-                                     atIndex: preservedSendCount];
-              shouldSendCloseReply = YES;
-            }
-          else
-            {
-              preservedSendCount = GSURLSessionWebSocketPriorityInsertionIndexLocked(task);
-              cancelledSendEntries = GSURLSessionWebSocketTakeQueuedSendEntriesFromIndexLocked(
-                task,
-                preservedSendCount);
-            }
-          preservedPingCount = (nil != task->_currentPingPayload
-            || GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
-              task,
-              GSURLSessionWebSocketSendQueueEntryKindPing)) ? 1 : 0;
-          cancelledPingHandlers = GSURLSessionWebSocketTakePendingPingHandlersLocked(
-            task,
-            preservedPingCount);
-        }
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      if (nil != cancelledSendEntries)
-        {
-          GSURLSessionWebSocketDestroySendEntries(cancelledSendEntries,
-                                                  task,
-                                                  cancelError);
-          [cancelledSendEntries release];
-        }
-
-      if (nil != cancelledPingHandlers)
-        {
-          GSURLSessionWebSocketCompletePingHandlers(task,
-                                                    cancelledPingHandlers,
-                                                    cancelError);
-          [cancelledPingHandlers release];
-        }
+      WSTaskNotifyOutstandingCompletionHandlers(task,
+                                                   cancelledSendEntries,
+                                                   cancelledReceiveHandlers,
+                                                   cancelledPingHandlers,
+                                                   cancelError);
 
       if (YES == shouldSendCloseReply)
         {
-          curl_easy_pause([task _easyHandle], CURLPAUSE_SEND_CONT);
+          WSTaskScheduleResume(task, CURLPAUSE_SEND_CONT);
         }
 
+      if (YES == shouldNotifyClose)
+        {
+          GSURLSessionWebSocketNotifyDidClose(task, closeCode, closeReason);
+        }
+
+      [controlPayload release];
       return bytesInCallback;
     }
 
-  if ((meta->flags & CURLWS_PING) != 0)
+  if ((controlFlags & CURLWS_PING) != 0)
     {
+      [controlPayload release];
       return bytesInCallback;
     }
-
-  /* First, check if there is a receive handler in the queue */
-  GS_MUTEX_LOCK(task->_mutex);
-  if ([task->_recvQueue count] == 0)
-    {
-      GS_MUTEX_UNLOCK(task->_mutex);
-      return CURL_WRITEFUNC_PAUSE;
-    }
-  GS_MUTEX_UNLOCK(task->_mutex);
 
   if ((meta->flags & CURLWS_TEXT) != 0)
     {
@@ -857,97 +1021,84 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
   else
     {
-      GS_MUTEX_LOCK(task->_mutex);
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      return GSURLSessionWebSocketFailReceive(
+      GS_MUTEX_LOCK(GSIVar(task, mutex));
+      GSURLSessionWebSocketFailReceiveLocked(
         task,
-        handler,
         NSURLErrorCannotParseResponse,
         [NSString stringWithFormat:
                     @"Unsupported websocket frame flags 0x%x", meta->flags]);
+      return 0;
     }
 
-  GS_MUTEX_LOCK(task->_mutex);
+  GS_MUTEX_LOCK(GSIVar(task, mutex));
+  if (GSIVar(task, lifecycle).phase != GSURLSessionWebSocketLifecycleStateOpen)
+    {
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
+      return bytesInCallback;
+    }
+  if ([GSIVar(task, receive).handlers count] == 0)
+    {
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
+      return CURL_WRITEFUNC_PAUSE;
+    }
   handler = nil;
-  buffer = task->_receiveBuffer;
+  buffer = GSIVar(task, receive).buffer;
   existingLength = [buffer length];
   messageContinuesInNextFrame = ((meta->flags & CURLWS_CONT) != 0);
 
-  if (task->_receiveState == GSURLSessionWebSocketReceiveStateIdle
-      && task->_receiveFrameOffset == 0)
+  if (GSIVar(task, receive).phase == GSURLSessionWebSocketReceiveStateIdle
+      && GSIVar(task, receive).frameOffset == 0)
     {
-      task->_receiveState = messageState;
+      GSIVar(task, receive).phase = messageState;
     }
-  else if (task->_receiveState != messageState)
+  else if (GSIVar(task, receive).phase != messageState)
     {
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      return GSURLSessionWebSocketFailReceive(
+      GSURLSessionWebSocketFailReceiveLocked(
         task,
-        handler,
         NSURLErrorCannotParseResponse,
         [NSString stringWithFormat:
                     @"WebSocket message changed frame type from %lu to %lu",
-                    (unsigned long)task->_receiveState,
+                    (unsigned long)GSIVar(task, receive).phase,
                     (unsigned long)messageState]);
+      return 0;
     }
 
-  if (task->_receiveFrameOffset > 0
-      && (NSUInteger)meta->offset != task->_receiveFrameOffset)
+  if (GSIVar(task, receive).frameOffset > 0
+      && (NSUInteger)meta->offset != GSIVar(task, receive).frameOffset)
     {
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      return GSURLSessionWebSocketFailReceive(
+      GSURLSessionWebSocketFailReceiveLocked(
         task,
-        handler,
         NSURLErrorCannotParseResponse,
         [NSString stringWithFormat:
                     @"WebSocket frame offset mismatch: expected %lu but "
                     @"received %lld",
-                    (unsigned long)task->_receiveFrameOffset,
+                    (unsigned long)GSIVar(task, receive).frameOffset,
                     (long long)meta->offset]);
+      return 0;
     }
 
   bytesInChunk = meta->len;
-  if (bytesInChunk != bytesInCallback)
-    {
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
+  assert(meta->bytesleft >= 0);
+  assert((unsigned long long)meta->bytesleft
+    <= (unsigned long long)NSUIntegerMax);
+  assert(bytesInChunk <= NSUIntegerMax - existingLength);
+  assert((NSUInteger)meta->bytesleft
+    <= NSUIntegerMax - existingLength - bytesInChunk);
 
-      return GSURLSessionWebSocketFailReceive(
-        task,
-        handler,
-        NSURLErrorCannotParseResponse,
-        [NSString stringWithFormat:
-                    @"WebSocket callback length mismatch: received %lu bytes "
-                    @"but curl metadata announced %lu",
-                    (unsigned long)bytesInCallback,
-                    (unsigned long)bytesInChunk]);
-    }
   requiredLength = existingLength + bytesInChunk + (NSUInteger)meta->bytesleft;
 
-  /* Weird parameters need to be handled during task creation / assignment */
-  NSCAssert(task->_maximumMessageSize > 0,
-            @"WebSocket task maximumMessageSize must be positive");
-
-  if (requiredLength > (NSUInteger)task->_maximumMessageSize)
+  if (GSIVar(task, receive).maximumMessageSize <= 0
+      || requiredLength > (NSUInteger)GSIVar(task, receive).maximumMessageSize)
     {
-      handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
-
-      return GSURLSessionWebSocketFailReceive(
+      GSURLSessionWebSocketFailReceiveLocked(
         task,
-        handler,
         NSURLErrorDataLengthExceedsMaximum,
         [NSString stringWithFormat:
                     @"WebSocket message length %lu exceeds maximumMessageSize "
                     @"%ld",
                     (unsigned long)requiredLength,
-                    (long)task->_maximumMessageSize]);
+                    (long)GSIVar(task, receive).maximumMessageSize]);
+      return 0;
     }
 
   if ([buffer length] < requiredLength)
@@ -956,37 +1107,34 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
 
   [buffer appendBytes: ptr length: bytesInChunk];
-  task->_receiveFrameOffset += bytesInChunk;
+  GSIVar(task, receive).frameOffset += bytesInChunk;
 
   if (meta->bytesleft > 0)
     {
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
       return bytesInChunk;
     }
 
-  task->_receiveFrameOffset = 0;
+  GSIVar(task, receive).frameOffset = 0;
   if (YES == messageContinuesInNextFrame)
     {
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
       return bytesInChunk;
     }
 
   /* The full message is complete once the last chunk of the last frame arrives. */
   message = nil;
-  if (task->_receiveState == GSURLSessionWebSocketReceiveStateText)
+  if (GSIVar(task, receive).phase == GSURLSessionWebSocketReceiveStateText)
     {
       string = AUTORELEASE([[NSString alloc] initWithData: buffer
                                                  encoding: NSUTF8StringEncoding]);
       if (nil == string)
         {
-          handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
-          GS_MUTEX_UNLOCK(task->_mutex);
-
-          return GSURLSessionWebSocketFailReceive(
+          GSURLSessionWebSocketFailReceiveLocked(
             task,
-            handler,
             NSURLErrorCannotDecodeContentData,
             @"WebSocket text message is not valid UTF-8");
+          return 0;
         }
 
       message = AUTORELEASE([[NSURLSessionWebSocketMessage alloc]
@@ -1003,9 +1151,9 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   handler = GSURLSessionWebSocketPopReceiveHandlerLocked(task);
   GSURLSessionWebSocketResetReceiveStateLocked(task);
-  GS_MUTEX_UNLOCK(task->_mutex);
+  GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
-  GSURLSessionWebSocketCompleteReceive(task, handler, message, nil);
+  WSTaskNotifyReceiveCompletionHandler(task, handler, message, nil);
   return bytesInChunk;
 }
 
@@ -1029,12 +1177,12 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
       return 0;
     }
 
-  GS_MUTEX_LOCK(task->_mutex);
+  GS_MUTEX_LOCK(GSIVar(task, mutex));
 
   entry = GSURLSessionWebSocketPopNextSendEntryLocked(task);
   if (NULL == entry)
     {
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
       return CURL_READFUNC_PAUSE;
     }
   payload = entry->payload;
@@ -1043,7 +1191,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
       NSError *error;
       NSException *exception;
 
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
       exception = [NSException exceptionWithName: NSInternalInconsistencyException
                                           reason: @"Websocket send queue entry "
                                                   @"is missing payload"
@@ -1054,12 +1202,12 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 
   payloadLength = [payload length];
 
-  if (task->_messageSendState.payloadOffset > payloadLength)
+  if (GSIVar(task, send).active.payloadOffset > payloadLength)
     {
       NSError *error;
       NSException *exception;
 
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
       exception = [NSException exceptionWithName: NSInternalInconsistencyException
                                           reason: @"Websocket send queue entry "
                                                   @"payload offset exceeds "
@@ -1069,53 +1217,15 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
       return GSURLSessionWebSocketFailSend(task, error);
     }
 
-  if (task->_messageSendState.payloadOffset == payloadLength)
-    {
-      NSError *error;
-      NSException *exception;
-
-      GS_MUTEX_UNLOCK(task->_mutex);
-      exception = [NSException exceptionWithName: NSInternalInconsistencyException
-                                          reason: @"Websocket send queue entry "
-                                                  @"should have been popped "
-                                                  @"immediately after the "
-                                                  @"last payload bytes were "
-                                                  @"sent"
-                                        userInfo: nil];
-      error = GSURLSessionWebSocketErrorFromException(exception);
-      return GSURLSessionWebSocketFailSend(task, error);
-    }
-
-  if (NO == task->_messageSendState.frameStarted)
+  if (NO == GSIVar(task, send).active.frameStarted)
     {
       switch (entry->kind)
         {
           case GSURLSessionWebSocketSendQueueEntryKindData:
-            switch (entry->dataType)
-              {
-                case NSURLSessionWebSocketMessageTypeString:
-                  flags = CURLWS_TEXT;
-                  break;
-                case NSURLSessionWebSocketMessageTypeData:
-                  flags = CURLWS_BINARY;
-                  break;
-                default:
-                  {
-                    NSError *error;
-                    NSException *exception;
-
-                    exception = [NSException
-                      exceptionWithName: NSInternalInconsistencyException
-                                 reason: [NSString stringWithFormat:
-                                                    @"Queued websocket send "
-                                                    @"has unsupported type %ld",
-                                                    (long)entry->dataType]
-                               userInfo: nil];
-                    GS_MUTEX_UNLOCK(task->_mutex);
-                    error = GSURLSessionWebSocketErrorFromException(exception);
-                    return GSURLSessionWebSocketFailSend(task, error);
-                  }
-              }
+            assert(entry->dataType == NSURLSessionWebSocketMessageTypeString
+              || entry->dataType == NSURLSessionWebSocketMessageTypeData);
+            flags = entry->dataType == NSURLSessionWebSocketMessageTypeString
+              ? CURLWS_TEXT : CURLWS_BINARY;
             break;
           case GSURLSessionWebSocketSendQueueEntryKindPing:
             flags = CURLWS_PING;
@@ -1124,6 +1234,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
             flags = CURLWS_CLOSE;
             break;
           default:
+            assert(0);
             flags = CURLWS_BINARY;
             break;
         }
@@ -1134,16 +1245,15 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
                                    (curl_off_t)payloadLength);
       if (result == CURLE_AGAIN)
         {
-          task->_sendFrameStartRetryPending = YES;
-          GS_MUTEX_UNLOCK(task->_mutex);
+          GSIVar(task, send).frameStartRetryPending = YES;
+          GS_MUTEX_UNLOCK(GSIVar(task, mutex));
           return CURL_READFUNC_PAUSE;
         }
-      NSLog(@"ws_read_callback start_frame_result=%d", (int)result);
       if (result != CURLE_OK)
         {
           NSError *error;
 
-          GS_MUTEX_UNLOCK(task->_mutex);
+          GS_MUTEX_UNLOCK(GSIVar(task, mutex));
           error = [task _errorForCURLcode: result];
           if (error == nil)
             {
@@ -1155,105 +1265,112 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
           return GSURLSessionWebSocketFailSend(task, error);
         }
 
-      task->_messageSendState.frameStarted = YES;
+      GSIVar(task, send).active.frameStarted = YES;
     }
 
   bytesToWrite = MIN(bytesAvailable,
-                     payloadLength - task->_messageSendState.payloadOffset);
-  NSLog(@"ws_read_callback write_chunk: payloadOffset=%lu bytesToWrite=%lu "
-        @"payloadLength=%lu bytesAvailable=%lu",
-        (unsigned long)task->_messageSendState.payloadOffset,
-        (unsigned long)bytesToWrite,
-        (unsigned long)payloadLength,
-        (unsigned long)bytesAvailable);
-  memcpy(buffer,
-         ((const char *)[payload bytes]) + task->_messageSendState.payloadOffset,
-         bytesToWrite);
+                     payloadLength - GSIVar(task, send).active.payloadOffset);
+  if (bytesToWrite > 0)
+    {
+      memcpy(buffer,
+             ((const char *)[payload bytes])
+               + GSIVar(task, send).active.payloadOffset,
+             bytesToWrite);
+    }
 
-  task->_messageSendState.payloadOffset += bytesToWrite;
+  GSIVar(task, send).active.payloadOffset += bytesToWrite;
 
-  if (task->_messageSendState.payloadOffset == payloadLength)
+  if (GSIVar(task, send).active.payloadOffset == payloadLength)
     {
       if (entry->kind == GSURLSessionWebSocketSendQueueEntryKindPing)
         {
-          ASSIGNCOPY(task->_currentPingPayload, payload);
+          ASSIGNCOPY(GSIVar(task, send).pingPayload, payload);
         }
       else if (entry->kind == GSURLSessionWebSocketSendQueueEntryKindClose)
         {
-          if (task->_lifecycleState == GSURLSessionWebSocketLifecycleStateCloseRequested)
+          GSIVar(task, lifecycle).closeFrameSent = YES;
+          if (YES == WSTaskCompleteClosingIfReadyLocked(task))
             {
-              task->_lifecycleState = GSURLSessionWebSocketLifecycleStateCloseSent;
-            }
-          else if (task->_lifecycleState
-            == GSURLSessionWebSocketLifecycleStatePeerCloseReceived)
-            {
-              task->_lifecycleState = GSURLSessionWebSocketLifecycleStateClosed;
               [task _setShouldStopTransfer: YES];
             }
         }
 
       GSURLSessionWebSocketClearActiveSendEntryLocked(task);
-      GS_MUTEX_UNLOCK(task->_mutex);
+      GS_MUTEX_UNLOCK(GSIVar(task, mutex));
 
       if (entry->kind == GSURLSessionWebSocketSendQueueEntryKindData)
         {
-          GSURLSessionWebSocketCompleteSend(task, entry->completionHandler, nil);
+          WSTaskNotifyCompletionHandler(task, entry->completionHandler, nil);
         }
       GSURLSessionWebSocketSendQueueEntryDestroy(entry);
       return bytesToWrite;
     }
 
-  GS_MUTEX_UNLOCK(task->_mutex);
+  GS_MUTEX_UNLOCK(GSIVar(task, mutex));
   return bytesToWrite;
 }
 
 @implementation  NSURLSessionWebSocketTask
 
+- (void) _notifyDidOpenWithProtocol: (NSString *)protocol
+{
+  id delegate;
+  NSURLSession *session;
+  BOOL shouldNotify;
+
+  delegate = [self delegate];
+  session = [self _session];
+  if (![delegate respondsToSelector:
+    @selector(URLSession:webSocketTask:didOpenWithProtocol:)])
+    {
+      return;
+    }
+
+  GS_MUTEX_LOCK(internal->mutex);
+  shouldNotify = GSURLSessionWebSocketMarkDelegateCallback(self,
+    taskWebSocketDidOpenKey);
+  GS_MUTEX_UNLOCK(internal->mutex);
+  if (YES == shouldNotify)
+    {
+      [[session delegateQueue] addOperationWithBlock:^{
+        [(id<NSURLSessionWebSocketDelegate>)delegate URLSession: session
+                                                  webSocketTask: self
+                                               didOpenWithProtocol: protocol];
+      }];
+    }
+}
+
 - (instancetype) initWebSocketTask: (NSURLSession *)session
                            request: (NSURLRequest *)request
                     taskIdentifier: (NSUInteger)identifier
 {
-  NSURL *url;
-  NSURLSessionConfiguration *configuration;
-  NSMutableDictionary *requestHeaders = nil;
-
-  self = [super init];
+  self = [super initWithSession: session
+                         request: request
+                  taskIdentifier: identifier];
   if (self != nil)
     {
-      ENTER_POOL
-      [self _initTaskStateWithSession: session
-                              request: request
-                       taskIdentifier: identifier];
-
-      url = [request URL];
-      configuration = [session configuration];
-
+      curl_easy_cleanup([self _easyHandle]);
+      [self _setEasyHandle: NULL];
       [self _initializeEasyhandleForRequest: request];
-
-      /* Set the read / write / header callbacks */
       [self _configureTransferCallbacks];
       [self _configureProtocolOptionsForRequest: request
-                                  configuration: configuration];
-
-      requestHeaders = [self _mergedRequestHeadersForRequest: request
-                                               configuration: configuration
-                                                         URL: url];
-      [self _installRequestHeaders: requestHeaders];
-
-      _sendQueue = [[NSMutableArray alloc] init];
-      _recvQueue = [[NSMutableArray alloc] init];
-      _pendingPingHandlers = [[NSMutableArray alloc] init];
-      _pendingReceivedMessages = [[NSMutableArray alloc] init];
-      _receiveBuffer = [[NSMutableData alloc] init];
-      _maximumMessageSize = NSIntegerMax;
+                                    configuration: [session configuration]];
+      GS_CREATE_INTERNAL(NSURLSessionWebSocketTask);
+      GS_MUTEX_INIT(internal->mutex);
+      internal->send.queue = [[NSMutableArray alloc] init];
+      internal->receive.handlers = [[NSMutableArray alloc] init];
+      internal->send.pingHandlers = [[NSMutableArray alloc] init];
+      internal->receive.buffer = [[NSMutableData alloc] init];
+      internal->receive.controlBuffer = [[NSMutableData alloc] init];
+      internal->receive.maximumMessageSize = 1024 * 1024;
       GSURLSessionWebSocketClearActiveSendEntryLocked(self);
-      _lifecycleState = GSURLSessionWebSocketLifecycleStateOpen;
-      _receiveState = GSURLSessionWebSocketReceiveStateIdle;
-      _nextPingIdentifier = 1;
-      _receiveFrameOffset = 0;
-      _sendFrameStartRetryPending = NO;
-      GS_MUTEX_INIT(_mutex);
-      LEAVE_POOL
+      internal->lifecycle.phase = GSURLSessionWebSocketLifecycleStateOpen;
+      internal->receive.phase = GSURLSessionWebSocketReceiveStateIdle;
+      internal->send.nextPingIdentifier = 1;
+      internal->receive.frameOffset = 0;
+      internal->send.frameStartRetryPending = NO;
+      internal->lifecycle.closeFrameSent = NO;
+      internal->lifecycle.closeFrameReceived = NO;
     }
 
   return self;
@@ -1279,7 +1396,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   /* Set timeout in connect phase */
   curl_easy_setopt([self _easyHandle],
                    CURLOPT_CONNECTTIMEOUT,
-                   (NSInteger)[request timeoutInterval]);
+                   (long)[request timeoutInterval]);
 }
 
 - (void) _configureTransferCallbacks
@@ -1288,37 +1405,26 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   curl_easy_setopt([self _easyHandle], CURLOPT_ERRORBUFFER, [self _errorBuffer]);
   curl_easy_setopt([self _easyHandle], CURLOPT_PRIVATE, self);
 
-  /* TODO(WS): Parse incoming websocket frame chunks in ws_write_callback. */
   curl_easy_setopt([self _easyHandle], CURLOPT_WRITEFUNCTION, ws_write_callback);
   curl_easy_setopt([self _easyHandle], CURLOPT_WRITEDATA, self);
 
-  /* TODO(WS): Drain queued outbound websocket messages in ws_read_callback. */
   curl_easy_setopt([self _easyHandle], CURLOPT_READFUNCTION, ws_read_callback);
   curl_easy_setopt([self _easyHandle], CURLOPT_READDATA, self);
 
   curl_easy_setopt([self _easyHandle], CURLOPT_UPLOAD, 1L);
-  curl_easy_setopt([self _easyHandle], CURLOPT_POSTFIELDSIZE, -1);
+  curl_easy_setopt([self _easyHandle], CURLOPT_POSTFIELDSIZE, -1L);
 }
 
 - (void) _configureProtocolOptionsForRequest: (NSURLRequest *)request
-                               configuration: (NSURLSessionConfiguration *)configuration
+                               configuration:
+  (NSURLSessionConfiguration *)configuration
 {
   NSData *certificateBlob;
 
   /* Set overall timeout */
   curl_easy_setopt([self _easyHandle],
                    CURLOPT_TIMEOUT,
-                   [configuration timeoutIntervalForResource]);
-
-  /* Set to HTTP/3 if requested */
-  if ([request assumesHTTP3Capable])
-    {
-#if CURL_AT_LEAST_VERSION(7, 66, 0)
-      curl_easy_setopt([self _easyHandle],
-                       CURLOPT_HTTP_VERSION,
-                       CURL_HTTP_VERSION_3);
-#endif
-    }
+                   (long)[configuration timeoutIntervalForResource]);
 
   certificateBlob = [[self _session] _certificateBlob];
   if (nil != certificateBlob)
@@ -1341,94 +1447,38 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   /* TODO(WS): Configure websocket protocol options and handshake behavior. */
 }
 
-- (NSMutableDictionary *) _mergedRequestHeadersForRequest: (NSURLRequest *)request
-                                       configuration: (NSURLSessionConfiguration *)configuration
-                                                 URL: (NSURL *)url
-{
-  NSDictionary *immConfigHeaders;
-  NSHTTPCookieStorage *storage;
-  _GSMutableInsensitiveDictionary *requestHeaders;
-  _GSMutableInsensitiveDictionary *configHeaders = nil;
-
-  requestHeaders = AUTORELEASE([[request _insensitiveHeaders] mutableCopy]);
-
-  immConfigHeaders = [configuration HTTPAdditionalHeaders];
-  if (nil != immConfigHeaders)
-    {
-      configHeaders = AUTORELEASE([[_GSMutableInsensitiveDictionary alloc]
-                       initWithDictionary: immConfigHeaders
-                                copyItems: NO]);
-      [configHeaders addEntriesFromDictionary: (NSDictionary *)requestHeaders];
-      requestHeaders = configHeaders;
-    }
-
-  storage = [configuration HTTPCookieStorage];
-  if (nil != storage && [configuration HTTPShouldSetCookies])
-    {
-      NSDictionary *cookieHeaders;
-      NSArray<NSHTTPCookie *> *cookies;
-
-      if (nil == requestHeaders)
-        {
-          requestHeaders = [_GSMutableInsensitiveDictionary dictionary];
-        }
-
-      cookies = [storage cookiesForURL: url];
-      if ([cookies count] > 0)
-        {
-          cookieHeaders = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
-          [requestHeaders addEntriesFromDictionary: cookieHeaders];
-        }
-    }
-
-  return requestHeaders;
-}
-
-- (void) _installRequestHeaders: (NSDictionary *)requestHeaders
-{
-  for (id key in requestHeaders)
-    {
-      NSString *headerLine;
-      id object = [requestHeaders objectForKey: key];
-
-      headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
-      [self _setHeaderList:
-        curl_slist_append([self _headerList], [headerLine UTF8String])];
-    }
-
-  curl_easy_setopt([self _easyHandle], CURLOPT_HTTPHEADER, [self _headerList]);
-}
-
 - (NSInteger) maximumMessageSize
 {
-  return _maximumMessageSize;
+  NSInteger maximumMessageSize;
+
+  GS_MUTEX_LOCK(internal->mutex);
+  maximumMessageSize = internal->receive.maximumMessageSize;
+  GS_MUTEX_UNLOCK(internal->mutex);
+  return maximumMessageSize;
 }
 
 - (void) setMaximumMessageSize: (NSInteger)maximumMessageSize
 {
-  if (maximumMessageSize <= 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"WebSocket maximumMessageSize must be positive"];
-    }
-  _maximumMessageSize = maximumMessageSize;
+  GS_MUTEX_LOCK(internal->mutex);
+  internal->receive.maximumMessageSize = maximumMessageSize;
+  GS_MUTEX_UNLOCK(internal->mutex);
 }
 
 - (void) _resumeSendIfWaitingForReadableSocket
 {
   BOOL shouldResume;
 
-  GS_MUTEX_LOCK(_mutex);
-  shouldResume = _sendFrameStartRetryPending;
+  GS_MUTEX_LOCK(internal->mutex);
+  shouldResume = internal->send.frameStartRetryPending;
   if (YES == shouldResume)
     {
-      _sendFrameStartRetryPending = NO;
+      internal->send.frameStartRetryPending = NO;
     }
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
   if (YES == shouldResume)
     {
-      curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
+      WSTaskResume(self, CURLPAUSE_SEND_CONT);
     }
 }
 
@@ -1439,53 +1489,101 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   NSArray *pingHandlers;
   NSError *error;
   BOOL hasOutstandingWork;
+  NSURLSessionWebSocketCloseCode closeCode;
+  NSData *closeReason;
+  BOOL shouldNotifyClose;
 
   error = [self _errorForCURLcode: code];
+  closeCode = NSURLSessionWebSocketCloseCodeInvalid;
+  closeReason = nil;
+  shouldNotifyClose = NO;
 
-  GS_MUTEX_LOCK(_mutex);
-  hasOutstandingWork = ([_sendQueue count] > 0
-    || [_recvQueue count] > 0
-    || [_pendingPingHandlers count] > 0
-    || nil != _currentPingPayload
-    || NULL != _messageSendState.entry);
+  GS_MUTEX_LOCK(internal->mutex);
+  if (internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateClosed
+      && (code == CURLE_ABORTED_BY_CALLBACK || code == CURLE_WRITE_ERROR))
+    {
+      /* The completed close handshake asks the progress callback to stop the
+       * transfer. libcurl reports that intentional stop as an abort/write
+       * error, which is a clean WebSocket completion here. */
+      error = nil;
+    }
+  hasOutstandingWork = ([internal->send.queue count] > 0
+    || [internal->receive.handlers count] > 0
+    || [internal->send.pingHandlers count] > 0
+    || nil != internal->send.pingPayload
+    || NULL != internal->send.active.entry
+    || internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateClosing);
   if (error == nil && YES == hasOutstandingWork)
     {
       error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket task finished before queued work completed");
       [self _setStoredTaskError: error];
     }
+  else if (error == nil
+           && internal->lifecycle.phase != GSURLSessionWebSocketLifecycleStateClosed)
+    {
+      error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
+        @"WebSocket connection closed without completing the closing "
+        @"handshake");
+      [self _setStoredTaskError: error];
+    }
   if (error == nil)
     {
-      _lifecycleState = GSURLSessionWebSocketLifecycleStateClosed;
+      internal->lifecycle.phase = GSURLSessionWebSocketLifecycleStateClosed;
     }
   else
     {
-      _lifecycleState = GSURLSessionWebSocketLifecycleStateFailed;
+      internal->lifecycle.phase = GSURLSessionWebSocketLifecycleStateFailed;
     }
+  closeCode = internal->lifecycle.closeCode;
+  closeReason = RETAIN(internal->lifecycle.closeReason);
+  shouldNotifyClose = (error == nil
+    && internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateClosed);
   GSURLSessionWebSocketDrainOutstandingWorkLocked(self,
                                                   &sendEntries,
                                                   &receiveHandlers,
                                                   &pingHandlers);
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
-  GSURLSessionWebSocketDestroySendEntries(sendEntries, self, error);
-  GSURLSessionWebSocketCompleteReceiveHandlers(receiveHandlers, self, error);
-  GSURLSessionWebSocketCompletePingHandlers(self, pingHandlers, error);
-  [sendEntries release];
-  [receiveHandlers release];
-  [pingHandlers release];
+  WSTaskNotifyOutstandingCompletionHandlers(self,
+                                               sendEntries,
+                                               receiveHandlers,
+                                               pingHandlers,
+                                               error);
+
+  if (YES == shouldNotifyClose)
+    {
+      GSURLSessionWebSocketNotifyDidClose(self, closeCode, closeReason);
+    }
+  [closeReason release];
 
   [super _transferFinishedWithCode: code];
 }
 
 - (NSURLSessionWebSocketCloseCode) closeCode
 {
-  return _closeCode;
+  NSURLSessionWebSocketCloseCode closeCode;
+
+  GS_MUTEX_LOCK(internal->mutex);
+  closeCode = internal->lifecycle.closeCode;
+  GS_MUTEX_UNLOCK(internal->mutex);
+  return closeCode;
+}
+
+- (void) cancel
+{
+  [self cancelWithCloseCode: NSURLSessionWebSocketCloseCodeInvalid
+                     reason: nil];
 }
 
 - (NSData *) closeReason
 {
-  return _closeReason;
+  NSData *closeReason;
+
+  GS_MUTEX_LOCK(internal->mutex);
+  closeReason = RETAIN(internal->lifecycle.closeReason);
+  GS_MUTEX_UNLOCK(internal->mutex);
+  return AUTORELEASE(closeReason);
 }
 
 - (void) sendMessage:(NSURLSessionWebSocketMessage *) message
@@ -1497,39 +1595,35 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   entry = GSURLSessionWebSocketDataSendQueueEntryCreate(message, completionHandler);
   error = nil;
 
-  GS_MUTEX_LOCK(_mutex);
-  if (_lifecycleState != GSURLSessionWebSocketLifecycleStateOpen)
+  GS_MUTEX_LOCK(internal->mutex);
+  if (internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateOpen)
+    {
+      [internal->send.queue addObject: [NSValue valueWithPointer: entry]];
+    }
+  else
     {
       error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket task is closing");
     }
-  else
-    {
-      [_sendQueue addObject: [NSValue valueWithPointer: entry]];
-    }
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
   if (nil != error)
     {
-      GSURLSessionWebSocketCompleteSend(self, completionHandler, error);
+      WSTaskNotifyCompletionHandler(self, completionHandler, error);
       GSURLSessionWebSocketSendQueueEntryDestroy(entry);
       return;
     }
 
   if ([self state] == NSURLSessionTaskStateRunning)
     {
-      dispatch_async(
-        [[self _session] _workQueue],
-        ^{
-          curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
-        });
+      WSTaskScheduleResume(self, CURLPAUSE_SEND_CONT);
     }
 }
 
 - (void) receiveMessageWithCompletionHandler:(void (^)(NSURLSessionWebSocketMessage *message, NSError *error)) completionHandler
 {
   id handler;
-  NSURLSessionWebSocketMessage *pendingMessage;
+  NSError *error;
 
   if (completionHandler == NULL)
     {
@@ -1537,35 +1631,27 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     }
 
   handler = (id)_Block_copy(completionHandler);
-  pendingMessage = nil;
+  error = nil;
 
-  GS_MUTEX_LOCK(_mutex);
-  if ([_pendingReceivedMessages count] > 0)
+  GS_MUTEX_LOCK(internal->mutex);
+  if (internal->lifecycle.phase != GSURLSessionWebSocketLifecycleStateOpen)
     {
-      pendingMessage = RETAIN([_pendingReceivedMessages objectAtIndex: 0]);
-      [_pendingReceivedMessages removeObjectAtIndex: 0];
+      error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
+        @"WebSocket task is closing");
     }
   else
     {
-      [_recvQueue addObject: handler];
+      [internal->receive.handlers addObject: handler];
     }
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
-  if (nil != pendingMessage)
+  if (nil != error)
     {
-      GSURLSessionWebSocketCompleteReceive(self, handler, pendingMessage, nil);
-      [pendingMessage release];
-      [handler release];
-      return;
+      WSTaskNotifyReceiveCompletionHandler(self, handler, nil, error);
     }
-
-  if ([self state] == NSURLSessionTaskStateRunning)
+  else if ([self state] == NSURLSessionTaskStateRunning)
     {
-      dispatch_async(
-        [[self _session] _workQueue],
-        ^{
-          curl_easy_pause([self _easyHandle], CURLPAUSE_RECV_CONT);
-        });
+      WSTaskScheduleResume(self, CURLPAUSE_RECV_CONT);
     }
 
   [handler release];
@@ -1586,36 +1672,32 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   error = nil;
   shouldResumeSend = NO;
 
-  GS_MUTEX_LOCK(_mutex);
-  if (_lifecycleState != GSURLSessionWebSocketLifecycleStateOpen)
+  GS_MUTEX_LOCK(internal->mutex);
+  if (internal->lifecycle.phase != GSURLSessionWebSocketLifecycleStateOpen)
     {
       error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket task is closing");
     }
   else
     {
-      [_pendingPingHandlers addObject: handler];
+      [internal->send.pingHandlers addObject: handler];
       GSURLSessionWebSocketQueueNextPingLocked(self);
       shouldResumeSend = GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
         self,
         GSURLSessionWebSocketSendQueueEntryKindPing);
     }
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
   if (nil != error)
     {
-      GSURLSessionWebSocketCompleteSend(self, handler, error);
+      WSTaskNotifyCompletionHandler(self, handler, error);
       [handler release];
       return;
     }
 
   if (YES == shouldResumeSend && [self state] == NSURLSessionTaskStateRunning)
     {
-      dispatch_async(
-        [[self _session] _workQueue],
-        ^{
-          curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
-        });
+      WSTaskScheduleResume(self, CURLPAUSE_SEND_CONT);
     }
 
   [handler release];
@@ -1625,69 +1707,45 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
                       reason: (NSData *)reason
 {
   NSArray *cancelledSendEntries;
+  NSArray *cancelledReceiveHandlers;
   NSArray *cancelledPingHandlers;
   NSError *cancelError;
-  GSURLSessionWebSocketSendQueueEntry *closeEntry;
-  NSUInteger preservedSendCount;
-  NSUInteger preservedPingCount;
+  BOOL wasRunning;
   BOOL shouldResumeSend;
 
   cancelledSendEntries = nil;
+  cancelledReceiveHandlers = nil;
   cancelledPingHandlers = nil;
   cancelError = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
     @"WebSocket task was canceled before queued work completed");
-  closeEntry = NULL;
   shouldResumeSend = NO;
 
-  _closeCode = closeCode;
-  ASSIGNCOPY(_closeReason, reason);
-  GS_MUTEX_LOCK(_mutex);
-  if (_lifecycleState == GSURLSessionWebSocketLifecycleStateOpen)
+  wasRunning = ([self state] == NSURLSessionTaskStateRunning);
+  _state = NSURLSessionTaskStateCanceling;
+  GS_MUTEX_LOCK(internal->mutex);
+  if (internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateOpen)
     {
-      _lifecycleState = GSURLSessionWebSocketLifecycleStateCloseRequested;
-      closeEntry = GSURLSessionWebSocketControlSendQueueEntryCreate(
-        GSURLSessionWebSocketSendQueueEntryKindClose,
-        GSURLSessionWebSocketClosePayload(closeCode, reason));
-      preservedSendCount = GSURLSessionWebSocketPriorityInsertionIndexLocked(self);
-      cancelledSendEntries = GSURLSessionWebSocketTakeQueuedSendEntriesFromIndexLocked(
+      internal->lifecycle.closeCode = closeCode;
+      ASSIGNCOPY(internal->lifecycle.closeReason, reason);
+      GSURLSessionWebSocketBeginClosingLocked(
         self,
-        preservedSendCount);
-      [_sendQueue insertObject: [NSValue valueWithPointer: closeEntry]
-                       atIndex: preservedSendCount];
-      preservedPingCount = (nil != _currentPingPayload
-        || GSURLSessionWebSocketHasOutstandingQueuedKindLocked(
-          self,
-          GSURLSessionWebSocketSendQueueEntryKindPing)) ? 1 : 0;
-      cancelledPingHandlers = GSURLSessionWebSocketTakePendingPingHandlersLocked(
-        self,
-        preservedPingCount);
+        GSURLSessionWebSocketClosePayload(closeCode, reason),
+        &cancelledSendEntries,
+        &cancelledReceiveHandlers,
+        &cancelledPingHandlers);
       shouldResumeSend = YES;
     }
-  GS_MUTEX_UNLOCK(_mutex);
+  GS_MUTEX_UNLOCK(internal->mutex);
 
-  if (nil != cancelledSendEntries)
-    {
-      GSURLSessionWebSocketDestroySendEntries(cancelledSendEntries,
-                                              self,
-                                              cancelError);
-      [cancelledSendEntries release];
-    }
+  WSTaskNotifyOutstandingCompletionHandlers(self,
+                                               cancelledSendEntries,
+                                               cancelledReceiveHandlers,
+                                               cancelledPingHandlers,
+                                               cancelError);
 
-  if (nil != cancelledPingHandlers)
+  if (YES == shouldResumeSend && YES == wasRunning)
     {
-      GSURLSessionWebSocketCompletePingHandlers(self,
-                                                cancelledPingHandlers,
-                                                cancelError);
-      [cancelledPingHandlers release];
-    }
-
-  if (YES == shouldResumeSend && [self state] == NSURLSessionTaskStateRunning)
-    {
-      dispatch_async(
-        [[self _session] _workQueue],
-        ^{
-          curl_easy_pause([self _easyHandle], CURLPAUSE_SEND_CONT);
-        });
+      WSTaskScheduleResume(self, CURLPAUSE_SEND_CONT);
     }
 }
 
@@ -1695,25 +1753,30 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 {
   NSValue *entryValue;
 
-  GS_MUTEX_DESTROY(_mutex);
-
-  for (entryValue in _sendQueue)
+  if (GS_EXISTS_INTERNAL)
     {
-      GSURLSessionWebSocketSendQueueEntryDestroy([entryValue pointerValue]);
-    }
-  if (NULL != _messageSendState.entry)
-    {
-      GSURLSessionWebSocketSendQueueEntryDestroy(
-        (GSURLSessionWebSocketSendQueueEntry *)_messageSendState.entry);
+      GS_MUTEX_DESTROY(internal->mutex);
+
+      for (entryValue in internal->send.queue)
+        {
+          GSURLSessionWebSocketSendQueueEntryDestroy([entryValue pointerValue]);
+        }
+      if (NULL != internal->send.active.entry)
+        {
+          GSURLSessionWebSocketSendQueueEntryDestroy(
+            (GSURLSessionWebSocketSendQueueEntry *)internal->send.active.entry);
+        }
+
+      RELEASE(internal->receive.handlers);
+      RELEASE(internal->send.queue);
+      RELEASE(internal->send.pingHandlers);
+      RELEASE(internal->send.pingPayload);
+      RELEASE(internal->receive.buffer);
+      RELEASE(internal->receive.controlBuffer);
+      RELEASE(internal->lifecycle.closeReason);
+      GS_DESTROY_INTERNAL(NSURLSessionWebSocketTask);
     }
 
-  RELEASE(_recvQueue);
-  RELEASE(_sendQueue);
-  RELEASE(_pendingPingHandlers);
-  RELEASE(_pendingReceivedMessages);
-  RELEASE(_currentPingPayload);
-  RELEASE(_receiveBuffer);
-  RELEASE(_closeReason);
   [super dealloc];
 }
 

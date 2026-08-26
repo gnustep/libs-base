@@ -876,6 +876,17 @@ static NSURLSession * sharedSession = nil;
   curl_socket_t socket;
   int action = 0;
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+  for (NSURLSessionTask *task in _tasks)
+    {
+      if ([task isKindOfClass: [NSURLSessionWebSocketTask class]])
+        {
+          [(NSURLSessionWebSocketTask *)task
+            _resumeSendIfWaitingForReadableSocket];
+        }
+    }
+#endif
+
 #if	defined(_WIN32)
   WSANETWORKEVENTS occurred;
 
@@ -1228,9 +1239,9 @@ static NSURLSession * sharedSession = nil;
   NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionWebSocketTask alloc] initWithSession: self
-                                                    request: request
-                                             taskIdentifier: identifier];
+  task = [[NSURLSessionWebSocketTask alloc] initWebSocketTask: self
+                                                       request: request
+                                                taskIdentifier: identifier];
   [task setDelegate: (id<NSURLSessionTaskDelegate>)internal->_delegate];
   [task _setProperties: GSURLSessionUpdatesDelegate];
   [self _didCreateTask: task];

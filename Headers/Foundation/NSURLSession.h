@@ -503,36 +503,6 @@ typedef NS_ENUM(NSInteger, NSURLSessionWebSocketMessageType) {
   NSURLSessionWebSocketMessageTypeString = 1,
 };
 
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketSendQueueEntryKind) {
-  GSURLSessionWebSocketSendQueueEntryKindData = 0,
-  GSURLSessionWebSocketSendQueueEntryKindPing = 1,
-  GSURLSessionWebSocketSendQueueEntryKindClose = 2,
-};
-
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketLifecycleState) {
-  GSURLSessionWebSocketLifecycleStateOpen = 0,
-  GSURLSessionWebSocketLifecycleStateCloseRequested = 1,
-  GSURLSessionWebSocketLifecycleStateCloseSent = 2,
-  GSURLSessionWebSocketLifecycleStatePeerCloseReceived = 3,
-  GSURLSessionWebSocketLifecycleStateClosed = 4,
-  GSURLSessionWebSocketLifecycleStateFailed = 5,
-};
-
-typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketReceiveState) {
-  GSURLSessionWebSocketReceiveStateIdle = 0,
-  GSURLSessionWebSocketReceiveStateText = 1,
-  GSURLSessionWebSocketReceiveStateBinary = 2,
-};
-
-typedef struct
-{
-  void *entry;
-  GSURLSessionWebSocketSendQueueEntryKind kind;
-  NSURLSessionWebSocketMessageType dataType;
-  size_t payloadOffset;
-  BOOL frameStarted;
-} GSURLSessionWebSocketMessageSendState;
-
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketMessage : NSObject
 {
@@ -552,24 +522,13 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketTask : NSURLSessionTask
 {
-@public
-  void   *_completionHandler;
-  NSInteger _maximumMessageSize;
-  NSURLSessionWebSocketCloseCode _closeCode;
-  NSData *_closeReason;
-  NSMutableArray *_sendQueue;
-  NSMutableArray *_recvQueue;
-  NSMutableArray *_pendingPingHandlers;
-  NSMutableArray *_pendingReceivedMessages;
-  NSData *_currentPingPayload;
-  GSURLSessionWebSocketMessageSendState _messageSendState;
-  NSMutableData *_receiveBuffer;
-  GSURLSessionWebSocketLifecycleState _lifecycleState;
-  GSURLSessionWebSocketReceiveState _receiveState;
-  unsigned long long _nextPingIdentifier;
-  size_t _receiveFrameOffset;
-  BOOL _sendFrameStartRetryPending;
-  gs_mutex_t _mutex;
+#if GS_NONFRAGILE
+# if defined(GS_NSURLSessionWebSocketTask_IVARS)
+@public GS_NSURLSessionWebSocketTask_IVARS
+# endif
+#else
+@private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode

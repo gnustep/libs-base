@@ -203,6 +203,7 @@ publicClasses()
 	"NSURLSessionDownloadTask",
 	"NSURLSessionStreamTask",
 	"NSURLSessionWebSocketTask",
+	"NSURLSessionWebSocketMessage",
 	"NSURLSessionTask",
 	"NSURLSessionUploadTask",
 	"NSUUID",
@@ -526,4 +527,3 @@ main(int argc, char *argv[])
   LEAVE_POOL
   return 0;
 }
-
