@@ -47,6 +47,7 @@
 @class NSError;
 @class NSHTTPURLResponse;
 @class NSInputStream;
+@class NSMutableData;
 @class NSOperationQueue;
 @class NSURL;
 @class NSURLAuthenticationChallenge;
@@ -216,7 +217,7 @@ GS_NSURLSession_IVARS;
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks;
 
 #if GS_HAVE_NSURLSESSION_WEBSOCKETS
-/* Creates a WebSocket task to connect to the given URL. */
+/* Creates a WebSocket task to download the contents of the given URL. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url;
 
 /* Creates a WebSocket task to download the contents of the given URL
@@ -229,6 +230,11 @@ GS_NSURLSession_IVARS;
 /* Creates a WebSocket task with the given request. */
 - (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request;
 #endif
+
+- (void) getTasksWithCompletionHandler:
+  (void (^)(NSArray<NSURLSessionDataTask *> *dataTasks,
+    NSArray<NSURLSessionUploadTask *> *uploadTasks,
+    NSArray<NSURLSessionDownloadTask *> *downloadTasks)) completionHandler;
 
 /**
  * Returns the tasks the session currently holds which are a kind of aClass.
@@ -497,6 +503,36 @@ typedef NS_ENUM(NSInteger, NSURLSessionWebSocketMessageType) {
   NSURLSessionWebSocketMessageTypeString = 1,
 };
 
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketSendQueueEntryKind) {
+  GSURLSessionWebSocketSendQueueEntryKindData = 0,
+  GSURLSessionWebSocketSendQueueEntryKindPing = 1,
+  GSURLSessionWebSocketSendQueueEntryKindClose = 2,
+};
+
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketLifecycleState) {
+  GSURLSessionWebSocketLifecycleStateOpen = 0,
+  GSURLSessionWebSocketLifecycleStateCloseRequested = 1,
+  GSURLSessionWebSocketLifecycleStateCloseSent = 2,
+  GSURLSessionWebSocketLifecycleStatePeerCloseReceived = 3,
+  GSURLSessionWebSocketLifecycleStateClosed = 4,
+  GSURLSessionWebSocketLifecycleStateFailed = 5,
+};
+
+typedef NS_ENUM(NSUInteger, GSURLSessionWebSocketReceiveState) {
+  GSURLSessionWebSocketReceiveStateIdle = 0,
+  GSURLSessionWebSocketReceiveStateText = 1,
+  GSURLSessionWebSocketReceiveStateBinary = 2,
+};
+
+typedef struct
+{
+  void *entry;
+  GSURLSessionWebSocketSendQueueEntryKind kind;
+  NSURLSessionWebSocketMessageType dataType;
+  size_t payloadOffset;
+  BOOL frameStarted;
+} GSURLSessionWebSocketMessageSendState;
+
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketMessage : NSObject
 {
@@ -516,17 +552,28 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketTask : NSURLSessionTask
 {
+@public
   void   *_completionHandler;
   NSInteger _maximumMessageSize;
   NSURLSessionWebSocketCloseCode _closeCode;
   NSData *_closeReason;
   NSMutableArray *_sendQueue;
   NSMutableArray *_recvQueue;
+  NSMutableArray *_pendingPingHandlers;
+  NSMutableArray *_pendingReceivedMessages;
+  NSData *_currentPingPayload;
+  GSURLSessionWebSocketMessageSendState _messageSendState;
+  NSMutableData *_receiveBuffer;
+  GSURLSessionWebSocketLifecycleState _lifecycleState;
+  GSURLSessionWebSocketReceiveState _receiveState;
+  unsigned long long _nextPingIdentifier;
+  size_t _receiveFrameOffset;
+  BOOL _sendFrameStartRetryPending;
+  gs_mutex_t _mutex;
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode
                       reason: (NSData * _Nullable)reason;
-
 - (void) sendMessage: (NSURLSessionWebSocketMessage *)message
    completionHandler: (void (^)(NSError *_Nullable error))completionHandler;
 - (void) receiveMessageWithCompletionHandler:
