@@ -3965,7 +3965,7 @@ AC_SUBST(HAVE_LIBCURL)
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test $HAVE_LIBCURL = 1; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
