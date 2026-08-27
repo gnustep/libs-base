@@ -1,3 +1,31 @@
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m: Hand the variadic arguments of
+	[NSExpression+expressionWithFormat:] to the predicate scanner, the
+	way [NSPredicate+predicateWithFormat:] always has, instead of
+	formatting them into the string before parsing it.  A string
+	argument now substitutes for %@ as the constant it is; formatted
+	into the string it would parse as a key path.  The walk which
+	consumes one typed argument per conversion moves to a function the
+	two entry points share.
+	* Tests/base/NSPredicate/functionNames.m: Substitute %@ and %K
+	arguments into expression formats and check what they parse as.
+
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m(parseFunctionalExpression): Accept the
+	colon form of a function call OS X writes in format strings, as
+	in "uppercase:(name)"; the colon becomes part of the function
+	name.
+	* Tests/base/NSPredicate/functionNames.m: Test it, and that
+	"now()" parses.
+
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m: Implement the uppercase:, lowercase: and
+	now functions of NSExpression, named as OS X names them.
+	* Tests/base/NSPredicate/functionNames.m: Test them.
+
 2026-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSString.m(rangeOfComposedCharacterSequencesForRange:):
