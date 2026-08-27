@@ -17,32 +17,35 @@ DEFINE_BLOCK_TYPE(RequestHandlerBlock, NSData *, NSURLRequest *);
 }
 
 /* A route answering with a fixed response. */
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                    response:(NSData *)response;
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                     response: (NSData *)response;
 
 /* A route answering by sending aSelector to target with the request.  The
  * method returns the response data.
  */
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                      target:(id)target
-                    selector:(SEL)aSelector;
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                       target: (id)target
+                     selector: (SEL)aSelector;
 
 /* As above, for a caller whose compiler has blocks. */
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                     handler:(RequestHandlerBlock)block;
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                      handler: (RequestHandlerBlock)block;
 
-- (NSString *)method;
-- (NSURL *)url;
+- (instancetype) initWithURL: (NSURL *)url
+                      method: (NSString *)method;
+
+- (NSString*) method;
+- (NSURL*) url;
 
 /* The response for request, from whichever of the three the route was
  * created with.
  */
-- (NSData *)responseForRequest:(NSURLRequest *)request;
+- (NSData*) responseForRequest: (NSURLRequest*)request;
 
-- (BOOL)acceptsURL:(NSURL *)url method:(NSString *)method;
+- (BOOL) acceptsURL: (NSURL*)url method: (NSString*)method;
 
 @end
 
@@ -53,11 +56,13 @@ DEFINE_BLOCK_TYPE(RequestHandlerBlock, NSData *, NSURLRequest *);
   NSInteger	    _port;
   NSArray	   *_routes;
 }
-- initWithPort:(NSInteger)port routes:(NSArray *)routes;
+- (id) initWithPort: (NSInteger)port routes: (NSArray *)routes;
 
-- (NSInteger)port;
-- (void)resume;
-- (void)suspend;
+- (void) handleConnectionData: (NSData*)reqData forSocket: (int)sock;
 
-- (void)setRoutes:(NSArray *)routes;
+- (NSInteger) port;
+- (void) resume;
+- (void) suspend;
+
+- (void) setRoutes: (NSArray *)routes;
 @end

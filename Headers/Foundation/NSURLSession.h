@@ -190,19 +190,22 @@ GS_NSURLSession_IVARS;
 /** Creates a data task to retrieve the contents of the given URL. */
 - (NSURLSessionDataTask *) dataTaskWithURL: (NSURL *)url;
 
+/** Creates an upload task to upload the contents of the given URL. */
 - (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
                                           fromFile: (NSURL *)fileURL;
 
+/** Creates an upload task to upload the specified data. */
 - (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
                                           fromData: (NSData *)bodyData;
 
+/** Creates an upload task to upload streamed data. */
 - (NSURLSessionUploadTask *) uploadTaskWithStreamedRequest:
   (NSURLRequest *)request;
 
-/* Creates a download task with the given request. */
+/** Creates a download task with the given request. */
 - (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request;
 
-/* Creates a download task to download the contents of the given URL. */
+/** Creates a download task to download the contents of the given URL. */
 - (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url;
 
 - (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData;
@@ -225,14 +228,16 @@ GS_NSURLSession_IVARS;
  * handler is called before this method returns.
  */
 - (void) getTasksWithCompletionHandler:
-  (GSNSURLSessionTasksCompletionHandler)completionHandler GS_DEPRECATED;
+  (GSNSURLSessionTasksCompletionHandler)completionHandler
+  GS_NON_PORTABLE(use -allTasks and -tasksOfKind: instead);
 
 /**
  * Deprecated: use -allTasks instead.  The completion handler is called
  * before this method returns.
  */
 - (void) getAllTasksWithCompletionHandler:
-  (GSNSURLSessionAllTasksCompletionHandler)completionHandler GS_DEPRECATED;
+  (GSNSURLSessionAllTasksCompletionHandler)completionHandler
+  GS_NON_PORTABLE(use -allTasks instead);
 
 /**
  * This serial NSOperationQueue queue is used for dispatching delegate messages
@@ -249,21 +254,18 @@ GS_NSURLSession_IVARS;
 - (id<NSURLSessionDelegate> _Nullable) delegate;
 
 /**
- * The configuration object used to create the session.
- *
+ * The configuration object used to create the session.<br />
  * A copy of the configuration object is made.
  * Changes to the configuration object after the session is created have no
  * effect.
  */
 - (NSURLSessionConfiguration *) configuration;
 
-/**
- * An App-specific description of the session.
+/** An App-specific description of the session.
  */
 - (NSString * _Nullable) sessionDescription;
 
-/**
- * Sets an app-specific description of the session.
+/** Sets an app-specific description of the session.
  */
 - (void) setSessionDescription: (NSString *)description;
 
@@ -661,7 +663,8 @@ GS_EXPORT_CLASS
   willPerformHTTPRedirection: (NSHTTPURLResponse *)response
   newRequest: (NSURLRequest *)request
   completionHandler: (GSNSURLSessionRedirectHandler)completionHandler
-  GS_DEPRECATED;
+  GS_NON_PORTABLE(implement URLSession:task:willRedirectToResponse:newRequest:
+ instead);
 
 /* An HTTP request is attempting to perform a redirection to a different URL.
  * Reply by sending -resumeWithRedirectRequest: to the task, with the request
@@ -681,7 +684,7 @@ GS_EXPORT_CLASS
 - (void) URLSession: (NSURLSession *)session
   task: (NSURLSessionTask *)task
   needNewBodyStream: (GSNSURLSessionBodyStreamHandler)completionHandler
-  GS_DEPRECATED;
+  GS_NON_PORTABLE(implement URLSession:taskNeedsNewBodyStream: instead);
 
 /* A new body stream is needed to continue the upload.  Reply by sending
  * -resumeWithBodyStream: to the task.  The reply may be sent at any time and
@@ -708,7 +711,7 @@ GS_EXPORT_CLASS
   dataTask: (NSURLSessionDataTask *)dataTask
   didReceiveResponse: (NSURLResponse *)response
   completionHandler: (GSNSURLSessionResponseDispositionHandler)completionHandler
-  GS_DEPRECATED;
+  GS_NON_PORTABLE(implement URLSession:dataTask:didReceiveResponse: instead);
 
 /** Informs the delegate of a response.  This message is sent when all the
  * response headers have arrived, before the body of the response arrives.

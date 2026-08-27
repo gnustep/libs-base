@@ -76,8 +76,14 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
   GSURLSessionHasInputStream = (1 << 4)
 };
 
-@interface
-  NSURLSession(Private)
+@interface NSURLSession(Private)
+
+- (void) _checkForCompletion;
+
+- (instancetype) initWithConfiguration: (NSURLSessionConfiguration *)
+  configuration
+  delegate: (id<NSURLSessionDelegate>)delegate
+  delegateQueue: (NSOperationQueue *)queue;
 
 /* Send aSelector to target on the session work thread's run loop.  If the
  * caller is already on the work thread the message is sent immediately.
@@ -108,6 +114,8 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
  * Modifications are performed on the workQueue.
  */
 -(void)_resumeTask: (NSURLSessionTask *)task;
+      	
+- (void) _setSharedSession: (BOOL)flag;
 
 /* The following methods must only be called from within callbacks dispatched on
  * the workQueue.*/

@@ -52,11 +52,10 @@
 #endif
 
 #define	GS_NSURLSession_IVARS \
-  NSOperationQueue          *_delegateQueue; \
-  id<NSURLSessionDelegate>   _delegate; \
-  NSURLSessionConfiguration *_configuration; \
- \
-  NSString *_sessionDescription; \
+  NSOperationQueue          	*_delegateQueue; \
+  id<NSURLSessionDelegate>   	_delegate; \
+  NSURLSessionConfiguration 	*_configuration; \
+  NSString 			*_sessionDescription; \
  \
   /* The libcurl multi handle associated with this session. \
    * We use the curl_multi_socket_action API as we utilise our \
@@ -175,7 +174,7 @@ nextSessionIdentifier()
   return sessionCounter;
 }
 
-#pragma mark - libcurl callbacks
+// ########### libcurl callbacks
 
 /* CURLMOPT_TIMERFUNCTION: Callback to receive timer requests from libcurl */
 static int
@@ -242,7 +241,7 @@ socket_callback(CURL * easy,           /* easy handle */
     }
 } /* socket_callback */
 
-#pragma mark - Work thread trampoline
+// ########### Work thread trampoline
 
 /* Runs the run loop for an NSURLSession's work thread.  It deliberately
  * holds no reference to the session, so that the session's lifetime is not
@@ -284,7 +283,7 @@ socket_callback(CURL * easy,           /* easy handle */
 }
 @end
 
-#pragma mark - NSURLSession Implementation
+// ########### NSURLSession Implementation
 
 /* The session acts as its own run loop watcher for the sockets libcurl
  * asks us to monitor. */
@@ -444,7 +443,7 @@ static NSURLSession * sharedSession = nil;
   return self;
 } /* initWithConfiguration */
 
-#pragma mark - Private Methods
+// ########### Private Methods
 
 - (NSData *) _certificateBlob
 {
@@ -515,6 +514,7 @@ static NSURLSession * sharedSession = nil;
     &internal->_stillRunning);
   [self _checkForCompletion];
 }
+
 - (void) _removeHandle: (CURL *)easy
 {
   curl_multi_remove_handle(internal->_multiHandle, easy);
@@ -545,9 +545,9 @@ static NSURLSession * sharedSession = nil;
 
   /* Send URLSession:didBecomeInvalidWithError: to the delegate once the last
    * task of an invalidated session has finished. */
-  if (internal->_invalidated && [internal->_tasks count] == 0 &&
-      [internal->_delegate respondsToSelector: @selector(URLSession:
-                                               didBecomeInvalidWithError:)])
+  if (internal->_invalidated && [internal->_tasks count] == 0
+    && [internal->_delegate respondsToSelector:
+      @selector(URLSession:didBecomeInvalidWithError:)])
     {
       /* We only support explicit invalidation for now, so error is nil. */
       NSInvocation	*inv;
@@ -618,7 +618,7 @@ static NSURLSession * sharedSession = nil;
   [self _checkForCompletion];
 }
 
-#pragma mark - Work thread
+// ########### Work thread
 
 - (void) _runWorkInvocation: (NSInvocation *)anInvocation
 {
@@ -685,7 +685,7 @@ static NSURLSession * sharedSession = nil;
   RELEASE(op);
 }
 
-#pragma mark - Socket monitoring
+// ########### Socket monitoring
 
 /* This method is called when receiving CURL_POLL_REMOVE in socket_callback.
  * We remove any run loop watchers and release the SourceInfo structure
@@ -1003,7 +1003,8 @@ static NSURLSession * sharedSession = nil;
 			      target: self
 			  withObject: task];
 
-  if ([internal->_delegate respondsToSelector: @selector(URLSession:didCreateTask:)])
+  if ([internal->_delegate respondsToSelector:
+    @selector(URLSession:didCreateTask:)])
     {
       NSInvocation	*inv;
       NSURLSession	*session = self;
@@ -1021,7 +1022,7 @@ static NSURLSession * sharedSession = nil;
   [internal->_tasks addObject: task];
 }
 
-#pragma mark - Public API
+// ########### Public API
 
 - (void) finishTasksAndInvalidate
 {
@@ -1029,7 +1030,6 @@ static NSURLSession * sharedSession = nil;
     {
       return;
     }
-
   [self _performSelectorOnWorkThread: @selector(_workInvalidate)
 			      target: self
 			  withObject: nil];
@@ -1038,6 +1038,11 @@ static NSURLSession * sharedSession = nil;
 - (void) _workInvalidate
 {
   internal->_invalidated = YES;
+  /* The deletage must be released once the session is invalidated (so we
+   * will not send it more messages) in order to avoid retain loops keeping
+   * both session and delegate alive.
+   */
+  DESTROY(internal->_delegate);
 }
 
 - (void) invalidateAndCancel
@@ -1046,7 +1051,6 @@ static NSURLSession * sharedSession = nil;
     {
       return;
     }
-
   [self _performSelectorOnWorkThread: @selector(_workInvalidateAndCancel)
 			      target: self
 			  withObject: nil];
@@ -1273,7 +1277,7 @@ static NSURLSession * sharedSession = nil;
   CALL_BLOCK(completionHandler, [self allTasks]);
 }
 
-#pragma mark - Getter and Setter
+// ########### Getter and Setter
 
 - (NSOperationQueue *) delegateQueue
 {
@@ -1340,7 +1344,7 @@ static NSURLSession * sharedSession = nil;
 #endif
 
   GS_DESTROY_INTERNAL(NSURLSession);
-  [super dealloc];
+  DEALLOC
 }
 
 @end

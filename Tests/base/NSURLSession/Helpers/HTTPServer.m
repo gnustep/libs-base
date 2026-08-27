@@ -66,9 +66,9 @@ requestLength(NSData *data)
     }
   bodyStart = NSMaxRange(end);
 
-  headers = [[NSString alloc]
+  headers = AUTORELEASE([[NSString alloc]
     initWithData:[data subdataWithRange:NSMakeRange(0, end.location)]
-        encoding:NSASCIIStringEncoding];
+        encoding:NSASCIIStringEncoding]);
 
   while ((line = nextLine(headers, &lineStart, &lineEnd)) != nil)
     {
@@ -94,40 +94,40 @@ requestLength(NSData *data)
 
 @implementation Route
 
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                    response:(NSData *)response
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                     response: (NSData *)response
 {
-  Route *r = [[Route alloc] initWithURL:url method:method];
+  Route *r = [[Route alloc] initWithURL: url method: method];
 
   ASSIGN(r->_response, response);
   return AUTORELEASE(r);
 }
 
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                      target:(id)target
-                    selector:(SEL)aSelector
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                       target: (id)target
+                     selector: (SEL)aSelector
 {
-  Route *r = [[Route alloc] initWithURL:url method:method];
+  Route *r = [[Route alloc] initWithURL: url method: method];
 
   ASSIGN(r->_target, target);
   r->_selector = aSelector;
   return AUTORELEASE(r);
 }
 
-+ (instancetype)routeWithURL:(NSURL *)url
-                      method:(NSString *)method
-                     handler:(RequestHandlerBlock)block
++ (instancetype) routeWithURL: (NSURL *)url
+                       method: (NSString *)method
+                      handler: (RequestHandlerBlock)block
 {
-  Route *r = [[Route alloc] initWithURL:url method:method];
+  Route *r = [[Route alloc] initWithURL: url method: method];
 
   r->_block = block;
   return AUTORELEASE(r);
 }
 
-- (instancetype)initWithURL:(NSURL *)url
-                     method:(NSString *)method
+- (instancetype) initWithURL: (NSURL *)url
+                      method: (NSString *)method
 {
   self = [super init];
 
@@ -259,29 +259,29 @@ requestLength(NSData *data)
   while (!_stop)
     {
       {
-  CREATE_AUTORELEASE_POOL(arp);
-          struct sockaddr_in	clientAddr;
-          socklen_t      	sin_size = sizeof(struct sockaddr_in);
-          int                	clientSocket;
+	CREATE_AUTORELEASE_POOL(arp);
+	struct sockaddr_in	clientAddr;
+	socklen_t      	sin_size = sizeof(struct sockaddr_in);
+	int                	clientSocket;
 
-          clientSocket = accept(_socket, (struct sockaddr *) &clientAddr,
-            &sin_size);
-          if (clientSocket < 0)
-            {
-              if (_stop)
-                {
-                  break;
-                }
-              NSLog(@"Error accepting connection %s", strerror(errno));
-              continue;
-            }
+	clientSocket = accept(_socket, (struct sockaddr *) &clientAddr,
+	  &sin_size);
+	if (clientSocket < 0)
+	  {
+	    if (_stop)
+	      {
+		break;
+	      }
+	    NSLog(@"Error accepting connection %s", strerror(errno));
+	    continue;
+	  }
 
-          [NSThread detachNewThreadSelector: @selector(handleClientSocket:)
-                                   toTarget: self
-                                 withObject: [NSNumber numberWithInt:
-                                   clientSocket]];
-  DESTROY(arp);
-}
+	[NSThread detachNewThreadSelector: @selector(handleClientSocket:)
+				 toTarget: self
+			       withObject: [NSNumber numberWithInt:
+				 clientSocket]];
+	DESTROY(arp);
+      }
     }
 }
 
@@ -289,6 +289,7 @@ requestLength(NSData *data)
  * until the peer closes or an error occurs. */
 - (void) handleClientSocket: (NSNumber *)clientSocketNumber
 {
+  ENTER_POOL
   int            clientSocket = [clientSocketNumber intValue];
   NSMutableData *pending = [NSMutableData data];
 
@@ -297,7 +298,7 @@ requestLength(NSData *data)
       BOOL done = NO;
 
       {
-  CREATE_AUTORELEASE_POOL(arp);
+	  CREATE_AUTORELEASE_POOL(arp);
           char      buffer[4096];
           NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 
@@ -332,8 +333,8 @@ requestLength(NSData *data)
                 }
               done = YES;
             }
-  DESTROY(arp);
-}
+	  DESTROY(arp);
+	}
 
       if (done)
         {
@@ -342,27 +343,29 @@ requestLength(NSData *data)
     }
 
   close(clientSocket);
+  LEAVE_POOL
 }
 
-- (void)handleConnectionData:(NSData *)reqData forSocket:(int)sock
+- (void) handleConnectionData: (NSData*)reqData forSocket: (int)sock
 {
-  NSString  *reqString;
-  NSRange    bodyRange;
-  NSString  *method, *url, *version;
-  NSURL     *requestURL;
-  NSScanner *scanner;
-  Route     *selectedRoute = nil;
+  ENTER_POOL
+  NSString  		*reqString;
+  NSRange    		bodyRange;
+  NSString  		*method, *url, *version;
+  NSURL     		*requestURL;
+  NSScanner 		*scanner;
+  Route     		*selectedRoute = nil;
 
-  NSString            *firstLine = nil;
-  NSMutableURLRequest *request = [NSMutableURLRequest new];
-  NSUInteger           headerEndIndex = 1;
-  NSUInteger           lineStart = 0;
-  NSUInteger           lineEnd = 0;
-  NSString            *line;
-  NSCharacterSet      *set = [NSCharacterSet whitespaceCharacterSet];
+  NSString            	*firstLine = nil;
+  NSMutableURLRequest 	*request = AUTORELEASE([NSMutableURLRequest new]);
+  NSUInteger           	headerEndIndex = 1;
+  NSUInteger           	lineStart = 0;
+  NSUInteger           	lineEnd = 0;
+  NSString            	*line;
+  NSCharacterSet      	*set = [NSCharacterSet whitespaceCharacterSet];
 
-  reqString = [[NSString alloc] initWithData:reqData
-                                    encoding:NSUTF8StringEncoding];
+  reqString = AUTORELEASE([[NSString alloc] initWithData: reqData
+    encoding: NSUTF8StringEncoding]);
 
   /*
    *  generic-message = Request-Line
@@ -374,12 +377,12 @@ requestLength(NSData *data)
   while ((line = nextLine(reqString, &lineStart, &lineEnd)) != nil)
     {
       NSRange   range;
-      NSString *key, *value;
+      NSString 	*key, *value;
 
       /* Parse Request Line */
       if (nil == firstLine)
         {
-          firstLine = [line stringByTrimmingCharactersInSet:set];
+          firstLine = [line stringByTrimmingCharactersInSet: set];
           continue;
         }
 
@@ -397,33 +400,33 @@ requestLength(NSData *data)
           continue;
         }
 
-      key = [[line substringToIndex:range.location]
-        stringByTrimmingCharactersInSet:set];
-      value = [[line substringFromIndex:range.location + 1]
-        stringByTrimmingCharactersInSet:set];
+      key = [[line substringToIndex: range.location]
+        stringByTrimmingCharactersInSet: set];
+      value = [[line substringFromIndex: range.location + 1]
+        stringByTrimmingCharactersInSet: set];
 
-      [request addValue:value forHTTPHeaderField:key];
+      [request addValue: value forHTTPHeaderField: key];
     }
 
   /* Calculate remaining body range */
   bodyRange = NSMakeRange(headerEndIndex, [reqData length] - headerEndIndex);
-  reqData = [reqData subdataWithRange:bodyRange];
+  reqData = [reqData subdataWithRange: bodyRange];
 
   /* Parse Request Line */
-  scanner = [NSScanner scannerWithString:firstLine];
-  [scanner scanUpToString:@" " intoString:&method];
-  [scanner scanUpToString:@" " intoString:&url];
-  [scanner scanUpToString:@" " intoString:&version];
+  scanner = [NSScanner scannerWithString: firstLine];
+  [scanner scanUpToString: @" " intoString: &method];
+  [scanner scanUpToString: @" " intoString: &url];
+  [scanner scanUpToString: @" " intoString: &version];
 
-  requestURL = [NSURL URLWithString:url];
+  requestURL = [NSURL URLWithString: url];
 
-  [request setURL:requestURL];
-  [request setHTTPMethod:method];
-  [request setHTTPBody:reqData];
+  [request setURL: requestURL];
+  [request setHTTPMethod: method];
+  [request setHTTPBody: reqData];
 
   for (Route *r in _routes)
     {
-      if ([r acceptsURL:requestURL method:method])
+      if ([r acceptsURL: requestURL method: method])
         {
           selectedRoute = r;
           break;
@@ -433,15 +436,17 @@ requestLength(NSData *data)
   NSData *responseData;
   if (selectedRoute)
     {
-      responseData = [selectedRoute responseForRequest:[request copy]];
+      responseData = [selectedRoute responseForRequest:
+	AUTORELEASE([request copy])];
     }
   else
     {
       responseData = [@"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
-        dataUsingEncoding:NSASCIIStringEncoding];
+        dataUsingEncoding: NSASCIIStringEncoding];
     }
 
   send(sock, [responseData bytes], [responseData length], 0);
+  LEAVE_POOL
 }
 
 - (void)setRoutes:(NSArray *)routes
@@ -464,18 +469,19 @@ requestLength(NSData *data)
                              withObject: nil];
     }
 }
-- (void)suspend
+- (void) suspend
 {
   _stop = YES;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   RELEASE(_routes);
   close(_socket);
 #ifdef _WIN32
   WSACleanup();
 #endif
+  DEALLOC
 }
 
 @end

@@ -792,31 +792,31 @@ testDataTaskWithCookies(NSURL *baseURL)
 
   expectedCountOfTasksToComplete += 1;
 
-  url = [baseURL URLByAppendingPathComponent:@"setCookiesOK"];
-  requestCookie = [NSHTTPCookie cookieWithProperties:requestCookieProperties];
+  url = [baseURL URLByAppendingPathComponent: @"setCookiesOK"];
+  requestCookie = [NSHTTPCookie cookieWithProperties: requestCookieProperties];
 
-  cookies = [NSHTTPCookieStorage new];
-  [cookies setCookie:requestCookie];
+  cookies = AUTORELEASE([NSHTTPCookieStorage new]);
+  [cookies setCookie: requestCookie];
 
-  config = [NSURLSessionConfiguration new];
-  [config setHTTPCookieAcceptPolicy:NSHTTPCookieAcceptPolicyAlways];
-  [config setHTTPCookieStorage:cookies];
-  [config setHTTPShouldSetCookies:YES];
+  config = AUTORELEASE([NSURLSessionConfiguration new]);
+  [config setHTTPCookieAcceptPolicy: NSHTTPCookieAcceptPolicyAlways];
+  [config setHTTPCookieStorage: cookies];
+  [config setHTTPShouldSetCookies: YES];
 
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
-  session = [NSURLSession sessionWithConfiguration:config
-                                          delegate:mgr
-                                     delegateQueue:serialDelegateQueue];
-  task = [session dataTaskWithURL:url];
+  session = [NSURLSession sessionWithConfiguration: config
+                                          delegate: mgr
+                                     delegateQueue: serialDelegateQueue];
+  task = [session dataTaskWithURL: url];
 
-  check = [URLManagerCheck checkWithPrefix:"<DataTaskWithCookies>"
-                                   session:session
-                                      task:task];
+  check = [URLManagerCheck checkWithPrefix: "<DataTaskWithCookies>"
+                                   session: session
+                                      task: task];
   check->cookies = cookies;
   check->url = url;
   check->requestCookie = requestCookie;
-  [mgr setCheckTarget:check selector:@selector(checkCookies:)];
+  [mgr setCheckTarget: check selector: @selector(checkCookies:)];
 
   [task resume];
 }
@@ -833,20 +833,20 @@ foldedHeaderDataTaskTest(NSURL *baseURL)
 
   expectedCountOfTasksToComplete += 1;
 
-  url = [baseURL URLByAppendingPathComponent:@"foldedHeaders"];
-  mgr = [URLManager new];
+  url = [baseURL URLByAppendingPathComponent: @"foldedHeaders"];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   session = [NSURLSession
-    sessionWithConfiguration:[NSURLSessionConfiguration
+    sessionWithConfiguration: [NSURLSessionConfiguration
       defaultSessionConfiguration]
-                    delegate:mgr
-               delegateQueue:serialDelegateQueue];
-  task = [session dataTaskWithURL:url];
+                    delegate: mgr
+               delegateQueue: serialDelegateQueue];
+  task = [session dataTaskWithURL: url];
 
-  check = [URLManagerCheck checkWithPrefix:"<DataTaskWithFoldedHeaders>"
-                                   session:session
-                                      task:task];
-  [mgr setCheckTarget:check selector:@selector(checkFoldedHeaders:)];
+  check = [URLManagerCheck checkWithPrefix: "<DataTaskWithFoldedHeaders>"
+                                   session: session
+                                      task: task];
+  [mgr setCheckTarget: check selector: @selector(checkFoldedHeaders:)];
 
   [task resume];
 }
@@ -865,27 +865,27 @@ testAbortAfterDidReceiveResponse(NSURL *baseURL)
   NSURL *contentOKURL;
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   mgr->responseAnswer = NSURLSessionResponseCancel;
   expectedCountOfTasksToComplete += 1;
 
   /* URL Setup */
-  contentOKURL = [baseURL URLByAppendingPathComponent:@"contentOK"];
+  contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
 
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-  session = [NSURLSession sessionWithConfiguration:configuration
-                                          delegate:mgr
-                                     delegateQueue:serialDelegateQueue];
+  session = [NSURLSession sessionWithConfiguration: configuration
+                                          delegate: mgr
+                                     delegateQueue: serialDelegateQueue];
 
-  task = [session dataTaskWithURL:contentOKURL];
+  task = [session dataTaskWithURL: contentOKURL];
   PASS(nil != task, "%s Session created a valid download task", prefix);
 
   /* Setup Check */
-  check = [URLManagerCheck checkWithPrefix:prefix
-                                   session:session
-                                      task:task];
-  [mgr setCheckTarget:check selector:@selector(checkFailedRequest:)];
+  check = [URLManagerCheck checkWithPrefix: prefix
+                                   session: session
+                                      task: task];
+  [mgr setCheckTarget: check selector: @selector(checkFailedRequest:)];
 
   [task resume];
 }
@@ -905,18 +905,18 @@ testInvalidateAndCancel(NSURL *baseURL)
   NSDate                    *deadline;
 
   mgr = [URLManager new];
-  contentOKURL = [baseURL URLByAppendingPathComponent:@"contentOK"];
+  contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
 
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
   /* Lifecycle test: own delegate queue (no test output emitted from the
    * callback, and it waits on its own run loop). */
-  session = [NSURLSession sessionWithConfiguration:configuration
-                                          delegate:mgr
-                                     delegateQueue:nil];
+  session = [NSURLSession sessionWithConfiguration: configuration
+                                          delegate: mgr
+                                     delegateQueue: nil];
 
   for (i = 0; i < 5; i++)
     {
-      [[session dataTaskWithURL:contentOKURL] resume];
+      [[session dataTaskWithURL: contentOKURL] resume];
     }
 
   [session invalidateAndCancel];
@@ -924,7 +924,7 @@ testInvalidateAndCancel(NSURL *baseURL)
   /* Wait until the delegate is told the session became invalid. */
   deadline = [NSDate dateWithTimeIntervalSinceNow:testTimeOut];
   while (mgr->didBecomeInvalidCount == 0
-    && [[NSRunLoop currentRunLoop] runSliceUntil:deadline])
+    && [[NSRunLoop currentRunLoop] runSliceUntil: deadline])
     ;
 
   PASS(mgr->didBecomeInvalidCount == 1,

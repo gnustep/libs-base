@@ -1741,7 +1741,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     }
 } /* _setCookiesFromHeaders */
 
-#pragma mark - Public Methods
+// ########### Public Methods
 
 - (void) suspend
 {
@@ -1833,7 +1833,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return copy;
 }
 
-#pragma mark - Getter and Setter
+// ########### Getter and Setter
 
 - (NSUInteger) taskIdentifier
 {
@@ -1951,9 +1951,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   RELEASE(internal->_earliestBeginDate);
   RELEASE(internal->_taskDescription);
   RELEASE(internal->_taskData);
+  RELEASE(internal->_delegate);
 
   GS_DESTROY_INTERNAL(NSURLSessionTask);
-  [super dealloc];
+  DEALLOC
 }
 
 @end /* NSURLSessionTask */

@@ -275,9 +275,9 @@
  * support the feature.
  */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_NON_PORTABLE __attribute__((deprecated("*** not portable - please do not use this feature ***")))
+#  define GS_NON_PORTABLE(X) __attribute__((deprecated("***  not portable - please do not use this feature " #X " ***")))
 #else
-#  define GS_NON_PORTABLE
+#  define GS_NON_PORTABLE(X)
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))

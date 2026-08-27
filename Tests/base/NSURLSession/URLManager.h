@@ -94,7 +94,7 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   _checkSelector = aSelector;
 }
 
-#pragma mark - Session Lifecycle
+/* Session Lifecycle */
 
 - (void)URLSession:(NSURLSession *)session
      didCreateTask:(NSURLSessionTask *)task
@@ -113,7 +113,7 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   didBecomeInvalidCount += 1;
 }
 
-#pragma mark - Task Updates
+/* Task Updates */
 
 - (void)URLSession:(NSURLSession *)session
                     task:(NSURLSessionTask *)task
@@ -159,7 +159,7 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
     }
 }
 
-#pragma mark - Data Updates
+/* Data Updates */
 
 - (void)URLSession:(NSURLSession *)session
             dataTask:(NSURLSessionDataTask *)dataTask
@@ -186,7 +186,7 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   [accumulatedData appendData:data];
 }
 
-#pragma mark - Download Updates
+/* Download Updates */
 
 - (void)URLSession:(NSURLSession *)session
                downloadTask:(NSURLSessionDownloadTask *)downloadTask
