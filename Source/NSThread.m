@@ -39,7 +39,8 @@
 
 // Dummy implementatation
 // cleaner than IFDEF'ing the code everywhere
-#ifndef HAVE_PTHREAD_SPIN_LOCK
+#if !defined(HAVE_PTHREAD_SPIN_LOCK) && \
+    (!defined(__EMSCRIPTEN__) || !defined(__DEFINED_pthread_spinlock_t))
 typedef volatile int pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {
@@ -84,7 +85,7 @@ int pthread_spin_destroy(pthread_spinlock_t *lock)
 {
   return 0;
 }
-#endif /* HAVE_PTHREAD_SPIN_LOCK */
+#endif /* fallback spin-lock implementation */
 
 /** Structure for holding lock information for a thread.
  */
@@ -1154,6 +1155,8 @@ unregisterActiveThread(NSThread *thread)
 
   // Convert [-20, 19] to [0.0, 1.0] range
   pri = 1 - (priority + 20) / 39.0;
+#elif defined(__EMSCRIPTEN__)
+  return pri;
 #elif defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int res;
   int policy;
