@@ -126,8 +126,15 @@ extern "C" {
  * by an application.
  */
 
-/* weak attributed supported only with ELF, MINGW is COFF */
+/* The weak attribute is supported only with ELF, MINGW is COFF
+ * Does that matter (the compiler seems to ignore it)?
+ */
 #ifndef __MINGW32__
+
+void *_Block_copy(const void *) __attribute__((weak));
+void _Block_release(const void *) __attribute__((weak));
+
+#else
 
 void *_Block_copy(const void *) __attribute__((weak));
 void _Block_release(const void *) __attribute__((weak));

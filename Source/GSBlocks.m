@@ -20,6 +20,7 @@
    */ 
 
 #import "Foundation/NSObject.h"
+#import "GNUstepBase/GSBlocks.h"
 
 @interface GSBlock : NSObject
 @end
