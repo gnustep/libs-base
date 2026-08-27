@@ -1065,7 +1065,11 @@ static id gs_weak_load(id obj)
       }
 #else /* HAVE_SIGACTION */
       {
+#if defined(__EMSCRIPTEN__)
+	void	(*handler)(int);
+#else
 	void	(*handler)(NSInteger);
+#endif
 
 	handler = signal(SIGPIPE, SIG_IGN);
 	if (handler != SIG_DFL)
