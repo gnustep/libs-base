@@ -45,6 +45,12 @@
 #define WSAAPI
 #endif
 
+#if defined(__EMSCRIPTEN__)
+#define GS_INET_NTOP_SIZE socklen_t
+#else
+#define GS_INET_NTOP_SIZE size_t
+#endif
+
 
 /*
  * WARNING: Don't even consider trying to compile this on a system where
@@ -64,7 +70,7 @@ static  __attribute__((unused)) const char *inet_ntop6(const u_char *src, char *
  */
 const char *
 WSAAPI
-inet_ntop(int af, const void *src, char *dst, size_t size)
+inet_ntop(int af, const void *src, char *dst, GS_INET_NTOP_SIZE size)
 {
         switch (af) {
         case AF_INET:
@@ -79,6 +85,8 @@ inet_ntop(int af, const void *src, char *dst, size_t size)
         }
         /* NOTREACHED */
 }
+
+#undef GS_INET_NTOP_SIZE
 
 /* const char *
  * inet_ntop4(src, dst, size)

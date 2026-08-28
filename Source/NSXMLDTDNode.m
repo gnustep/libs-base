@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -115,17 +114,17 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (void) setNotationName: (NSString*)notationName
 {
-  internal->node.entity->name = XMLSTRING(notationName);
+  internal->node.entity->name = XMLStringCopy(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  internal->node.entity->ExternalID = XMLSTRING(publicID);
+  internal->node.entity->ExternalID = XMLStringCopy(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  internal->node.entity->ExternalID = XMLSTRING(systemID);
+  internal->node.entity->SystemID = XMLStringCopy(systemID);
 }
 
 - (NSString*) systemID

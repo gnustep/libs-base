@@ -5,7 +5,7 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 -->
-<gsdoc base="OpenStepCompliance" up="Base">
+<gsdoc base="OpenStepCompliance" up="../Reference/Base">
   <head>
     <title>OpenStep Compliance</title>
     <author name="Adam Fedor"></author>

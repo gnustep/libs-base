@@ -52,8 +52,13 @@ int main()
     PASS(NSNumberFormatterBehaviorDefault == [fmt formatterBehavior],
      "a new formatter can have the default behavior set")
 
+    /* It is not guaranteed by ICU that UNUM_NAN_SYMBOL is "NaN".
+     * On Windows, NaN has a negative signum and returns "-NaN".
+     */
+    testHopeful = YES;
     str = [fmt stringFromNumber: [NSDecimalNumber notANumber]];
     PASS_EQUAL(str, @"NaN", "notANumber special case")
+    testHopeful = NO;
 
     START_SET("NSLocale")
       NSLocale  *sys;

@@ -3,6 +3,7 @@
 #import <Foundation/NSCalendar.h>
 #import <Foundation/NSTimeZone.h>
 #import <Foundation/NSLocale.h>
+#import <Foundation/NSDateFormatter.h>
 #include <stdio.h>
 
 #if	defined(GS_USE_ICU)
@@ -51,8 +52,7 @@ int main()
                   options: 0];
   PASS([comps month] == NSNotFound, "no month returned if not requested");
   PASS([comps day] == 33, "day difference without larger unit correct");
-  
-  
+
   RELEASE(cal);
   
   END_SET("NSCalendar date component differences")

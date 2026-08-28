@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSPredicate_h_GNUSTEP_BASE_INCLUDE
@@ -65,11 +64,11 @@ GS_EXPORT_CLASS
 #endif
 @end
 
-@interface NSArray (NSPredicate)
+@interface GS_GENERIC_CLASS(NSArray, ElementT) (NSPredicate)
 /** Evaluate each object in the array using the specified predicate and
  * return an array containing all the objects which evaluate to YES.
  */
-- (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
 @end
 
 @interface NSMutableArray (NSPredicate)
@@ -79,11 +78,11 @@ GS_EXPORT_CLASS
 - (void) filterUsingPredicate: (NSPredicate *)predicate;
 @end
 
-@interface NSSet (NSPredicate)
+@interface GS_GENERIC_CLASS(NSSet, ElementT) (NSPredicate)
 /** Evaluate each object in the set using the specified predicate and
  * return an set containing all the objects which evaluate to YES.
  */
-- (NSSet *) filteredSetUsingPredicate: (NSPredicate *)predicate;
+- (GS_GENERIC_CLASS(NSSet, ElementT) *) filteredSetUsingPredicate: (NSPredicate *)predicate;
 @end
 
 @interface NSMutableSet (NSPredicate)

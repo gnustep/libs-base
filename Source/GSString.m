@@ -29,8 +29,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -306,26 +305,29 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
     {
       return NO;
     }
-  size_t end = s->nxcslen;
-  static const int buffer_size = 64;
-  unichar buffer1[buffer_size];
-  unichar buffer2[buffer_size];
-  NSRange r = { 0, buffer_size };
-  do
+  else
     {
-      if (r.location + r.length > end)
+      size_t end = s->nxcslen;
+      static const int buffer_size = 64;
+      unichar buffer1[buffer_size];
+      unichar buffer2[buffer_size];
+      NSRange r = { 0, buffer_size };
+      do
 	{
-	  r.length = s->nxcslen - r.location;
-	}
-      [s getCharacters: buffer1 range: r];
-      [o getCharacters: buffer2 range: r];
-      if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
-	{
-	  return NO;
-	}
-      r.location += buffer_size;
-    } while (r.location < end);
-  return YES;
+	  if (r.location + r.length > end)
+	    {
+	      r.length = s->nxcslen - r.location;
+	    }
+	  [s getCharacters: buffer1 range: r];
+	  [o getCharacters: buffer2 range: r];
+	  if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
+	    {
+	      return NO;
+	    }
+	  r.location += buffer_size;
+	} while (r.location < end);
+      return YES;
+    }
 #else
   unsigned	len = o->_count;
 
@@ -1463,6 +1465,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	      freeWhenDone: (BOOL)flag
 {
   GSCharPtr	chars = { .u = 0 };
+  BOOL		isBad = NO;
   BOOL		isASCII = NO;
   BOOL		isLatin1 = NO;
   GSStr		me;
@@ -1566,7 +1569,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     }
 
   length /= sizeof(unichar);
-  if (GSUnicode(chars.u, length, &isASCII, &isLatin1) != length)
+  if (GSUnicode(chars.u, length, &isASCII, &isLatin1, &isBad) != length)
     {
       if (flag == YES && chars.u != 0)
         {
@@ -1864,7 +1867,7 @@ UTF8String_c(GSStr self)
 	}
       r = 0;
       if (GSFromUnicode((unsigned char**)&r, &s, u, l, NSUTF8StringEncoding,
-	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary) == NO)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), u);
 	  [NSException raise: NSCharacterConversionException
@@ -1891,7 +1894,7 @@ UTF8String_u(GSStr self)
       unsigned char	*r = 0;
 
       if (GSFromUnicode(&r, &l, self->_contents.u, c, NSUTF8StringEncoding,
-	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get UTF8 from Unicode string."];
@@ -2093,7 +2096,9 @@ canBeConvertedToEncoding_u(GSStr self, NSStringEncoding enc)
     {
       if (enc == NSUTF8StringEncoding || enc == NSUnicodeStringEncoding)
 	{
-	  if (GSUnicode(self->_contents.u, c, 0, 0) != c)
+	  BOOL	isBad;
+
+	  if (GSUnicode(self->_contents.u, c, 0, 0, &isBad) != c || isBad)
 	    {
 	      return NO;
 	    }
@@ -2286,8 +2291,9 @@ cString_u(GSStr self, NSStringEncoding enc)
     {
       unichar	*tmp;
       unsigned	l;
+      BOOL	isBad;
 
-      if ((l = GSUnicode(self->_contents.u, c, 0, 0)) != c)
+      if ((l = GSUnicode(self->_contents.u, c, 0, 0, &isBad)) != c)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"NSString is not legal UTF-16 at %u", l];
@@ -2295,6 +2301,10 @@ cString_u(GSStr self, NSStringEncoding enc)
       tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
       memcpy(tmp, self->_contents.u, c*2);
       tmp[c] = 0;
+      if (isBad)
+	{
+	  GSPrivateCleanUnichars(tmp, l);
+	}
       [NSDataClass dataWithBytesNoCopy: tmp
 				length: (c + 1)*2
 			  freeWhenDone: YES];
@@ -2800,8 +2810,9 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 
 		  if (u & 0xff00)
 		    {
-		      [NSException raise: NSCharacterConversionException
-				  format: @"unable to convert to encoding"];
+		      [NSException
+			 raise:NSCharacterConversionException
+			format:@"unable to convert to encoding"];
 		    }
 		  buffer[i] = (char)u;
 		}
@@ -3803,7 +3814,14 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
-  return cStringLength_c((GSStr)self, encoding);
+  NSUInteger	l;
+
+  NS_DURING
+    l = cStringLength_c((GSStr)self, encoding);
+  NS_HANDLER
+    l = 0;
+  NS_ENDHANDLER
+  return l;
 }
 
 - (long long) longLongValue
@@ -3862,6 +3880,8 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+
   if (!_flags.wide)
     {
       id tinyString;
@@ -3875,7 +3895,6 @@ agree, create a new GSCInlineString otherwise.
     }
   if (_flags.owned)
     {
-      GS_RANGE_CHECK(aRange, _count);
       return substring_c((GSStr)self, aRange);
     }
   return [super substringWithRange: aRange];
@@ -3883,9 +3902,10 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+
   if (_flags.owned)
     {
-      GS_RANGE_CHECK(aRange, _count);
       return substring_c((GSStr)self, aRange);
     }
   if (!_flags.wide)
@@ -4165,7 +4185,14 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
-  return cStringLength_u((GSStr)self, encoding);
+  NSUInteger	l;
+
+  NS_DURING
+    l = cStringLength_u((GSStr)self, encoding);
+  NS_HANDLER
+    l = 0;
+  NS_ENDHANDLER
+  return l;
 }
 
 - (long long) longLongValue
@@ -4687,6 +4714,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	    encoding: (NSStringEncoding)encoding
 {
   unsigned char	*chars = 0;
+  BOOL		isBad = NO;
   BOOL		isASCII = NO;
   BOOL		isLatin1 = NO;
   BOOL		shouldFree = NO;
@@ -4803,7 +4831,8 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
 
   length /= sizeof(unichar);
-  if (GSUnicode((unichar*)(void*)chars, length, &isASCII, &isLatin1) != length)
+  if (GSUnicode((unichar*)(void*)chars, length, &isASCII, &isLatin1, &isBad)
+    != length)
     {
       if (shouldFree == YES && chars != 0)
         {
@@ -4978,10 +5007,17 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
-  if (_flags.wide == 1)
-    return cStringLength_u((GSStr)self, encoding);
-  else
-    return cStringLength_c((GSStr)self, encoding);
+  NSUInteger	l;
+
+  NS_DURING
+    if (_flags.wide == 1)
+      l = cStringLength_u((GSStr)self, encoding);
+    else
+      l = cStringLength_c((GSStr)self, encoding);
+  NS_HANDLER
+    l = 0;
+  NS_ENDHANDLER
+  return l;
 }
 
 - (long long) longLongValue
@@ -5173,7 +5209,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	   */
 	  if (_flags.wide)
 	    {
-	      GS_BEGINITEMBUF(buf, (length * sizeof(unichar)), unichar);
+	      GS_BEGINITEMBUF(buf, length, unichar);
 
 	      [aString getCharacters: buf];
 	      if (offset < 0)
@@ -5190,7 +5226,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	    }
 	  else
 	    {
-	      GS_BEGINITEMBUF(buf, ((length+1) * sizeof(char)), char);
+	      GS_BEGINITEMBUF(buf, (length+1), char);
 
 	      [aString getCString: buf
 			maxLength: length+1
@@ -5566,7 +5602,7 @@ literalIsEqual(NXConstantString *self, id anObject)
 {
 #ifdef GNUSTEP_NEW_STRING_ABI
   switch (CONSTANT_STRING_ENCODING())
-  {
+    {
       case 0: // ASCII
       case 1: // UTF-8
 	  return nxcsptr;
@@ -5575,8 +5611,9 @@ literalIsEqual(NXConstantString *self, id anObject)
 	  unsigned int l = 0;
 	  unsigned char *r = 0;
 
-	  if (GSFromUnicode(&r, &l, (const unichar*)(void*)nxcsptr, nxcslen, NSUTF8StringEncoding,
-	    NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	  if (GSFromUnicode(&r, &l, (const unichar*)(void*)nxcsptr, nxcslen,
+	    NSUTF8StringEncoding, NSDefaultMallocZone(),
+	    GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	    {
 	      [NSException raise: NSCharacterConversionException
 			  format: @"Can't get UTF8 from Unicode string."];
@@ -5585,7 +5622,7 @@ literalIsEqual(NXConstantString *self, id anObject)
 	}
       case 4: // UTF-32
 	return [super UTF8String];
-  }
+    }
   GS_UNREACHABLE();
 #else
   return nxcsptr;

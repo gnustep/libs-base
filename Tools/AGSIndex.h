@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -42,6 +42,8 @@
   unsigned		ssect;
   unsigned		sssect;
 }
+- (NSDictionary*) authors;
+- (NSArray*) find: (NSString*)key;
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
 - (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag;
@@ -49,7 +51,9 @@
 - (NSArray*) methodsInUnit: (NSString*)aUnit;
 - (NSMutableDictionary*) refs;
 - (void) setDirectory: (NSString*)path;
+- (void) setEmail: (NSString*)address forAuthor: (NSString*)name;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
+- (void) setInstallDir: (NSString*)dir inDomain: (int)domain;
 - (void) setOutputs: (NSArray*)a forHeader: (NSString*)h;
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to;
 - (void) setSources: (NSArray*)a forHeader: (NSString*)h;

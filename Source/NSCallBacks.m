@@ -24,8 +24,7 @@
 
    <title>NSCallBacks class reference</title>
    $Date$ $Revision$
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA. */
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA. */
 
 /**** Included Headers *******************************************************/
 
@@ -152,7 +151,7 @@ _NS_id_is_equal(void *table, id <NSObject> o, id <NSObject> p)
 void
 _NS_id_retain(void *table, id <NSObject> o)
 {
-  IF_NO_GC(RETAIN(o));
+  IF_NO_ARC(RETAIN(o);)
   return;
 }
 

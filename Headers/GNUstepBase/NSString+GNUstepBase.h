@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 
@@ -53,6 +52,16 @@ GSPathHandling(const char *mode);
  */
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
+
+/** Returns the relative path from the specified folder to the path represented
+ * by the receiver (if the receiver is the empty string, it is taken to be the
+ * current working directory).<br />
+ * If aFolder is empty or nil, it is taken to be the current directory.<br />
+ * If either path is not absolute, it is converted to an absolute path
+ * based on the current directory.<br />
+ * Returns nil if a relative path can not be established.
+ */
+- (NSString*) pathRelativeTo: (NSString*)aFolder;
 
 /**
  * Returns a string formed by removing the prefix string from the

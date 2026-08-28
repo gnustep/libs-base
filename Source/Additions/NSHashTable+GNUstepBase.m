@@ -18,22 +18,21 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/NSHashTable+GNUstepBase.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 
 @implementation NSHashTable (GNUstepBase)
 
-- (void)addObjectsFromArray: (NSArray*)array
+- (void) addObjectsFromArray: (NSArray*)array
 {
-  FOR_IN(id, obj, array)
+  GS_FOR_IN(id, obj, array)
     NSHashInsert(self,obj);
-  END_FOR_IN(array)
+  GS_END_FOR(array)
 }
 @end

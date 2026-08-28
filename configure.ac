@@ -20,8 +20,7 @@
 #
 #   You should have received a copy of the GNU General Public
 #   License along with this library; if not, write to the Free
-#   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#   Boston, MA 02111 USA
+#   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA
 
 #
 # DEPENDENCIES POLICY
@@ -73,7 +72,7 @@ builtin(include, config/addlibrarypath.m4)dnl
 builtin(include, config/pkg.m4)dnl
 
 AC_INIT
-AC_PREREQ([2.60])
+AC_PREREQ([2.71])
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
@@ -126,6 +125,9 @@ else
   fi
 fi
 
+AC_SUBST(BASEFLAGS, `gnustep-config --objc-flags`)
+AC_SUBST(BASELIBS, `gnustep-config --base-libs`)
+
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
 # at runtime.  We will load it later once we have determined (and
@@ -140,13 +142,21 @@ CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
 
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
+# Evaluation order of the configure script means we can not depend on
+# GNUSTEP_MAKEFILES being set for simple variable substitution, so we
+# execute a bit of shell code to dynamically get the directory.
 #--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($CURRENT_GNUSTEP_MAKEFILES)
+AC_CONFIG_AUX_DIR([`if test -z "$GNUSTEP_MAKEFILES"; then
+  gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5
+else
+  echo $GNUSTEP_MAKEFILES
+fi`])
+
 
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/GNUstepBase/config.h)
+AC_CONFIG_HEADERS([Headers/GNUstepBase/config.h:Headers/GNUstepBase/config.h.in])
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -158,16 +168,12 @@ AC_CANONICAL_TARGET([])
 #--------------------------------------------------------------------
 
 AC_ARG_WITH(cross-compilation-info,
-[  --with-cross-compilation-info=PATH
-				Specify path to the configuration file that
-				contains information for the configure script in
-				case of cross compilation. This information
-				replaces those obtained from running programmes
-				during the configuration phase.],
+[AS_HELP_STRING([--with-cross-compilation-info=PATH],
+[Specify path to the configuration file that contains information for the configure script in case of cross compilation. This information replaces those obtained from running programmes during the configuration phase.])],
   cross_result="$withval",
   cross_result="no"
 )
-CROSS_CONFIG="./cross.config"
+CROSS_CONFIG="$srcdir/cross.config"
 if test "$cross_result" != "no"
 then
  if test -f "$cross_result" && test -r "$cross_result"
@@ -204,28 +210,9 @@ if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
 fi
 
 AC_ARG_WITH(config-file,
-[  --with-config-file=PATH       Specify path to the GNUstep config file.
-				This is the location to be used by the base
-				library to locate path information at
-				application or tool runtime.
-				This file might not even exist now; it is
-				not read at configure time.  The base library
-				will only read it at runtime.
-				If unspecified, this uses the same value as
-				the GNUstep make package on unix-like systems,
-				but uses ./GNUstep.conf on mingw so that
-				it is relative to the location of the
-				base library DLL.
-				If a leading './' is specified, the path
-				is taken to be relative to the base library
-				linked runtime, not all operating systems
-				can support this, so on some platforms you
-				may need to specify the location of the
-				config file using the GNUSTEP_CONFIG_FILE
-				environment variable at runtime.
-				If a trailing '/' is specified, the path is
-				used for locating domains but no GNUstep
-				config file is read at runtime.],
+  [AS_HELP_STRING([--with-config-file=PATH],
+  [Specify path to the GNUstep config file.  This is the location to be used by the base library to locate path information at application or tool runtime.
+  This file might not even exist now; it is not read at configure time.  The base library will only read it at runtime.   If unspecified, this uses the same value as the GNUstep make package on unix-like systems, but uses ./GNUstep.conf on mingw so that it is relative to the location of the base library DLL. If a leading './' is specified, the path is taken to be relative to the base library linked runtime, not all operating systems can support this, so on some platforms you may need to specify the location of the config file using the GNUSTEP_CONFIG_FILE environment variable at runtime.   If a trailing '/' is specified, the path is used for locating domains but no GNUstep config file is read at runtime.])],
   result="$withval",
   result="no"
 )
@@ -257,23 +244,8 @@ case "$target_os" in
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file,
-[  --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by windows apps).
-				Normally this should be left at its default
-				setting.],
+  [AS_HELP_STRING([--disable-environment-config-file],
+  [Disables the use of the GNUSTEP_CONFIG_FILE environment variable to specify/override the location of the GNUstep config file at runtime. This option is occasionally useful to disable the environment variable for sites which wish to 'lock down' users to always work with a specific system-wide configuration. On unix-like systems the default is for this option to be enabled. It is disabled by default on windows systems so that the base library will not use a config file intended for the gnustep-make system (and containing unix-style paths which cannot be used by windows apps). Normally this should be left at its default setting.])],
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -318,9 +290,8 @@ esac
 # turn it off.
 AC_MSG_CHECKING([if we should import an existing configuration file now])
 AC_ARG_ENABLE(importing-config-file,
-[  --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.],
+  [AS_HELP_STRING([--disable-importing-config-file],
+  [Disable importing of an existing GNUstep config file and use inbuilt defaults instead.])],
   ac_cv_importing_config_file=$enableval,
   ac_cv_importing_config_file="yes")
 if test "$ac_cv_importing_config_file" = "no"; then
@@ -334,13 +305,8 @@ if test "$ac_cv_importing_config_file" = "yes" ;
 then
   AC_MSG_CHECKING([for default GNUstep configuration file to use])
   AC_ARG_WITH(default-config,
-[  --with-default-config=PATH   Specify path to a GNUstep config file to be
-				imported at configure time (now) and used to
-				provide default values for the base library
-				to use at runtime if no GNUstep config file
-				is found at runtime.  If this is not specified
-				then the path from the gnustep-make package
-				is used.],
+  [AS_HELP_STRING([--with-default-config=PATH],
+  [Specify path to a GNUstep config file to be imported at configure time (now) and used to provide default values for the base library to use at runtime if no GNUstep config file is found at runtime.  If this is not specified then the path from the gnustep-make package is used.])],
     result="$withval",
     result="no"
   )
@@ -425,6 +391,8 @@ if test x"$GNUSTEP_SYSTEM_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTE
 if test x"$GNUSTEP_SYSTEM_ADMIN_TOOLS" = x""; then GNUSTEP_SYSTEM_ADMIN_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARY" = x""; then GNUSTEP_SYSTEM_LIBRARY=$GNUSTEP_SYSTEM_ROOT/Library; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then GNUSTEP_SYSTEM_LIBRARIES=$GNUSTEP_SYSTEM_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_SYSTEM_RESOURCES" = x""; then GNUSTEP_SYSTEM_RESOURCES=$GNUSTEP_SYSTEM_LIBRARY/Resources; fi
+if test x"$GNUSTEP_SYSTEM_SERVICES" = x""; then GNUSTEP_SYSTEM_SERVICES=$GNUSTEP_SYSTEM_LIBRARY/Services; fi
 if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then GNUSTEP_SYSTEM_HEADERS=$GNUSTEP_SYSTEM_LIBRARY/Headers; fi
 if test x"$GNUSTEP_SYSTEM_DOC" = x""; then GNUSTEP_SYSTEM_DOC=$GNUSTEP_SYSTEM_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_SYSTEM_DOC_MAN" = x""; then GNUSTEP_SYSTEM_DOC_MAN=$GNUSTEP_SYSTEM_LIBRARY/Documentation/man; fi
@@ -437,6 +405,8 @@ if test x"$GNUSTEP_NETWORK_TOOLS" = x""; then GNUSTEP_NETWORK_TOOLS=$GNUSTEP_NET
 if test x"$GNUSTEP_NETWORK_ADMIN_TOOLS" = x""; then GNUSTEP_NETWORK_ADMIN_TOOLS=$GNUSTEP_NETWORK_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_NETWORK_LIBRARY" = x""; then GNUSTEP_NETWORK_LIBRARY=$GNUSTEP_NETWORK_ROOT/Library; fi
 if test x"$GNUSTEP_NETWORK_LIBRARIES" = x""; then GNUSTEP_NETWORK_LIBRARIES=$GNUSTEP_NETWORK_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_NETWORK_RESOURCES" = x""; then GNUSTEP_NETWORK_RESOURCES=$GNUSTEP_NETWORK_LIBRARY/Resources; fi
+if test x"$GNUSTEP_NETWORK_SERVICES" = x""; then GNUSTEP_NETWORK_SERVICES=$GNUSTEP_NETWORK_LIBRARY/Services; fi
 if test x"$GNUSTEP_NETWORK_HEADERS" = x""; then GNUSTEP_NETWORK_HEADERS=$GNUSTEP_NETWORK_LIBRARY/Headers; fi
 if test x"$GNUSTEP_NETWORK_DOC" = x""; then GNUSTEP_NETWORK_DOC=$GNUSTEP_NETWORK_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_NETWORK_DOC_MAN" = x""; then GNUSTEP_NETWORK_DOC_MAN=$GNUSTEP_NETWORK_LIBRARY/Documentation/man; fi
@@ -449,6 +419,8 @@ if test x"$GNUSTEP_LOCAL_TOOLS" = x""; then GNUSTEP_LOCAL_TOOLS=$GNUSTEP_LOCAL_R
 if test x"$GNUSTEP_LOCAL_ADMIN_TOOLS" = x""; then GNUSTEP_LOCAL_ADMIN_TOOLS=$GNUSTEP_LOCAL_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_LOCAL_LIBRARY" = x""; then GNUSTEP_LOCAL_LIBRARY=$GNUSTEP_LOCAL_ROOT/Library; fi
 if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then GNUSTEP_LOCAL_LIBRARIES=$GNUSTEP_LOCAL_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_LOCAL_RESOURCES" = x""; then GNUSTEP_LOCAL_RESOURCES=$GNUSTEP_LOCAL_LIBRARY/Resources; fi
+if test x"$GNUSTEP_LOCAL_SERVICES" = x""; then GNUSTEP_LOCAL_SERVICES=$GNUSTEP_LOCAL_LIBRARY/Services; fi
 if test x"$GNUSTEP_LOCAL_HEADERS" = x""; then GNUSTEP_LOCAL_HEADERS=$GNUSTEP_LOCAL_LIBRARY/Headers; fi
 if test x"$GNUSTEP_LOCAL_DOC" = x""; then GNUSTEP_LOCAL_DOC=$GNUSTEP_LOCAL_LIBRARY/Documentation; fi
 if test x"$GNUSTEP_LOCAL_DOC_MAN" = x""; then GNUSTEP_LOCAL_DOC_MAN=$GNUSTEP_LOCAL_LIBRARY/Documentation/man; fi
@@ -461,6 +433,8 @@ if test x"$GNUSTEP_USER_DIR_TOOLS" = x""; then GNUSTEP_USER_DIR_TOOLS=$GNUSTEP_U
 if test x"$GNUSTEP_USER_DIR_ADMIN_TOOLS" = x""; then GNUSTEP_USER_DIR_ADMIN_TOOLS=$GNUSTEP_USER_DIR/Tools/Admin; fi
 if test x"$GNUSTEP_USER_DIR_LIBRARY" = x""; then GNUSTEP_USER_DIR_LIBRARY=$GNUSTEP_USER_DIR/Library; fi
 if test x"$GNUSTEP_USER_DIR_LIBRARIES" = x""; then GNUSTEP_USER_DIR_LIBRARIES=$GNUSTEP_USER_DIR/Libraries; fi
+if test x"$GNUSTEP_USER_DIR_RESOURCES" = x""; then GNUSTEP_USER_DIR_RESOURCES=$GNUSTEP_USER_DIR/Resources; fi
+if test x"$GNUSTEP_USER_DIR_SERVICES" = x""; then GNUSTEP_USER_DIR_SERVICES=$GNUSTEP_USER_DIR/Services; fi
 if test x"$GNUSTEP_USER_DIR_HEADERS" = x""; then GNUSTEP_USER_DIR_HEADERS=$GNUSTEP_USER_DIR/Headers; fi
 if test x"$GNUSTEP_USER_DIR_DOC" = x""; then GNUSTEP_USER_DIR_DOC=$GNUSTEP_USER_DIR/Documentation; fi
 if test x"$GNUSTEP_USER_DIR_DOC_MAN" = x""; then GNUSTEP_USER_DIR_DOC_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
@@ -468,19 +442,8 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 
 AC_MSG_CHECKING([for GNUstep-base installation domain])
 AC_ARG_WITH(installation-domain,
-[  --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.],
+[AS_HELP_STRING([--with-installation-domain=DOMAIN],
+[Specify the domain (SYSTEM, LOCAL, NETWORK or USER) into which gnustep-base will be installed.  Whenever relative paths are hardcoded into gnustep-base (at the moment, this happens only on MinGW) this option must be used and must match the domain where you will be installing gnustep-base.  If this is not specified, the output of gnustep-config --installation-domain-for=gnustep-base (which should normally be LOCAL) is used.])],
   result="$withval",
   result="no"
 )
@@ -535,59 +498,51 @@ AC_SUBST(GNUSTEP_BASE_DOMAIN)
 #
 case "$target_os" in
   mingw*|windows)
-    # TODO: Improve this hack.
-    # According to Wikipedia, this is the default for Windows 2000,
-    # Windows XP and Windows Server 2003.  For Windows Vista this will
-    # change to C:\Users.  The directory name needs to be localized though
-    # (and the disk may need changing as well ?).
-    GNUSTEP_SYSTEM_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_SYSTEM_USERS_DIR="C:\Users"
+    GNUSTEP_NETWORK_USERS_DIR="C:\Users"
+    GNUSTEP_LOCAL_USERS_DIR="C:\Users"
 
-    # TODO: It would be nice to use the 'short' output of
-    # relative_path.sh, but older versions of relative_path.sh
-    # did not support specifying the type of output and
-    # would abort if they were given more than 2 parameters,
-    # so we can not use the 'short' option if we want gnustep-base
-    # to work with older versions of gnustep-make.
-    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
-    # two years after it has been released ?), we could switch to the
-    # 'short' output though.
-    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
-    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
-    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
-    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS`
-    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS`
-    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY`
-    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES`
-    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS`
-    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC`
-    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN`
-    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO`
+    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS short`
+    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS short`
+    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS short`
+    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS short`
+    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS short`
+    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY short`
+    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES short`
+    GNUSTEP_SYSTEM_RESOURCES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_RESOURCES short`
+    GNUSTEP_SYSTEM_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_SERVICES short`
+    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS short`
+    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC short`
+    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN short`
+    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO short`
 
-    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS`
-    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS`
-    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS`
-    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS`
-    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS`
-    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY`
-    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES`
-    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS`
-    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC`
-    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN`
-    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO`
+    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS short`
+    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS short`
+    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS short`
+    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS short`
+    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS short`
+    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY short`
+    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES short`
+    GNUSTEP_NETWORK_RESOURCES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_RESOURCES short`
+    GNUSTEP_NETWORK_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_SERVICES short`
+    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS short`
+    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC short`
+    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN short`
+    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO short`
 
-    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS`
-    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS`
-    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS`
-    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS`
-    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS`
-    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY`
-    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES`
-    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS`
-    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC`
-    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN`
-    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO`
+    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS short`
+    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS short`
+    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS short`
+    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS short`
+    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS short`
+    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY short`
+    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES short`
+    GNUSTEP_LOCAL_RESOURCES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_RESOURCES short`
+    GNUSTEP_LOCAL_SERVICES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_SERVICES short`
+    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS short`
+    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC short`
+    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN short`
+    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO short`
 # It would be nice to now store this stuff into a ./GNUstep.conf file
 # installed with gnustep-base.dll.  This would clarify.
     ;;
@@ -597,17 +552,23 @@ GNUSTEP_BASE_RELATIVE_PATHS=no
 
 # Now, check if any of the paths is a relative path.
 for path in \
- "$GNUSTEP_SYSTEM_APPS" "$GNUSTEP_SYSTEM_ADMIN_APPS" "$GNUSTEP_SYSTEM_WEB_APPS" \
+ "$GNUSTEP_SYSTEM_APPS" \ "$GNUSTEP_SYSTEM_ADMIN_APPS" \
+ "$GNUSTEP_SYSTEM_WEB_APPS" \
  "$GNUSTEP_SYSTEM_TOOLS" "$GNUSTEP_SYSTEM_ADMIN_TOOLS" \
- "$GNUSTEP_SYSTEM_LIBRARY" "$GNUSTEP_SYSTEM_LIBRARIES" "$GNUSTEP_SYSTEM_HEADERS" \
+ "$GNUSTEP_SYSTEM_LIBRARY" "$GNUSTEP_SYSTEM_LIBRARIES" "$GNUSTEP_SYSTEM_RESOURCES" \
+ "$GNUSTEP_SYSTEM_SERVICES" "$GNUSTEP_SYSTEM_HEADERS" \
  "$GNUSTEP_SYSTEM_DOC" "$GNUSTEP_SYSTEM_DOC_MAN" "$GNUSTEP_SYSTEM_DOC_INFO" \
- "$GNUSTEP_NETWORK_APPS" "$GNUSTEP_NETWORK_ADMIN_APPS" "$GNUSTEP_NETWORK_WEB_APPS" \
+ "$GNUSTEP_NETWORK_APPS" "$GNUSTEP_NETWORK_ADMIN_APPS" \
+ "$GNUSTEP_NETWORK_WEB_APPS" \
  "$GNUSTEP_NETWORK_TOOLS" "$GNUSTEP_NETWORK_ADMIN_TOOLS" \
- "$GNUSTEP_NETWORK_LIBRARY" "$GNUSTEP_NETWORK_LIBRARIES" "$GNUSTEP_NETWORK_HEADERS" \
+ "$GNUSTEP_NETWORK_LIBRARY" "$GNUSTEP_NETWORK_LIBRARIES" "$GNUSTEP_NETWORK_RESOURCES" \
+ "$GNUSTEP_NETWORK_SERVICES" "$GNUSTEP_NETWORK_HEADERS" \
  "$GNUSTEP_NETWORK_DOC" "$GNUSTEP_NETWORK_DOC_MAN" "$GNUSTEP_NETWORK_DOC_INFO" \
- "$GNUSTEP_LOCAL_APPS" "$GNUSTEP_LOCAL_ADMIN_APPS" "$GNUSTEP_LOCAL_WEB_APPS" \
+ "$GNUSTEP_LOCAL_APPS" "$GNUSTEP_LOCAL_ADMIN_APPS" \
+ "$GNUSTEP_LOCAL_WEB_APPS" \
  "$GNUSTEP_LOCAL_TOOLS" "$GNUSTEP_LOCAL_ADMIN_TOOLS" \
- "$GNUSTEP_LOCAL_LIBRARY" "$GNUSTEP_LOCAL_LIBRARIES" "$GNUSTEP_LOCAL_HEADERS" \
+ "$GNUSTEP_LOCAL_LIBRARY" "$GNUSTEP_LOCAL_LIBRARIES" "$GNUSTEP_LOCAL_RESOURCES" \
+ "$GNUSTEP_LOCAL_SERVICES" "$GNUSTEP_LOCAL_HEADERS" \
  "$GNUSTEP_LOCAL_DOC" "$GNUSTEP_LOCAL_DOC_MAN" "$GNUSTEP_LOCAL_DOC_INFO"; do
 case "$path" in
   ./*)  GNUSTEP_BASE_RELATIVE_PATHS=yes ;;
@@ -646,6 +607,10 @@ AC_MSG_CHECKING([for System Library directory])
 AC_MSG_RESULT($GNUSTEP_SYSTEM_LIBRARY)
 AC_MSG_CHECKING([for System Libraries directory])
 AC_MSG_RESULT($GNUSTEP_SYSTEM_LIBRARIES)
+AC_MSG_CHECKING([for System Resources directory])
+AC_MSG_RESULT($GNUSTEP_SYSTEM_RESOURCES)
+AC_MSG_CHECKING([for System Services directory])
+AC_MSG_RESULT($GNUSTEP_SYSTEM_SERVICES)
 AC_MSG_CHECKING([for System Headers directory])
 AC_MSG_RESULT($GNUSTEP_SYSTEM_HEADERS)
 AC_MSG_CHECKING([for System Documentation directory])
@@ -669,6 +634,10 @@ AC_MSG_CHECKING([for Network Library directory])
 AC_MSG_RESULT($GNUSTEP_NETWORK_LIBRARY)
 AC_MSG_CHECKING([for Network Libraries directory])
 AC_MSG_RESULT($GNUSTEP_NETWORK_LIBRARIES)
+AC_MSG_CHECKING([for Network Resources directory])
+AC_MSG_RESULT($GNUSTEP_NETWORK_RESOURCES)
+AC_MSG_CHECKING([for Network Services directory])
+AC_MSG_RESULT($GNUSTEP_NETWORK_SERVICES)
 AC_MSG_CHECKING([for Network Headers directory])
 AC_MSG_RESULT($GNUSTEP_NETWORK_HEADERS)
 AC_MSG_CHECKING([for Network Documentation directory])
@@ -692,6 +661,10 @@ AC_MSG_CHECKING([for Local Library directory])
 AC_MSG_RESULT($GNUSTEP_LOCAL_LIBRARY)
 AC_MSG_CHECKING([for Local Libraries directory])
 AC_MSG_RESULT($GNUSTEP_LOCAL_LIBRARIES)
+AC_MSG_CHECKING([for Local Resources directory])
+AC_MSG_RESULT($GNUSTEP_LOCAL_RESOURCES)
+AC_MSG_CHECKING([for Local Services directory])
+AC_MSG_RESULT($GNUSTEP_LOCAL_SERVICES)
 AC_MSG_CHECKING([for Local Headers directory])
 AC_MSG_RESULT($GNUSTEP_LOCAL_HEADERS)
 AC_MSG_CHECKING([for Local Documentation directory])
@@ -715,6 +688,10 @@ AC_MSG_CHECKING([for User Library directory])
 AC_MSG_RESULT($GNUSTEP_USER_DIR_LIBRARY)
 AC_MSG_CHECKING([for User Libraries directory])
 AC_MSG_RESULT($GNUSTEP_USER_DIR_LIBRARIES)
+AC_MSG_CHECKING([for User Resources directory])
+AC_MSG_RESULT($GNUSTEP_USER_DIR_RESOURCES)
+AC_MSG_CHECKING([for User Services directory])
+AC_MSG_RESULT($GNUSTEP_USER_DIR_SERVICES)
 AC_MSG_CHECKING([for User Headers directory])
 AC_MSG_RESULT($GNUSTEP_USER_DIR_HEADERS)
 AC_MSG_CHECKING([for User Documentation directory])
@@ -790,6 +767,16 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_LIBRARIES,
   "$GNUSTEP_SYSTEM_LIBRARIES",
   [Built in default value for GNUstep system libraries])
 
+GNUSTEP_SYSTEM_RESOURCES=`echo $GNUSTEP_SYSTEM_RESOURCES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_RESOURCES,
+  "$GNUSTEP_SYSTEM_RESOURCES",
+  [Built in default value for GNUstep system resources])
+
+GNUSTEP_SYSTEM_SERVICES=`echo $GNUSTEP_SYSTEM_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_SERVICES,
+  "$GNUSTEP_SYSTEM_SERVICES",
+  [Built in default value for GNUstep system services])
+
 GNUSTEP_SYSTEM_HEADERS=`echo $GNUSTEP_SYSTEM_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_HEADERS,
   "$GNUSTEP_SYSTEM_HEADERS",
@@ -847,6 +834,16 @@ GNUSTEP_NETWORK_LIBRARIES=`echo $GNUSTEP_NETWORK_LIBRARIES|sed -e 's/\\\\/\\\\\\
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_LIBRARIES,
   "$GNUSTEP_NETWORK_LIBRARIES",
   [Built in default value for GNUstep network libraries])
+
+GNUSTEP_NETWORK_RESOURCES=`echo $GNUSTEP_NETWORK_RESOURCES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_RESOURCES,
+  "$GNUSTEP_NETWORK_RESOURCES",
+  [Built in default value for GNUstep network resources])
+
+GNUSTEP_NETWORK_SERVICES=`echo $GNUSTEP_NETWORK_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_SERVICES,
+  "$GNUSTEP_NETWORK_SERVICES",
+  [Built in default value for GNUstep network services])
 
 GNUSTEP_NETWORK_HEADERS=`echo $GNUSTEP_NETWORK_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_HEADERS,
@@ -906,6 +903,16 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_LIBRARIES,
   "$GNUSTEP_LOCAL_LIBRARIES",
   [Built in default value for GNUstep local libraries])
 
+GNUSTEP_LOCAL_RESOURCES=`echo $GNUSTEP_LOCAL_RESOURCES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_RESOURCES,
+  "$GNUSTEP_LOCAL_RESOURCES",
+  [Built in default value for GNUstep local resources])
+
+GNUSTEP_LOCAL_SERVICES=`echo $GNUSTEP_LOCAL_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_SERVICES,
+  "$GNUSTEP_LOCAL_SERVICES",
+  [Built in default value for GNUstep local services])
+
 GNUSTEP_LOCAL_HEADERS=`echo $GNUSTEP_LOCAL_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_HEADERS,
   "$GNUSTEP_LOCAL_HEADERS",
@@ -964,6 +971,16 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_LIBRARIES,
   "$GNUSTEP_USER_DIR_LIBRARIES",
   [Built in default value for GNUstep user_dir libraries])
 
+GNUSTEP_USER_DIR_RESOURCES=`echo $GNUSTEP_USER_DIR_RESOURCES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_RESOURCES,
+  "$GNUSTEP_USER_DIR_RESOURCES",
+  [Built in default value for GNUstep user_dir resources])
+
+GNUSTEP_USER_DIR_SERVICES=`echo $GNUSTEP_USER_DIR_SERVICES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_SERVICES,
+  "$GNUSTEP_USER_DIR_SERVICES",
+  [Built in default value for GNUstep user_dir services])
+
 GNUSTEP_USER_DIR_HEADERS=`echo $GNUSTEP_USER_DIR_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_HEADERS,
   "$GNUSTEP_USER_DIR_HEADERS",
@@ -1018,6 +1035,9 @@ GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+# We do not want address/memory sanitisation to confuse later testcases,
+# so we ensure that the environment variable doesn't turn it on.
+unset GNUSTEP_WITH_ASAN
 
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
 # GNUSTEP_SYSTEM_ROOT if not set yet.
@@ -1123,17 +1143,14 @@ AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_MSG_CHECKING(whether the compiler is clang)
-if test ! x"${GCC}" = x"yes" ; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  AC_MSG_RESULT(yes)
+else
   CLANG_CC=no
   AC_MSG_RESULT(no)
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    AC_MSG_RESULT(yes)
-  else
-    CLANG_CC=no
-    AC_MSG_RESULT(no)
-  fi
 fi
 AC_SUBST(CLANG_CC)
 
@@ -1156,6 +1173,10 @@ AC_TYPE_OFF_T
 #--------------------------------------------------------------------
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
+
+AC_SEARCH_LIBS([__atomic_load_8], [atomic],
+  [AC_MSG_NOTICE([64-bit atomic operations available])],
+  [AC_MSG_NOTICE([64-bit atomic operations unavailable in libatomic])])
 
 AC_LANG_PUSH(C)
 AC_MSG_CHECKING([whether the compiler supports atomic operations]);
@@ -1224,10 +1245,9 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
   fi
 AC_LANG_POP(C)
 
-
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 PKG_PROG_PKG_CONFIG
-# If the modern mechanism failswe may havew an older pkg-config
+# If the modern mechanism fails we may have an older pkg-config
 # so try looking it up the old fashioned way.
 if test -z "$PKG_CONFIG"; then
   AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
@@ -1247,6 +1267,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
+  solaris*)
+                LDFLAGS="$LDFLAGS -lsocket -lnsl";;
   linux-android* )
 		# link against libandroid for native application APIs
 		LIBS="$LIBS -landroid";;
@@ -1369,12 +1391,12 @@ fi
 #--------------------------------------------------------------------
 AC_MSG_NOTICE(for gdomap network details)
 AC_MSG_CHECKING(for variable length socket addresses)
-AC_TRY_COMPILE([
+AC_LANG(C)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
   #include <sys/types.h>
   #include <sys/socket.h>
-  #include <net/if.h>
-  ],
-  [struct ifreq s; s.ifr_addr.sa_len = 0;],
+  #include <net/if.h>]],
+  [[struct ifreq s; s.ifr_addr.sa_len = 0;]])],
   sa_len=1, sa_len=0)
 if test $sa_len = 1; then
   AC_MSG_RESULT([found])
@@ -1406,10 +1428,11 @@ CFLAGS="$saved_CFLAGS"
 # Check if system has buggy SO_REUSEADDR
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether SO_REUSEADDR is broken)
-AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
-	reuseaddr_ok=1,
-	reuseaddr_ok=0,
-	reuseaddr_ok="$cross_reuseaddr_ok")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.reuseaddr.c"]])],
+	[reuseaddr_ok=1],
+	[reuseaddr_ok=0],
+	[reuseaddr_ok="$cross_reuseaddr_ok"])
 if test $reuseaddr_ok = 0; then
   AC_DEFINE(BROKEN_SO_REUSEADDR,1,
             [Define if SO_REUSEADDR is broken on this system])
@@ -1652,7 +1675,7 @@ AC_LANG_PUSH(C)
 AC_MSG_CHECKING([for working INTPTR_MAX, INTPTR_MIN, UINTPTR_MAX]);
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([[#include <inttypes.h>]],
-    [[int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;]])],
+    [[long int imax = INTPTR_MAX; long int imin = INTPTR_MIN; unsigned long umax = UINTPTR_MAX;]])],
   have_valid_ptr_limits=yes,
   have_valid_ptr_limits=no);
   if test "$have_valid_ptr_limits" = "yes"; then
@@ -1688,37 +1711,104 @@ AC_SUBST(BUGGY_PTR_LIMITS)
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+AC_CHECK_ALIGNOF(objc_object,[AC_INCLUDES_DEFAULT
+  typedef struct { void *isa; } objc_object;])
+if test $ac_cv_alignof_objc_object = 0 ; then
+  AC_MSG_ERROR([Unable to find align of object (required).])
+fi
+
+#--------------------------------------------------------------------
 # Setup dynamic linking
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
-AC_CHECK_FUNCS(gethostbyname)
-if test "$ac_cv_func_gethostbyname" = "no"; then
-  # QNX has gethostbyname and friends in libsocket
-  AC_CHECK_LIB(socket, gethostbyname)
+# NetBSD libc ships with an internal-only incompatible symbol gethostbyname_r
+AC_CHECK_DECLS([gethostbyname_r],
+        [have_gethostbyname_r_public_declaration=yes],
+        [have_gethostbyname_r_public_declaration=no],
+        [#include <stdlib.h>
+         #include <netdb.h>]
+)
+
+if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
+  # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
+  AC_SEARCH_LIBS(gethostbyname_r, [socket nsl])
+
+  # The glibc form takes 6 arguments, returns an int and yields the result
+  # through a struct hostent** parameter.  The Solaris form takes 5 arguments
+  # and returns the struct hostent* directly.
+  gs_gethostbyname_r_args=0
+  AC_MSG_CHECKING(for gethostbyname_r with 6 arguments)
+  AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);])],
+         [AC_MSG_RESULT(yes)
+          gs_gethostbyname_r_args=6],
+         [AC_MSG_RESULT(no)]
+  )
+  if test "$gs_gethostbyname_r_args" = "0"; then
+    AC_MSG_CHECKING(for gethostbyname_r with 5 arguments)
+    AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [struct hostent *r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (int *)NULL);])],
+           [AC_MSG_RESULT(yes)
+            gs_gethostbyname_r_args=5],
+           [AC_MSG_RESULT(no)]
+    )
+  fi
+  if test "$gs_gethostbyname_r_args" != "0"; then
+    AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has a reentrant gethostbyname_r.])
+    AC_DEFINE_UNQUOTED([GS_GETHOSTBYNAME_R_ARGS], $gs_gethostbyname_r_args, [Number of arguments taken by gethostbyname_r (5 or 6).])
+  fi
+fi
+
+if test "x$ac_cv_func_gethostbyname_r" = "xno"; then
+  AC_CHECK_FUNCS(gethostbyname)
+  if test "x$ac_cv_func_gethostbyname" = "xno"; then
+    # QNX has gethostbyname and friends in libsocket
+    AC_CHECK_LIB(socket, gethostbyname)
+  fi
 fi
 
 AC_CHECK_FUNCS(getaddrinfo)
+
+AC_CHECK_HEADERS([resolv.h])
+if test $ac_cv_header_resolv_h = yes; then
+  saveLIBS="$LIBS"
+  AC_CHECK_LIB(resolv, res_query, resolv_ok=yes, resolv_ok=no)
+  if test "$resolv_ok" = yes; then
+    LIBS="$saveLIBS -lresolv";
+    AC_CHECK_FUNCS(res_nquery)
+  else
+    LIBS="$saveLIBS"
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    AC_MSG_CHECKING(for native Windows threads and locks)
-    AC_COMPILE_IFELSE(
-      [AC_LANG_SOURCE([
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
-      ])],
-      AC_MSG_RESULT([yes])
-      HAVE_WIN32_THREADS_AND_LOCKS=1,
-      AC_MSG_RESULT([no]))
-    ;;
-esac
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      AC_MSG_CHECKING(for native Windows threads and locks)
+      AC_COMPILE_IFELSE(
+        [AC_LANG_SOURCE([
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
+        ])],
+        AC_MSG_RESULT([yes])
+        HAVE_WIN32_THREADS_AND_LOCKS=1,
+        AC_MSG_RESULT([no]))
+      ;;
+  esac
+fi
 AC_SUBST(HAVE_WIN32_THREADS_AND_LOCKS)
 
 #--------------------------------------------------------------------
@@ -1846,7 +1936,20 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 0; then
         [Description: Define setname function for pthread with three args])
       ;;
   esac
-  
+
+# Check if we can get names of pthreads
+AC_CACHE_CHECK([for pthread_getname_np()], gs_cv_pthread_getname_np,
+[AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <pthread.h>],
+    [char name[16]; pthread_getname_np(pthread_self(), name, 16);])],
+  [gs_cv_pthread_getname_np=generic])])
+case $gs_cv_pthread_getname_np in
+  generic)
+    AC_DEFINE(PTHREAD_GETNAME(b,c), pthread_getname_np(pthread_self(),b,c),
+      [Description: Define getname function for pthread with two args (generic style)])
+    ;;
+esac
+
   # Check if we have spinlock support
   AC_CHECK_FUNCS(pthread_spin_lock)
 fi
@@ -1857,7 +1960,7 @@ fi
 if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   AC_CHECK_SIZEOF(gs_mutex_t,,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "Source/GSPThread.h"])
+    #include "$srcdir/Source/GSPThread.h"])
   GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_gs_mutex_t
   if test $ac_cv_sizeof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find size of gs_mutex_t (required).])
@@ -1866,7 +1969,7 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   
   AC_CHECK_ALIGNOF(gs_mutex_t,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "Source/GSPThread.h"])
+    #include "$srcdir/Source/GSPThread.h"])
   GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_gs_mutex_t
   if test $ac_cv_alignof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find align of gs_mutex_t (required).])
@@ -1935,13 +2038,16 @@ CFLAGS=$saved_CFLAGS
 # Check whether we can get the system thread ID
 #--------------------------------------------------------------------
 AC_CACHE_CHECK([for gettid()], ac_cv_gettid,
-[AC_TRY_RUN(#define _GNU_SOURCE
+[AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#define _GNU_SOURCE
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 int main(int argc, char **argv) {
-pid_t t = syscall(SYS_gettid); return t == -1 ? 1 : 0; },
-[ac_cv_gettid=yes], [ac_cv_gettid=no], [ac_cv_gettid=no])])
+pid_t t = syscall(SYS_gettid); return t == -1 ? 1 : 0; }]])],
+	[ac_cv_gettid=yes],
+	[ac_cv_gettid=no],
+	[ac_cv_gettid=no])])
 if test "$ac_cv_gettid" = "yes"; then
   AC_DEFINE(HAVE_GETTID, 1, [Define if you have gettid()])
 fi
@@ -1959,10 +2065,11 @@ if test x"$objc_threaded" != x""; then
 fi
 LIBS="$LIBS $extra_LIBS"
 AC_CACHE_VAL(gs_cv_objc_works,
-  AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
-  gs_cv_objc_works=yes,
-  gs_cv_objc_works=no,
-  gs_cv_objc_works="$cross_gs_cv_objc_works")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.objc.m"]])],
+  	[gs_cv_objc_works=yes],
+  	[gs_cv_objc_works=no],
+  	[gs_cv_objc_works="$cross_gs_cv_objc_works"])
 )
 if test $gs_cv_objc_works = yes; then
   AC_MSG_RESULT(yes)
@@ -1994,10 +2101,12 @@ else
   CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
   AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
   AC_CACHE_VAL(gs_cv_objc_compiler_supports_constant_string_class,
-    AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
-    gs_cv_objc_compiler_supports_constant_string_class=yes,
-    gs_cv_objc_compiler_supports_constant_string_class=no,
-    gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE(
+	  [[#include "$srcdir/config/config.constant-string-class.m"]])],
+    	[gs_cv_objc_compiler_supports_constant_string_class=yes],
+    	[gs_cv_objc_compiler_supports_constant_string_class=no],
+    	[gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class"])
   )
   if test $gs_cv_objc_compiler_supports_constant_string_class = yes; then
     NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
@@ -2006,8 +2115,8 @@ else
   else
     AC_MSG_RESULT(no)
     AC_ARG_ENABLE(nxconstantstring,
-        [  --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.],,
+        [AS_HELP_STRING([--enable-nxconstantstring],
+	[Enables the use of the NXConstantString class for old compilers.])],,
         enable_nxconstantstring=no)
     if test $enable_nxconstantstring = yes; then
       NX_CONST_STRING_OBJCFLAGS=""
@@ -2033,10 +2142,11 @@ AC_SUBST(NX_CONST_STRING_CLASS)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(gs_cv_objc_load_method_worked,
-  AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
-	gs_cv_objc_load_method_worked=yes,
-	gs_cv_objc_load_method_worked=no,
-	gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.loadtest.m"]])],
+	[gs_cv_objc_load_method_worked=yes],
+	[gs_cv_objc_load_method_worked=no],
+	[gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked"])
 )
 if test $gs_cv_objc_load_method_worked = yes; then
   AC_DEFINE(HAVE_LOAD_METHOD,1,
@@ -2069,6 +2179,35 @@ else
   fi
 fi
 AC_SUBST(OBJCSYNC)
+
+#--------------------------------------------------------------------
+# Check for fast enumeration support in runtime
+#--------------------------------------------------------------------
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_enumerationMutation() on Windows MSVC])
+  OBJCSETFASTENUMERATION=0
+  OBJCFASTENUMERATION=1
+else
+  AC_CHECK_FUNCS(objc_enumerationMutation)
+  if test $ac_cv_func_objc_enumerationMutation = yes; then
+    AC_CHECK_FUNCS(objc_setEnumerationMutationHandler)
+    if test $ac_cv_func_objc_setEnumerationMutationHandler = yes; then
+      OBJCSETFASTENUMERATION=1
+    else
+      OBJCSETFASTENUMERATION=0
+    fi
+    OBJCFASTENUMERATION=1
+  else
+    OBJCSETFASTENUMERATION=0
+    OBJCFASTENUMERATION=0
+  fi
+fi
+AC_SUBST(OBJCSETFASTENUMERATION)
+AC_SUBST(OBJCFASTENUMERATION)
+
 
 # Don't revert any Objective-C flags as they are used in the next test
 
@@ -2314,7 +2453,7 @@ AC_C_INLINE
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
-AC_HEADER_STDC
+
 AC_CHECK_HEADERS(string.h memory.h alloca.h)
 
 #--------------------------------------------------------------------
@@ -2398,36 +2537,73 @@ AC_CHECK_FUNCS(time ctime tzset)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 AC_CHECK_TYPES([socklen_t])
+
+#--------------------------------------------------------------------
+# This needed by GSSocketStream.h
+#--------------------------------------------------------------------
+AC_CHECK_TYPE([struct sockaddr_storage],
+  AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE, 1,
+    [if struct sockaddr_storage is defined]), ,[
+#undef inline
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#else
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#endif
+])
+
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(bfd,
-  [  --enable-bfd
-	Enables the use of libbfd to provide symbolic stack traces.
-	Enabling this option provides support for symbolic stack traces
-	on platforms where the backtrace_symbols() function is not
-	available or does not work properly.
-	Enabling this option also has the effect of changing the license
-	of gnustep-base from LGPL to GPL since libbfd uses the GPL license],,
+  [AS_HELP_STRING([--enable-bfd],
+  [Enables the use of libbfd to provide symbolic stack traces. Enabling this option provides support for symbolic stack traces on platforms where the backtrace_symbols() function is not available or does not work properly.  Enabling this option also has the effect of changing the license of gnustep-base from LGPL to GPL since libbfd uses the GPL license])],,
   enable_bfd=no)
 if test $enable_bfd = yes ; then
   AC_DEFINE(USE_BFD,1, [Define to use bfd library for stack traces])
   AC_MSG_WARN([You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL.])
 fi
 
-AC_CHECK_HEADERS(bfd.h)
+AC_CHECK_HEADERS(bfd.h,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([bfd.h not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+],)
 AC_CHECK_LIB(intl, libintl_fprintf)
-AC_CHECK_LIB(iberty, dyn_string_append)
+AC_CHECK_LIB(zstd, ZSTD_compress)
+AC_CHECK_LIB(iberty, dyn_string_append,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([libiberty not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+])
 AC_CHECK_LIB(z, gzseek)
-AC_CHECK_LIB(bfd, bfd_openr)
+AC_SEARCH_LIBS(sframe, sframe_decode)
+AC_CHECK_LIB(bfd, bfd_openr,,[
+if test $enable_bfd = yes ; then
+  AC_MSG_ERROR([libbfd not found, this is required for libbfd symbolic stack traces. You may need to install this package])
+fi
+])
 
-AC_TRY_COMPILE([
-  #include <bfd.h>
-  ],
-  [bfd_section_vma(0);],
-  bfd_section_vma=1, bfd_section_vma=0)
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <bfd.h>]],[[bfd_section_vma(0);]])],
+	[bfd_section_vma=1],
+	[bfd_section_vma=0])
 if test $bfd_section_vma = 1; then
   AC_MSG_RESULT([bfd_section_vma found])
   AC_DEFINE([HAVE_BFD_SECTION_VMA], [1], [Have bfd_section_vma])
@@ -2492,7 +2668,11 @@ if test $ac_cv_header_poll_h = yes; then
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
     AC_MSG_CHECKING([if poll supports devices])
-    AC_TRY_RUN([#include "$srcdir/config/config.poll-dev.c"i], ,have_poll=no, have_poll="$cross_have_poll" )
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.poll-dev.c"]])],
+	,
+	[have_poll=no],
+	[have_poll="$cross_have_poll"])
     if test $have_poll = yes; then
       AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
@@ -2509,18 +2689,20 @@ fi
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(vsprintf vasprintf snprintf vsnprintf)
 if test $ac_cv_func_vsprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
-		VSPRINTF_RETURNS_LENGTH=1,
-		VSPRINTF_RETURNS_LENGTH=0,
-		VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.vsprintf.c"]])],
+	[VSPRINTF_RETURNS_LENGTH=1],
+	[VSPRINTF_RETURNS_LENGTH=0],
+	[VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH"])
     AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH,
                        [Define if vsprintf returns the length printed])
 fi
 if test $ac_cv_func_vasprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
-		VASPRINTF_RETURNS_LENGTH=1,
-		VASPRINTF_RETURNS_LENGTH=0,
-		VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.vasprintf.c"]])],
+	[VASPRINTF_RETURNS_LENGTH=1],
+	[VASPRINTF_RETURNS_LENGTH=0],
+	[VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH"])
     AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH,
                        [Define if vasprintf returns the length printed])
 fi
@@ -2563,6 +2745,7 @@ AC_CHECK_HEADERS(sys/mman.h)
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid setsid grantpt)
+AC_CHECK_FUNCS(closefrom)
 if test "x$ac_cv_func_setpgrp" = xyes; then
   AC_FUNC_SETPGRP
 fi
@@ -2708,10 +2891,11 @@ AC_CHECK_HEADERS(wchar.h)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -O0"
 AC_MSG_CHECKING(short/int needs to be word aligned)
-AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
-	NEED_WORD_ALIGNMENT=0,
-	NEED_WORD_ALIGNMENT=1,
-	NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.align.c"]])],
+	[NEED_WORD_ALIGNMENT=0],
+	[NEED_WORD_ALIGNMENT=1],
+	[NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT"])
 CFLAGS="$saved_CFLAGS"
 AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
                    [Define if your system needs to have short/int word aligned])
@@ -2728,15 +2912,19 @@ AC_CHECK_FUNCS(register_printf_specifier)
 AC_CHECK_FUNC(register_printf_function, register_printf=1,
 register_printf=0)
 if test $register_printf = 1; then
-  AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
-	       working_register_printf=1, working_register_printf=0,
-               working_register_printf="$cross_working_register_printf")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.printf.c"]])],
+	[working_register_printf=1],
+	[working_register_printf=0],
+       	[working_register_printf="$cross_working_register_printf"])
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
-    AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
-	       wide_register_printf=1, wide_register_printf=0,
-               wide_register_printf="$cross_wide_register_printf")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.wprintf.c"]])],
+	[wide_register_printf=1],
+	[wide_register_printf=0],
+	[wide_register_printf="$cross_wide_register_printf"])
     if test $wide_register_printf = 1; then
       AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
               [Define if register_printf_function supports wide characters])
@@ -2756,7 +2944,8 @@ AC_CHECK_FUNCS(realpath)
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(program_invocation_name in C Library)
 AC_CACHE_VAL(gs_cv_program_invocation_name_worked,
-[AC_TRY_RUN([
+[AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
 #include <string.h>
 int
 main (int argc, char *argv[])
@@ -2764,8 +2953,10 @@ main (int argc, char *argv[])
   extern char *program_invocation_name;
   return (strcmp (program_invocation_name, argv[0]));
 }
-], gs_cv_program_invocation_name_worked=yes, gs_cv_program_invocation_name_worked=no,
- gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked")])
+]])],
+	[gs_cv_program_invocation_name_worked=yes],
+	[gs_cv_program_invocation_name_worked=no],
+	[gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked"])])
 if test $gs_cv_program_invocation_name_worked = yes; then
   AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
             [Define if your Lib C defines program_invocation_name])
@@ -2798,10 +2989,11 @@ AC_SYS_PROCFS_EXE_LINK
 # Check if /proc/$$/cmdline terminates the last argument with a nul
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(/proc/$$/cmdline terminated by nul)
-AC_TRY_RUN([#include "$srcdir/config/config.proccmd.c"],
-	CMDLINE_TERMINATED=1,
-	CMDLINE_TERMINATED=0,
-	CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.proccmd.c"]])],
+	[CMDLINE_TERMINATED=1],
+	[CMDLINE_TERMINATED=0],
+	[CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED"])
 AC_DEFINE_UNQUOTED(CMDLINE_TERMINATED, $CMDLINE_TERMINATED,
 		   [Define if your system terminates the final argument in /proc/$$/cmdline])
 if test $CMDLINE_TERMINATED = 1; then
@@ -2818,10 +3010,11 @@ save_LIBS="$LIBS"
 AC_CHECK_LIB(kvm, kvm_getenvv)
 if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
   AC_MSG_CHECKING(if we can access kernel memory)
-  AC_TRY_RUN([#include "$srcdir/config/config.kvmopen.c"],
-	have_kvm_env=1,
-	have_kvm_env=0,
-	have_kvm_env="$cross_have_kvm_env")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE[[#include "$srcdir/config/config.kvmopen.c"]])],
+	[have_kvm_env=1],
+	[have_kvm_env=0],
+	[have_kvm_env="$cross_have_kvm_env"])
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_KVM_ENV, 1,
@@ -2845,7 +3038,8 @@ esac
 
 AC_MSG_CHECKING(use of pass-through arguments)
 AC_ARG_ENABLE(pass-arguments,
-  [  --enable-pass-arguments	Force user main call to NSProcessInfo initialize],,
+  [AS_HELP_STRING([--enable-pass-arguments],
+  [Force user main call to NSProcessInfo initialize])],,
   enable_pass_arguments=$PASS_ARG)
 
 if test "$enable_pass_arguments" = "yes"; then
@@ -2858,7 +3052,8 @@ AC_MSG_RESULT($enable_pass_arguments)
 
 AC_MSG_CHECKING(use of fake-main definition)
 AC_ARG_ENABLE(fake-main,
-  [  --enable-fake-main  		Force redefine of user main function],,
+  [AS_HELP_STRING([--enable-fake-main],
+  [Force redefine of user main function])],,
   enable_fake_main=no)
 
 if test "$enable_pass_arguments" = "no"; then
@@ -2900,7 +3095,8 @@ AC_MSG_RESULT($enable_fake_main)
 # Simple way to add a bunch of paths to the flags
 #--------------------------------------------------------------------
 AC_ARG_WITH(include-flags,
-    [  --with-include-flags=FLAGS    Specify all include flags at once],
+    [AS_HELP_STRING([--with-include-flags=FLAGS],
+    [Specify all include flags at once])],
     include_flags="$withval", include_flags="no")
 if test ${include_flags} != "no"; then
     CPPFLAGS="$CPPFLAGS ${include_flags}"
@@ -2908,7 +3104,8 @@ if test ${include_flags} != "no"; then
 fi
 
 AC_ARG_WITH(library-flags,
-    [  --with-library-flags=FLAGS    Specify all library flags at once],
+    [AS_HELP_STRING([--with-library-flags=FLAGS],
+    [Specify all library flags at once])],
     library_flags="$withval", library_flags="no")
 if test ${library_flags} != "no"; then
     LDFLAGS="$LDFLAGS ${library_flags}"
@@ -2943,11 +3140,13 @@ if test "$exceptions" = "yes"; then
 fi
 
 AC_ARG_ENABLE(libffi,
-  [  --disable-libffi  		Disable use of libffi library],,
+  [AS_HELP_STRING([--disable-libffi],
+  [Disable use of libffi library])],,
   enable_libffi=$do_enable_libffi)
 
 AC_ARG_ENABLE(ffcall,
-  [  --enable-ffcall  		Enable use of the deprecated ffcall library],,
+  [AS_HELP_STRING([--enable-ffcall],
+  [Enable use of the deprecated ffcall library])],,
   enable_ffcall=$do_enable_libffcall)
 
 if test $enable_ffcall = yes; then
@@ -2955,7 +3154,8 @@ if test $enable_ffcall = yes; then
 fi
 
 AC_ARG_ENABLE(invocations,
-  [  --disable-invocations		Build even if invocation-dependencies are not met],,
+  [AS_HELP_STRING([--disable-invocations],
+  [Build even if invocation-dependencies are not met])],,
   enable_invocations=yes)
 
 # DO isn't used on apple-apple-apple
@@ -2964,7 +3164,8 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
 fi
 
 AC_ARG_WITH(ffi-include,
-[  --with-ffi-include=PATH       Include path for ffi headers],
+  [AS_HELP_STRING([--with-ffi-include=PATH],
+  [Include path for ffi headers])],
     ffi_incdir="$withval", ffi_incdir="no")
 if test ${ffi_incdir} != "no"; then
     CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
@@ -2972,7 +3173,8 @@ if test ${ffi_incdir} != "no"; then
 fi
 
 AC_ARG_WITH(ffi-library,
-[  --with-ffi-library=PATH       Library path for ffi libs],
+  [AS_HELP_STRING([--with-ffi-library=PATH],
+  [Library path for ffi libs])],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
   GS_ADD_LIBRARY_PATH([${ffi_libdir}])
@@ -3042,13 +3244,16 @@ if test $enable_libffi = yes; then
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   if test "$pkg_config_libffi" = "yes"; then
-    ffi_LIBS=`pkg-config --libs libffi`
+    ffi_LIBS=`$PKG_CONFIG --libs libffi`
   else
     ffi_LIBS=-lffi
   fi
   LIBS="$ffi_LIBS $LIBS"
-  AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],
-             ffi_ok="yes",ffi_ok="no",ffi_ok="$cross_ffi_ok")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.ffi.c"]])],
+	[ffi_ok="yes"],
+	[ffi_ok="no"],
+	[ffi_ok="$cross_ffi_ok"])
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
     if test $do_broken_libffi = yes; then
@@ -3063,7 +3268,10 @@ elif test $enable_ffcall = yes; then
             [Define if using the ffcall library for invocations])
   WITH_FFI=ffcall
   LIBS="-lcallback -lavcall $LIBS"
-  AC_TRY_LINK([#include <callback.h>], , ffi_ok="yes", ffi_ok="no")
+  AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[#include <callback.h>]],)],
+	[ffi_ok="yes"],
+	[ffi_ok="no"])
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
@@ -3136,14 +3344,41 @@ AC_SUBST(WITH_FFI)
 # First, check if there's a working iconv in libc (ie. if the test program
 # runs without any extra flags).
 AC_ARG_ENABLE(iconv,
-  [  --disable-iconv		Build even if iconv is not available],,
+  [AS_HELP_STRING([--disable-iconv],
+  [Build even if iconv is not available])],,
   enable_iconv=yes)
 
 if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
+
+# If the header is in a subdirectory, adjust the default loc
+liidef=no
+AC_CHECK_HEADERS(gnu-libiconv/iconv.h, iconv_subdir=yes, iconv_subdir=no)
+if test "${iconv_subdir}" != "no"; then
+  liidef=/usr/include/gnu-libiconv
+fi
+
+AC_ARG_WITH(libiconv-include,
+  [AS_HELP_STRING([--with-libiconv-include=PATH],
+  [Include path for libiconv header])],
+  libiconv_incdir="$withval", libiconv_incdir="$liidef")
+if test ${libiconv_incdir} != "no"; then
+  CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
+fi
+
+AC_ARG_WITH(libiconv-library,
+  [AS_HELP_STRING([--with-libiconv-library=PATH],
+  [Library path for libiconv libraries])],
+  libiconv_libdir="$withval", libiconv_libdir="no")
+
+if test "$libiconv_libdir" != "no"; then
+  GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
+fi
+
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3161,28 +3396,13 @@ int main(int argc,char **argv)
 
 if test $found_iconv = no ; then
   # libc doesn't have a working iconv with translit.
-  # Try adding -liconv and any user supplied directory.
-  AC_ARG_WITH(libiconv-library,
-    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
-    libiconv_libdir="$withval", libiconv_libdir="no")
-
-  if test "$libiconv_libdir" != "no"; then
-    GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
-  fi
-
-  AC_ARG_WITH(libiconv-include,
-    [  --with-libiconv-include=PATH  Include path for libiconv header],
-    libiconv_incdir="$withval", libiconv_incdir="no")
-  if test ${libiconv_incdir} != "no"; then
-      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
-  fi
+  # Try adding -liconv
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3209,7 +3429,7 @@ if test $found_iconv = no ; then
   LIBS="-lgiconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
@@ -3230,14 +3450,15 @@ if test $found_iconv = no ; then
   )
 fi
 
-AC_ARG_ENABLE(stricticonv,
-  [  --enable-stricticonv		Build even if iconv is strict],,
-  enable_stricticonv=no)
-if test $enable_stricticonv = yes; then
-AC_MSG_CHECKING(non-lossy iconv support)
+AC_ARG_ENABLE(limitediconv,
+  [AS_HELP_STRING([--enable-limitediconv],
+  [Build even if iconv does not support lossy conversion])],,
+  enable_limitediconv=no)
+if test $enable_limitediconv = yes; then
+AC_MSG_CHECKING(iconv without lossy conversion support)
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3251,7 +3472,8 @@ if test $found_iconv = no ; then
   # libc doesn't have a working iconv. Try adding -liconv and any user
   # supplied directory.
   AC_ARG_WITH(libiconv-library,
-    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
+    [AS_HELP_STRING([--with-libiconv-library=PATH],
+    [Library path for libiconv libraries])],
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then
@@ -3299,7 +3521,12 @@ if test $found_iconv = no ; then
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
   AC_MSG_ERROR([Missing support for character conversion functionality.])
 fi
@@ -3310,7 +3537,8 @@ fi
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(xml,
-  [  --disable-xml			Build even if XML-dependencies are not met],,
+  [AS_HELP_STRING([--disable-xm],
+  [Build even if XML-dependencies are not met])],,
   enable_xml=yes)
 
 HAVE_LIBXML=0
@@ -3328,11 +3556,14 @@ if test $enable_xml = yes; then
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
 
+    AC_CHECK_FUNCS(xmlStopParser xmlCtxtGetOptions)
+
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
     AC_ARG_ENABLE(xslt,
-      [  --disable-xslt		Build even if XSLT-dependency is not met],,
+      [AS_HELP_STRING([--disable-xslt],
+      [Build even if XSLT-dependency is not met])],,
       enable_xslt=yes)
 
     if test $enable_xslt = yes; then
@@ -3378,7 +3609,8 @@ AC_SUBST(HAVE_LIBXML)
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(tls,
-  [  --disable-tls			Disable use of GNUTLS],,
+  [AS_HELP_STRING([--disable-tls],
+  [Disable use of GNUTLS])],,
   enable_tls=yes)
 
 if test $enable_tls = yes; then
@@ -3389,7 +3621,7 @@ if test $enable_tls = yes; then
   saved_CFLAGS="$CFLAGS"
 
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists gnutls; then
+    if $PKG_CONFIG --exists gnutls; then
       AC_MSG_CHECKING(gnutls support)
       HAVE_GNUTLS=1
       TLS_CFLAGS=`$PKG_CONFIG --cflags gnutls`
@@ -3407,7 +3639,7 @@ if test $enable_tls = yes; then
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    if ! pkg-config --atleast-version=2.12 gnutls; then
+    if ! $PKG_CONFIG --atleast-version=2.12 gnutls; then
       AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
       if test "$have_gcrypt" = "no"; then
         HAVE_GNUTLS=0
@@ -3455,10 +3687,12 @@ AC_SUBST(HAVE_GNUTLS)
 HAVE_MDNS=0
 HAVE_AVAHI=0
 AC_ARG_ENABLE(zeroconf,
-  [  --disable-zeroconf		Disable NSNetServices support],,
+  [AS_HELP_STRING([--disable-zeroconf],
+  [Disable NSNetServices support])],,
   enable_zeroconf=yes)
 AC_ARG_WITH(zeroconf-api,
-  [  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)],
+  [AS_HELP_STRING([--with-zeroconf-api=API],
+  [force use of a specific zeroconf API (mdns or avahi)])],
   zeroconf_api="$withval", zeroconf_api="any")
 if test $enable_zeroconf = yes; then
   if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
@@ -3493,13 +3727,15 @@ if test $enable_zeroconf = yes; then
 fi
 AC_SUBST(HAVE_MDNS)
 AC_SUBST(HAVE_AVAHI)
+
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 HAVE_ICU=0
 AC_ARG_ENABLE(icu,
-  [  --disable-icu			Disable International Components for Unicode],,
+  [AS_HELP_STRING([--disable-icu],
+  [Disable International Components for Unicode])],,
   enable_icu=yes)
 
 AS_IF([test "x$enable_icu" = "xyes"], [
@@ -3522,9 +3758,17 @@ AS_IF([test "x$enable_icu" = "xyes"], [
     ;;
   esac
   if test $HAVE_ICU = 0; then
-    PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0], [
-      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h],
-        HAVE_ICU=1)], [HAVE_ICU=0])
+    HAVE_ICU_I18N=0
+    PKG_CHECK_MODULES([ICU_I18N], [icu-i18n > 49.0], [
+      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/ubrk.h unicode/utypes.h],
+        HAVE_ICU_I18N=1)], [HAVE_ICU_I81N=0])
+    PKG_CHECK_MODULES([ICU_UC], [icu-uc > 49.0], [
+      AC_CHECK_HEADERS([unicode/utext.h],
+        HAVE_ICU_UC=1)], [HAVE_ICU_UC=0])
+    if test $HAVE_ICU_I18N = 1; then
+      ICU_LIBS="$ICU_I18N_LIBS $ICU_UC_LIBS"
+      HAVE_ICU=1
+    fi
   fi
   if test $HAVE_ICU = 0; then
     AC_MSG_ERROR([No useable ICU installation found])
@@ -3539,14 +3783,21 @@ AC_SUBST(HAVE_ICU)
 #--------------------------------------------------------------------
 
 HAVE_LIBDISPATCH=0
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  blocks=yes
+else
+  blocks=no
+fi
 AC_ARG_ENABLE(libdispatch,
-  [  --disable-libdispatch		Disable dispatching blocks via libdispatch],
+  [AS_HELP_STRING([--disable-libdispatch],
+  [Disable dispatching blocks via libdispatch])],
   enable_libdispatch=$enableval,
-  enable_libdispatch=yes)
+  enable_libdispatch=$blocks)
 
 if test $enable_libdispatch = yes; then
   AC_ARG_WITH(dispatch-include,
-  [  --with-dispatch-include=PATH       Include path for dispatch header],
+  [AS_HELP_STRING([--with-dispatch-include=PATH],
+  [Include path for dispatch header])],
       dispatch_incdir="$withval", dispatch_incdir="no")
   if test ${dispatch_incdir} != "no"; then
       CPPFLAGS="$CPPFLAGS -I${dispatch_incdir}"
@@ -3554,7 +3805,8 @@ if test $enable_libdispatch = yes; then
   fi
 
   AC_ARG_WITH(dispatch-library,
-  [  --with-dispatch-library=PATH       Library path for dispatch lib],
+  [AS_HELP_STRING([--with-dispatch-library=PATH],
+  [Library path for dispatch lib])],
       dispatch_libdir="$withval", dispatch_libdir="no")
   if test ${dispatch_libdir} != "no"; then
     GS_ADD_LIBRARY_PATH([${dispatch_libdir}])
@@ -3576,7 +3828,10 @@ if test $enable_libdispatch = yes; then
       # This check is needed because libdispatch might be linked against a
       # version of libBlocksRuntime that defines symbols conflicting with libobjc
       AC_MSG_CHECKING(whether we can link libdispatch and libobjc at the same time)
-      AC_TRY_LINK(,,have_dispatch=yes, have_dispatch=no)
+      AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM(,)],
+	[have_dispatch=yes],
+	[have_dispatch=no])
       if test "$have_dispatch" = "yes"; then
 	LIBS="$saveLIBS -ldispatch";
 	AC_MSG_RESULT(yes);
@@ -3607,9 +3862,25 @@ if test $HAVE_LIBDISPATCH = 1; then
   if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
+  # Check for availability of functions in more recent libdispatch versions.
+  AC_CHECK_FUNCS(dispatch_cancel)
 fi
 AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
+
+#--------------------------------------------------------------------
+# Check for whether the new KVO implementation is enabled (only with
+# the NG runtime)
+#--------------------------------------------------------------------
+HAVE_NEWKVO=0
+AC_ARG_ENABLE(newkvo,
+  [AS_HELP_STRING([--disable-newkvo],
+  [Disable new KVO implementation])],,[enable_newkvo=yes])
+if test "x$enable_newkvo" = "xyes"
+then
+  HAVE_NEWKVO=1
+fi
+AC_SUBST(HAVE_NEWKVO)
 
 #--------------------------------------------------------------------
 # Check for libcurl
@@ -3623,14 +3894,25 @@ if test "$with_curl" != ""; then
 fi
 
 HAVE_LIBCURL=0
+SKIP_CURL_CONFIG=0
 curl_all=no
 AC_MSG_CHECKING([for libcurl])
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+
+case "$target_os" in
+    windows)	SKIP_CURL_CONFIG=1;;
+esac
+
+# When compiling libs-base in an MSYS2 environment on Windows MSVC, compilation may fail:
+# Curl is preinstalled on MSYS2 and bundles the curl-config script. The MSYS2 curl library
+# and a different (MSVC) curl library might interfere and produce an incorrect configuration.
+#
+# Skip the curl-config check on Windows.
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" = "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
-    AC_MSG_RESULT([FAILED (version too old to use])
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 61 \); then
+    AC_MSG_RESULT([FAILED (version $curl_ver too old to use, need at least 7.61)])
   else
     AC_MSG_RESULT(yes ... version $curl_ver)
     AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
@@ -3641,71 +3923,51 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
       CFLAGS="$CFLAGS $CURLCFLAGS"
       LIBS="$LIBS $CURLLIBS"
       curl_all=yes
-      if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
-        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
-        curl_all=no
-      elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
-        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for connection lifetime control)])
-        curl_all=no
-      fi
     fi
   fi
 else
-  AC_MSG_RESULT([FAILED (curl-config not found)])
-fi
-
-if test $HAVE_LIBCURL = 1; then
-  AC_MSG_CHECKING([for libcurl TLS support with gnutls])
-  if $CURL_CONFIG --configure | grep -q with-gnutls; then
-    AC_MSG_RESULT(yes)
+  if test -n "$PKG_CONFIG"; then
+    if $PKG_CONFIG --exists libcurl; then
+      AC_MSG_RESULT(yes ... via pkg-config)
+      if $PKG_CONFIG --atleast-version 7.61.0 libcurl; then
+        AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
+        if test "$curl_ok" = yes; then
+          HAVE_LIBCURL=1
+          CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
+          CURLLIBS=`$PKG_CONFIG --libs libcurl`
+          CFLAGS="$CFLAGS $CURLCFLAGS"
+          LIBS="$LIBS $CURLLIBS"
+          curl_all=yes
+        fi
+        else
+          AC_MSG_RESULT([FAILED (version too old to use, need at least 7.61)])
+          curl_all=no
+      fi
+    else
+      AC_MSG_RESULT([FAILED (libcurl not found via pkg-config)])
+      curl_all=no
+    fi
   else
-    AC_MSG_RESULT(no)
-    curl_all=no
-    AC_MSG_WARN([LOSS OF FUNCTIONALITY (curl lacks gnutls support)])
+    AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
   fi
 fi
-
-if test $HAVE_LIBCURL = 1; then
-  AC_CHECK_LIB(curl, curl_multi_perform, curl_ok=yes, curl_ok=no)
-fi
-if test $HAVE_LIBCURL = 1; then
-  AC_CHECK_DECL(CURLOPT_CONNECT_TO, curl_ok=yes, curl_ok=no,
-    [#include <curl/curl.h>])
-fi
-if test $HAVE_LIBCURL = 1; then
-  # Check for Curl capabilities we may use in NSURLSession
-  AC_CHECK_DECLS(CURLOPT_MAXAGE_CONN,,, [#include <curl/curl.h>])
-
-  # If curl supports runtime selection of the TLS module we will need
-  # to use curl_global_sslset to pick GNUTLS
-  AC_CHECK_FUNCS(curl_global_sslset)
-fi
+  
 AC_SUBST(HAVE_LIBCURL)
 
 #--------------------------------------------------------------------
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBDISPATCH = 1 -a $HAVE_LIBCURL = 1; then
+if test $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
 GS_HAVE_NSURLSESSION=0
 AC_ARG_ENABLE(nsurlsession,
-  [  --disable-nsurlsession  		Disable support for NSURLSession],,
+  [AS_HELP_STRING([--disable-nsurlsession],
+  [Disable support for NSURLSession])],,
   enable_nsurlsession=$nsurlsessiondefault)
 if test $enable_nsurlsession = yes; then
-  if test "$OBJC_RUNTIME_LIB" != "ng"; then
-    AC_MSG_ERROR([Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-  fi
-  if test $HAVE_BLOCKS = 0; then
-    AC_MSG_ERROR([Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-  fi
-  if test $HAVE_LIBDISPATCH = 0; then
-    AC_MSG_ERROR([Missing libdispatch (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-   fi
-  # Check for dispatch_queue_create_with_target needed for NSURLSession
-  AC_CHECK_FUNCS(dispatch_queue_create_with_target)
   if test $HAVE_LIBCURL = 0; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi
@@ -3717,11 +3979,13 @@ AC_SUBST(GS_HAVE_NSURLSESSION)
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
 AC_ARG_WITH(gmp-include,
-  [  --with-gmp-include=PATH  include path for gmp headers],
+  [AS_HELP_STRING([--with-gmp-include=PATH],
+  [include path for gmp headers])],
   gmp_incdir="$withval", gmp_incdir="no")
 
 AC_ARG_WITH(gmp-library,
-  [  --with-gmp-library=PATH  library path for gmp libraries],
+  [AS_HELP_STRING([--with-gmp-library=PATH],
+  [library path for gmp libraries])],
   gmp_libdir="$withval", gmp_libdir="no")
 
 libs_temp=$LIBS
@@ -3749,6 +4013,13 @@ fi
 
 AC_SUBST(USE_GMP)
 
+#--------------------------------------------------------------------
+# Check dor 'dot', needed for graphs in autogsdoc output.
+#--------------------------------------------------------------------
+AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
+
+AC_PATH_PROG([DOT], [dot], [])
+AC_SUBST(HAVE_DOT, [$ac_cv_path_DOT])
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
@@ -3783,7 +4054,8 @@ AC_SUBST(WARN_FLAGS)
 # Check if we should use an alternative gdomap port
 #--------------------------------------------------------------------
 AC_ARG_WITH(gdomap-port,
-  [  --with-gdomap-port=PORT  alternative port for gdomap],
+  [AS_HELP_STRING([--with-gdomap-port=PORT],
+  [alternative port for gdomap])],
   gdomap_port="$withval", gdomap_port="no")
 
 if test "$gdomap_port" = "no"; then
@@ -3797,16 +4069,9 @@ AC_SUBST(GNUSTEP_GDOMAP_PORT_OVERRIDE)
 # Check if we should install gdomap as setuid
 #--------------------------------------------------------------------
 AC_MSG_CHECKING([if we should install gdomap as setuid])
-AC_ARG_ENABLE(setuid-gdomap,[
-  --enable-setuid-gdomap        Enable installing gdomap as a setuid
-                                executable.  By default, it is installed
-                                as a normal program intended to be started
-				by root at system boot time, but it can
-                                also be started up automatically
-                                by any user at any time.  Use this
-                                option if you are happy having the program
-                                started automatically on demand.
-],
+AC_ARG_ENABLE(setuid-gdomap,
+  [AS_HELP_STRING([--enable-setuid-gdomap],
+  [Enable installing gdomap as a setuid executable.  By default, it is installed as a normal program intended to be started by root at system boot time, but it can also be started up automatically by any user at any time.  Use this option if you are happy having the program started automatically on demand.])],
   ac_cv_setuid_gdomap=$enableval,
   ac_cv_setuid_gdomap="no")
 
@@ -3837,5 +4102,5 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h])
+AC_CONFIG_FILES([config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h])
 AC_OUTPUT

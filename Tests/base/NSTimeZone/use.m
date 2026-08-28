@@ -13,9 +13,13 @@ int main()
   NSLocale *locale;
   NSString *str;
   NSDate *date;
+  NSArray *zones;
   id current;
   id localh = [NSTimeZone defaultTimeZone];
   int offset = [localh secondsFromGMT];
+
+  zones = [NSTimeZone knownTimeZoneNames];
+  PASS(zones != nil, "+knownTimeZoneNames returns valid array");
 
   current = [NSTimeZone timeZoneForSecondsFromGMT: 900];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]]
@@ -60,30 +64,49 @@ int main()
   PASS_EQUAL(date, [NSDate dateWithString: @"2013-10-27 03:00:00 +0200"],
     "can calculate next DST transition");
 
-  current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];
-  testHopeful = YES;
+
+  current = [NSTimeZone timeZoneWithName: @"Europe/Brussels"];
+
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
-    @"Brasilia Time",
-    "Correctly localizes standard time zone name")
-
-  /* The next few depend on ICU issues
-   */
-  PASS_EQUAL(
-    [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
-    @"GMT-03:00",
-    "Correctly localizes short time zone name")
+    @"Central European Standard Time",
+    "Correctly localizes Europe/Brussels standard time zone name")
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleDaylightSaving locale: locale],
-    @"Brasilia Summer Time",
-    "Correctly localizes DST time zone name")
+    @"Central European Summer Time",
+    "Correctly localizes Europe/Brussels DST time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
+    @"CET",
+    "Correctly localizes Europe/Brussels short time zone name")
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleShortDaylightSaving
       locale: locale],
-    @"GMT-02:00",
-    "Correctly localizes short DST time zone name")
-  testHopeful = NO;
+    @"CEST",
+    "Correctly localizes Europe/Brussels short DST time zone name")
+
+  current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
+
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
+    @"Brasilia Standard Time",
+    "Correctly localizes America/Sao_Paulo standard time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleDaylightSaving locale: locale],
+    @"Brasilia Summer Time",
+    "Correctly localizes America/Sao_Paulo DST time zone name")
+testHopeful = YES;
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
+    @"GMT-3",
+    "Correctly localizes America/Sao_Paulo short time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleShortDaylightSaving
+      locale: locale],
+    @"GMT-3",
+    "Correctly localizes America/Sao_Paulo short DST time zone name")
+testHopeful = NO;
 
   RELEASE(locale);
   

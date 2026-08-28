@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */
@@ -82,63 +81,57 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
 #define IS_WEAK_KEY(M) \
-  M->cb.pf.k.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.k.options, NSPointerFunctionsWeakMemory)
 #define IS_WEAK_VALUE(M) \
-  M->cb.pf.v.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.v.options, NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.k.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf.k, X.ptr))
 #define GSI_MAP_EQUAL(M, X, Y)\
  (M->legacy ? M->cb.old.k.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf.k, X.ptr, Y.ptr))
-#define GSI_MAP_RELEASE_KEY(M, X)\
- (M->legacy ? M->cb.old.k.release(M, X.ptr) \
-  : IS_WEAK_KEY(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
-#define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.k.retain(M, X.ptr) \
-  : IS_WEAK_KEY(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.k, &X.ptr, X.ptr))
-#define GSI_MAP_RELEASE_VAL(M, X)\
- (M->legacy ? M->cb.old.v.release(M, X.ptr) \
-  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
-#define GSI_MAP_RETAIN_VAL(M, X)\
- (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
-  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
 
-/* 2013-05-25 Here are the macros originally added for GC/ARC ...
- * but they caused map table entries to be doubly retained :-(
- * The question is, are the new versions I hacked in below to
- * fix this correct?
- 
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-	  *(addr) = x;\
-	else\
-	  pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj);
-#define GSI_MAP_WRITE_VAL(M, addr, x) \
-	if (M->legacy) \
-	  *(addr) = x;\
-	else\
-	  pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
-*/
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-          *(addr) = x;\
-	else\
-	  (IS_WEAK_KEY(M) ? pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
-#define GSI_MAP_WRITE_VAL(M, addr, x) \
-	if (M->legacy) \
-          *(addr) = x;\
-	else\
-	  (IS_WEAK_VALUE(M) ? pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
+/* NSPointerFunctions provides functions which combine the actions of
+ * memory allocation/deallocation with those of assignment, so we make
+ * the separete retain/release macros a no-op nd do all the work in the
+ * store/clear macros.
+ */
+
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_KEY(M, X) nil
+#define GSI_MAP_CLEAR_KEY(M, addr)\
+  if (M->legacy) \
+    { M->cb.old.k.release(M, (*addr).ptr); (*addr).ptr = 0; }\
+  else\
+    pointerFunctionsRelinquish(&M->cb.pf.k, (void**)addr);
+#define GSI_MAP_STORE_KEY(M, addr, x)\
+  if (M->legacy)\
+    { *(addr) = x; M->cb.old.k.retain(M, (*addr).ptr); }\
+  else\
+    pointerFunctionsReplace(&M->cb.pf.k, (void**)addr, (x).obj);
+
+#define GSI_MAP_RELEASE_VALUE(M, X)
+#define GSI_MAP_RETAIN_VALUE(M, X) nil
+#define GSI_MAP_CLEAR_VALUE(M, addr)\
+  if (M->legacy) \
+    { M->cb.old.v.release(M, (*addr).ptr); (*addr).ptr = 0; }\
+  else\
+    pointerFunctionsRelinquish(&M->cb.pf.v, (void**)addr);
+#define GSI_MAP_STORE_VALUE(M, addr, x)\
+  if (M->legacy)\
+    { *(addr) = x; M->cb.old.v.retain(M, (*addr).ptr); }\
+  else\
+    pointerFunctionsReplace(&M->cb.pf.v, (void**)addr, (x).obj);
+
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr)\
-	  : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
+  (M->legacy ? *(addr)\
+    : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
 #define GSI_MAP_READ_VALUE(M,addr) \
-	(M->legacy ? *(addr)\
-	  : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
+  (M->legacy ? *(addr)\
+    : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
 #define GSI_MAP_ZEROED(M)\
-        (M->legacy ? 0\
-	  : (IS_WEAK_KEY(M) || IS_WEAK_VALUE(M)) ? YES : NO)
+  (M->legacy ? 0\
+    : ((IS_WEAK_KEY(M) ? 1 : 0) | (IS_WEAK_VALUE(M) ? 2 : 0)))
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
@@ -646,13 +639,20 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
 	  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
 	  t->version++;
 	}
-      else if (n->value.ptr != value)
+      else if (GSI_MAP_READ_VALUE(t, &n->value).ptr != value)
 	{
-	  GSIMapVal	tmp = n->value;
-
-	  n->value = (GSIMapVal)value;
-	  GSI_MAP_RETAIN_VAL(t, n->value);
-	  GSI_MAP_RELEASE_VAL(t, tmp);
+	  if (t->legacy)
+	    {
+	      t->cb.old.v.release(t, n->value.ptr);
+	      n->value = (GSIMapVal)value;
+	      t->cb.old.v.retain(t, n->value.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&t->cb.pf.v, (void**)&n->value);
+	      pointerFunctionsReplace(&t->cb.pf.v, (void**)&n->value,
+		(void*)value);
+	    }
 	  t->version++;
 	}
     }
@@ -1191,6 +1191,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     }
 }
 
+- (void) compact
+{
+  GSIMapRemoveWeak(self);
+}
+
 - (id) copyWithZone: (NSZone*)aZone
 {
   return NSCopyMapTableWithZone(self, aZone);
@@ -1251,52 +1256,55 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   static NSConcretePointerFunctions	*defaultFunctions = nil;
 
-  if (defaultFunctions == nil)
+  if (nil != (self = [super init]))
     {
-      defaultFunctions
-	= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
-    }
-  legacy = NO;
+      if (defaultFunctions == nil)
+	{
+	  defaultFunctions
+	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	}
+      legacy = NO;
 
-  if (![keyFunctions isKindOfClass: [NSConcretePointerFunctions class]])
-    {
-      keyFunctions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
-    sizeof(self->cb.pf.k));
+      if (![keyFunctions isKindOfClass: [NSConcretePointerFunctions class]])
+	{
+	  keyFunctions = defaultFunctions;
+	}
+      memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
+	sizeof(self->cb.pf.k));
 
-  if (![valueFunctions isKindOfClass: [NSConcretePointerFunctions class]])
-    {
-      valueFunctions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
-    sizeof(self->cb.pf.v));
+      if (![valueFunctions isKindOfClass: [NSConcretePointerFunctions class]])
+	{
+	  valueFunctions = defaultFunctions;
+	}
+      memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
+	sizeof(self->cb.pf.v));
 
 #if	GC_WITH_GC
-  if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
-    {
-      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+      if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
 	{
-	  zone = (NSZone*)nodeWW;
+	  if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+	    {
+	      zone = (NSZone*)nodeWW;
+	    }
+	  else
+	    {
+	      zone = (NSZone*)nodeWS;
+	    }
 	}
       else
 	{
-	  zone = (NSZone*)nodeWS;
+	  if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
+	    {
+	      zone = (NSZone*)nodeSW;
+	    }
+	  else
+	    {
+	      zone = (NSZone*)nodeSS;
+	    }
 	}
-    }
-  else
-    {
-      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
-	{
-	  zone = (NSZone*)nodeSW;
-	}
-      else
-	{
-	  zone = (NSZone*)nodeSS;
-	}
-    }
 #endif
-  GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+      GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+    }
   return self;
 }
 
@@ -1380,20 +1388,29 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   GSIMapNode	node;
 
-  if (aKey == nil)
+  if (nil == aKey || nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* tested behavior on os-x 14.5 is to do nothing if either arg is nil
+       */
+      return;
     }
   node = GSIMapNodeForKey(self, (GSIMapKey)aKey);
   if (node)
     {
       if (GSI_MAP_READ_VALUE(self, &node->value).obj != anObject)
 	{
-          GSI_MAP_RELEASE_VAL(self, node->value);
-          GSI_MAP_WRITE_VAL(self, &node->value, (GSIMapVal)anObject);
-          GSI_MAP_RETAIN_VAL(self, node->value);
+	  if (self->legacy)
+	    {
+	      self->cb.old.v.release(self, node->value.ptr);
+	      node->value = (GSIMapVal)anObject;
+	      self->cb.old.v.retain(self, node->value.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&self->cb.pf.v, (void**)&node->value);
+	      pointerFunctionsReplace(&self->cb.pf.v, (void**)&node->value,
+		(void*)anObject);
+	    }
 	  version++;
 	}
     }
@@ -1431,7 +1448,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return GSI_MAP_READ_KEY(table, &node->key).obj;
 }
 
 - (void) dealloc
@@ -1453,7 +1470,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     {
       return nil;
     }
-  return node->value.obj;
+  return GSI_MAP_READ_VALUE(table, &node->value).obj;
 }
 
 @end

@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -25,6 +25,8 @@
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSUserDefaults.h"
 #import "AGSIndex.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
@@ -57,29 +59,31 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
       [stack addObject: k];
       if (d == nil)
 	{
-	  if ([s isKindOfClass: [NSString class]] == YES)
+	  if ([s isKindOfClass: [NSString class]])
 	    {
 	      [dst setObject: s forKey: k];
 	    }
-	  else if ([s isKindOfClass: [NSArray class]] == YES)
+	  else if ([s isKindOfClass: [NSArray class]])
 	    {
 	      [dst setObject: s forKey: k];
 	    }
-	  else if ([s isKindOfClass: [NSDictionary class]] == YES)
+	  else if ([s isKindOfClass: [NSDictionary class]])
 	    {
 	      d = [[NSMutableDictionary alloc] initWithCapacity: [s count]];
 	      [dst setObject: d forKey: k];
 	      RELEASE(d);
+	      /* Fall through to populate the new dictionary.
+	       */
 	    }
 	  else
 	    {
 	      NSLog(@"Unexpected class in merge %@ ignored", stack);
-	      d = nil;
 	    }
 	}
+
       if (d != nil)
 	{
-	  if ([d isKindOfClass: [NSString class]] == YES)
+	  if ([d isKindOfClass: [NSString class]])
 	    {
 	      if ([s isKindOfClass: [NSString class]] == NO)
 		{
@@ -99,7 +103,7 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		    }
 		}
 	    }
-	  else if ([d isKindOfClass: [NSArray class]] == YES)
+	  else if ([d isKindOfClass: [NSArray class]])
 	    {
 	      if ([s isKindOfClass: [NSArray class]] == NO)
 		{
@@ -107,7 +111,23 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		}
 	      else if ([d isEqual: s] == NO)
 		{
-		  if (override == YES)
+		  if ([[stack firstObject] isEqualToString: @"author"])
+		    {
+		      NSMutableArray	*m = AUTORELEASE([s mutableCopy]);
+		      NSUInteger	c = [d count];
+
+		      while (c-- > 0)
+			{
+			  NSString	*e = [d objectAtIndex: c];
+
+			  if (NO == [m containsObject: e])
+			    {
+			      [m addObject: e];
+			    }
+			}
+		      [dst setObject: m forKey: k];
+		    }
+		  else if (override == YES)
 		    {
 		      [dst setObject: s forKey: k];
 		    }
@@ -118,7 +138,7 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		    }
 		}
 	    }
-	  else if ([d isKindOfClass: [NSDictionary class]] == YES)
+	  else if ([d isKindOfClass: [NSDictionary class]])
 	    {
 	      if ([s isKindOfClass: [NSDictionary class]] == NO)
 		{
@@ -202,6 +222,54 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   [super dealloc];
 }
 
+static void
+findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
+{
+  if ([refs isKindOfClass: [NSDictionary class]])
+    {
+      if ([refs objectForKey: key])
+	{
+	  [found addObject: AUTORELEASE([path copy])];
+	}
+      else
+	{
+	  NSEnumerator	*e = [refs keyEnumerator];
+	  NSString	*k;
+
+	  while ((k = [e nextObject]) != nil)
+	    {
+	      [path addObject: k];
+	      findKey([refs objectForKey: k], key, path, found);
+	      [path removeLastObject];
+	    }
+	}
+    }
+  else if ([refs isKindOfClass: [NSArray class]])
+    {
+      if ([refs containsObject: key])
+	{
+	  [found addObject: AUTORELEASE([path copy])];
+	}
+    }
+  else if ([refs isEqual: key])
+    {
+      [found addObject: AUTORELEASE([path copy])];
+    }
+}
+
+/** Looks for a string as a key or value in the index,
+ * and returns the paths to any occurrences found.
+ * Returns nil if the string is not found.
+ */
+- (NSArray*) find: (NSString*)key
+{
+  NSMutableArray	*path = [NSMutableArray arrayWithCapacity: 10];
+  NSMutableArray	*found = [NSMutableArray arrayWithCapacity: 10];
+
+  findKey(refs, key, path, found);
+  return ([found count] ? found : nil);
+}
+
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type
 {
   NSDictionary	*t;
@@ -212,7 +280,10 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
 - (id) init
 {
-  refs = [[NSMutableDictionary alloc] initWithCapacity: 8];
+  if (nil != (self = [super init]))
+    {
+      refs = [[NSMutableDictionary alloc] initWithCapacity: 8];
+    }
   return self;
 }
 
@@ -224,7 +295,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 - (void) makeRefs: (GSXMLNode*)node
 {
   GSXMLNode	*children = [node firstChild];
-  GSXMLNode	*next = [node next];
   BOOL		newUnit = NO;
 
   if ([node type] == XML_ELEMENT_NODE)
@@ -240,7 +310,32 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
           [self setGlobalRef: base type: @"tool"];
         }
 
-      if ([name isEqual: @"category"] == YES)
+      if ([name isEqual: @"author"] == YES)
+	{
+	  NSString	*author = [prop objectForKey: @"name"];
+
+	  if ([author length] > 0)
+	    {
+	      GSXMLNode	*tmp = [node firstChild];
+
+	      [self setEmail: nil forAuthor: author];
+	      while (tmp)
+		{
+		  if ([[tmp name] isEqual: @"email"])
+		    {
+		      NSDictionary	*prop = [tmp attributes];
+
+		      name = [prop objectForKey: @"address"];
+		      if ([name length] > 0)
+			{
+			  [self setEmail: name forAuthor: author];
+			}
+		    }
+		  tmp = [tmp next];
+		}
+	    }
+	}
+      else if ([name isEqual: @"category"] == YES)
 	{
 	  newUnit = YES;
 	  classname = [prop objectForKey: @"class"];
@@ -449,19 +544,16 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	}
     }
 
-  if (children != nil)
+  while (children)
     {
       [self makeRefs: children];
+      children = [children next];
     }
   if (newUnit == YES)
     {
       unit = nil;
       category = nil;
       classname = nil;
-    }
-  if (next != nil)
-    {
-      [self makeRefs: next];
     }
 }
 
@@ -546,6 +638,67 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
 }
 
+- (void) setInstallDir: (NSString*)dir inDomain: (int)domain
+{
+  NSString	*domainName = nil;
+
+  if (NSSystemDomainMask == domain) domainName = @"SYSTEM";
+  else if (NSLocalDomainMask == domain) domainName = @"LOCAL";
+  else if (NSNetworkDomainMask == domain) domainName = @"NETWORK";
+  else if (NSUserDomainMask == domain) domainName = @"USER";
+  else domainName = @"LOCAL";
+
+  if (domainName)
+    {
+      [refs setObject: domainName forKey: @"InstallationDomain"];
+    }
+  else
+    {
+      [refs removeObjectForKey: @"InstallationDomain"];
+    }
+
+  if (dir)
+    {
+      [refs setObject: dir forKey: @"InstallDirectory"];
+    }
+  else
+    {
+      [refs removeObjectForKey: @"InstallationDomain"];
+    }
+}
+
+- (NSDictionary*) authors
+{
+  return [refs objectForKey: @"author"];
+}
+
+/**
+ * Set up an array of email addresses for author.
+ */
+- (void) setEmail: (NSString*)address forAuthor: (NSString*)name
+{
+  NSMutableDictionary	*dict;
+  NSMutableArray	*array;
+
+  dict = [refs objectForKey: @"author"];
+  if (dict == nil)
+    {
+      dict = [NSMutableDictionary new];
+      [refs setObject: dict forKey: @"author"];
+      RELEASE(dict);
+    }
+  if (nil == (array = [dict objectForKey: name]))
+    {
+      array = [NSMutableArray array];
+      [dict setObject: array forKey: name];
+    }
+  address = [address lowercaseString];
+  if (address != nil && NO == [array containsObject: address]) 
+    {
+      [array addObject: address];
+    }
+}
+
 - (void) setGlobalRef: (NSString*)ref
 		 type: (NSString*)type
 {
@@ -582,7 +735,14 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       [refs setObject: dict forKey: @"output"];
       RELEASE(dict);
     }
-  [dict setObject: a forKey: h];
+  if ([a count] == 0)
+    {
+      [dict removeObjectForKey: h];
+    }
+  else
+    {
+      [dict setObject: a forKey: h];
+    }
 }
 
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to
@@ -735,9 +895,13 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	}
       if (*u != nil)
 	{
-	  return [t objectForKey: *u];
+	  n = [t objectForKey: *u];
 	}
-      return nil;
+      else
+	{
+	  n = nil;
+	}
+      return n;
     }
 
   /**
@@ -767,13 +931,29 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
     {
       *u = [*u substringToIndex: [*u rangeOfString: @"("].location];
-      s = [t objectForKey: *u];
-      if (s != nil)
+      if ((s = [t objectForKey: *u]) != nil)
         {
           return s;
         }
     }
 
+  /* For a method lookup, try an informal protocol of the class
+   */
+  if ([*u length] > 0 && [type isEqual: @"method"])
+    {
+      NSString	*p = [NSString stringWithFormat: @"(%@)", *u];
+
+      if ((s = [t objectForKey: p]) != nil)
+        {
+	  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"])
+	    {
+	      NSLog(@"Warning - found %@ only in informal protocol of %@",
+		ref, *u);
+	    }
+          return s;
+        }
+    }
+    
   /**
    * Try all superclasses in turn.
    */

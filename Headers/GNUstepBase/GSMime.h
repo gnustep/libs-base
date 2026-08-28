@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: Additions/GSMime.m
 */
@@ -166,6 +165,7 @@ GS_EXPORT_CLASS
  */
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
++ (NSStringEncoding) encodingForXml: (id)xml;
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset;
 
 - (void) addContent: (id)newContent;

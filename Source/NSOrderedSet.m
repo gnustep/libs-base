@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
@@ -38,7 +37,6 @@
 
 #import <GNUstepBase/GSBlocks.h>
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
@@ -179,30 +177,17 @@ static SEL	remSel;
 {
    if ([aCoder allowsKeyedCoding])
     {
-      if ([aCoder class] == [NSKeyedArchiver class])
-	{
-          /* HACK ... MacOS-X seems to code differently if the coder is an
-           * actual instance of NSKeyedArchiver
-           */
-          NSArray *array = [self array];
-
-	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: array
-						   forKey: @"NS.objects"];
-	}
-      else
-	{
-	  unsigned	i = 0;
-	  NSEnumerator	*e = [self objectEnumerator];
-	  id		o;
-
-	  while ((o = [e nextObject]) != nil)
-	    {
-	      NSString	*key;
-
-	      key = [NSString stringWithFormat: @"NS.object.%u", i++];
-	      [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
-	    }
-	}
+      unsigned	i = 0;
+      NSEnumerator	*e = [self objectEnumerator];
+      id		o;
+    
+      while ((o = [e nextObject]) != nil)
+        {
+          NSString	*key;
+    
+          key = [NSString stringWithFormat: @"NS.object.%u", i++];
+          [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
+        }
     }
   else
     {
@@ -212,9 +197,9 @@ static SEL	remSel;
 
       [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
       while ((o = [e nextObject]) != nil)
-	{
-	  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
-	}
+        {
+          [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+        }
     }
 }
 
@@ -339,7 +324,7 @@ static SEL	remSel;
 
   if (count == 0)
     {
-      return [self init];
+      self = [self init];
     }
   else
     {
@@ -360,10 +345,8 @@ static SEL	remSel;
 	}
       self = [self initWithObjects: objs count: count];
       GS_ENDIDBUF();
-      return self;
     }
-
-  return nil;
+  return self;
 }
 
 - (instancetype) initWithArray: (NSArray *)other copyItems: (BOOL)flag
@@ -429,11 +412,11 @@ static SEL	remSel;
 	  {
 	    if (flag == YES)
 	      {
-		objs[i] = [[other objectAtIndex: i] copy];
+		objs[j] = [[other objectAtIndex: i] copy];
 	      }
 	    else
 	      {
-		objs[i] = [other objectAtIndex: i];
+		objs[j] = [other objectAtIndex: i];
 	      }
 	    j++;
 	  }
@@ -448,7 +431,7 @@ static SEL	remSel;
 
   if (flag == YES)
     {
-      while(j--)
+      while (j--)
 	{
 	  [objs[j] release];
 	}
@@ -494,13 +477,13 @@ static SEL	remSel;
 - (instancetype) initWithOrderedSet: (NSOrderedSet *)other
                           copyItems: (BOOL)flag
 {
-  unsigned	c = [other count];
-  id		o, e = [other objectEnumerator];
-  unsigned	i = 0;
+  NSUInteger	c = [other count];
+  NSUInteger	i = 0;
   GS_BEGINIDBUF(os, c);
 
-  while ((o = [e nextObject]))
+  GS_FOR_IN(id, o, other)
     {
+      if (i >= c) break;
       if (flag)
         {
           os[i] = [o copy];
@@ -511,6 +494,8 @@ static SEL	remSel;
         }
       i++;
     }
+  GS_END_FOR(other)
+
   self = [self initWithObjects: os count: c];
   if (flag)
     {
@@ -528,23 +513,22 @@ static SEL	remSel;
                           copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
-  id		o, e = [other objectEnumerator];
   unsigned	i = 0, j = 0;
   unsigned      loc = range.location;
   unsigned      len = range.length;
   GS_BEGINIDBUF(os, c);
 
-  while ((o = [e nextObject]))
+  GS_FOR_IN(id, o, other)
     {
       if (i >= loc && j < len)
 	{
 	  if (flag)
             {
-              os[i] = [o copy];
+              os[j] = [o copy];
             }
 	  else
             {
-              os[i] = o;
+              os[j] = o;
             }
 	  j++;
 	}
@@ -555,13 +539,14 @@ static SEL	remSel;
 	  break;
 	}
     }
+  GS_END_FOR(other)
 
   self = [self initWithObjects: os count: c];
   if (flag)
     {
-      while (i--)
+      while (j--)
         {
-          [os[i] release];
+          [os[j] release];
         }
     }
   GS_ENDIDBUF();
@@ -656,7 +641,7 @@ static SEL	remSel;
 
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
@@ -671,7 +656,7 @@ static SEL	remSel;
         {
           break;
         }
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   }
 }
@@ -863,7 +848,7 @@ static SEL	remSel;
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -896,7 +881,7 @@ static SEL	remSel;
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(indexLock);
@@ -940,7 +925,7 @@ static SEL	remSel;
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -970,7 +955,7 @@ static SEL	remSel;
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(setLock);
@@ -1272,9 +1257,9 @@ static SEL	remSel;
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: [self count]];
   id<NSFastEnumeration> enumerator = self;
 
-  FOR_IN(id, o, enumerator)
+  GS_FOR_IN(id, o, enumerator)
     [result addObject: o];
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
 
   return GS_IMMUTABLE(result);
 }
@@ -1284,9 +1269,9 @@ static SEL	remSel;
   NSMutableSet *result = [NSMutableSet setWithCapacity: [self count]];
   id<NSFastEnumeration> enumerator = self;
 
-  FOR_IN(id, o, enumerator)
+  GS_FOR_IN(id, o, enumerator)
     [result addObject: o];
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
 
   return GS_IMMUTABLE(result);
 }
@@ -1431,12 +1416,12 @@ static SEL	remSel;
 
   if (count > 0)
     {
-      NSUInteger	i;
       IMP	rem = [self methodForSelector: remSel];
       
-      for (i = 0; i < count; i++)
+      while (count-- > 0)
 	{
-	  NSUInteger idx = indexArray[i];
+	  NSUInteger idx = indexArray[count];
+
 	  (*rem)(self, remSel, idx);
 	}
     }
@@ -1566,25 +1551,23 @@ static SEL	remSel;
          inIndexRange: NULL];
 
   // Build the temporary array....
-  while (i-- > 0)
+  for (i = 0; i < count; i++)
     {
-      NSUInteger index = indexArray[i];
-      id obj = [self objectAtIndex: index];
-      [tmpArray addObject: obj];
+      [tmpArray addObject: [self objectAtIndex: indexArray[i]]];
     }
 
   // Remove the originals...
-  for (i = 0; i < count; i++)
+  i = count;
+  while (i-- > 0)
     {
-      NSUInteger index = indexArray[i];
-      [self removeObjectAtIndex: index];
+      [self removeObjectAtIndex: indexArray[i]];
     }
 
   // Move the objects
   e = [tmpArray objectEnumerator];
   while ((o = [e nextObject]) != nil)
     {
-      [self insertObject: o atIndex: index];
+      [self insertObject: o atIndex: index++];
     }
 }
 
@@ -1710,7 +1693,7 @@ static SEL	remSel;
 {
   if (other != self)
     {
-      id keys = [self objectEnumerator];
+      id keys = [[self array] objectEnumerator];
       id key;
 
       while ((key = [keys nextObject]))
@@ -1725,7 +1708,7 @@ static SEL	remSel;
 
 - (void) intersectSet: (NSSet *)other
 {
-  id keys = [self objectEnumerator];
+  id keys = [[self array] objectEnumerator];
   id key;
 
   while ((key = [keys nextObject]))

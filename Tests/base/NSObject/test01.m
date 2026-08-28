@@ -48,7 +48,7 @@ int main()
        ![[[NSArray new] autorelease] isClass]),
        "-isClass returns NO on an instance");
   
-  evilObject = [MyEvilClass new];
+  evilObject = AUTORELEASE([MyEvilClass new]);
   [evilObject setInfo:1];
   PASS(![evilObject isClass], 
        "-isClass returns NO on an instance (special test for broken libobjc)");

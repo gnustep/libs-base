@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSFileHandle class reference</title>
    $Date$ $Revision$
@@ -27,6 +26,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHost.h"
@@ -92,11 +92,11 @@ static Class NSFileHandle_ssl_class = nil;
 {
   if (self == NSFileHandle_abstract_class)
     {
-      return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
+      return NSAllocateObject(NSFileHandle_concrete_class, 0, z);
     }
   else
     {
-      return NSAllocateObject (self, 0, z);
+      return NSAllocateObject(self, 0, z);
     }
 }
 
@@ -187,9 +187,10 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithNullDevice]);
 }
 
-+ (id) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForReadingFromURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForReadingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -197,9 +198,10 @@ static Class NSFileHandle_ssl_class = nil;
   return o;
 }
 
-+ (id) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForWritingToURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForWritingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -210,6 +212,7 @@ static Class NSFileHandle_ssl_class = nil;
 + (id) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error
 {
   id	o = [self fileHandleForUpdatingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -306,7 +309,7 @@ static Class NSFileHandle_ssl_class = nil;
 /**
  *  Reads up to len bytes from file or communications channel into return data.
  */
-- (NSData*) readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -320,6 +323,23 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL) writeData:(NSData *)data error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (NSData *) readDataUpToLength:(NSUInteger)length error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 
 // Asynchronous I/O operations
 
@@ -410,6 +430,13 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Seeking within a file
 
+- (BOOL) getOffset: (unsigned long long *)offsetInFile
+             error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
 /**
  *  Return current position in file, or raises exception if instance does
  *  not represent a regular file.
@@ -428,6 +455,20 @@ static Class NSFileHandle_ssl_class = nil;
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile
+                            error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (BOOL) seekToOffset: (unsigned long long)offset
+                error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 /**
@@ -468,6 +509,12 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL) truncateAtOffset: (unsigned long long)offset
+                    error: (NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
 
 @end
 
@@ -745,7 +792,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSRunLoop	*loop;
 
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      IF_NO_ARC([self retain];)		// Don't get destroyed during runloop
       loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
@@ -789,7 +836,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSRunLoop	*loop;
 
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      IF_NO_ARC([self retain];)		// Don't get destroyed during runloop
       loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
@@ -1018,6 +1065,31 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   return [super read: buf length: len];
 }
 
+- (void) watchReadDescriptorForModes: (NSArray*)modes
+{
+  if (descriptor < 0)
+    { 
+      return;
+    }
+  if ([session pending] > 0)
+    {
+      NSRunLoop *l = [NSRunLoop currentRunLoop];
+
+      /* The underlying TLS buffers already have data so we signal
+       * an event as soon as possible.
+       */
+      [l performSelector: @selector(receivedEventRead)
+                  target: self
+                argument: nil
+                   order: 0
+                   modes: modes];
+    }
+  else
+    {
+      [super watchReadDescriptorForModes: modes];
+    }
+}
+
 - (BOOL) sslAccept
 {
   /* If a server session is over five minutes old, destroy it so that
@@ -1066,26 +1138,20 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
    */
   if (nil == session)
     {
-      /* If No value is specified for GSTLSRemoteHosts, make a comma separated
-       * list of all known names for the remote host and use that.
+      /* If no value is specified for GSTLSServerName, try to use any name of
+       * the remote host in case the remote server requres a name.
        */
-      if (nil == [opts objectForKey: GSTLSRemoteHosts])
+      if (nil == [opts objectForKey: GSTLSServerName])
         {
           NSHost        *host = [NSHost hostWithAddress: [self socketAddress]];
-          NSString      *s = [[host names] description];
+          NSString      *name = [host name];
 
-          s = [s stringByReplacingString: @"\"" withString: @""];
-          if ([s length] > 1)
+          if (name)
             {
-              s = [s substringWithRange: NSMakeRange(1, [s length] - 2)];
-            }
-          if ([s length] > 0)
-            {
-              NSMutableDictionary   *d = [opts mutableCopy];
+              NSMutableDictionary   *d = AUTORELEASE([opts mutableCopy]);
 
-              [d setObject:s forKey: GSTLSRemoteHosts];
+              [d setObject: name forKey: GSTLSRemoteHosts];
               ASSIGNCOPY(opts, d);
-              [d release];
             }
         }
       [self setNonBlocking: YES];

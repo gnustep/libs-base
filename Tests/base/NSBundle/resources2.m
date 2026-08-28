@@ -17,6 +17,7 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
 {
   NSArray  *arr, *carr;
   NSString *localPath;
+  NSString *str;
 
   PASS((bundle != nil),
     "bundle was found");
@@ -53,6 +54,11 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
   PASS([arr containsObject: localPath],
     "Returned array contains localized resource");
 
+  str = [bundle localizedStringForKey: @"test"
+                                value: @"not-found"
+                                table: nil];
+  PASS_EQUAL(str, @"42", "Localizable strings file contains 'test'")
+
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
   arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil
     forLocalization: @"en"];
@@ -81,9 +87,9 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
   PASS([arr containsObject: localPath],
     "Returned array for 'German' contains localized resource");
   Class clz = [bundle classNamed: className];
-  PASS(clz, "Class can be loaded from bundle");
+  PASS(clz != nil, "Class can be loaded from bundle");
   id obj = [clz new];
-  PASS(obj, "Objects from bundle-loaded classes can be instantiated");
+  PASS(obj != nil, "Objects from bundle-loaded classes can be instantiated");
   PASS_EQUAL([obj test], @"Something", "Correct method called");
   [obj release];
 }
@@ -103,6 +109,9 @@ int main()
   END_SET("Bundle")
 
   START_SET("Framework")
+#if defined(_WIN32)
+  SKIP("Adding a run-time search path is not supported on Windows.")
+#else
   /* This method call is required to ensure that the linker does not decide to
    * elide the framework linkage.
    */
@@ -111,6 +120,7 @@ int main()
   path = [bundle bundlePath];
   _testBundle(bundle, path, @"TestFramework");
   PASS(0 == [bundle bundleVersion], "bundleVersion is zero");
+#endif
   END_SET("Framework");
 
   [arp release]; arp = nil;

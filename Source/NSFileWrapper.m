@@ -26,8 +26,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, see <http://www.gnu.org/licenses/> or write to the 
-   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
-   Boston, MA 02110-1301, USA.
+   Free Software Foundation, 31 Milk Street #960789 Boston, MA 02196 USA.
 */ 
 
 #include "config.h"
@@ -152,11 +151,20 @@
       self = [self initSymbolicLinkWithDestination: 
                  [fm pathContentOfSymbolicLinkAtPath: path]];
     }
+  else
+    {
+      self = [super init];
+    }
 
-  // Store the full path in filename, the specification is unclear in this point
-  [self setFilename: path];
-  [self setPreferredFilename: [path lastPathComponent]];
-  [self setFileAttributes: fileAttributes];
+  if (self)
+    {
+      /* Store the full path in filename,
+       * the specification is unclear in this point
+       */
+      [self setFilename: path];
+      [self setPreferredFilename: [path lastPathComponent]];
+      [self setFileAttributes: fileAttributes];
+    }
 
   LEAVE_POOL
   return self;

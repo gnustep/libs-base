@@ -25,10 +25,12 @@ int main()
   
   [obj setObject: val1 forKey: @"Key1"];
   PASS([obj count] == 1, "-setObject:forKey increments count");
-  [obj setObject: nil forKey: @"Key2"];
-  PASS([obj count] == 2, "-setObject:forKey: works with nil value");
-  PASS_EXCEPTION([obj setObject: val1 forKey: nil];,
-    NSInvalidArgumentException, "-setObject:forKey: raises with nil key");
+  PASS_RUNS([obj setObject: nil forKey: @"Key2"],
+    "-setObject:forKey: accepts nil value");
+  PASS([obj count] == 1, "-setObject:forKey: is no-op with nil value");
+  PASS_RUNS([obj setObject: val1 forKey: nil],
+    "-setObject:forKey: accepts nil key");
+  PASS([obj count] == 1, "-setObject:forKey: is no-op with nil key");
 
   [arp release]; arp = nil;
   return 0;

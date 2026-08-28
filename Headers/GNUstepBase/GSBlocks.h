@@ -15,8 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -107,8 +106,11 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
-#define CALL_BLOCK(block, args...) ((NULL != block) ? CALL_NON_NULL_BLOCK(block, args) : nil)
-#define CALL_BLOCK_NO_ARGS(block) ((NULL != block) ? CALL_NON_NULL_BLOCK_NO_ARGS(block) : nil)
+#define CALL_BLOCK(block, args...) ({if (NULL != block) CALL_NON_NULL_BLOCK(block, args);})
+#define CALL_BLOCK_RET(block, rettype, args...) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK(block, args) : (rettype)0)
+
+#define CALL_BLOCK_NO_ARGS(block) ({if (NULL != block) CALL_NON_NULL_BLOCK_NO_ARGS(block);})
+#define CALL_BLOCK_RET_NO_ARGS(block, rettype) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK_NO_ARGS(block) : (rettype)0)
 
 #if __has_include(<objc/blocks_runtime.h>)
 #  include <objc/blocks_runtime.h>
@@ -124,8 +126,15 @@ extern "C" {
  * by an application.
  */
 
-/* weak attributed supported only with ELF, MINGW is COFF */
+/* The weak attribute is supported only with ELF, MINGW is COFF
+ * Does that matter (the compiler seems to ignore it)?
+ */
 #ifndef __MINGW32__
+
+void *_Block_copy(const void *) __attribute__((weak));
+void _Block_release(const void *) __attribute__((weak));
+
+#else
 
 void *_Block_copy(const void *) __attribute__((weak));
 void _Block_release(const void *) __attribute__((weak));

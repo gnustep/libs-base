@@ -1,4 +1,4 @@
-/* Interface for NSSortDescriptor for GNUStep
+/**Interface for NSSortDescriptor for GNUStep
    Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by:  Saso Kiselkov <diablos@manga.sk>
@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSSortDescriptor_h_GNUSTEP_BASE_INCLUDE
@@ -143,13 +142,13 @@ GS_EXPORT_CLASS
 - (id) reversedSortDescriptor;
 @end
 
-@interface NSArray (NSSortDescriptorSorting)
+@interface GS_GENERIC_CLASS(NSArray, ElementT) (NSSortDescriptorSorting)
 
 /**
  * Produces a sorted array using the mechanism described for
- * [NSMutableArray-sortUsingDescriptors:]
+ * [NSMutableArray(NSSortDescriptorSorting)-sortUsingDescriptors:]
  */
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end
 
@@ -171,12 +170,12 @@ GS_EXPORT_CLASS
 @end
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
-@interface NSSet (NSSortDescriptorSorting)
+@interface GS_GENERIC_CLASS(NSSet, ElementT) (NSSortDescriptorSorting)
  /**
  * Produces a sorted array from using the mechanism described for
- * [NSMutableArray-sortUsingDescriptors:]
+ * [NSMutableArray(NSSortDescriptorSorting)-sortUsingDescriptors:]
  */
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 @end
 #endif
 

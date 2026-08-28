@@ -46,7 +46,10 @@ int main(void)
 	  PASS([tmp isEqual: obj],
 	    "Decoding in different encodings give the same result");
 	}
-      obj = tmp;
+      else
+	{
+          obj = tmp;
+	}
     }
 
   PASS([obj count] == 7,

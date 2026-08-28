@@ -32,8 +32,10 @@ int main()
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents/./..",
     "dot directory reference retained");
 
-#ifndef	_WIN32
-  /* This test can't work on windows, because the ome directory of a
+#if defined(_WIN32)
+  SKIP("multiple slashes can't be removed on Windows")
+#else
+  /* This test can't work on windows, because the home directory of a
    * user doesn't start with a slash... don't run it on _WIN32
    */
   tmp = [NSString stringWithFormat: @"////%@//Documents///", home];
@@ -41,9 +43,19 @@ int main()
     "multiple slashes removed");
 #endif
 
+  /* The path is only left alone where it is outside the home directory.
+   * Android reports the home directory of a process with no JNI context as
+   * "/", and so does a POSIX account whose pw_dir is "/", and every absolute
+   * path is inside that.
+   */
+  if ([NSHomeDirectory() isEqual: @"/"] == YES)
+    {
+      testHopeful = YES;
+    }
   PASS_EQUAL([@"//////Documents///" stringByAbbreviatingWithTildeInPath],
     @"/Documents",
     "multiple slashes removed without tilde replacement");
+  testHopeful = NO;
 
   PASS_EQUAL([@".//////Documents///" stringByAbbreviatingWithTildeInPath],
     @"./Documents",
@@ -52,9 +64,12 @@ int main()
   END_SET("tilde")
 
   START_SET("tilde abbreviation for other home")
+
+#if defined(_WIN32)
+  SKIP("tilde abbreviation test not implemented on Windows")
+#else
   NSString      *home = NSHomeDirectory();
   NSString      *tmp;
-
   /* The idea here is to use a home directory for a user other than the
    * current one.  We pick root as a user which will exist on most systems.
    * If the current user is root then this will not work, so we skip the
@@ -71,6 +86,7 @@ int main()
     }
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], tmp,
     "tilde does nothing for root's home");
+#endif
 
   END_SET("tilde abbreviation for other home")
   return 0;

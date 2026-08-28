@@ -9,12 +9,17 @@
 
 int main(int argc, char **argv, char **env)
 {
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = YES;
+#endif
+
   CREATE_AUTORELEASE_POOL(arp);
   NSFileManager *fm;
   NSBundle *bundle;
   BOOL loaded;
   NSString *helperPath;
-
+  
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
@@ -29,7 +34,7 @@ int main(int argc, char **argv, char **env)
       NSDictionary *refs;
       TestWebServer *server;
       NSURLConnectionTest *testCase;
-      BOOL debug = NO;
+      BOOL debug = GSDebugSet(@"dflt");
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
 
@@ -40,11 +45,11 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
 	initWithAddress: @"localhost"
-	port: @"1234"
+	port: @"0"
 	mode: NO
         extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1234 HTTPS
+      [server start: d]; // localhost, HTTPS
 
       /* Simple GET via HTTPS without authorization with empty response's
        * body and the response's status code 204 (by default)
@@ -70,7 +75,7 @@ int main(int argc, char **argv, char **env)
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess],
-	"HTTPS... no auth...GET https://localhost:1234/withoutauth");
+	"HTTPS... no auth...GET https://localhost/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -99,7 +104,7 @@ int main(int argc, char **argv, char **env)
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost:1234/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -131,7 +136,7 @@ int main(int argc, char **argv, char **env)
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost:1234/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -161,11 +166,12 @@ int main(int argc, char **argv, char **env)
 	@"/301/withoutauth", @"Path", // request a redirect
 	@"/withoutauth", @"RedirectPath", // the URL's path of redirecting 
 	@"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
+        @"0", @"AuxPort",   // the port of the auxilliary instance			
 	refs, @"ReferenceFlags", // the expected reference set difference
 	nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost:1234/301/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost/301/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -180,8 +186,11 @@ int main(int argc, char **argv, char **env)
 		  format: @"can't load bundle TestConnection"];
     }
 
-
   DESTROY(arp);
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = NO;
+#endif
 
   return 0;
 }

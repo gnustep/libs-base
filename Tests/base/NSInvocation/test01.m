@@ -33,7 +33,7 @@ int main()
   tClass = NSClassFromString(@"InvokeTarget");
    
   
-  tar = [tClass new];
+  tar = AUTORELEASE([tClass new]);
   
   /* 
     Test if the return value is retained. It is in the Apple OpenStep edition

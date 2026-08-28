@@ -20,8 +20,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource: Additions/GSObjCRuntime.m
 
@@ -64,6 +63,63 @@
  #endif
 #endif
 
+#ifdef __GNUSTEP_RUNTIME__
+#  include <objc/capabilities.h>
+#endif
+
+#if defined(OBJC_CAP_ARC)
+#  include <objc/objc-arc.h>
+#else
+
+GS_EXPORT void objc_copyWeak(id *dest, id *src);
+GS_EXPORT void objc_destroyWeak(id *obj);
+GS_EXPORT id objc_initWeak(id *addr, id obj);
+GS_EXPORT id objc_loadWeakRetained(id *addr);
+GS_EXPORT void objc_moveWeak(id *dest, id *src);
+
+#if !defined(__APPLE__)
+
+GS_EXPORT id objc_loadWeak(id *object);
+GS_EXPORT id objc_storeWeak(id *addr, id obj);
+
+/** objc_AssociationPolicy acts like a bitfield, but
+ * only specific combinations of flags are permitted.
+ * NB The atomic forms are (non-atomic-form | 0x300), so 0x300 can be used
+ * as a marker for the atomic version.
+ */
+typedef enum uintptr_t {
+
+  /** Simple pointer assignment creating an unsafe unretained reference.
+   */
+  OBJC_ASSOCIATION_ASSIGN = 0,
+
+  /** Retain when set, without a guarantee of atomicity.
+   */
+  OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1,
+
+  /** Copy when set (by sending a -copy message), without a guarantee
+   * of atomicity.
+   */
+  OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
+
+  /** Retain when set, with guaranteed atomicity.
+   */
+  OBJC_ASSOCIATION_RETAIN = 0x301,
+
+  /** Copy when set (by sending a -copy message), without guarantee
+   * of atomicity.
+   */
+  OBJC_ASSOCIATION_COPY = 0x303
+} objc_AssociationPolicy;
+
+GS_EXPORT id objc_getAssociatedObject(id object, const void *key);
+GS_EXPORT void objc_removeAssociatedObjects(id object);
+GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
+  id value, objc_AssociationPolicy policy);
+
+#endif
+#endif
+
 /*
  * Hack for older compiler versions that don't have all defines
  * needed in  objc-api.h
@@ -75,9 +131,11 @@
 #define	_C_ULNG_LNG	'Q'
 #endif
 
-#if	OBJC2RUNTIME
 /* We have a real ObjC2 runtime.
  */
+#if	OBJC2RUNTIME
+#include <objc/runtime.h>
+#elif	defined(__APPLE__)
 #include <objc/runtime.h>
 #else
 /* We emulate an ObjC2 runtime.
@@ -256,30 +314,30 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
  */
 
 /**
- * Deprecated ... use objc_getClassList()
+ * Deprecated ... use "objc_getClassList()".
  */
 GS_EXPORT unsigned int
 GSClassList(Class *buffer, unsigned int max, BOOL clearCache);
 
 /**
- * GSObjCClass() is deprecated ... use object_getClass()
+ * GSObjCClass() is deprecated ... use "object_getClass()".
  */
 GS_EXPORT Class GSObjCClass(id obj);
 
 /**
- * GSObjCSuper() is deprecated ... use class_getSuperclass()
+ * GSObjCSuper() is deprecated ... use "class_getSuperclass()".
  */
 GS_EXPORT Class GSObjCSuper(Class cls);
 
 /**
- * GSObjCIsInstance() is deprecated ... use object_getClass()
- * in conjunction with class_isMetaClass()
+ * GSObjCIsInstance() is deprecated ... use "object_getClass()"
+ * in conjunction with "class_isMetaClass()".
  */
 GS_EXPORT BOOL GSObjCIsInstance(id obj);
 
 /**
- * GSObjCIsClass() is deprecated ... use object_getClass()
- * in conjunction with class_isMetaClass()
+ * GSObjCIsClass() is deprecated ... use "object_getClass()"
+ * in conjunction with "class_isMetaClass()".
  */
 GS_EXPORT BOOL GSObjCIsClass(Class cls);
 
@@ -290,28 +348,28 @@ GS_EXPORT BOOL GSObjCIsClass(Class cls);
 GS_EXPORT BOOL GSObjCIsKindOf(Class cls, Class other);
 
 /**
- * GSClassFromName() is deprecated ... use objc_lookUpClass()
+ * GSClassFromName() is deprecated ... use "objc_lookUpClass()".
  */
 GS_EXPORT Class GSClassFromName(const char *name);
 
 /**
- * GSNameFromClass() is deprecated ... use class_getName()
+ * GSNameFromClass() is deprecated ... use "class_getName()".
  */
 GS_EXPORT const char *GSNameFromClass(Class cls);
 
 /**
- * GSClassNameFromObject() is deprecated ... use object_getClass()
- * in conjunction with class_getName()
+ * GSClassNameFromObject() is deprecated ... use "object_getClass()".
+ * in conjunction with "class_getName()".
  */
 GS_EXPORT const char *GSClassNameFromObject(id obj);
 
 /**
- * GSNameFromSelector() is deprecated ... use sel_getName()
+ * GSNameFromSelector() is deprecated ... use "sel_getName()".
  */
 GS_EXPORT const char *GSNameFromSelector(SEL sel);
 
 /**
- * GSSelectorFromName() is deprecated ... use sel_getUid()
+ * GSSelectorFromName() is deprecated ... use "sel_getUid()".
  */
 GS_EXPORT SEL
 GSSelectorFromName(const char *name);
@@ -395,7 +453,7 @@ typedef Ivar	GSIVar;
  * either the specified class only or also its superclasses.<br/>
  * To obtain the implementation pointer IMP use returnValue->method_imp
  * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
+ * It should be safe to use this function in "+load" implementations.<br/>
  * This function should currently (June 2004) be considered WIP.
  * Please follow potential changes (Name, parameters, ...) closely until
  * it stabilizes.
@@ -412,19 +470,19 @@ GS_EXPORT void
 GSFlushMethodCacheForClass (Class cls);
 
 /**
- * Deprecated .. use class_getInstanceVariable()
+ * Deprecated .. use "class_getInstanceVariable()".
  */
 GS_EXPORT GSIVar
 GSCGetInstanceVariableDefinition(Class cls, const char *name);
 
 /**
- * Deprecated .. use class_getInstanceVariable()
+ * Deprecated .. use "class_getInstanceVariable()".
  */
 GS_EXPORT GSIVar
 GSObjCGetInstanceVariableDefinition(Class cls, NSString *name);
 
 /**
- * GSObjCVersion() is deprecated ... use class_getVersion()
+ * GSObjCVersion() is deprecated ... use "class_getVersion()"
  */
 GS_EXPORT int GSObjCVersion(Class cls);
 
@@ -471,11 +529,20 @@ GSClassSwizzle(id instance, Class newClass);
 #if GS_API_VERSION(GS_API_ANY,011500)
 
 GS_EXPORT const char *
-GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
+GSLastErrorStr(long error_id) GS_DEPRECATED;
 
 #endif
 
 
+
+/**
+ * The maximum number of bytes to allocate from the stack for a butffer.
+ * For buffer sizes greater than this, we use the heap.
+ * NB. This MUST be a multiple of 16
+ */
+#ifndef	GS_MAX_BYTES_FROM_STACK
+#define	GS_MAX_BYTES_FROM_STACK	4096
+#endif
 
 #ifndef	GS_MAX_OBJECTS_FROM_STACK
 /**
@@ -483,7 +550,7 @@ GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
  * the stack ... if there are more than this, use the heap.
  * NB. This MUST be a multiple of 2
  */
-#define	GS_MAX_OBJECTS_FROM_STACK	128
+#define	GS_MAX_OBJECTS_FROM_STACK	(GS_MAX_BYTES_FROM_STACK/sizeof(id))
 #endif
 
 /**

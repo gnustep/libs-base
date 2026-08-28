@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
@@ -71,6 +70,9 @@ GS_EXPORT NSString *const NSKeyValueChangeNewKey;
 GS_EXPORT NSString *const NSKeyValueChangeOldKey;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12,GS_API_LATEST)
+typedef NSString *NSKeyValueChangeKey;
 #endif
 
 /* Given that the receiver has been registered as an observer
@@ -138,6 +140,11 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 - (void) removeObserver: (NSObject*)anObserver
 	     forKeyPath: (NSString*)aPath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context;
+#endif
 @end
 
 @interface NSArray (NSKeyValueObserverRegistration)
@@ -152,6 +159,12 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
    fromObjectsAtIndexes: (NSIndexSet*)indexes
 	     forKeyPath: (NSString*)aPath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+- (void) removeObserver: (NSObject*)anObserver
+   fromObjectsAtIndexes: (NSIndexSet *)indexes
+             forKeyPath: (NSString*)aPath
+                context: (void *)context;
+#endif
 @end
 
 /**
@@ -216,7 +229,8 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
  * they should also be sent for dependentKey.
  */
 + (void) setKeys: (NSArray*)triggerKeys
-triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
+  triggerChangeNotificationsForDependentKey:
+  (NSString*)dependentKey GS_DEPRECATED;
 
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)

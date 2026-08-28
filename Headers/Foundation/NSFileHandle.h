@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource: NSFileHandle.m
     AutogsdocSource: NSPipe.m
@@ -55,9 +54,12 @@ GS_EXPORT_CLASS
 + (instancetype) fileHandleWithNullDevice;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-+ (instancetype) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error;
-+ (instancetype) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error;
-+ (instancetype) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error;
++ (instancetype) fileHandleForReadingFromURL: (NSURL*)url
+				       error: (NSError *_Nullable *_Nullable)error;
++ (instancetype) fileHandleForWritingToURL: (NSURL*)url
+				     error: (NSError *_Nullable *_Nullable)error;
++ (instancetype) fileHandleForUpdatingURL: (NSURL*)url
+				    error: (NSError *_Nullable *_Nullable)error;
 #endif
 
 - (id) initWithFileDescriptor: (int)desc;
@@ -74,8 +76,28 @@ GS_EXPORT_CLASS
 
 - (NSData*) availableData;
 - (NSData*) readDataToEndOfFile;
-- (NSData*) readDataOfLength: (unsigned int)len;
+- (NSData*) readDataOfLength: (NSUInteger)len;
 - (void) writeData: (NSData*)item;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/**
+ * Writes the specified data synchronously to the file handle.
+ */
+- (BOOL) writeData: (NSData *)data 
+             error: (NSError **)error;
+
+/**
+ * Reads the data synchronously up to the specified number of bytes.
+ */
+- (NSData *) readDataUpToLength: (NSUInteger)length 
+                          error: (NSError **)error;
+
+/**
+ * Reads the data synchronously up to the end of file or maximum number of
+ * bytes.
+ */
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **)error;
+#endif
 
 // Asynchronous I/O operations
 
@@ -93,6 +115,30 @@ GS_EXPORT_CLASS
 - (unsigned long long) offsetInFile;
 - (unsigned long long) seekToEndOfFile;
 - (void) seekToFileOffset: (unsigned long long)pos;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/**
+ * Get the current position of the file pointer within the file.
+ */
+- (BOOL) getOffset: (unsigned long long *)offsetInFile 
+             error: (NSError **)error;
+
+/**
+ * Sets the file pointer at the end of the file and returns the new file offset.
+ */
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile 
+                            error: (NSError **)error;
+
+/**
+ * Sets the file pointer to the specified offset within the file.
+ */
+- (BOOL) seekToOffset: (unsigned long long)offset 
+                error: (NSError **)error;
+
+- (BOOL) truncateAtOffset: (unsigned long long)offset 
+                    error: (NSError **)error;
+
+#endif
 
 // Operations on file
 
@@ -324,6 +370,18 @@ GS_EXPORT_CLASS
  *   <desc>A boolean specifying whether diagnostic debug is to be enabled
  *   to log information about a connection where the handshake fails.<br />
  *   </desc>
+ *   <term>GSTLSIssuers</term>
+ *   <desc>An array of distinguished names (in RFC4514 format) listing the
+ *   permitted issuers of the remote certificate.  If this is present and the
+ *   issuer of the remote certificate is not in the array, the connection
+ *   handshake is failed.
+ *   </desc>
+ *   <term>GSTLSOwners</term>
+ *   <desc>An array of distinguished names (in RFC4514 format) listing the
+ *   permitted owners/subjects of the remote certificate.  If this is present
+ *   and the owner/subject of the remote certificate is not in the array, the
+ *   connection handshake is failed.
+ *   </desc>
  *   <term>GSTLSPriority</term>
  *   <desc>A GNUTLS priority string describing the ciphers etc which may be
  *   used for the connection.  In addition the string may be one of
@@ -398,6 +456,14 @@ GS_EXPORT NSString * const GSTLSDebug;
 /** Dictionary key for a GNUTLS priority setting for a session.
  */
 GS_EXPORT NSString * const GSTLSPriority;
+
+/** Dictionary key for an array of issuers to use in certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSIssuers;
+
+/** Dictionary key for an array of owners to use in certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSOwners;
 
 /** Dictionary key for a list of hosts to use in certificate verification.
  */

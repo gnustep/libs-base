@@ -8,6 +8,7 @@
  */
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSLock.h"
+#import "GSPThread.h"
 
 static NSRecursiveLock *propertyLock = nil;
 static inline NSRecursiveLock*
@@ -15,12 +16,14 @@ pLock()
 {
   if (propertyLock == nil)
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(setupLock);
       if (propertyLock == nil)
         {
 	  propertyLock = [NSRecursiveLock new];
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(setupLock);
     }
   return propertyLock;
 }

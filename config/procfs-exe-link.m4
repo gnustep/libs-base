@@ -6,7 +6,7 @@ dnl  Copyright (C) 2005 Free Software Foundation
 dnl  Copying and distribution of this file, with or without modification,
 dnl  are permitted in any medium without royalty provided the copyright
 dnl  notice and this notice are preserved.
-AC_DEFUN(AC_SYS_PROCFS_EXE_LINK,
+AC_DEFUN([AC_SYS_PROCFS_EXE_LINK],
 [ AC_REQUIRE([AC_SYS_PROCFS])
 
   AC_CACHE_CHECK([link to exe of process in /proc], ac_cv_sys_procfs_exe_link,

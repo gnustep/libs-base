@@ -9,7 +9,7 @@ int main()
   NSString *xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?><html></html>";
   NSString *charset = nil;
   PASS_RUNS(charset = [GSMimeDocument charsetForXml: xml], "Can determine charset of xml document.");
-  PASS_EQUAL(@"UTF-8", charset, "Charset detected correctly");
+  PASS_EQUAL(@"utf-8", [charset lowercaseString], "Charset detected correctly");
   DESTROY(arp);
   return 0;
 }

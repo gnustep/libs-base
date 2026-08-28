@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -42,7 +41,6 @@
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -55,15 +53,20 @@
 #  include <sys/file.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #ifdef	HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>		// For MSG_PEEK, etc
 #endif
+
+@interface GSMimeHeader (HTTPRequest)
+- (void) addToBuffer: (NSMutableData*)buf
+             masking: (NSMutableData**)masked;
+@end
 
 /*
  * Implement map keys for strings with case insensitive comparisons,
@@ -108,6 +111,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			debug;
   BOOL			keepalive;
   BOOL			returnAll;
+  BOOL                  inResponse;
   id<GSLogDelegate>     ioDelegate;
   unsigned char		challenged;
   NSFileHandle          *sock;
@@ -115,6 +119,7 @@ static NSString	*httpVersion = @"1.1";
   NSString              *urlKey;
   NSURL                 *url;
   NSURL                 *u;
+  NSURL                 *proxyURL;
   NSMutableData         *dat;
   GSMimeParser		*parser;
   GSMimeDocument	*document;
@@ -209,11 +214,14 @@ static NSString	*httpVersion = @"1.1";
  *   alternative method (i.e &quot;PUT&quot;).
  * </p>
  * <p>
- *   A Proxy may be specified by calling -writeProperty:forKey:
+ *   A Proxy may be specified by calling -writeProperty:forKey: to set a
+ *   URL as the value for either https_proxy or http_proxy.<br />
+ *   For backward compatibility a proxy may also be specified by calling
+ *   -writeProperty:forKey:
  *   with the keys &quot;GSHTTPPropertyProxyHostKey&quot; and
  *   &quot;GSHTTPPropertyProxyPortKey&quot; to set the host and port
- *   of the proxy server respectively.  The GSHTTPPropertyProxyHostKey
- *   property can be set to either the IP address or the hostname of
+ *   of the proxy server respectively.<br />
+ *   The proxy property can specify either the IP address or the hostname of
  *   the proxy server.  If an attempt is made to load a page via a
  *   secure connection when a proxy is specified, GSHTTPURLHandle will
  *   attempt to open an SSL Tunnel through the proxy.
@@ -339,9 +347,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   maxCached = limit;
 }
 
-- (void) dealloc
+- (void) _disconnect
 {
-  if (sock != nil)
+  if (sock)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
 
@@ -349,11 +357,20 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
+  DESTROY(in);
+  DESTROY(out);
+  connectionState = idle;
+}
+
+- (void) dealloc
+{
+  [self _disconnect];
   DESTROY(out);
   DESTROY(in);
   DESTROY(u);
   DESTROY(urlKey);
   DESTROY(url);
+  DESTROY(proxyURL);
   DESTROY(dat);
   DESTROY(parser);
   DESTROY(document);
@@ -426,9 +443,13 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMutableString	*s;
   NSString              *key;
   NSString		*val;
+  NSString		*query;
   NSMutableData		*buf;
+  NSMutableData		*masked = nil;
   NSString		*version;
+  NSString		*method;
   NSMapEnumerator       enumerator;
+  NSUInteger		cl;
 
   RETAIN(self);
   if (debug)
@@ -439,9 +460,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   s = [basic mutableCopy];
-  if ([[u query] length] > 0)
+  query = [u query];
+  if ([query length] > 0)
     {
-      [s appendFormat: @"?%@", [u query]];
+      [s appendFormat: @"?%@", query];
     }
 
   version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -481,15 +503,48 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  /* Ensure we set the correct content length (may be zero)
+  cl = [wData length];
+
+  /* Use default method if none is set.
+   */
+  method = [request objectForKey: GSHTTPPropertyMethodKey];
+  if (method == nil)
+    {
+      if (cl > 0)
+	{
+	  method = @"POST";
+	}
+      else
+	{
+	  method = @"GET";
+	}
+    }
+  else if ([method isEqualToString: @"TRACE"])
+    {
+      /* A TRACE must not have a body
+       */
+      DESTROY(wData);
+      cl = 0;
+      NSMapRemove(wProperties, (void*)@"Content-Length");
+    }
+
+
+  /* When we have a non-empty body or a method which requires
+   * a body, we must specify the content length.
    */
   if ((id)NSMapGet(wProperties, (void*)@"Content-Length") == nil)
     {
-      NSMapInsert(wProperties, (void*)@"Content-Length",
-        (void*)[NSString stringWithFormat: @"%"PRIuPTR, [wData length]]);
+      if (cl > 0
+	|| [method isEqualToString: @"POST"]
+	|| [method isEqualToString: @"PUT"]
+	|| [method isEqualToString: @"PATCH"])
+	{
+	  NSMapInsert(wProperties, (void*)@"Content-Length",
+	    (void*)[NSString stringWithFormat: @"%"PRIuPTR, cl]);
+	}
     }
 
-  if ([wData length] > 0)
+  if (cl > 0)
     {
       /*
        * Assume content type if not specified.
@@ -516,7 +571,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSString		*auth;
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
-	  NSString		*method;
+	  NSString		*path;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -541,22 +596,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      RELEASE(cred);
 	    }
 
-	  method = [request objectForKey: GSHTTPPropertyMethodKey];
-	  if (method == nil)
-	    {
-	      if ([wData length] > 0)
-		{
-		  method = @"POST";
-		}
-	      else
-		{
-		  method = @"GET";
-		}
-	    }
+	  path = [u _requestPath: [[request
+	    objectForKey: GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
 
 	  auth = [authentication authorizationForAuthentication: nil
-							 method: method
-							   path: [u fullPath]];
+	    method: method
+	    path: path];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -574,12 +619,23 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       GSMimeHeader      *h;
 
       h = [[GSMimeHeader alloc] initWithName: key value: val parameters: nil];
-      [buf appendData: [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+      if (debug || masked)
+	{
+	  [h addToBuffer: buf masking: &masked];
+  	}
+      else
+	{
+	  [h addToBuffer: buf masking: NULL];
+	}
       RELEASE(h);
     }
   NSEndMapTableEnumeration(&enumerator);
 
   [buf appendBytes: "\r\n" length: 2];
+  if (masked)
+    {
+      [masked appendBytes: "\r\n" length: 2];
+    }
 
   /*
    * Append any data to be sent
@@ -587,6 +643,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (wData != nil)
     {
       [buf appendData: wData];
+      if (masked)
+	{
+	  [masked appendData: wData];
+	}
     }
 
   /*
@@ -603,11 +663,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
    */
   if (debug)
     {
-      if (NO == [ioDelegate putBytes: [buf bytes]
-                            ofLength: [buf length]
+      if (nil == masked)
+	{
+	  masked = buf;		// Just log unmasked data
+	}
+      if (NO == [ioDelegate putBytes: [masked bytes]
+                            ofLength: [masked length]
                             byHandle: self])
         {
-          debugWrite(self, buf);
+          debugWrite(self, masked);
         }
     }
   [sock writeInBackgroundAndNotify: buf];
@@ -674,12 +738,28 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
                 }
             }
 	}
-      [nc removeObserver: self name: nil object: sock];
-      [sock closeFile];
-      DESTROY(sock);
+      [self _disconnect];
+    }
+  else if (0 == readCount && NO == inResponse && YES == keepalive)
+    {
+      /* On a keepalive connection where the remote end
+       * dropped the connection without responding.  We
+       * should try again.
+       */
+      if (connectionState != idle)
+        {
+          [self _disconnect];
+          if (debug)
+            {
+              NSLog(@"%@ %p restart on new connection",
+                NSStringFromSelector(_cmd), self);
+            }
+          [self _tryLoadInBackground: u];
+        }
     }
   else if ([parser parse: d] == NO && [parser isComplete] == NO)
     {
+      inResponse = YES;
       if (debug)
 	{
 	  NSLog(@"HTTP parse failure - %@", parser);
@@ -689,8 +769,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else
     {
-      BOOL	complete = [parser isComplete];
+      BOOL	complete;
 
+      inResponse = YES;
+      complete = [parser isComplete];
       if (complete == NO && [parser isInHeaders] == NO)
 	{
 	  GSMimeHeader	*info;
@@ -738,18 +820,14 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  ver = [[[document headerNamed: @"http"] value] floatValue];
 	  if (ver < 1.1)
 	    {
-	      [nc removeObserver: self name: nil object: sock];
-	      [sock closeFile];
-	      DESTROY(sock);
+              [self _disconnect];
 	    }
 	  else if (nil != (val = [[document headerNamed: @"connection"] value]))
 	    {
 	      val = [val lowercaseString];
 	      if (YES == [val isEqualToString: @"close"])
 		{
-		  [nc removeObserver: self name: nil object: sock];
-		  [sock closeFile];
-		  DESTROY(sock);
+                  [self _disconnect];
 		}
 	      else if ([val length] > 5)
 		{
@@ -762,9 +840,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		      val = [val stringByTrimmingSpaces];
 		      if (YES == [val isEqualToString: @"close"])
 			{
-			  [nc removeObserver: self name: nil object: sock];
-			  [sock closeFile];
-			  DESTROY(sock);
+                          [self _disconnect];
 			  break;
 			}
 		    }
@@ -788,6 +864,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*ac;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
+		  NSString		*path;
 		  NSString		*auth;
 
 		  ac = [ah value];
@@ -842,9 +919,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
+		  path = [u _requestPath: [[request objectForKey:
+		    GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
+
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url fullPath]];
+		    path: path];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -877,6 +957,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
+          connectionState = idle;       // Finished I/O
 	  if (returnAll || (code >= 200 && code < 300))
 	    {
 	      [self didLoadBytes: [d subdataWithRange: r]
@@ -935,7 +1016,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
-  GSMimeParser		*p = [GSMimeParser new];
+  GSMimeParser		*p;
+  unsigned		readCount;
 
   RETAIN(self);
   if (debug)
@@ -943,6 +1025,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
     }
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
+  readCount = [d length];
   if (debug)
     {
       if (NO == [ioDelegate getBytes: [d bytes]
@@ -953,10 +1036,27 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         }
     }
 
-  if ([d length] > 0)
+  if (readCount > 0)
     {
+      inResponse = YES;
       [dat appendData: d];
     }
+  else if (NO == inResponse)
+    {
+      /* remote end dropped the connection without responding
+       */
+      [self _disconnect];
+      if (debug)
+        {
+          NSLog(@"%@ %p restart on new connection",
+            NSStringFromSelector(_cmd), self);
+        }
+      [self _tryLoadInBackground: u];
+      DESTROY(self);
+      return;
+    }
+
+  p = [GSMimeParser new];
   [p parse: dat];
   if ([p isInBody] == YES || [d length] == 0)
     {
@@ -1002,15 +1102,23 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   DESTROY(wData);
   NSResetMapTable(wProperties);
-  if (connectionState != idle)
+
+  /* Socket must be removed from I/O notifications and connection state
+   * marked idle, but the socket is already idle it may be re-used for
+   * another request.
+   */
+  if (sock)
     {
-      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+      NSNotificationCenter      *nc = [NSNotificationCenter defaultCenter];
 
       [nc removeObserver: self name: nil object: sock];
-      [sock closeFile];
-      DESTROY(sock);
-      connectionState = idle;
+      if (connectionState != idle)
+	{
+	  [sock closeFile];	// Close to cancel any I/O in progress
+	  DESTROY(sock);
+	}
     }
+  connectionState = idle;
   [super endLoadInBackground];
 }
 
@@ -1024,12 +1132,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-  if ([path length] == 0)
-    {
-      path = @"/";
-    }
+  path = [u _requestPath: YES];
 
   method = [request objectForKey: GSHTTPPropertyMethodKey];
   if (method == nil)
@@ -1044,7 +1147,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
+  if (proxyURL
     && [[u scheme] isEqualToString: @"https"] == NO)
     {
       if ([u port] == nil)
@@ -1096,12 +1199,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
-  in = [[NSString alloc] initWithFormat: @"(%@:%@ <-- %@:%@)",
+  ASSIGN(in, ([NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]];
-  out = [[NSString alloc] initWithFormat: @"(%@:%@ --> %@:%@)",
+    [sock socketAddress], [sock socketService]]));
+  ASSIGN(out, ([NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]];
+    [sock socketAddress], [sock socketService]]));
 
   if (debug)
     {
@@ -1111,8 +1214,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * If SSL via proxy, set up tunnel first
    */
-  if ([[u scheme] isEqualToString: @"https"]
-    && [[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0)
+  if (proxyURL && [[u scheme] isEqualToString: @"https"])
     {
       NSRunLoop		*loop = [NSRunLoop currentRunLoop];
       NSString		*cmd;
@@ -1210,6 +1312,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
             GSTLSCertificateKeyFile,
             GSTLSCertificateKeyPassword,
             GSTLSDebug,
+            GSTLSIssuers,
+            GSTLSOwners,
             GSTLSPriority,
             GSTLSRemoteHosts,
             GSTLSRevokeFile,
@@ -1272,7 +1376,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   [self _apply];
-
 }
 
 - (void) bgdHandshake: (NSNotification*)notification
@@ -1326,16 +1429,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * are re-using an existing connection (keepalive = YES)
 	   * then we may try again with a new connection.
 	   */
-	  nc = [NSNotificationCenter defaultCenter];
-	  [nc removeObserver: self name: nil object: sock];
-	  [sock closeFile];
-	  DESTROY(sock);
-          DESTROY(in);
-          DESTROY(out);
-	  connectionState = idle;
+          [self _disconnect];
 	  if (debug)
-	    NSLog(@"%@ %p restart on new connection",
-	      NSStringFromSelector(_cmd), self);
+            {
+              NSLog(@"%@ %p restart on new connection",
+                NSStringFromSelector(_cmd), self);
+            }
 	  [self _tryLoadInBackground: u];
           RELEASE(self);
 	  return;
@@ -1498,15 +1597,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
               [urlOrder removeObjectIdenticalTo: self];
             }
           [urlLock unlock];
-          if (sock != nil)
-            {
-              NSNotificationCenter	*nc;
-
-              nc = [NSNotificationCenter defaultCenter];
-              [nc removeObserver: self name: nil object: sock];
-              [sock closeFile];
-              DESTROY(sock);
-            }
+          [self _disconnect];
           ASSIGN(urlKey, k);
         }
       ASSIGN(url, newUrl);
@@ -1516,8 +1607,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) _tryLoadInBackground: (NSURL*)fromURL
 {
   NSNotificationCenter	*nc;
-  NSString		*host = nil;
-  NSString		*port = nil;
+  NSString		*host;
+  NSString		*port;
   NSString		*s;
 
   /*
@@ -1529,6 +1620,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
+  inResponse = NO;
   [dat setLength: 0];
   RELEASE(document);
   RELEASE(parser);
@@ -1553,20 +1645,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   host = [u host];
-  port = (id)[u port];
-  if (port != nil)
+  if ([u port])
     {
-      port = [NSString stringWithFormat: @"%u", [port intValue]];
+      port = [NSString stringWithFormat: @"%u", (unsigned)[[u port] intValue]];
     }
-  else
-    {
-      port = [u scheme];
-    }
-  if ([port isEqualToString: @"https"])
+  else if ([[u scheme] isEqualToString: @"https"])
     {
       port = @"443";
     }
-  else if ([port isEqualToString: @"http"])
+  else
     {
       port = @"80";
     }
@@ -1622,6 +1709,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if (sock == nil)
     {
+      NSURLProtectionSpace      *space;
+      NSURL                     *proxy = nil;
+      NSString                  *proxyStr = nil;
+
       keepalive = NO;	// New connection
       /*
        * If we have a local address specified,
@@ -1637,7 +1728,100 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  s = @"tcp";	// Bind to any.
 	}
 
-      if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
+      space = [GSHTTPAuthentication protectionSpaceForURL: u];
+      if ([space isProxy])
+	{ 
+          proxyStr = [NSString stringWithFormat: @"%@://%@:%u/",
+            [u scheme], [space host], (unsigned)[space port]];
+        }
+      else
+        {
+          NSString      *ph;
+          NSString      *pp;
+
+          ph = [request objectForKey: GSHTTPPropertyProxyHostKey];
+          pp = [request objectForKey: GSHTTPPropertyProxyPortKey];
+          if (ph)
+            {
+              if (pp)
+                {
+                  proxyStr = [NSString stringWithFormat: @"%@://%@:%@/",
+                    [u scheme], ph, pp];
+                }
+              else
+                {
+                  proxyStr = [NSString stringWithFormat: @"%@://%@/",
+                    [u scheme], ph];
+                }
+            }
+
+          /* The preferred proxy specification is by a URL set as a property
+           */
+          if ([[u scheme] isEqualToString: @"https"])
+            {
+              proxy = [request objectForKey: @"https_proxy"];
+            }
+          else
+            {
+              proxy = [request objectForKey: @"http_proxy"];
+            }
+        }
+      if ([proxy isKindOfClass: [NSString class]])
+        {
+          proxyStr = (NSString*)proxy;
+          proxy = nil;
+        }
+
+      /* A generic fallback for the entire process can come from
+       * environment variables.
+       */
+      if (nil == proxy && nil == proxyStr)
+        {
+          NSDictionary  *env;
+          NSString      *key;
+  
+          env = [[NSProcessInfo processInfo] environment];
+          key = [[u scheme] stringByAppendingString: @"_proxy"];
+          if (nil == (proxyStr = [env objectForKey: key]))
+            {
+              proxyStr = [env objectForKey: [key uppercaseString]];
+            }
+        }
+      if (nil == proxy)
+        {
+          /* We make the proxy URL from a supplied string unless that is empty;
+           * An empty string in the request can be used to disable the process
+           * wide settings for that request..
+           */
+          if ([proxyStr length])
+            {
+              proxy = [NSURL URLWithString: proxyStr];
+            }
+        }
+
+      /* Make sure the proxy URL has a port specified. The default port
+       * depends on the scheme of the request (4430 for TLS, 8080 unencrypted).
+       */
+      if (proxy && [[proxy port] intValue] == 0)
+        {
+          NSURLComponents       *c;
+
+          c = [NSURLComponents componentsWithURL: proxy
+                         resolvingAgainstBaseURL: NO];
+          
+          if ([[u scheme] isEqualToString: @"https"])
+            {
+              [c setPort: [NSNumber numberWithInteger: 4430]];
+            }
+          else
+            {
+              [c setPort: [NSNumber numberWithInteger: 8080]];
+            }
+          proxy = [c URL];
+        }
+      ASSIGN(proxyURL, proxy);
+
+      if (nil == proxyURL)
 	{
 	  if ([[u scheme] isEqualToString: @"https"])
 	    {
@@ -1685,10 +1869,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       else
 	{
-	  if ([[request objectForKey: GSHTTPPropertyProxyPortKey] length] == 0)
-	    {
-	      [request setObject: @"8080" forKey: GSHTTPPropertyProxyPortKey];
-	    }
+          port = [[proxyURL port] description];
+          host = [proxyURL host];
+          
 	  if ([[u scheme] isEqualToString: @"https"])
 	    {
 	      if (sslClass == 0)
@@ -1697,16 +1880,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    @" ... needs gnustep-base built with GNUTLS"];
 		  return;
 		}
-	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
-	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							       service: port
 							      protocol: s];
 	    }
 	  else
 	    {
-	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
-	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	      sock = [NSFileHandle
 		fileHandleAsClientInBackgroundAtAddress: host
 						service: port
@@ -1765,12 +1944,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[[u fullPath] stringByTrimmingSpaces]
-        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-      if ([path length] == 0)
-	{
-	  path = @"/";
-	}
+      path = [u _requestPath: YES];
       basic = [NSString stringWithFormat: @"%@ %@", method, path];
       [self bgdApply: basic];
     }
@@ -1805,12 +1979,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *   </item>
  *   <item>
  *     GSHTTPPropertyProxyHostKey - specify the name or IP address
- *     of a host to proxy through.
+ *     of a host to proxy through.  Obsolete ... use
+ *     https_proxy or http_proxy to specify the URL of the proxy
  *   </item>
  *   <item>
  *     GSHTTPPropertyProxyPortKey - specify the port number to
  *     connect to on the proxy host.  If not give, this defaults
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
+ *     Obsolete ... use https_proxy or http_proxy to specify the URL
+ *     of the proxy.
  *   </item>
  *   <item>
  *     Any GSTLS... key to control TLS behavior

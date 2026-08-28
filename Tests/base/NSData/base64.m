@@ -81,6 +81,7 @@ int main()
   strEnc = [data base64EncodedStringWithOptions:0];
   data = [[NSData alloc] initWithBase64EncodedString: strEnc options: 0];
   str2 = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  [data release];
   PASS_EQUAL(str1, str2, "Encode / Decode no lines")
   [str2 release];
 
@@ -90,6 +91,7 @@ int main()
   data = [[NSData alloc] initWithBase64EncodedString: strEnc
     options: NSDataBase64DecodingIgnoreUnknownCharacters];
   str2 = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  [data release];
   PASS_EQUAL(str1, str2, "Encode / Decode 64 - LF")
   [str2 release];
 
@@ -99,6 +101,7 @@ int main()
   data = [[NSData alloc] initWithBase64EncodedString: strEnc
     options: NSDataBase64DecodingIgnoreUnknownCharacters];
   str2 = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  [data release];
   PASS_EQUAL(str1, str2, "Encode / Decode 76 - LF")
   [str2 release];
 
@@ -108,6 +111,7 @@ int main()
   data = [[NSData alloc] initWithBase64EncodedString: strEnc
     options: NSDataBase64DecodingIgnoreUnknownCharacters];
   str2 = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  [data release];
   PASS_EQUAL(str1, str2, "Encode / Decode 64 - CR")
   [str2 release];
 
@@ -117,6 +121,7 @@ int main()
   data = [[NSData alloc] initWithBase64EncodedString: strEnc
     options: NSDataBase64DecodingIgnoreUnknownCharacters];
   str2 = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  [data release];
   PASS_EQUAL(str1, str2, "Encode / Decode 64 - implicit CR LF")
   [str2 release];
 
@@ -125,6 +130,12 @@ int main()
     options: NSDataBase64DecodingIgnoreUnknownCharacters];
   ref = [NSData dataWithBytes: "bitmarkets user indentity" length: 25];
   PASS_EQUAL(data, ref, "base64 decoding Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==")
+  [data release];
+
+  data = [[NSData alloc] initWithBase64EncodedString: @"\n"
+    options: NSDataBase64DecodingIgnoreUnknownCharacters];
+  ref = [NSData dataWithBytes: "" length: 0];
+  PASS_EQUAL(data, ref, "base64 decoding empty string")
   [data release];
 
   [arp release]; arp = nil;

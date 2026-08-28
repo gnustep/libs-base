@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
@@ -114,6 +113,19 @@ randombytes(uint8_t *buf, unsigned len)
       return nil;       // Unable to create NSData instance
     }
   return AUTORELEASE(d);
+}
+
++ (BOOL) randomBytes: (uint8_t*)buffer ofLength: (NSUInteger)length
+{
+  if (NULL == buffer || 0 == length || length > 0xffffffff)
+    {
+      return NO;
+    }
+  if (randombytes(buffer, (unsigned)length) < 0)
+    {
+      return NO;
+    }
+  return YES;
 }
 
 - (NSString*) escapedRepresentation
@@ -865,7 +877,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
 	      d = [NSData dataWithBytes: &bytes[off] length: end - off];
 	      name = [[NSString alloc] initWithData: d
 					   encoding: NSASCIIStringEncoding];
-	      IF_NO_GC(AUTORELEASE(name);)
+	      IF_NO_ARC(AUTORELEASE(name);)
 	      if (namePtr != 0)
 		{
 		  *namePtr = name;

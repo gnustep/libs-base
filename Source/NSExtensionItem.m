@@ -1,7 +1,7 @@
-/* Implementation of class NSExtensionItem
+/** Implementation of class NSExtensionItem
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Sun Nov 10 03:59:46 EST 2019
 
    This file is part of the GNUstep Library.
@@ -18,14 +18,13 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
-#include <Foundation/NSExtensionItem.h>
-#include <Foundation/NSAttributedString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
+#import "Foundation/NSExtensionItem.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
 
 @implementation NSExtensionItem
 

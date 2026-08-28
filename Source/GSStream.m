@@ -17,8 +17,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -113,8 +112,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   RunLoopEventType 	type = typeForStream(aStream);
   void			*event = [aStream _loopID];
 
-  NSDebugMLLog(@"NSStream", @"%@ (type %d) to %@ mode %@",
-    aStream, type, self, mode);
+  NSDebugMLLog(@"NSStream", @"%@ %@, %@ (type %d)", self, aStream, mode, type);
   [self addEvent: event
 	    type: type
 	 watcher: (id<RunLoopEvents>)aStream
@@ -126,9 +124,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   RunLoopEventType 	type = typeForStream(aStream);
   void			*event = [aStream _loopID];
 
-  NSDebugMLLog(@"NSStream",
-    @"-removeStream:mode: %@ (desc %d,%d) from %@ mode %@",
-    aStream, (int)(intptr_t)event, type, self, mode);
+  NSDebugMLLog(@"NSStream", @"%@ %@, %@ (type %d)", self, aStream, mode, type);
   /* We may have added the stream more than once (eg if the stream -open
    * method was called more than once, so we need to remove all event
    * registrations.
@@ -144,7 +140,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
 }
 
 - (void) close
@@ -168,7 +163,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       [self close];
     }
-  GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+  _delegate = nil;
 }
 
 - (void) dealloc
@@ -227,7 +222,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-//  NSDebugMLLog(@"NSStream", @"receivedEvent for %@ - %d", self, type);
+  NSDebugMLLog(@"NSStream", @"%@ %p, %d, %p, %@", self, data, type, extra, mode);
   [self _dispatch];
 }
 
@@ -290,26 +285,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     || [self streamStatus] == NSStreamStatusError)
     {
       _delegateValid = NO;
-      GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+      _delegate = nil;
     }
   else
     {
-      if (delegate == nil)
-	{
-	  _delegate = self;
-	}
-      if (delegate == self)
-	{
-	  if (_delegate != nil && _delegate != self)
-	    {
-              GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
-	    }
-	  _delegate = delegate;
-	}
-      else
-	{
-          GSAssignZeroingWeakPointer((void**)&_delegate, (void*)delegate);
-	}
+      _delegate = (nil == delegate) ? self : delegate;
       /* We don't want to send any events the the delegate after the
        * stream has been closed.
        */
@@ -342,16 +322,35 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   NSMutableString	*s = [NSMutableString stringWithCapacity: 100];
 
+  if (0 == _events)
+    {
+      return @"None";
+    }
   if (_events & NSStreamEventOpenCompleted)
-    [s appendString: @"|NSStreamEventOpenCompleted"];
+    {
+      if ([s length] > 0) [s appendString: @"|"];
+      [s appendString: @"OpenCompleted"];
+    }
   if (_events & NSStreamEventHasBytesAvailable)
-    [s appendString: @"|NSStreamEventHasBytesAvailable"];
+    {
+      if ([s length] > 0) [s appendString: @"|"];
+      [s appendString: @"HasBytesAvailable"];
+    }
   if (_events & NSStreamEventHasSpaceAvailable)
-    [s appendString: @"|NSStreamEventHasSpaceAvailable"];
+    {
+      if ([s length] > 0) [s appendString: @"|"];
+      [s appendString: @"HasSpaceAvailable"];
+    }
   if (_events & NSStreamEventErrorOccurred)
-    [s appendString: @"|NSStreamEventErrorOccurred"];
+    {
+      if ([s length] > 0) [s appendString: @"|"];
+      [s appendString: @"ErrorOccurred"];
+    }
   if (_events & NSStreamEventEndEncountered)
-    [s appendString: @"|NSStreamEventEndEncountered"];
+    {
+      if ([s length] > 0) [s appendString: @"|"];
+      [s appendString: @"EndEncountered"];
+    }
   return s;
 }
 
@@ -546,14 +545,14 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
 {
   NSDebugMLLog(@"NSStream",
-    @"%@ sendEvent %@", self, [self stringFromEvent:event]);
+    @"%@ event:%@ delegate: %@", self, [self stringFromEvent: event], delegate);
   if (event == NSStreamEventNone)
     {
-      return;
+      // do nothing
     }
   else if (event == NSStreamEventOpenCompleted)
     {
-      if ((_events & event) == 0)
+      if ((_events & NSStreamEventOpenCompleted) == 0)
 	{
 	  _events |= NSStreamEventOpenCompleted;
 	  if (delegate != nil)
@@ -597,11 +596,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	}
       if ((_events & NSStreamEventHasSpaceAvailable) == 0)
 	{
-	  _events |= NSStreamEventHasSpaceAvailable;
 	  if (_currentStatus == NSStreamStatusWriting)
 	    {
 	      [self _setStatus: NSStreamStatusOpen];
 	    }
+	  _events |= NSStreamEventHasSpaceAvailable;
 	  if (delegate != nil)
 	    {
 	      [delegate stream: self
@@ -770,7 +769,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -803,7 +801,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -1074,7 +1071,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
 }
 
 + (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port

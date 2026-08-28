@@ -1,7 +1,7 @@
 /** Interface for NSException for GNUStep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: 1995
    
    This file is part of the GNUstep Base Library.
@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     <title>NSException and NSAssertionHandler class reference</title>
 
@@ -53,17 +52,6 @@
 
 #include <setjmp.h>
 #include <stdarg.h>
-
-#if	defined(__WIN64__)
-/* This hack is to deal with the fact that currently (June 2016) the
- * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
- * but the builtin version provided by gcc seems to work.
- */
-#undef	setjmp
-#define	setjmp(X)	__builtin_setjmp(X)
-#undef	longjmp
-#define	longjmp(X,Y)	__builtin_longjmp(X,Y)
-#endif
 
 #if	defined(__cplusplus)
 extern "C" {

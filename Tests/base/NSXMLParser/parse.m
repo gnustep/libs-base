@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSStream.h>
+#import <Foundation/NSURL.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSXMLParser.h>
 #include <string.h>
@@ -239,7 +240,10 @@ static BOOL     setShouldResolveExternalEntities = NO;
 static BOOL
 testParser(NSXMLParser *parser, NSString *expect)
 {
-  Handler *handler;
+  NSString *convertWin;
+  NSString *desc;
+  NSString *descWin;
+  Handler  *handler;
   
   [parser setShouldProcessNamespaces: setShouldProcessNamespaces];
   [parser setShouldReportNamespacePrefixes: setShouldReportNamespacePrefixes];
@@ -256,7 +260,13 @@ testParser(NSXMLParser *parser, NSString *expect)
     }
   else
     {
-      if (NO == [[handler description] isEqual: expect]) 
+      /* Replace CRLF from result files with LF
+       */
+      convertWin = [expect stringByReplacingOccurrencesOfString: @"\r" withString: @""];
+      desc = [handler description];
+      descWin = [desc stringByReplacingOccurrencesOfString: @"\r" withString: @""];
+
+      if (NO == [desc isEqual: expect] && NO == [descWin isEqual: convertWin]) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
             expect, [handler description]);
@@ -279,7 +289,7 @@ testParseData(NSData *xml, NSString *expect, BOOL strict)
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithData: xml];
   result = testParser(parser, expect);
-
+  RELEASE(parser);
   [arp release];
   return result;
 }
@@ -305,7 +315,7 @@ testParseStream(NSInputStream *stream, NSString *expect, BOOL strict)
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithStream: stream];
   result = testParser(parser, expect);
-
+  RELEASE(parser);
   [arp release];
   return result;
 }
@@ -370,6 +380,8 @@ int main()
 
   {
     NSString    *exp;
+    NSString    *mgrPath;
+    NSString    *absolutePath;
     NSData      *dat;
 
      exp = @"parserDidStartDocument:\n\
@@ -378,10 +390,13 @@ parser:didStartElement:namespaceURI:qualifiedName:attributes: file  file {\n}\n\
 parserDidEndDocument:\n\
 ";
 
+    mgrPath = [[mgr currentDirectoryPath] stringByAppendingPathComponent: @"GNUmakefile"];
+    absolutePath = [[NSURL fileURLWithPath: mgrPath] absoluteString];
+
     str = [NSString stringWithFormat:
 @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-@"<!DOCTYPE file [<!ENTITY foo SYSTEM \"file://%@/GNUmakefile\">]>\n"
-@"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
+@"<!DOCTYPE file [<!ENTITY foo SYSTEM \"%@\">]>\n"
+@"<file>&amp;&foo;&#65;</file>", absolutePath];
 
     dat = [str dataUsingEncoding: NSUTF8StringEncoding];
     PASS((testParseData(dat, exp, YES)), "external entity (strict)")

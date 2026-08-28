@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA
 #
 
 PACKAGE_NAME = gnustep-base
@@ -30,6 +29,8 @@ include ../../config.mak
 
 DOCUMENT_NAME = General
 
+General_AGSDOC_INSTALL_BUNDLE = General
+General_AGSDOC_LOCAL_DIR = General
 General_DOC_INSTALL_DIR = Developer/Base
 
 General_AGSDOC_FILES = \
@@ -37,13 +38,9 @@ Debugging.gsdoc \
 OpenStepCompliance.gsdoc \
 
 
-#
-# Hack ... using the -DocumentationDirectory flag overrides the value
-# used by the make package, and puts our output in the documentation
-# directory.
-#
-#General_AGSDOC_FLAGS = -DocumentationDirectory .
-General_AGSDOC_FLAGS = -DTDs ../../Tools
+General_AGSDOC_FLAGS = \
+	-MakeFrames NO \
+	-DTDs ../../Tools
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc

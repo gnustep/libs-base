@@ -8,6 +8,8 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  
+  START_SET("NSData Additions")
 #if USE_ZLIB
   NSData        *data;
   NSData        *ref;
@@ -44,7 +46,13 @@ int main()
 
   data = [ref gzipped: 9];
   length = [data length];
+  /* zlib does not guarantee that a higher compression level produces a
+   * smaller result, and for this input it does not: level 5 gives 6068 bytes
+   * and level 9 gives 6089 with the zlib built for Android.
+   */
+  testHopeful = YES;
   PASS(length < last, "Compression 9 is smaller than 5");
+  testHopeful = NO;
   last = length;
   PASS_EQUAL([data gunzipped], ref, "gunzipped 9 matches reference");
 
@@ -67,6 +75,7 @@ int main()
 #else
   SKIP("zlib support disabled");
 #endif
+  END_SET("NSData Additions")
 
   [arp release]; arp = nil;
   return 0;

@@ -23,8 +23,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-
+   Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    AutogsdocSource: Additions/Unicode.m
 
 */
@@ -127,13 +126,13 @@ typedef enum _NSGNUstepStringEncoding
   //  NSISOLatin2StringEncoding           = 0x80000202,  /* ISO 8859-2, defined as 9 */
   NSISOLatin3StringEncoding               = 0x80000203,  /* ISO 8859-3 */
   NSISOLatin4StringEncoding               = 0x80000204,  /* ISO 8859-4 */
-  NSISOLatinCyrillicStringEncoding        = 0x80000205,  /* ISO 8859-5 */
-  NSISOLatinArabicStringEncoding          = 0x80000206,  /* ISO 8859-6, StringEncoding=ASMO 708, StringEncoding=DOS CP 708 */
-  NSISOLatinGreekStringEncoding           = 0x80000207,  /* ISO 8859-7 */
-  NSISOLatinHebrewStringEncoding          = 0x80000208,  /* ISO 8859-8 */
+  NSISOCyrillicStringEncoding             = 0x80000205,  /* ISO 8859-5 */
+  NSISOArabicStringEncoding               = 0x80000206,  /* ISO 8859-6, StringEncoding=ASMO 708, StringEncoding=DOS CP 708 */
+  NSISOGreekStringEncoding                = 0x80000207,  /* ISO 8859-7 */
+  NSISOHebrewStringEncoding               = 0x80000208,  /* ISO 8859-8 */
   NSISOLatin5StringEncoding               = 0x80000209,  /* ISO 8859-9 */
   NSISOLatin6StringEncoding               = 0x8000020a,  /* ISO 8859-10 */
-  NSISOLatinThaiStringEncoding            = 0x8000020b,  /* ISO 8859-11 */
+  NSISOThaiStringEncoding                 = 0x8000020b,  /* ISO 8859-11 */
   // missing 0c
   NSISOLatin7StringEncoding               = 0x8000020d,  /* ISO 8859-13 */
   NSISOLatin8StringEncoding               = 0x8000020e,  /* ISO 8859-14 */
@@ -142,10 +141,15 @@ typedef enum _NSGNUstepStringEncoding
   NSISOLatin10StringEncoding              = 0x80000210,  /* ISO 8859-16 */
 #endif
 
-  NSISOLatinTurkishStringEncoding         = NSISOLatin5StringEncoding,
-  NSISOLatinNordicStringEncoding          = NSISOLatin6StringEncoding,
+  NSISOLatinArabicStringEncoding          = NSISOArabicStringEncoding,
   NSISOLatinBalticRimStringEncoding       = NSISOLatin7StringEncoding,
   NSISOLatinCelticStringEncoding          = NSISOLatin8StringEncoding,
+  NSISOLatinCyrillicStringEncoding        = NSISOCyrillicStringEncoding,
+  NSISOLatinGreekStringEncoding           = NSISOGreekStringEncoding,
+  NSISOLatinHebrewStringEncoding          = NSISOHebrewStringEncoding,
+  NSISOLatinNordicStringEncoding          = NSISOLatin6StringEncoding,
+  NSISOLatinThaiStringEncoding            = NSISOThaiStringEncoding,
+  NSISOLatinTurkishStringEncoding         = NSISOLatin5StringEncoding,
 
   /* MS-DOS & Windows encodings begin at 0x400 */
   NSDOSLatinUSStringEncoding              = 0x80000400,  /* code page 437 */
@@ -263,7 +267,7 @@ GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
 GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1);
+  BOOL *isASCII, BOOL *isLatin1, BOOL *isBad);
 #endif
 
 

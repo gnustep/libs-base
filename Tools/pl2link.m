@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import <stdlib.h>
@@ -85,7 +85,7 @@ main(int argc, char** argv, char **env)
     }
   NS_DURING
     {
-      fileContents = [NSString stringWithContentsOfFile: sourceName];
+      fileContents = [NSMutableString stringWithContentsOfFile: sourceName];
       plist = [fileContents propertyList];
     }
   NS_HANDLER
@@ -212,7 +212,12 @@ main(int argc, char** argv, char **env)
       NSString *execPath = nil;
       int l = 0;
 
-      fp = popen("which openapp","r");
+      if (NULL == (fp = popen("which openapp","r")))
+	{
+	  GSPrintf(stderr, @"Unable to find 'openapp' to open '%@'\n", entry);
+	  [pool release];
+	  exit(EXIT_FAILURE);
+	}
       fgets(line,sizeof line,fp);
       l = strlen(line);
       line[l-1] = '\0';

@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "GSNetServices.h"
@@ -535,7 +534,7 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
   NSArray *keys = [txtDictionary allKeys];
   NSData *data = nil;
 
-  FOR_IN(NSString*, key, keys)
+  GS_FOR_IN(NSString*, key, keys)
     {
       id value = [txtDictionary objectForKey: key];
       if ([value isKindOfClass: [NSString class]])
@@ -574,7 +573,7 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
         }
       NSAssert(list,@"Error creating string list for TXT record");
     }
-  END_FOR_IN(keys)
+  GS_END_FOR(keys)
 
   // Convert string list into a data object:
   data = NSDataFromAvahiStringList(list);

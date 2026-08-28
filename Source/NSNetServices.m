@@ -20,17 +20,17 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #import "common.h"
 #import "GSNetServices.h"
-#import "GSFastEnumeration.h"
 #import "GNUstepBase/NSNetServices+GNUstepBase.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
@@ -48,7 +48,7 @@ static Class concreteBrowserClass;
       abstractServiceClass = self;
 #     if GS_USE_AVAHI==1 
         concreteServiceClass = [GSAvahiNetService class];
-#     else
+#     elif GS_USE_MDNS==1
         concreteServiceClass = [GSMDNSNetService class];
 #     endif
   }
@@ -58,7 +58,14 @@ static Class concreteBrowserClass;
 {
   if (self == abstractServiceClass)
     {
-      return [concreteServiceClass allocWithZone: zone];
+      if (concreteServiceClass != nil)
+      {
+        return [concreteServiceClass allocWithZone: zone];
+      }
+      else
+      {
+        return nil;
+      }
     }
   return [super allocWithZone: zone];
 }
@@ -77,7 +84,15 @@ static Class concreteBrowserClass;
                  type: (NSString *) type
                  name: (NSString *) name
 {
-  return [self subclassResponsibility: _cmd];
+  if (concreteServiceClass != nil)
+  {
+    return [self subclassResponsibility: _cmd];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 - (id) initWithDomain: (NSString *) domain
@@ -85,7 +100,15 @@ static Class concreteBrowserClass;
                  name: (NSString *) name
                  port: (NSInteger) port
 {
-  return [self subclassResponsibility: _cmd];
+  if (concreteServiceClass != nil)
+  {
+    return [self subclassResponsibility: _cmd];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 - (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
@@ -217,7 +240,7 @@ static Class concreteBrowserClass;
       return nil;
     }
   array = [[NSMutableArray alloc] initWithCapacity: [dict count]];
-  FOR_IN(NSString*, key, dict)
+  GS_FOR_IN(NSString*, key, dict)
     {
       NSData *value = [dict objectForKey: key];
 
@@ -237,7 +260,7 @@ static Class concreteBrowserClass;
           [array addObject: [[key copy] autorelease]];
         }
     }
-  END_FOR_IN(dict)
+  GS_END_FOR(dict)
   
   if ([array count] > 0)
     {
@@ -247,7 +270,7 @@ static Class concreteBrowserClass;
   return retVal;
 }
 
-- (void) setProtocolSpecificInformation: (NSString *) specificInformation
+- (void) setProtocolSpecificInformation: (NSString *)specificInformation
 {
   NSArray *array = [specificInformation componentsSeparatedByString: @"\001"];
     
@@ -256,8 +279,8 @@ static Class concreteBrowserClass;
       NSMutableDictionary *dictionary;
 
       dictionary
-	= [[NSMutableDictionary alloc] initWithCapacity: [array count]];
-      FOR_IN(NSString*, item, array)
+	= [NSMutableDictionary dictionaryWithCapacity: [array count]];
+      GS_FOR_IN(NSString*, item, array)
         {
           NSArray	*parts;
           NSData	*value;
@@ -268,14 +291,14 @@ static Class concreteBrowserClass;
           [dictionary setObject: value
                          forKey: [parts objectAtIndex: 0]];
         }
-      END_FOR_IN(array)
+      GS_END_FOR(array)
       [self setTXTRecordData:
         [[self class] dataFromTXTRecordDictionary: dictionary]];
     }
 }
 
-- (BOOL) getInputStream: (NSInputStream **) inputStream
-           outputStream: (NSOutputStream **) outputStream
+- (BOOL) getInputStream: (NSInputStream **)inputStream
+           outputStream: (NSOutputStream **)outputStream
 {
   [NSStream getStreamsToHost: [NSHost hostWithName: [self hostName]]
                         port: [self port]
@@ -394,7 +417,7 @@ static Class concreteBrowserClass;
       abstractBrowserClass = self;
 #     if GS_USE_AVAHI==1 
         concreteBrowserClass = [GSAvahiNetServiceBrowser class];
-#     else // Not Avahi (=GS_USE_MDNS)
+#     elif GS_USE_MDNS==1
         concreteBrowserClass = [GSMDNSNetServiceBrowser class];
 #     endif // GS_USE_AVAHI
     }
@@ -404,14 +427,29 @@ static Class concreteBrowserClass;
 {
   if (self == abstractBrowserClass)
     {
-      return [concreteBrowserClass allocWithZone: zone];
+      if (concreteBrowserClass != nil)
+      {
+        return [concreteBrowserClass allocWithZone: zone];
+      }
+      else
+      {
+        return nil;
+      }
     }
   return [super allocWithZone: zone];
 }
 
 - (id) init
 {
-  return [super init];
+  if (concreteBrowserClass != nil)
+  {
+    return [super init];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 

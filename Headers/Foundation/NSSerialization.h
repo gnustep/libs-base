@@ -1,9 +1,9 @@
-/* Protocol for NSSerialization for GNUStep
+/** Protocol for NSSerialization for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
-   Updated by:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1998
    
    This file is part of the GNUstep Base Library.
@@ -20,8 +20,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSSerialization_h_GNUSTEP_BASE_INCLUDE

@@ -1,4 +1,4 @@
-/* Definition of class NSByteCountFormatter
+/** Definition of class NSByteCountFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Written by: 	Gregory Casamento <greg.casamento@gmail.com>
@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #define	GS_NSByteCountFormatter_IVARS \
@@ -35,43 +34,46 @@
 
 #define	EXPOSE_NSByteCountFormatter_IVARS	1
 
-#import <Foundation/NSByteCountFormatter.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSAttributedString.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSLocale.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSByteCountFormatter.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSLocale.h"
+#import "Foundation/NSValue.h"
 
 #define	GSInternal		NSByteCountFormatterInternal
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 // Unit definitions...
-#define KB (double)1024.0
-#define MB (double)(1024.0 * 1024.0)
-#define GB (double)(1024.0 * 1024.0 * 1024.0)
-#define TB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define PB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define EB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define ZB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
-#define YB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define KB ((double)1024.0)
+#define MB (KB * 1024.0)
+#define GB (MB * 1024.0)
+#define TB (GB * 1024.0)
+#define PB (TB * 1024.0)
+#define EB (PB * 1024.0)
+#define ZB (EB * 1024.0)
+#define YB (ZB * 1024.0)
 
 @implementation NSByteCountFormatter
   
-+ (NSString *)stringFromByteCount: (long long)byteCount
++ (NSString*) stringFromByteCount: (long long)byteCount
                        countStyle: (NSByteCountFormatterCountStyle)countStyle
 {
-  NSByteCountFormatter *formatter = [[NSByteCountFormatter alloc] init];
+  NSByteCountFormatter *formatter = AUTORELEASE([NSByteCountFormatter new]);
+
   [formatter setCountStyle: countStyle];
   return [formatter stringFromByteCount: byteCount];
 }
 
-- (NSString *)stringForObjectValue: (id)obj
+- (NSString*) stringForObjectValue: (id)obj
 {
   long long byteCount = 0;
   
-  if([obj respondsToSelector: @selector(longLongValue)])
+  if ([obj respondsToSelector: @selector(longLongValue)])
     {
       byteCount = [obj longLongValue];
     }
@@ -81,9 +83,9 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (NSByteCountFormatterUnits) _adaptiveSettings: (double)byteCount
 {
-  NSByteCountFormatterUnits units = NSByteCountFormatterUseDefault;
+  NSByteCountFormatterUnits units = NSByteCountFormatterUseBytes;
   
-  if (byteCount >= KB || byteCount == 0.0) 
+  if (byteCount >= KB) 
     {
       units = NSByteCountFormatterUseKB;
     }
@@ -115,16 +117,16 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   return units;
 }
 
-- (NSString *)stringFromByteCount: (long long)byteCount
+- (NSString*) stringFromByteCount: (long long)byteCount
 {
-  NSString *result = nil;
-  double bc = (double)byteCount;
-  double count = 0;
-  NSString *outputFormat = @"";
-  NSString *unitName = @"";
-  NSByteCountFormatterUnits allowed = internal->_allowedUnits;
+  NSString                      *result = nil;
+  double                        bc = (double)byteCount;
+  double                        count = 0;
+  NSString                      *outputFormat = @"";
+  NSString                      *unitName = @"";
+  NSByteCountFormatterUnits     allowed = internal->_allowedUnits;
 
-  if(internal->_adaptive)
+  if (internal->_adaptive)
     {
       allowed = [self _adaptiveSettings: bc];
     }
@@ -174,13 +176,13 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
       unitName = @"bytes";
     }
 
-  if(internal->_allowsNonnumericFormatting && count == 0.0)
+  if (internal->_allowsNonnumericFormatting && count == 0.0)
     {
       outputFormat = [outputFormat stringByAppendingString: @"Zero"];
     }
   else
     {
-      if(internal->_zeroPadsFractionDigits)
+      if (internal->_zeroPadsFractionDigits)
 	{
 	  outputFormat = [outputFormat stringByAppendingString: @"%01.08f"];
 	}
@@ -188,7 +190,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 	{
 	  NSInteger whole = (NSInteger)(count / 1);
 	  double frac = (double)count - (double)whole;
-	  if(frac > 0.0)
+	  if (frac > 0.0)
 	    {
 	      whole += 1;
 	    }
@@ -197,7 +199,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 	}
     }
   
-  if(internal->_includesUnit)
+  if (internal->_includesUnit)
     {
       NSString *paddedUnit = [NSString stringWithFormat: @" %@",unitName];
       outputFormat = [outputFormat stringByAppendingString: paddedUnit];
@@ -209,10 +211,18 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   return result;
 }
 
+- (void) dealloc
+{
+   if (GS_EXISTS_INTERNAL)
+    {
+      GS_DESTROY_INTERNAL(NSByteCountFormatter)
+    }
+  DEALLOC
+}
+
 - (id) init
 {
-  self = [super init];
-  if(self == nil)
+  if (nil == (self = [super init]))
     {
       return nil;
     }
@@ -319,5 +329,70 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   internal->_zeroPadsFractionDigits = flag;
 }
 
-@end
+- (id) initWithCoder: (NSCoder *)coder
+{
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
 
+  GS_CREATE_INTERNAL(NSByteCountFormatter);
+
+  if ([coder allowsKeyedCoding])
+    {
+      internal->_formattingContext = [coder decodeIntegerForKey: @"NSFormattingContext"];
+      internal->_countStyle = [coder decodeIntegerForKey: @"NSCountStyle"];
+      internal->_allowsNonnumericFormatting = !([coder decodeBoolForKey: @"NSNoNonnumeric"]);
+      internal->_includesActualByteCount = [coder decodeBoolForKey: @"NSIncludesActualByteCount"];
+      internal->_adaptive = !([coder decodeBoolForKey: @"NSNoAdaptive"]);
+      internal->_allowedUnits = [coder decodeIntegerForKey: @"NSAllowedUnits"];
+      internal->_includesCount = !([coder decodeBoolForKey: @"NSNoCount"]);
+      internal->_includesUnit = !([coder decodeBoolForKey: @"NSNoUnit"]);
+      internal->_zeroPadsFractionDigits = [coder decodeBoolForKey: @"NSZeroPad"];
+    }
+  else
+    {
+      [coder decodeValueOfObjCType: @encode(NSFormattingContext) at: &internal->_formattingContext];
+      [coder decodeValueOfObjCType: @encode(NSByteCountFormatterCountStyle) at: &internal->_countStyle];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_allowsNonnumericFormatting];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_includesActualByteCount];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_adaptive];
+      [coder decodeValueOfObjCType: @encode(NSByteCountFormatterUnits) at: &internal->_allowedUnits];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_includesCount];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_includesUnit];
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &internal->_zeroPadsFractionDigits];
+    }
+
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInteger: internal->_formattingContext forKey: @"NSFormattingContext"];
+      [coder encodeInteger: internal->_countStyle forKey: @"NSCountStyle"];
+      [coder encodeBool: !(internal->_allowsNonnumericFormatting) forKey: @"NSNoNonnumeric"];
+      [coder encodeBool: internal->_includesActualByteCount forKey: @"NSIncludesActualByteCount"];
+      [coder encodeBool: !(internal->_adaptive) forKey: @"NSNoAdaptive"];
+      [coder encodeInteger: internal->_allowedUnits forKey: @"NSAllowedUnits"];
+      [coder encodeBool: !(internal->_includesCount) forKey: @"NSNoCount"];
+      [coder encodeBool: !(internal->_includesUnit) forKey: @"NSNoUnit"];
+      [coder encodeBool: internal->_zeroPadsFractionDigits forKey: @"NSZeroPad"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(NSFormattingContext) at: &internal->_formattingContext];
+      [coder encodeValueOfObjCType: @encode(NSByteCountFormatterCountStyle) at: &internal->_countStyle];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_allowsNonnumericFormatting];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_includesActualByteCount];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_adaptive];
+      [coder encodeValueOfObjCType: @encode(NSByteCountFormatterUnits) at: &internal->_allowedUnits];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_includesCount];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_includesUnit];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &internal->_zeroPadsFractionDigits];
+    }
+}
+
+@end

@@ -1,7 +1,7 @@
 
 /** -*- objc -*-
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  *
  *  TestWebServer is intended to be used in the tests where a web service is
  *  needed. The class's instance is instantiated with the method
@@ -103,6 +103,9 @@
   /* the port to listen on... see DEFAULTPORT in the beginning
    * of the implementaion */
   NSString *_port;
+  /* the port the auxiliary server listens on, which is where the redirect
+   * handler sends a client... nil means the port after _port */
+  NSString *_auxPort;
   /* whether the TestWebServer listens for HTTPS requests */
   BOOL _isSecure;
   /* the login for basic authentication */
@@ -223,6 +226,13 @@
  *  Sets the debug mode (more verbose).
  */
 - (void)setDebug:(BOOL)mode;
+
+/**
+ *  Sets the port the redirect handler sends a client to. A server bound to
+ *  port 0 is given a port by the system, so the port of the auxiliary server
+ *  cannot be assumed to be the port after this one.
+ */
+- (void)setAuxPort:(NSString *)port;
 
 /* end of setters */
 

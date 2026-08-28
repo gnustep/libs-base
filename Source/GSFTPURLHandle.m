@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -528,7 +527,7 @@ static NSLock			*urlLock = nil;
 // NSLog(@"Lookup for handle for '%@'", page);
       [urlLock lock];
       obj = [urlCache objectForKey: page];
-      IF_NO_GC([[obj retain] autorelease];)
+      IF_NO_ARC([[obj retain] autorelease];)
       [urlLock unlock];
 // NSLog(@"Found handle %@", obj);
     }
@@ -763,7 +762,7 @@ static NSLock			*urlLock = nil;
 		  dHandle = [NSFileHandle
 		    fileHandleAsClientInBackgroundAtAddress: h service: p
 		    protocol: @"tcp"];
-      		  IF_NO_GC([dHandle retain];)
+      		  IF_NO_ARC([dHandle retain];)
 		  nc = [NSNotificationCenter defaultCenter];
 		  [nc addObserver: self
 			 selector: @selector(_data:)

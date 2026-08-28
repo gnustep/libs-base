@@ -83,7 +83,7 @@
 
   /* Tell main test program we are ready to handle a request
    */
-  [[NSFileHandle fileHandleWithStandardOutput] writeData:
+  [(NSFileHandle*)[NSFileHandle fileHandleWithStandardOutput] writeData:
     [@"Ready" dataUsingEncoding: NSASCIIStringEncoding]];
 
   while (!done)

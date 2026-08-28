@@ -1,6 +1,6 @@
 /** -*- objc -*-
  *
- * Author: Sergei Golovin <Golovin.SV@gmail.com>
+ * Author: Sergei Golovin <svgdev@mail.ru>
  *
  */
 
@@ -28,8 +28,14 @@
  */
 @interface SimpleWebServer : NSObject
 {
-  /* holds the GSServerStream accepting incoming connections */
-  GSServerStream *_serverStream;
+  /* holds the file handler of connection */
+  NSFileHandle            *_fh;
+  /* holds the 'near' file handler of connection...
+     see "Background Inter-Process Communication Using Sockets"
+     of Low-Level File Management Programming Topics
+  */
+  NSFileHandle            *_cfh;
+
   /* the delegate ... NOT RETAINED...
    * see below the protocol SimpleWebServerDelegate */
   id                  _delegate;
@@ -41,36 +47,18 @@
   NSString               *_port;
   /* SSL configuration and options */
   NSDictionary         *_secure;
-
-  /* The following web-server code is derived/stolen from NSURL/Helpers/capture.m */
-  
-  /* the stream to send */
-  NSOutputStream           *_op; 
-  /* the stream to receive */
-  NSInputStream            *_ip;
-  /* the collector of received bytes from a client */
-  NSMutableData	      *_capture;
-  /* the number of sent bytes to a client */
-  unsigned	       _written;
-  /* the flag indicating the instance is collecting bytes from a client */
-  BOOL  	      _readable; 
-  /* the flag indicating the instance is sending bytes to a client */
-  BOOL		      _writable;
   /* whether to use a secure TLS/SSL connection */
   BOOL                _isSecure;
-  /* the request is read */ 
-  BOOL               _doRespond;
-  /* the response is written */
-  BOOL                    _done;
-  /* end of the stolen */
-
-  /* wether the output stream is ready to write */
-  BOOL              _canRespond; 
-
+  /* the collector of received bytes from a client */
+  NSMutableData	      *_capture;
   /* holds the current request */
   GSMimeDocument      *_request;
   /* holds the current response */
   GSMimeDocument     *_response;
+  /* the flag the server wants to operate */
+  BOOL _isRunning;
+  /* to close the connection after sending the response */
+  BOOL _isClose;
 }
 - (void)dealloc;
 
@@ -110,9 +98,6 @@
  *  Commands the web server to stop listening.
  */
 - (void)stop;
-
-/* The method is derived/stolen from NSURL/Helpers/capture.m */
-- (void) stream: (NSStream *)theStream handleEvent: (NSStreamEvent)streamEvent;
 
 @end /* SimpleWebServer */
 

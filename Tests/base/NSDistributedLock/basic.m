@@ -11,7 +11,7 @@ int main()
   NSDistributedLock     *lock2;
   
   test_NSObject(@"NSDistributedLock",
-    [NSArray arrayWithObject: [NSDistributedLock new]]);
+    [NSArray arrayWithObject: AUTORELEASE([NSDistributedLock new])]);
 
   path = [[NSFileManager defaultManager] currentDirectoryPath];
   path = [path stringByAppendingPathComponent: @"MyLock"];

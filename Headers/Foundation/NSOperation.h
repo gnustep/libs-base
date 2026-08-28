@@ -1,9 +1,8 @@
 /**Interface for NSOperation for GNUStep
-   Copyright (C) 2009,2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Date: 2009,2010
 
    This file is part of the GNUstep Base Library.
 
@@ -19,16 +18,22 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
 #ifndef __NSOperation_h_GNUSTEP_BASE_INCLUDE
 #define __NSOperation_h_GNUSTEP_BASE_INCLUDE
 
+#include "GNUstepBase/GSConfig.h"
 #import <Foundation/NSObject.h>
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST) \
+  && GS_USE_LIBDISPATCH == 1
+#include "dispatch/dispatch.h"
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -132,7 +137,7 @@ GS_EXPORT_CLASS
  * This is the method which actually performs the operation ...
  * the default implementation does nothing.<br />
  * You MUST ensure that your implemention of -main does not raise any
- * exception or call [NSThread-exit] as either of these will terminate
+ * exception or call [NSThread+exit] as either of these will terminate
  * the operation prematurely resulting in the operation never reaching
  * the -isFinished state.<br />
  * If you are writing a concurrent subclass, you should override -start
@@ -140,7 +145,7 @@ GS_EXPORT_CLASS
  */
 - (void) main;
 
-/** Returns the priority set using the -setQueuePriority method, or
+/** Returns the priority set using the -setQueuePriority: method, or
  * NSOperationQueuePriorityNormal if no priority has been set.
  */
 - (NSOperationQueuePriority) queuePriority;
@@ -210,8 +215,19 @@ GS_EXPORT_CLASS
 }
 
 // Managing the blocks in the Operation
+/**
+ * Creates and returns an NSBlockOperationObject and adds the block.
+ */
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Adds the execution block to the NSOperationBlock.
+ */
 - (void) addExecutionBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Returns the block added to the NSOperationBlock.
+ */
 - (NSArray *) executionBlocks;
 
 @end
@@ -225,6 +241,17 @@ enum {
    NSOperationQueueDefaultMaxConcurrentOperationCount = -1
 };
 
+/**
+ * An NSOperationQueue manages a number of NSOperation objects, scheduling
+ * them for execution and managing their dependencies.
+ *
+ * Depending on the configuration of the queue, operations may be executed
+ * concurrently or serially.
+ *
+ * Worker threads are named "NSOperationQ_&lt;number&gt;" by default, but
+ * you can set a name for the queue using the -setName: method.
+ * The suffix "_&lt;number&gt;"" is automatically added to the thread name.
+ */
 GS_EXPORT_CLASS
 @interface NSOperationQueue : NSObject
 {
@@ -314,9 +341,23 @@ GS_EXPORT_CLASS
  * and removed from the queue).
  */
 - (void) waitUntilAllOperationsAreFinished;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST) \
+  && GS_USE_LIBDISPATCH == 1
+  /** Returns the underlying dispatch queue.
+   */
+- (dispatch_queue_t) underlyingQueue;
+
+  /** Sets the underlying dispatch queue.
+   *
+   * Throws `NSInvalidArgumentException` if:
+   *  - The argument is `NULL`
+   *  - There are operations in the queue `(operationCount > 0)`
+   *  - The argument is the value returned by `dispatch_get_main_queue()`
+   */
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue;
+#endif
 @end
-
-
 
 #if	defined(__cplusplus)
 }

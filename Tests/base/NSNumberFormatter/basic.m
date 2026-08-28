@@ -13,7 +13,7 @@ int main()
     [NSNumberFormatter
       setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
 
-    TEST_FOR_CLASS(@"NSNumberFormatter",[NSNumberFormatter alloc],
+    TEST_FOR_CLASS(@"NSNumberFormatter", AUTORELEASE([NSNumberFormatter alloc]),
      "+[NSNumberFormatter alloc] returns a NSNumberFormatter");
 
     fmt = [[[NSNumberFormatter alloc] init] autorelease];

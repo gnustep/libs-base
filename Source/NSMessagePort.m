@@ -18,14 +18,12 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
 #define	EXPOSE_NSPort_IVARS	1
 #define	EXPOSE_NSMessagePort_IVARS	1
-#import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSNotification.h"
@@ -56,10 +54,10 @@
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #include <ctype.h>		/* for strchr() */
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #include <sys/time.h>
@@ -102,11 +100,6 @@
 @interface NSProcessInfo (private)
 + (BOOL) _exists: (int)pid;
 @end
-
-/*
- * Largest chunk of data possible in DO
- */
-static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"NSMessagePort",@"lock %@",X); [X lock];}
@@ -414,7 +407,9 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
-      if (!GSWOULDBLOCK)
+      long	eno = GSNETERROR;
+
+      if (!GSWOULDBLOCK(eno))
 	{
 	  NSLog(@"unable to make connection to %s - %@",
 	    sockAddr.sun_path, [NSError _last]);
@@ -580,15 +575,20 @@ static Class	runLoopClass;
       else
 	{
 	  want = [rData length];
-	  if (want < rWant)
+	  if (want < MAX(rWant, NETBLOCK))
 	    {
-	      want = rWant;
-	      [rData setLength: want];
-	    }
-	  if (want < NETBLOCK)
-	    {
-	      want = NETBLOCK;
-	      [rData setLength: want];
+	      want = MAX(rWant, NETBLOCK);
+	      NS_DURING
+		{
+		  [rData setLength: want];
+		}
+	      NS_HANDLER
+		{
+		  M_UNLOCK(myLock);
+		  [self invalidate];
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
 	    }
 	}
 
@@ -682,14 +682,6 @@ static Class	runLoopClass;
 			}
 		      else
 			{
-			  if (l > maxDataLength)
-			    {
-			      NSLog(@"%@ - unreasonable length (%u) for data",
-				self, l);
-			      M_UNLOCK(myLock);
-			      [self invalidate];
-			      return;
-			    }
 			  /*
 			   * If not a port or zero length data,
 			   * we discard the data read so far and fill the
@@ -705,14 +697,6 @@ static Class	runLoopClass;
 		    }
 		  else if (rType == GSP_HEAD)
 		    {
-		      if (l > maxDataLength)
-			{
-			  NSLog(@"%@ - unreasonable length (%u) for data",
-			    self, l);
-			  M_UNLOCK(myLock);
-			  [self invalidate];
-			  return;
-			}
 		      /*
 		       * If not a port or zero length data,
 		       * we discard the data read so far and fill the
@@ -877,7 +861,7 @@ static Class	runLoopClass;
 	      DESTROY(rItems);
 	      NSDebugMLLog(@"NSMessagePort_details",
 		@"got message %@ on 0x%"PRIxPTR, pm, (NSUInteger)self);
-	      IF_NO_GC([rp retain];)
+	      IF_NO_ARC([rp retain];)
 	      M_UNLOCK(myLock);
 	      NS_DURING
 		{
@@ -1033,7 +1017,7 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
 
   [self _add: l];
 
@@ -1368,10 +1352,10 @@ typedef	struct {
   else
     {
       RELEASE(theName);
-      IF_NO_GC([port retain];)
+      IF_NO_ARC([port retain];)
       NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
     }
-  IF_NO_GC(AUTORELEASE(port));
+  IF_NO_ARC(AUTORELEASE(port);)
 
   M_UNLOCK(messagePortLock);
   return port;
@@ -1494,7 +1478,7 @@ typedef	struct {
     {
       if ((NSPort*) [handle recvPort] == recvPort)
 	{
-	  IF_NO_GC([handle retain];)
+	  IF_NO_ARC([handle retain];)
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -1597,7 +1581,7 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      IF_NO_GC(RETAIN(self);)
+      IF_NO_ARC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -1693,7 +1677,7 @@ typedef	struct {
     {
       M_LOCK(myLock);
       handle = (GSMessageHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
-      IF_NO_GC(AUTORELEASE(RETAIN(handle)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(handle));)
       M_UNLOCK(myLock);
       if (handle == nil)
 	{
@@ -1715,24 +1699,17 @@ typedef	struct {
 - (oneway void) release
 {
   M_LOCK(messagePortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (_internal != 0 && 1 == [self retainCount])
     {
-      if (_internal != 0)
-        {
-          NSMapRemove(messagePortMap, (void*)name);
-	}
-      M_UNLOCK(messagePortLock);
-      [self dealloc];
+      NSMapRemove(messagePortMap, (void*)name);
     }
-  else
-    {
-      M_UNLOCK(messagePortLock);
-    }
+  M_UNLOCK(messagePortLock);
+  [super release];
 }
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -1745,7 +1722,7 @@ typedef	struct {
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  IF_NO_GC([self autorelease];)
+	  IF_NO_ARC([self autorelease];)
 	}
       handle->sendPort = nil;
     }

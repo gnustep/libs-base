@@ -1,4 +1,4 @@
-/* Implementation for NSURLResponse for GNUstep
+/** Implementation for NSURLResponse for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #import "common.h"
@@ -28,6 +27,7 @@
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
 
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSScanner.h"
@@ -130,14 +130,21 @@ typedef struct {
       while ((h = [e nextObject]) != nil)
         {
 	  NSString	*n = [h namePreservingCase: YES];
-	  NSString	*o = [this->headers objectForKey: n];
 	  NSString	*v = [h fullValue];
+	  NSString	*o = [this->headers objectForKey: n];
 
-	  if (nil != o)
+	  if ([v isKindOfClass: [NSString class]] && [v length] > 0)
 	    {
-	      n = [NSString stringWithFormat: @"%@, %@", o, n];
+	      if ([o length] > 0)
+		{
+		  v = [NSString stringWithFormat: @"%@, %@", o, v];
+		}
+	      [self _setValue: v forHTTPHeaderField: n];
 	    }
-	  [self _setValue: v forHTTPHeaderField: n];
+	  else if (nil == o)
+	    {
+	      [self _setValue: @"" forHTTPHeaderField: n];
+	    }
 	}
     }
   [self _checkHeaders];
@@ -284,8 +291,15 @@ typedef struct {
 	  textEncodingName: nil];
   if (nil != self)
     {
+      NSString *k;
+      NSEnumerator *e = [headerFields keyEnumerator];
+      while (nil != (k = [e nextObject]))
+        {
+          NSString *v = [headerFields objectForKey: k];
+          [self _setValue: v forHTTPHeaderField: k];
+        }
+
       this->statusCode = statusCode;
-      this->headers = [headerFields copy];
       [self _checkHeaders];
     }
   return self;
@@ -324,7 +338,7 @@ typedef struct {
       p = AUTORELEASE([GSMimeParser new]);
       h = [[GSMimeHeader alloc] initWithName: @"content-displosition"
 				       value: disp];
-      IF_NO_GC([h autorelease];)
+      IF_NO_ARC([h autorelease];)
       sc = [NSScanner scannerWithString: [h value]];
       if ([p scanHeaderBody: sc into: h] == YES)
         {
@@ -367,8 +381,141 @@ typedef struct {
 
 + (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
-// FIXME ... put real responses in here
-  return [NSString stringWithFormat: @"%"PRIdPTR, statusCode];
+  /* Mappings from codes to text taken from
+   * https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+   */
+  switch (statusCode)
+    {
+      case 100:
+	return NSLocalizedString(@"Continue", @"HTTP Status");
+      case 101:
+	return NSLocalizedString(@"Switching Protocols", @"HTTP Status");
+      case 102:
+	return NSLocalizedString(@"Processing", @"HTTP Status");
+      case 103:
+	return NSLocalizedString(@"Early Hints", @"HTTP Status");
+      case 200:
+	return NSLocalizedString(@"OK", @"HTTP Status");
+      case 201:
+	return NSLocalizedString(@"Created", @"HTTP Status");
+      case 202:
+	return NSLocalizedString(@"Accepted", @"HTTP Status");
+      case 203:
+	return NSLocalizedString(@"Non-Authoritative Information",
+	  @"HTTP Status");
+      case 204:
+	return NSLocalizedString(@"No Content", @"HTTP Status");
+      case 205:
+	return NSLocalizedString(@"Reset Content", @"HTTP Status");
+      case 206:
+	return NSLocalizedString(@"Partial Content", @"HTTP Status");
+      case 207:
+	return NSLocalizedString(@"Multi-Status", @"HTTP Status");
+      case 208:
+	return NSLocalizedString(@"Already Reported", @"HTTP Status");
+      case 226:
+	return NSLocalizedString(@"IM Used", @"HTTP Status");
+      case 300:
+	return NSLocalizedString(@"Multiple Choices", @"HTTP Status");
+      case 301:
+	return NSLocalizedString(@"Moved Permanently", @"HTTP Status");
+      case 302:
+	return NSLocalizedString(@"Found", @"HTTP Status");
+      case 303:
+	return NSLocalizedString(@"See Other", @"HTTP Status");
+      case 304:
+	return NSLocalizedString(@"Not Modified", @"HTTP Status");
+      case 305:
+	return NSLocalizedString(@"Use Proxy", @"HTTP Status");
+      case 307:
+	return NSLocalizedString(@"Temporary Redirect", @"HTTP Status");
+      case 308:
+	return NSLocalizedString(@"Permanent Redirect", @"HTTP Status");
+      case 400:
+	return NSLocalizedString(@"Bad Request", @"HTTP Status");
+      case 401:
+	return NSLocalizedString(@"Unauthorized", @"HTTP Status");
+      case 402:
+	return NSLocalizedString(@"Payment Required", @"HTTP Status");
+      case 403:
+	return NSLocalizedString(@"Forbidden", @"HTTP Status");
+      case 404:
+	return NSLocalizedString(@"Not Found", @"HTTP Status");
+      case 405:
+	return NSLocalizedString(@"Method Not Allowed", @"HTTP Status");
+      case 406:
+	return NSLocalizedString(@"Not Acceptable", @"HTTP Status");
+      case 407:
+	return NSLocalizedString(@"Proxy Authentication Required",
+	  @"HTTP Status");
+      case 408:
+	return NSLocalizedString(@"Request Timeout", @"HTTP Status");
+      case 409:
+	return NSLocalizedString(@"Conflict", @"HTTP Status");
+      case 410:
+	return NSLocalizedString(@"Gone", @"HTTP Status");
+      case 411:
+	return NSLocalizedString(@"Length Required", @"HTTP Status");
+      case 412:
+	return NSLocalizedString(@"Precondition Failed", @"HTTP Status");
+      case 413:
+	return NSLocalizedString(@"Content Too Large", @"HTTP Status");
+      case 414:
+	return NSLocalizedString(@"URI Too Long", @"HTTP Status");
+      case 415:
+	return NSLocalizedString(@"Unsupported Media Type", @"HTTP Status");
+      case 416:
+	return NSLocalizedString(@"Range Not Satisfiable", @"HTTP Status");
+      case 417:
+	return NSLocalizedString(@"Expectation Failed", @"HTTP Status");
+      case 421:
+	return NSLocalizedString(@"Misdirected Request", @"HTTP Status");
+      case 422:
+	return NSLocalizedString(@"Unprocessable Content", @"HTTP Status");
+      case 423:
+	return NSLocalizedString(@"Locked", @"HTTP Status");
+      case 424:
+	return NSLocalizedString(@"Failed Dependency", @"HTTP Status");
+      case 425:
+	return NSLocalizedString(@"Too Early", @"HTTP Status");
+      case 426:
+	return NSLocalizedString(@"Upgrade Required", @"HTTP Status");
+      case 428:
+	return NSLocalizedString(@"Precondition Required", @"HTTP Status");
+      case 429:
+	return NSLocalizedString(@"Too Many Requests", @"HTTP Status");
+      case 431:
+	return NSLocalizedString(@"Request Header Fields Too Large",
+	  @"HTTP Status");
+      case 451:
+	return NSLocalizedString(@"Unavailable For Legal Reasons",
+	  @"HTTP Status");
+      case 500:
+	return NSLocalizedString(@"Internal Server Error", @"HTTP Status");
+      case 501:
+	return NSLocalizedString(@"Not Implemented", @"HTTP Status");
+      case 502:
+	return NSLocalizedString(@"Bad Gateway", @"HTTP Status");
+      case 503:
+	return NSLocalizedString(@"Service Unavailable", @"HTTP Status");
+      case 504:
+	return NSLocalizedString(@"Gateway Timeout", @"HTTP Status");
+      case 505:
+	return NSLocalizedString(@"HTTP Version Not Supported", @"HTTP Status");
+      case 506:
+	return NSLocalizedString(@"Variant Also Negotiates", @"HTTP Status");
+      case 507:
+	return NSLocalizedString(@"Insufficient Storage", @"HTTP Status");
+      case 508:
+	return NSLocalizedString(@"Loop Detected", @"HTTP Status");
+      case 510:
+	return NSLocalizedString(@"Not Extended (OBSOLETED)", @"HTTP Status");
+      case 511:
+	return NSLocalizedString(@"Network Authentication Required",
+	  @"HTTP Status");
+      default:
+        return [NSString stringWithFormat: @"%"PRIdPTR, statusCode];
+    }
 }
 
 - (NSDictionary *) allHeaderFields

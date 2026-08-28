@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDecimal class reference</title>
    $Date$ $Revision$
@@ -112,7 +111,10 @@ static NSDecimal one = {0, NO, YES, 1, {1}};
 GS_DECLARE void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source)
 {
-  memcpy(destination, source, sizeof(NSDecimal));
+  if (destination != source)
+    {
+      memcpy(destination, source, sizeof(NSDecimal));
+    }
 }
 
 static void
@@ -188,6 +190,20 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
 	return NSOrderedAscending;
     }
 
+  // Handle zero length operands
+  if (leftOperand->length == 0 || rightOperand->length == 0)
+    {
+      if (leftOperand->length == 0 && rightOperand->length == 0)
+        return NSOrderedSame;
+      else if (leftOperand->length == 0)
+        return rightOperand->isNegative
+	  ? NSOrderedDescending : NSOrderedAscending;
+      else
+        return leftOperand->isNegative
+	  ? NSOrderedAscending : NSOrderedDescending;
+    }
+
+
   // Same sign, check size
   if (s1 < s2)
     {
@@ -226,21 +242,25 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
 	}
     }
 
-  // Same digits, check length
+  // Same leading digits: the longer mantissa is larger in magnitude unless
+  // its extra (least significant) digits are all zeros, so that trailing
+  // zeros do not affect the comparison.
   if (leftOperand->length > rightOperand->length)
     {
-      if (rightOperand->isNegative)
-	return NSOrderedAscending;
-      else
-	return NSOrderedDescending;
+      for (i = l; i < leftOperand->length; i++)
+	if (leftOperand->cMantissa[i] != 0)
+	  return rightOperand->isNegative
+	    ? NSOrderedAscending : NSOrderedDescending;
+      return NSOrderedSame;
     }
 
   if (leftOperand->length < rightOperand->length)
     {
-      if (rightOperand->isNegative)
-	return NSOrderedDescending;
-      else
-	return NSOrderedAscending;
+      for (i = l; i < rightOperand->length; i++)
+	if (rightOperand->cMantissa[i] != 0)
+	  return rightOperand->isNegative
+	    ? NSOrderedDescending : NSOrderedAscending;
+      return NSOrderedSame;
     }
 
   return NSOrderedSame;
@@ -279,10 +299,19 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
       if (l == 0)
         {
           int x;
-             
+
           x = result->length;
           result->length += 1;
           l += 1;
+          if (x >= NSDecimalMaxDigit)
+            {
+              /* No room to prepend a digit into the fixed-size mantissa: stop
+                 the shift at the last element, dropping the least significant
+                 digit.  Only the prepended digit survives the rounding below
+                 (length becomes l == 1), so the dropped digit cannot change
+                 the result. */
+              x = NSDecimalMaxDigit - 1;
+            }
           while (x > 0)
             {
                result->cMantissa[x] = result->cMantissa[x-1];
@@ -486,10 +515,6 @@ NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	  error1 = GSSimpleAdd(result, &n2, &n1, mode);
 	}
       result->isNegative = YES;
-      if (NSCalculationUnderflow == error1)
-	error1 = NSCalculationOverflow;
-      else if (NSCalculationOverflow == error1)
-	error1 = NSCalculationUnderflow;
     }
   else
     {
@@ -552,10 +577,6 @@ NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
 	  n1.isNegative = NO;
 	  error1 = NSDecimalAdd(result, &n1, right, mode);
 	  result->isNegative = YES;
-	  if (NSCalculationUnderflow == error1)
-	    error1 = NSCalculationOverflow;
-	  else if (NSCalculationOverflow == error1)
-	    error1 = NSCalculationUnderflow;
 	  return error1;
 	}
       else
@@ -651,10 +672,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
 
   NSDecimalCopy(&n1, l);
@@ -678,10 +696,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   if (result->exponent + exp > 127)
     {
       result->validNumber = NO;
-      if (neg)
-	return NSCalculationUnderflow;
-      else
-	return NSCalculationOverflow;
+      return NSCalculationOverflow;
     }
   else if (result->exponent + exp < -128)
     {
@@ -1030,16 +1045,26 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
       i = 0;
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	    }
+	  else
+	    {
+	      result->exponent++;
+	    }
 	  s++;
 	}
       s = [[numberValue substringFromIndex: NSMaxRange(found)] lossyCString];
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
-	  result->exponent--;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	      result->exponent--;
+	    }
 	  s++;
 	}	
     }
@@ -1055,8 +1080,15 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
       i = 0;
       while ((*s) && (isdigit(*s)))
         {
-	  result->cMantissa[i++] = *s - '0';
-	  result->length++;
+	  if (i < (int)sizeof(result->cMantissa))
+	    {
+	      result->cMantissa[i++] = *s - '0';
+	      result->length++;
+	    }
+	  else
+	    {
+	      result->exponent++;
+	    }
 	  s++;
 	}
     }
@@ -1429,12 +1461,36 @@ GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 
       if (carry)
 	{
-	  // The number must be shifted to the right
+	  BOOL	roundUp = NO;
+
+	  // The number must be shifted right to make room for the carried-out
+	  // leading digit.
 	  if (NSDecimalMaxDigit == result->length)
 	    {
-	      NSDecimalRound(result, result,
-			     NSDecimalMaxDigit - 1 - result->exponent,
-			     mode);
+	      // No room for another digit: drop the least significant one
+	      // (remembering whether it rounds the result up) and raise the
+	      // exponent.  The prepended carry digit is 1, so the round-up
+	      // below cannot overflow the mantissa again.
+	      switch (mode)
+		{
+		  case NSRoundDown:
+		    roundUp = result->isNegative;
+		    break;
+		  case NSRoundUp:
+		    roundUp = !result->isNegative;
+		    break;
+		  case NSRoundBankers:
+		    if (5 != result->cMantissa[result->length - 1])
+		      roundUp = (result->cMantissa[result->length - 1] > 5);
+		    else
+		      roundUp = ((result->cMantissa[result->length - 2] % 2) != 0);
+		    break;
+		  default:
+		    roundUp = (result->cMantissa[result->length - 1] >= 5);
+		    break;
+		}
+	      result->length--;
+	      result->exponent++;
 	    }
 
 	  if (127 == result->exponent)
@@ -1449,6 +1505,19 @@ GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	    }
 	  result->cMantissa[0] = 1;
 	  result->length++;
+
+	  if (roundUp)
+	    {
+	      for (i = result->length - 1; i >= 0; i--)
+		{
+		  if (result->cMantissa[i] != 9)
+		    {
+		      result->cMantissa[i]++;
+		      break;
+		    }
+		  result->cMantissa[i] = 0;
+		}
+	    }
 	}
     }
 

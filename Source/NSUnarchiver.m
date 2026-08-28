@@ -1,7 +1,7 @@
 /** Implementation of NSUnarchiver for GNUstep
    Copyright (C) 1998 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: October 1998
 
    This file is part of the GNUstep Base Library.
@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSUnarchiver class reference</title>
    $Date$ $Revision$
@@ -249,6 +248,18 @@ typeCheck(char t1, char t2)
  * intorduced CGFloat, which may be aither a float or a double.
  */
       if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
+	return NO;
+
+/* Also allow an integer in the archive to be decoded into a char, as BOOL is
+ * a char on most platforms but an int with the libobjc2 runtime on Windows
+ * (unless that is built with STRICT_APPLE_COMPATIBILITY), so an archive (such
+ * as a gorm) written there has to decode its BOOL values into char
+ * destinations elsewhere.
+ */
+      if ((t1 == _C_CHR || t1 == _C_UCHR)
+	&& (c == _C_SHT || c == _C_USHT || c == _C_INT || c == _C_UINT
+	  || c == _C_LNG || c == _C_ULNG
+	  || c == _C_LNG_LNG || c == _C_ULNG_LNG))
 	return NO;
 
       [NSException raise: NSInternalInconsistencyException
@@ -489,6 +500,7 @@ static unsigned	encodingVersion;
 {
   if (anObject == nil)
     {
+      RELEASE(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil data passed to initForReadingWithData:"];
     }
@@ -679,7 +691,8 @@ static unsigned	encodingVersion;
 	  offset += size;
 	}
     }
-  else if (*type == _C_SHT
+  else if (*type == _C_CHR
+    || *type == _C_SHT
     || *type == _C_INT
     || *type == _C_LNG
     || *type == _C_LNG_LNG)
@@ -789,7 +802,7 @@ static unsigned	encodingVersion;
 	{
 	  void	*address = (void*)buf + offset;
 
-	  switch (info & _GSC_SIZE)
+	  switch (ainfo & _GSC_SIZE)
 	    {
 	      case _GSC_I16:	/* Encoded as 16-bit	*/
 		{
@@ -903,7 +916,7 @@ scalarSize(char type)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  IF_NO_GC(RETAIN(obj));
+		  IF_NO_ARC(RETAIN(obj);)
 		}
 	      else
 		{
@@ -929,16 +942,17 @@ scalarSize(char type)
 		  rep = [obj initWithCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)rep, xref);
 		    }
+		  obj = rep;
 
 		  rep = [obj awakeAfterUsingCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)rep, xref);
 		    }
+	          obj = rep;
+
 		  /*
 		   * The objMap does not retain objects, so in order to
 		   * be sure that a decoded object is not deallocated by
@@ -1212,14 +1226,48 @@ scalarSize(char type)
       case _GSC_CHR:
       case _GSC_UCHR:
 	/* Encoding of chars is not consistant across platforms, so we
-	   loosen the type checking a little */
-	if (*type != type_map[_GSC_CHR] && *type != type_map[_GSC_UCHR])
+	   loosen the type checking a little.  BOOL is a char on most
+	   platforms, but the libobjc2 runtime defines it as an int on
+	   Windows (unless built with STRICT_APPLE_COMPATIBILITY), so a char
+	   in the archive may have to widen into a larger integer
+	   destination for an archive (such as a gorm) to decode there. */
+	if (*type == type_map[_GSC_CHR] || *type == type_map[_GSC_UCHR])
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
+	else if (*type == _C_SHT || *type == _C_USHT
+	  || *type == _C_INT || *type == _C_UINT
+	  || *type == _C_LNG || *type == _C_ULNG
+	  || *type == _C_LNG_LNG || *type == _C_ULNG_LNG)
+	  {
+	    unsigned char	c;
+	    long long		v;
+
+	    (*desImp)(src, desSel, &c, @encode(unsigned char), &cursor, nil);
+	    if ((info & _GSC_MASK) == _GSC_UCHR)
+	      v = (long long)c;
+	    else
+	      v = (long long)(signed char)c;
+
+	    switch (*type)
+	      {
+		case _C_SHT:
+		case _C_USHT:	*(short*)address = (short)v; break;
+		case _C_INT:
+		case _C_UINT:	*(int*)address = (int)v; break;
+		case _C_LNG:
+		case _C_ULNG:	*(long*)address = (long)v; break;
+		default:	*(long long*)address = v; break;
+	      }
+	    return;
+	  }
+	else
 	  {
 	    [NSException raise: NSInternalInconsistencyException
 		        format: @"expected %s and got %s",
 		    typeToName1(*type), typeToName2(info)];
 	  }
-	(*desImp)(src, desSel, address, type, &cursor, nil);
 	return;
 
       case _GSC_SHT:
@@ -1337,7 +1385,8 @@ scalarSize(char type)
    *	First, we read the data and convert it to the largest size
    *	this system can support.
    */
-  if (*type == _C_SHT
+  if (*type == _C_CHR
+    || *type == _C_SHT
     || *type == _C_INT
     || *type == _C_LNG
     || *type == _C_LNG_LNG)
@@ -1506,7 +1555,7 @@ scalarSize(char type)
 				   at: b];
 	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
 							 length: l];
-	  IF_NO_GC(AUTORELEASE(d));
+	  IF_NO_ARC(AUTORELEASE(d);)
 	  return d;
 	}
       else
@@ -1683,7 +1732,7 @@ scalarSize(char type)
   info = [objDict objectForKey: className];
   if (info == nil)
     {
-      return (NSInteger)NSNotFound;
+      return NSNotFound;
     }
   return info->version;
 }

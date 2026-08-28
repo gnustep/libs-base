@@ -1,7 +1,7 @@
 /** Interface for NSLog for GNUStep
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: November 1996
 
    This file is part of the GNUstep Base Library.
@@ -18,14 +18,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSLog reference</title>
    $Date$ $Revision$
    */
 
 #import "common.h"
+#import "GSPThread.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSTimeZone.h"
@@ -99,16 +99,24 @@ static IMP              unlockImp = 0;
 NSRecursiveLock *
 GSLogLock()
 {
-  if (myLock == nil)
+  if (nil == myLock)
     {
-      [gnustep_global_lock lock];
-      if (myLock == nil)
+      static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(setupLock);
+      if (nil == myLock)
 	{
-	  myLock = [NSRecursiveLock new];
-          lockImp = [myLock methodForSelector: @selector(lock)];
-          unlockImp = [myLock methodForSelector: @selector(unlock)];
+	  NSRecursiveLock	*tmp;
+
+	  /* Avoid race condition by caching method implementations
+	   * before setting value in myLock 
+	   */
+	  tmp = [NSRecursiveLock new];
+          lockImp = [tmp methodForSelector: @selector(lock)];
+          unlockImp = [tmp methodForSelector: @selector(unlock)];
+	  myLock = tmp;
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(setupLock);
     }
   return myLock;
 }

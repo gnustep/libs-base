@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: NSObject.m
    */ 
@@ -30,11 +29,6 @@
 #import	<Foundation/NSObjCRuntime.h>
 #import <objc/objc.h>
 #import	<Foundation/NSZone.h>
-
-#ifdef	GS_WITH_GC
-#undef  GS_WITH_GC
-#endif
-#define	GS_WITH_GC	0
 
 #import	<GNUstepBase/GNUstep.h>
 
@@ -54,6 +48,7 @@ extern "C" {
 @class NSInvocation;
 @class Protocol;
 
+
 /**
  * The NSObject protocol describes a minimal set of methods that all
  * objects are expected to support.  You should be able to send any
@@ -61,21 +56,24 @@ extern "C" {
  * in assuming that the receiver can handle it.
  */
 @protocol NSObject
+
 /**
  * Returns the class of the receiver.  If the receiver is a proxy, then this
  * may return the class of the proxy target.  Use -isProxy to determine whether
  * the receiver is a proxy.  If you wish to find the real class of the
- * receiver, ignoring proxies, then use object_getClass().  
+ * receiver, ignoring proxies, then use "object_getClass()".  
  */
 - (Class) class;
+
 /**
  * Returns the superclass of receiver's class.  If the receiver is a proxy,
  * then this may return the class of the proxy target.  Use -isProxy to
  * determine whether the receiver is a proxy.  If you wish to find the real
  * superclass of the receiver's class, ignoring proxies, then use
- * class_getSuperclass(object_getClass()).
+ * "class_getSuperclass(object_getClass())".
  */
-- (Class) superclass;
+- (Class _Nullable) superclass;
+
 /**
  * Returns whether the receiver is equal to the argument.  Defining equality is
  * complex, so be careful when implementing this method.  Collections such as
@@ -93,13 +91,15 @@ extern "C" {
  * If two objects are equal, then they must have the same hash value, however
  * equal hash values do not imply equality.
  */
-- (BOOL) isEqual: (id)anObject;
+- (BOOL) isEqual: (id _Nullable)anObject;
+
 /**
  * Returns YES if the receiver is an instance of the class, an instance of the
  * subclass, or (in the case of proxies), an instance of something that can be
  * treated as an instance of the class.
  */
 - (BOOL) isKindOfClass: (Class)aClass;
+
 /**
  * Returns YES if the receiver is an instance of the class or (in the case of
  * proxies), an instance of something that can be treated as an instance of the
@@ -111,12 +111,14 @@ extern "C" {
  * subclass.  
  */
 - (BOOL) isMemberOfClass: (Class)aClass;
+
 /**
  * Returns YES if the receiver is a proxy, NO otherwise.  The default
  * implementation of this method in NSObject returns NO, while the
  * implementation in NSProxy returns YES.
  */
 - (BOOL) isProxy;
+
 /**
  * Returns a hash value for the object.  All objects that are equal *MUST*
  * return the same hash value.  For efficient storage in sets, or as keys in
@@ -129,31 +131,36 @@ extern "C" {
  * modified while stored in an unordered collection.
  */
 - (NSUInteger) hash;
+
 /**
  * Returns the receiver.  In a proxy, this may (but is not required to) return
  * the proxied object.
  */
 - (id) self;
+
 /**
  * Performs the specified selector.  The selector must correspond to a method
  * that takes no arguments.
  */
-- (id) performSelector: (SEL)aSelector;
+- (id _Nullable) performSelector: (SEL)aSelector;
+
 /**
  * Performs the specified selector, with the object as the argument.  This
  * method does not perform any automatic unboxing, so the selector must
  * correspond to a method that takes one object argument.
  */
-- (id) performSelector: (SEL)aSelector
-	    withObject: (id)anObject;
+- (id _Nullable) performSelector: (SEL)aSelector
+	    withObject: (id _Nullable)anObject;
+
 /**
  * Performs the specified selector, with the objects as the arguments.  This
  * method does not perform any automatic unboxing, so the selector must
  * correspond to a method that takes two object arguments.
  */
-- (id) performSelector: (SEL)aSelector
-	    withObject: (id)object1
-	    withObject: (id)object2;
+- (id _Nullable) performSelector: (SEL)aSelector
+	    withObject: (id _Nullable)object1
+	    withObject: (id _Nullable)object2;
+
 /**
  * Returns YES if the object can respond to messages with the specified
  * selector.  The default implementation in NSObject returns YES if the
@@ -162,16 +169,19 @@ extern "C" {
  * forwarding mechanisms.
  */
 - (BOOL) respondsToSelector: (SEL)aSelector;
+
 /**
  * Returns YES if the receiver conforms to the specified protocol.
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol;
+
 /**
  * Increments the reference count of the object and returns the receiver.  In
  * garbage collected mode, this method does nothing.  In automated reference
  * counting mode, you may neither implement this method nor call it directly.
  */
 - (id) retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Decrements the reference count of the object and destroys if it there are no
  * remaining references.  In garbage collected mode, this method does nothing.
@@ -179,6 +189,7 @@ extern "C" {
  * nor call it directly.
  */
 - (oneway void) release NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Performs a deferred -release operation.  The object's reference count is
  * decremented at the end of the scope of the current autorelease pool,
@@ -190,6 +201,7 @@ extern "C" {
  * counting mode, you may neither implement this method nor call it directly.
  */
 - (id) autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Returns the current retain count of an object.  This does not include the
  * result of any pending autorelease operations.
@@ -202,15 +214,17 @@ extern "C" {
  * occasionally be useful for debugging.
  */
 - (NSUInteger) retainCount NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Returns the description of the object.  This is used by the %@ format
  * specifier in strings.
  */
 - (NSString*) description;
+
 /**
  * Returns the zone of the object.
  */
-- (NSZone*) zone NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+- (NSZone *_Nullable) zone NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
 @end
 
 /**
@@ -233,7 +247,7 @@ extern "C" {
  * new copy, or are themselves copied, or whether some other mechanism
  * entirely is used.
  */
-- (id) copyWithZone: (NSZone*)zone;
+- (id) copyWithZone: (NSZone *_Nullable)zone;
 @end
 
 /**
@@ -255,7 +269,7 @@ extern "C" {
  * new copy, or are themselves copied, or whether some other mechanism
  * entirely is used.
  */
-- (id) mutableCopyWithZone: (NSZone*)zone;
+- (id) mutableCopyWithZone: (NSZone *_Nullable)zone;
 @end
 
 /**
@@ -280,11 +294,11 @@ extern "C" {
  * documentation for [NSCoder], [NSUnarchiver], [NSKeyedUnarchiver], and/or
  * [NSPortCoder] for more information.
  */
-- (id) initWithCoder: (NSCoder*)aDecoder;
+- (id _Nullable) initWithCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
 @end
 
 @protocol NSSecureCoding <NSCoding>
-+ (BOOL)supportsSecureCoding;
++ (BOOL) supportsSecureCoding;
 @end
 
 
@@ -312,7 +326,7 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 - (NSString*) className;
 #endif
 
-+ (id) allocWithZone: (NSZone*)z;
++ (id) allocWithZone: (NSZone *_Nullable)z;
 + (id) alloc;
 + (Class) class;
 
@@ -362,16 +376,16 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
  * of +initialize.
  */
 + (void) initialize;
-+ (IMP) instanceMethodForSelector: (SEL)aSelector;
-+ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
++ (IMP _Nullable) instanceMethodForSelector: (SEL)aSelector;
++ (NSMethodSignature *_Nullable) instanceMethodSignatureForSelector: (SEL)aSelector;
 + (BOOL) instancesRespondToSelector: (SEL)aSelector;
 + (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
-+ (id) setVersion: (NSInteger)aVersion;
++ (void) setVersion: (NSInteger)aVersion;
 + (NSInteger) version;
 
-- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
+- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder NS_REPLACES_RECEIVER;
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (id) copy;
@@ -379,12 +393,12 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 - (id) init;
-- (IMP) methodForSelector: (SEL)aSelector;
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
+- (IMP _Nullable) methodForSelector: (SEL)aSelector;
+- (NSMethodSignature *_Nullable) methodSignatureForSelector: (SEL)aSelector;
 - (id) mutableCopy;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
-- (Class) superclass;
+- (Class _Nullable) superclass;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
  * This method will be called when attempting to send a message a class that
@@ -437,10 +451,11 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
  * runtime, you must also implement -forwardInvocation: with equivalent
  * semantics.  This will be considerably slower, but more portable.
  */
-- (id) forwardingTargetForSelector: (SEL)aSelector;
+- (id _Nullable) forwardingTargetForSelector: (SEL)aSelector;
 
 #endif
 @end
+
 
 /**
  * Used to allocate memory to hold an object, and initialise the
@@ -488,11 +503,6 @@ NSIncrementExtraRefCount(id anObject);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
-/** Global lock to be used by classes when operating on any global
-    data that invoke other methods which also access global; thus,
-    creating the potential for deadlock. */
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
 @interface NSObject (NEXTSTEP)
 - (id) error:(const char *)aString, ...;
 /* - (const char *) name;
@@ -512,6 +522,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  *  Declares some methods for sending messages to self after a fixed delay.
  *  (These methods <em>are</em> in OpenStep and OS X.)
  */
+
 @interface NSObject (TimedPerformers)
 
 /**
@@ -529,13 +540,13 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)obj
 					selector: (SEL)s
-					  object: (id)arg;
+					  object: (id _Nullable)arg;
 /**
  * Sets given message to be sent to this instance after given delay,
  * in any run loop mode.  See [NSRunLoop].
  */
 - (void) performSelector: (SEL)s
-	      withObject: (id)arg
+	      withObject: (id _Nullable)arg
 	      afterDelay: (NSTimeInterval)seconds;
 
 /**
@@ -543,7 +554,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  * in given run loop modes.  See [NSRunLoop].
  */
 - (void) performSelector: (SEL)s
-	      withObject: (id)arg
+	      withObject: (id _Nullable)arg
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes;
 @end
@@ -583,6 +594,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  */
 - (BOOL) isContentDiscarded;
 @end
+
 #endif
 #if	defined(__cplusplus)
 }

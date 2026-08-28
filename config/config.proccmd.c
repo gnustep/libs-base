@@ -10,6 +10,8 @@
   notice and this notice are preserved.
 */
 #include <stdio.h>
+#include <unistd.h>
+
 int main()
 {
   char	buf[32];

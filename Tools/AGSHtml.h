@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -31,6 +31,7 @@
 @interface AGSHtml : NSObject
 {
   NSString		*project;
+  NSString		*version;
   AGSIndex		*localRefs;
   AGSIndex		*globalRefs;
   AGSIndex		*projectRefs;
@@ -43,12 +44,16 @@
   NSString		*nextFile;	// Not retained
   NSString		*prevFile;	// Not retained
   NSString		*upFile;	// Not retained
+  NSString		*fileName;
   unsigned		chap;
   unsigned		sect;
   unsigned		ssect;
   unsigned		sssect;
   BOOL			isContentsDoc;
   BOOL			ivarsAtEnd;
+  BOOL			cssNavigation;
+  BOOL			verbose;
+  BOOL			warn;
 }
 - (void) decIndent;
 - (void) incIndent;
@@ -58,6 +63,9 @@
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		 isRef: (BOOL)f;
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+                isRef: (BOOL)f;
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		inUnit: (NSString*)u
@@ -68,7 +76,7 @@
 	       style: (NSString*)style
               target: (NSString*)target
                   to: (NSMutableString*)buf;
-- (NSString*) outputDocument: (GSXMLNode*)node;
+- (NSString*) outputDocument: (GSXMLNode*)node name: (NSString*)file;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (GSXMLNode*) outputBlock: (GSXMLNode*)node

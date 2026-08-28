@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDistantObject class reference</title>
    $Date$ $Revision$
@@ -126,17 +125,18 @@ enum proxyLocation
 
 
 
-/*
- *	The GSDistantObjectPlaceHolder class is simply used as a placeholder
- *	for an NSDistantObject so we can manage efficient allocation and
+/* The GSDistantObjectPlaceHolder class produces a singleton used as a
+ * placeholder	for an NSDistantObject so we can manage efficient allocation and
  *	initialisation - in most cases when we ask for an NSDistantObject
  *	instance, we will get a pre-existing one, so we don't want to go
  *	allocating the memory for a new instance unless absolutely necessary.
  */
 GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
-+ (id) initWithCoder: (NSCoder*)aCoder;
-+ (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
-+ (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
++ (id) initWithCoder: (NSCoder*)aCoder NS_RETURNS_RETAINED;
++ (id) initWithLocal: (id)anObject
+	  connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
++ (id) initWithTarget: (unsigned)target
+	   connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
 + (id) autorelease;
 + (void) release;
 + (id) retain;
@@ -640,9 +640,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   self = [_connection retainOrAddLocal: self forObject: anObject];
 
   if (debug_proxy)
-    NSLog(@"Created new local=%p object %p target 0x%x connection %p\n",
-     self, _object, _handle, _connection);
-
+    {
+      NSLog(@"Created new local=%p object %p target 0x%x connection %p\n",
+       self, _object, _handle, _connection);
+    }
   return self;
 }
 
@@ -666,9 +667,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   self = [_connection retainOrAddProxy: self forTarget: target];
 
   if (debug_proxy)
+    {
       NSLog(@"Created new proxy=%p target 0x%x connection %p\n",
 	 self, _handle, _connection);
-
+    }
   return self;
 }
 
@@ -725,16 +727,20 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
       if (_protocol != nil)
 	{
 	  struct objc_method_description mth;
-	  mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, YES);
+	  mth = GSProtocolGetMethodDescriptionRecursive(
+	    _protocol, aSelector, YES, YES);
 
 	  if (mth.name == NULL && mth.types == NULL)
 	    {
 	      // Search for class method
-	      mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, NO);
+	      mth = GSProtocolGetMethodDescriptionRecursive(
+		_protocol, aSelector, YES, NO);
 	    }
 
 	  if (mth.types)
-	    return [NSMethodSignature signatureWithObjCTypes: mth.types];
+	    {
+	      return [NSMethodSignature signatureWithObjCTypes: mth.types];
+	    }
 	}
 
       if (_sigs != 0)
@@ -758,9 +764,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	      const char	*types;
 
 	      types = [m methodType];
-	      /* Create a local method signature.
+	      /* Create a local method signature.  The types came from the
+	       * other end of the connection, so it is not cached.
 	       */
-	      m = [NSMethodSignature signatureWithObjCTypes: types];
+	      m = [NSMethodSignature _uncachedSignatureWithObjCTypes: types];
 	    }
 	  if (m != nil)
 	    {
@@ -836,7 +843,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 }
 
 /**
- * Used by the garbage collection system to tidy up when a proxy is destroyed.
+ * Used to tidy up when a proxy is destroyed.
  */
 - (void) finalize
 {
@@ -900,13 +907,24 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-  BOOL		m = NO;
-  id		inv;
-  id		sig;
+  if (aSelector == 0)
+    {
+      return NO;
+    }
+  if (class_respondsToSelector(object_getClass(self), aSelector))
+    {
+      return YES;
+    }
+  else
+    {
+      BOOL	m = NO;
+      id	inv;
+      id	sig;
 
-  DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
+      DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
 
-  return m;
+      return m;
+    }
 }
 
 - (id) replacementObjectForCoder: (NSCoder*)aCoder

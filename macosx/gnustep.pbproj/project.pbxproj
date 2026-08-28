@@ -1745,28 +1745,11 @@
 //EF2
 //EF3
 //EF4
-		EFEFAC3C055D9BC400B39730 = {
-			expectedFileType = sourcecode.c.h;
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			path = GSLock.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		EFEFAC3D055D9BC400B39730 = {
 			fileRef = EFEFAC3C055D9BC400B39730;
 			isa = PBXBuildFile;
 			settings = {
 			};
-		};
-		EFEFAC3E055D9BF400B39730 = {
-			expectedFileType = sourcecode.c.objc;
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			name = GSLock.m;
-			path = Additions/GSLock.m;
-			refType = 4;
-			sourceTree = "<group>";
 		};
 		EFEFAC3F055D9BF400B39730 = {
 			fileRef = EFEFAC3E055D9BF400B39730;

@@ -36,43 +36,43 @@ int main()
   NSFileHandle *stdInFH = [NSFileHandle fileHandleWithStandardInput];
   NSFileHandle *stdNullFH = [NSFileHandle fileHandleWithNullDevice];
   NSFileHandle *t1FH, *t2FH;
-  NSString *tPath = [NSString stringWithFormat:@"%@/%@",NSTemporaryDirectory(),[[NSProcessInfo processInfo]globallyUniqueString]];
-  NSData *t1Data = [tPath dataUsingEncoding:NSUTF8StringEncoding];
+  NSString *tPath = [NSString stringWithFormat: @"%@/%@",NSTemporaryDirectory(),[[NSProcessInfo processInfo]globallyUniqueString]];
+  NSData *t1Data = [tPath dataUsingEncoding: NSUTF8StringEncoding];
   NSData *t2Data;
 
-  PASS([stdInFH isKindOfClass:[NSFileHandle class]],
-       "NSFileHandle understands +fileHandleWithStandardInput");
+  PASS([stdInFH isKindOfClass: [NSFileHandle class]],
+       "NSFileHandle understands +fileHandleWithStandardInput")
   PASS([stdInFH fileDescriptor]==0,
-       "NSFileHandle +fileHandleWithStandardInput has 0 as fileDescriptor");
+       "NSFileHandle +fileHandleWithStandardInput has 0 as fileDescriptor")
 
-  PASS([stdOutFH isKindOfClass:[NSFileHandle class]],
-       "NSFileHandle understands +fileHandleWithStandardOutput");
+  PASS([stdOutFH isKindOfClass: [NSFileHandle class]],
+       "NSFileHandle understands +fileHandleWithStandardOutput")
   PASS([stdOutFH fileDescriptor]==1,
-       "NSFileHandle +fileHandleWithStandardOutput has 1 as fileDescriptor");
+       "NSFileHandle +fileHandleWithStandardOutput has 1 as fileDescriptor")
 
-  PASS([stdErrFH isKindOfClass:[NSFileHandle class]],
-       "NSFileHandle understands +fileHandleWithStandardError");
+  PASS([stdErrFH isKindOfClass: [NSFileHandle class]],
+       "NSFileHandle understands +fileHandleWithStandardError")
   PASS([stdErrFH fileDescriptor]==2,
        "NSFileHandle +fileHandleWithStandardError has 2 as fileDescriptor");
 
-  PASS([stdNullFH isKindOfClass:[NSFileHandle class]],
-       "NSFileHandle understands +fileHandleWithNullDevice");
+  PASS([stdNullFH isKindOfClass: [NSFileHandle class]],
+       "NSFileHandle understands +fileHandleWithNullDevice")
 
-  t1FH = [[NSFileHandle alloc] initWithFileDescriptor: 0];
-  PASS([t1FH isKindOfClass:[NSFileHandle class]],
-       "NSFileHandle understands -initWithFileDescriptor:");
+  t1FH = AUTORELEASE([[NSFileHandle alloc] initWithFileDescriptor: 0]);
+  PASS([t1FH isKindOfClass: [NSFileHandle class]],
+       "NSFileHandle understands -initWithFileDescriptor:")
 
   t1FH = [NSFileHandle fileHandleForWritingAtPath: tPath];
-  PASS(t1FH == nil,
-       "NSFileHandle +fileHandleForWritingAtPath: with non-existing file return nil");
+  PASS(t1FH == nil, "NSFileHandle +fileHandleForWritingAtPath:"
+    " with non-existing file return nil")
 
   [@"" writeToFile: tPath atomically: YES];
   t1FH = [NSFileHandle fileHandleForWritingAtPath: tPath];
-  PASS([t1FH isKindOfClass:[NSFileHandle class]],
+  PASS([t1FH isKindOfClass: [NSFileHandle class]],
        "NSFileHandle understands +fileHandleForWritingAtPath:");
 
   t2FH = [NSFileHandle fileHandleForReadingAtPath: tPath];
-  PASS([t2FH isKindOfClass:[NSFileHandle class]],
+  PASS([t2FH isKindOfClass: [NSFileHandle class]],
        "NSFileHandle understands +fileHandleForReadingAtPath:");
 
   [t1FH writeData: t1Data];

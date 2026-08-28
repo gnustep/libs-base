@@ -24,7 +24,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 */ 
 
 #import "common.h"
@@ -149,7 +149,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
 - (void) setDelegate: (id)anObject
 {
   /* FIXME - we should not retain the delegate ! */
-  IF_NO_GC(RETAIN(anObject);)
+  IF_NO_ARC(RETAIN(anObject);)
   ASSIGN(_delegate, anObject);
 }
 
@@ -429,7 +429,7 @@ combined with the set of ignored words in the current document.
 			      wordCount: (int32_t *)wordCount
 			      countOnly: (BOOL)countOnly
 {
-  NSRange r = NSMakeRange(0,0);
+  NSRange r;
 
   // Forward to delegate
   NS_DURING
@@ -444,6 +444,7 @@ combined with the set of ignored words in the current document.
     }
   NS_HANDLER
     {
+      r = NSMakeRange(0,0);
       NSLog(@"Call to delegate caused the following exception: %@",
 	    [localException reason]);
     }

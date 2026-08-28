@@ -7,7 +7,8 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
    
   test_alloc(@"NSBundle");
-  test_NSObject(@"NSBundle", [NSArray arrayWithObject:[NSBundle new]]); 
+  test_NSObject(@"NSBundle",
+    [NSArray arrayWithObject: AUTORELEASE([NSBundle new])]); 
   [arp release]; arp = nil;
   return 0;
 }

@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public
 #  License along with this library.
 #  If not, write to the Free Software Foundation,
-#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  31 Milk Street #960789 Boston, MA 02196 USA.
 
 PACKAGE_NAME = gnustep-base
 
@@ -44,7 +44,7 @@ manual_TEXI_FILES =              \
 	WorkingWithObjects.texi  \
 	WritingNewClasses.texi
 
-manual_DOC_INSTALL_DIR = Developer/Base/ProgrammingManual
+manual_DOC_INSTALL_DIR = Developer/Base
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 

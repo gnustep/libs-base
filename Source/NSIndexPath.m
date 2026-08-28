@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -32,7 +31,6 @@
 #import	"Foundation/NSIndexPath.h"
 #import	"Foundation/NSKeyedArchiver.h"
 #import	"Foundation/NSLock.h"
-#import	"GNUstepBase/GSLock.h"
 
 static	NSRecursiveLock	*lock = nil;
 static	NSHashTable	*shared = 0;
@@ -62,6 +60,26 @@ static	NSIndexPath	*dummy = nil;
 
   o = [o initWithIndexes: indexes length: length];
   return AUTORELEASE(o);
+}
+
++ (instancetype) indexPathForItem: (NSInteger)item inSection: (NSInteger)section
+{
+  NSUInteger idxs[2];
+
+  idxs[0] = (NSUInteger)section;
+  idxs[1] = (NSUInteger)item;
+  
+  return [self indexPathWithIndexes: idxs length: 2];
+}
+
++ (instancetype) indexPathForRow: (NSInteger)row inSection: (NSInteger)section
+{
+  NSUInteger idxs[2];
+
+  idxs[0] = (NSUInteger)section;
+  idxs[1] = (NSUInteger)row;
+  
+  return [self indexPathWithIndexes: idxs length: 2];
 }
 
 + (void) initialize
@@ -94,11 +112,11 @@ static	NSIndexPath	*dummy = nil;
 	{
 	  if (pos >= _length)
 	    {
-	      return NSOrderedDescending;
+	      return NSOrderedAscending;
 	    }
 	  else if (pos >= olength)
 	    {
-	      return NSOrderedAscending;
+	      return NSOrderedDescending;
 	    }
 	  if (oindexes[pos] < _indexes[pos])
 	    {
@@ -196,6 +214,21 @@ static	NSIndexPath	*dummy = nil;
 				     at: _indexes];
 	}
     }
+}
+
+- (NSInteger) row
+{
+  return (NSInteger)[self indexAtPosition: 1];
+}
+
+- (NSInteger) item
+{
+  return (NSInteger)[self indexAtPosition: 1];
+}
+
+- (NSInteger) section
+{
+  return (NSInteger)[self indexAtPosition: 0];
 }
 
 - (void) getIndexes: (NSUInteger*)aBuffer

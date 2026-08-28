@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 /* PS: Unloading modules is not implemented.  */
@@ -259,6 +258,8 @@ GSPrivateSymbolPath(Class theClass)
 #warning Under Cygwin, we may want to use cygwin_conv_path() to get the unix path back?
 #endif
       s = [NSString stringWithCharacters: buf length: wcslen(buf)];
+      s = [s stringByResolvingSymlinksInPath];
+      s = [s stringByStandardizingPath];
     }
   return s;
 }
@@ -275,7 +276,23 @@ NSString *GSPrivateSymbolPath(Class theClass)
    */
   if (0 != dladdr((void*)theClass, &info))
     {
-      return [NSString stringWithUTF8String: info.dli_fname];
+      /* On some platforms, when the symbol is in the executable, the
+       * dladdr() function returns the value from argv[0] as the path.
+       * So we check for that and map it to the full path of the
+       * executable.
+       */
+      if (strcmp(info.dli_fname, GSPrivateArgZero()) == 0)
+	{
+	  return GSPrivateExecutablePath();
+	}
+      else
+	{
+	  NSString	*s;
+
+	  s = [NSString stringWithUTF8String: info.dli_fname];
+	  s = [s stringByResolvingSymlinksInPath];
+	  return [s stringByStandardizingPath];
+	}
     }
 #endif
 
@@ -317,7 +334,11 @@ NSString *GSPrivateSymbolPath(Class theClass)
 
       if (ret)
         {
-          return [NSString stringWithUTF8String: ret];
+	  NSString	*s;
+
+          s = [NSString stringWithUTF8String: ret];
+	  s = [s stringByResolvingSymlinksInPath];
+	  return [s stringByStandardizingPath];
         }
     }
   return nil;

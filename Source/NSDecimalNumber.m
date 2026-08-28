@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDecimalNumber class reference</title>
    $Date$ $Revision$
@@ -248,7 +247,7 @@ static NSDecimalNumber *one;
 }
 
 + (NSDecimalNumber*) decimalNumberWithString: (NSString*)numericString
-				      locale: (NSDictionary*)locale
+				      locale: (id)locale
 {
   return AUTORELEASE([[self alloc] initWithString: numericString
 					   locale: locale]);
@@ -429,7 +428,10 @@ static NSDecimalNumber *one;
 
 - (id) initWithDecimal: (NSDecimal)decimal
 {
-  NSDecimalCopy(&data, &decimal);
+  if (nil != (self = [super init]))
+    {
+      NSDecimalCopy(&data, &decimal);
+    }
   return self;
 }
 
@@ -450,7 +452,7 @@ static NSDecimalNumber *one;
 }
 
 - (id) initWithString: (NSString*)numberValue
-	       locale: (NSDictionary*)locale
+	       locale: (id)locale
 {
   NSDecimal decimal;
 

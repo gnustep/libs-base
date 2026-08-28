@@ -1,5 +1,4 @@
-
-/* Definition of class NSUserScriptTask
+/**Definition of class NSUserScriptTask
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory John Casamento <greg.casamento@gmail.com>
@@ -19,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef _NSUserScriptTask_h_GNUSTEP_BASE_INCLUDE

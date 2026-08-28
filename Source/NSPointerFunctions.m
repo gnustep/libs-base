@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -62,7 +61,7 @@ static Class	concreteClass = Nil;
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
   [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (void* (*)(const void *item,

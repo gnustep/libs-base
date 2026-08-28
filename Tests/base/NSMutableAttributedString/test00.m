@@ -63,12 +63,13 @@ NSString *NSForegroundColorAttributeName = @"NSForegroundColorAttributeName";
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSMutableAttributedString *attrStr;
   NSString *baseString = @"0123456789";
   NSDictionary *red, *gray, *blue;
   
   NSMutableAttributedString *s;
+
   s = [[[NSMutableAttributedString alloc]
     initWithString: @"string"] autorelease];
   [s _sanity];
@@ -97,8 +98,8 @@ int main()
   gray = [NSDictionary dictionaryWithObject:@"Gray" forKey:@"Color"];
   blue = [NSDictionary dictionaryWithObject:@"Blue" forKey:@"Color"];
   
-  attrStr = [[NSMutableAttributedString alloc] initWithString:baseString 
-                                                      attributes:red];
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   PASS([[attrStr string] isEqual:baseString] &&
        [attrStr checkAttributes:red range:NSMakeRange(0,10)],
@@ -109,8 +110,8 @@ int main()
   PASS([attrStr checkAttributes:blue range:NSMakeRange(0,10)],
        "-setAttributes:range: works for the whole string");
    
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(0,5)];
   [attrStr _sanity];
@@ -118,8 +119,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)],
        "-setAttributes:range: works for the first half of the string");
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(3,5)];
   [attrStr _sanity];
@@ -135,8 +136,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(8,2)],
        "-setAttributes:range: works for same attributes in middle of string");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(5,5)];
   [attrStr _sanity];
@@ -144,8 +145,8 @@ int main()
        [attrStr checkAttributes:blue range:NSMakeRange(5,5)],
        "-setAttributes:range: works for the last half of the string");
    
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(0,3)];
   [attrStr _sanity];
@@ -158,8 +159,8 @@ int main()
        [attrStr checkAttributes:gray range:NSMakeRange(7,3)],
        "-setAttributes:range: works in three parts of the string");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(0,5)];
   [attrStr _sanity];
@@ -173,8 +174,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(9,1)],
        "-setAttributes:range: works with overlapping");
    
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr= AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(1,2)];
   [attrStr _sanity];
@@ -191,8 +192,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(9,1)], 
        "-setAttributes:range: works with overlapping (2)");
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(2,5)];
   [attrStr _sanity];
@@ -203,8 +204,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(7,3)], 
        "-setAttributes:range: works with replacing");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(1,8)];
   [attrStr _sanity];
@@ -221,8 +222,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(9,1)], 
        "-setAttributes:range: works with chinese boxes"); 
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(1,3)];
   [attrStr _sanity];
@@ -233,8 +234,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)],
        "-setAttributes:range: works with extending at the end (diff color)");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:gray range:NSMakeRange(1,3)];
   [attrStr _sanity];
@@ -245,8 +246,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)],
        "-setAttributes:range: works with extending at the end (diff color)");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(2,3)];
   [attrStr _sanity];
@@ -257,8 +258,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)], 
        "-setAttributes:range: works with extending at the beginning (diff color)");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:gray range:NSMakeRange(2,3)];
   [attrStr _sanity];
@@ -270,8 +271,8 @@ int main()
        "-setAttributes:range: works with extending at the beginning (same color)");
 
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(1,3)];
   [attrStr _sanity];
@@ -283,8 +284,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(4,6)], 
        "-setAttributes:range: works with subset at the end (diff color)"); 
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:gray range:NSMakeRange(1,3)];
   [attrStr _sanity];
@@ -295,8 +296,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(4,6)], 
        "-setAttributes:range: works with subset at the end (same color)");
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(2,3)];
   [attrStr _sanity];
@@ -308,8 +309,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)], 
        "-setAttributes:range: works with subset at the beginning (diff color)");
 
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:gray range:NSMakeRange(2,3)];
   [attrStr _sanity];
@@ -320,8 +321,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(5,5)], 
        "-setAttributes:range: works with subset at the beginning (same color)");
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:gray range:NSMakeRange(2,1)];
   [attrStr _sanity];
@@ -334,8 +335,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(6,4)], 
        "-setAttributes:range: works with subsets (diff color)");     
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(2,1)];
   [attrStr _sanity];
@@ -348,8 +349,8 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(6,4)], 
        "-setAttributes:range: works with subsets (same color)");     
   
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(2,1)];
   [attrStr _sanity];
@@ -364,8 +365,8 @@ int main()
   PASS([attrStr checkAttributes:gray range:NSMakeRange(0,10)], 
        "-setAttributes:range: works with setting attributes for the whole string"); 
    
-  ASSIGN(attrStr,[[NSMutableAttributedString alloc] initWithString:baseString 
-                                                        attributes:red]);
+  attrStr = AUTORELEASE([[NSMutableAttributedString alloc]
+    initWithString: baseString attributes: red]);
   [attrStr _sanity];
   [attrStr setAttributes:blue range:NSMakeRange(0,1)];
   [attrStr _sanity];
@@ -377,7 +378,7 @@ int main()
        [attrStr checkAttributes:red range:NSMakeRange(3,7)], 
        "-setAttributes:range: works with nearby attributes"); 
   
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }
 

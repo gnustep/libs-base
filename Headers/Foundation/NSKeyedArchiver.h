@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: NSKeyedArchiver.m
    AutogsdocSource: NSKeyedUnarchiver.m
@@ -40,6 +39,7 @@ extern "C" {
 #import	<Foundation/NSMapTable.h>
 #import	<Foundation/NSPropertyList.h>
 
+@class GS_GENERIC_CLASS(NSSet, ElementT);
 @class NSMutableDictionary, NSMutableData, NSData, NSString;
 
 /**
@@ -98,7 +98,7 @@ GS_EXPORT_CLASS
  */
 + (NSData *) archivedDataWithRootObject: (id)anObject
                   requiringSecureCoding: (BOOL)requiresSecureCoding
-                                  error: (NSError **)error;
+                                  error: (NSError *_Nullable *_Nullable)error;
 #endif
 
 /**
@@ -273,6 +273,7 @@ GS_EXPORT_CLASS
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
   BOOL          _requiresSecureCoding;
+  NSSet		*_allowedClasses; /* Current secure-coding allowed set (not retained; owned by the caller for the duration of a decode). */
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -310,6 +311,40 @@ GS_EXPORT_CLASS
  *  Decodes from file contents at aPath and returns resulting root object.
  */
 + (id) unarchiveObjectWithFile: (NSString*)aPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13,GS_API_LATEST)
+
++ (id) unarchivedObjectOfClass: (Class)cls
+                      fromData: (NSData*)data
+                         error: (NSError *_Nullable *_Nullable)error;
+
++ (id) unarchivedObjectOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                        fromData: (NSData*)data
+                           error: (NSError *_Nullable *_Nullable)error;
+
+#endif
+
+#if OS_API_VERSION(MAC_OS_VERSION_11_0,GS_API_LATEST)
+
++ (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
+                                    fromData: (NSData*)data
+                                       error: (NSError *_Nullable *_Nullable)error;
+
++ (NSArray*) unarchivedArrayOfObjectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                                      fromData: (NSData*)data
+                                         error: (NSError *_Nullable *_Nullable)error;
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
+                                       objectsOfClass: (Class)valueCls
+                                             fromData: (NSData*)data
+                                                error: (NSError *_Nullable *_Nullable)error;
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)keyClasses
+                                       objectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)valueClasses
+                                               fromData: (NSData*)data
+                                                  error: (NSError *_Nullable *_Nullable)error;
+
+#endif
 
 /**
  * Returns whether the current instance of the archiver needs secure
@@ -526,7 +561,7 @@ willReplaceObject: (id)anObject
  * returned, it is used to replace anObject.
  */
 - (id) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
-  didDecodeObject: (id)anObject;
+  didDecodeObject: (id) NS_CONSUMED anObject NS_RETURNS_RETAINED;
 
 /**
  * Sent when unarchiving is about to complete.
@@ -634,4 +669,3 @@ willReplaceObject: (id)anObject
 
 #endif	/* GS_API_MACOSX */
 #endif	/* __NSKeyedArchiver_h_GNUSTEP_BASE_INCLUDE */
-

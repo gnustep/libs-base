@@ -1,0 +1,122 @@
+name: Android
+
+on:
+  push:
+    branches: [ master, 'ci/**' ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api-level: 31
+            abi: x86_64
+            triple: x86_64-linux-android
+    runs-on: ubuntu-24.04
+    name: Android ${{ matrix.abi }} API-${{ matrix.api-level }}
+    env:
+      GS_PREFIX: ${{ github.workspace }}/android-prefix
+      GS_DISPATCH_PREFIX: ${{ github.workspace }}/dispatch-prefix
+      GS_SRC: ${{ github.workspace }}/gs-src
+      GS_BASE: ${{ github.workspace }}
+      GS_WORK: ${{ github.workspace }}/gs-run
+      GS_API: ${{ matrix.api-level }}
+      GS_ABI: ${{ matrix.abi }}
+      GS_TRIPLE: ${{ matrix.triple }}
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Install host packages
+      run: |
+        sudo apt-get update -y
+        # gnustep-base-runtime supplies plmerge, pl2link and defaults, which
+        # run on the build machine while everything else is cross compiled.
+        sudo apt-get install -y ninja-build patchelf gnustep-base-runtime \
+          autoconf automake libtool pkg-config
+
+    - name: Enable KVM
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+          | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Restore the dependency cache
+      id: deps-cache
+      uses: actions/cache/restore@v5
+      with:
+        path: |
+          ${{ github.workspace }}/android-prefix
+          ${{ github.workspace }}/dispatch-prefix
+        key: android-deps-${{ matrix.abi }}-${{ matrix.api-level }}-${{ hashFiles('.github/scripts/android/deps.sh') }}
+
+    - name: Cross-build the dependencies
+      if: steps.deps-cache.outputs.cache-hit != 'true'
+      run: .github/scripts/android/deps.sh
+
+    # Saved even when a later step fails, so a broken test run does not cost
+    # a full dependency rebuild on the next attempt.
+    - name: Save the dependency cache
+      if: always() && steps.deps-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: |
+          ${{ github.workspace }}/android-prefix
+          ${{ github.workspace }}/dispatch-prefix
+        key: ${{ steps.deps-cache.outputs.cache-primary-key }}
+
+    - name: Build libs-base, helpers and bundles
+      run: .github/scripts/android/base.sh
+
+    - name: AVD cache
+      uses: actions/cache@v5
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-${{ matrix.abi }}-${{ matrix.api-level }}
+
+    - name: Create the AVD snapshot
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        arch: ${{ matrix.abi }}
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: echo "AVD snapshot created."
+
+    - name: Run the test suite
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        arch: ${{ matrix.abi }}
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        target: default
+        script: .github/scripts/android/tests.sh
+
+    - name: Upload the run log
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: android-test-log-api${{ matrix.api-level }}
+        path: |
+          gs-run/all.txt
+          gs-run/failed.txt
+          gs-run/noresult.txt
+          gs-run/nobuild.txt
+          android-configure.log
+          android-build.log
+          android-install.log
+        if-no-files-found: warn

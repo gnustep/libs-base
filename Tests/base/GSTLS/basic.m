@@ -36,16 +36,15 @@ START_SET("TLS support")
 #endif
   [dateFormatter release];
   PASS_EQUAL([c expiresAt], expiresAt,
-    "Expiration for entire list is that of the single item")
-#else
-  SKIP("TLS support disabled");
-#endif
-
+    "Expiration for entire list is that of the single item");
   
   cred = [GSTLSCredentials selfSigned: YES];
   NSLog(@"%@", cred);
   PASS(cred != nil, "generates self signed certificate");
-
+#else
+  SKIP("TLS support disabled");
+#endif
+  
   END_SET("TLS support");
   DESTROY(arp);
   return 0;

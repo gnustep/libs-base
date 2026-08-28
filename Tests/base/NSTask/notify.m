@@ -18,6 +18,12 @@
 
 static BOOL taskTerminationNotificationReceived;
 
+- (void) dealloc
+{
+  DESTROY(path);
+  DEALLOC
+}
+
 - (void) setLaunchPath: (NSString*)s
 {
   ASSIGNCOPY(path, s);
@@ -32,7 +38,17 @@ static BOOL taskTerminationNotificationReceived;
 - (void) testNSTaskNotifications
 {
   NSDate        *deadline;
+  NSString      *testsleep;
+  NSString      *testecho;
   BOOL          earlyTermination = NO;
+  
+#if defined(_WIN32)
+  testecho = @"testecho.exe";
+  testsleep = @"testsleep.exe";
+#else
+  testecho = @"testecho";
+  testsleep = @"testsleep";
+#endif
 
   for (;;)
     {
@@ -48,7 +64,7 @@ static BOOL taskTerminationNotificationReceived;
         {
           BOOL  terminated = NO;
           [task setLaunchPath:
-            [path stringByAppendingPathComponent: @"testsleep"]];
+            [path stringByAppendingPathComponent: testsleep]];
           [task launch];
           NSLog(@"Launched pid %d", [task processIdentifier]);
           NSLog(@"Running run loop for 5 seconds");
@@ -74,7 +90,7 @@ static BOOL taskTerminationNotificationReceived;
       else
         {
           [task setLaunchPath:
-            [path stringByAppendingPathComponent: @"testecho"]];
+            [path stringByAppendingPathComponent: testecho]];
           [task launch];
           NSLog(@"Launched pid %d", [task processIdentifier]);
           NSLog(@"Running run loop for 15 seconds");

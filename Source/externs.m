@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -298,6 +297,7 @@ GS_DECLARE NSString* const NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
 GS_DECLARE NSString* const GSLocale = @"GSLocale";
+GS_DECLARE NSString *const GSCACertificateFilePath = @"GSCACertificateFilePath";
 
 
 /*
@@ -363,6 +363,8 @@ GS_DECLARE NSString* const GSTLSCertificateFile = @"GSTLSCertificateFile";
 GS_DECLARE NSString* const GSTLSCertificateKeyFile = @"GSTLSCertificateKeyFile";
 GS_DECLARE NSString* const GSTLSCertificateKeyPassword = @"GSTLSCertificateKeyPassword";
 GS_DECLARE NSString* const GSTLSDebug = @"GSTLSDebug";
+GS_DECLARE NSString* const GSTLSIssuers = @"GSTLSIssuers";
+GS_DECLARE NSString* const GSTLSOwners = @"GSTLSOwners";
 GS_DECLARE NSString* const GSTLSPriority = @"GSTLSPriority";
 GS_DECLARE NSString* const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 GS_DECLARE NSString* const GSTLSRevokeFile = @"GSTLSRevokeFile";
@@ -560,6 +562,7 @@ GS_DECLARE NSString* const GSHTTPPropertyProxyPortKey = @"GSHTTPPropertyProxyPor
 GS_DECLARE NSString* const GSHTTPPropertyCertificateFileKey = @"GSHTTPPropertyCertificateFileKey";
 GS_DECLARE NSString* const GSHTTPPropertyKeyFileKey = @"GSHTTPPropertyKeyFileKey";
 GS_DECLARE NSString* const GSHTTPPropertyPasswordKey = @"GSHTTPPropertyPasswordKey";
+GS_DECLARE NSString* const GSHTTPPropertyDigestURIOmitsQuery = @"GSHTTPPropertyDigestURIOmitsQuery";
 
 /* NSURLProtectionSpace */
 GS_DECLARE NSString* const NSURLProtectionSpaceFTPProxy = @"ftp";	

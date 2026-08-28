@@ -1,8 +1,9 @@
-/* NSLocale.h
+/** NSLocale.h
    
    Copyright (C) 2010 Free Software Foundation, Inc.
    
-   Written by: Stefan Bidigaray, Richard Frith-Macdonald
+   Written by: Stefan Bidigaray
+   Written by: Richard Frith-Macdonald
    Date: June, 2010
    
    This library is free software; you can redistribute it and/or
@@ -18,8 +19,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, see <http://www.gnu.org/licenses/> or write to the 
-   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
-   Boston, MA 02110-1301, USA.
+   Free Software Foundation, 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __NSLocale_h_GNUSTEP_BASE_INCLUDE

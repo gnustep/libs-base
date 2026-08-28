@@ -1,4 +1,4 @@
-/* Interface for NSCache for GNUStep
+/** Interface for NSCache for GNUStep
    Copyright (C) 2009 Free Software Foundation, Inc.
 
    Written by:  David Chisnall <csdavec@swan.ac.uk>
@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #ifndef __NSCache_h_GNUSTEP_BASE_INCLUDE
@@ -36,6 +35,7 @@ extern "C" {
 
 @class NSString;
 @class NSMapTable;
+@class NSRecursiveLock;
 @class GS_GENERIC_CLASS(NSMutableArray, ElementT);
 
 GS_EXPORT_CLASS
@@ -61,6 +61,8 @@ GS_EXPORT_CLASS
   GS_GENERIC_CLASS(NSMutableArray, ValT) *_accesses;
   /** Total number of accesses to objects */
   int64_t _totalAccesses;
+  /** locking for thread safety */
+  NSRecursiveLock	*_lock;
 #endif
 #if     GS_NONFRAGILE
 #else

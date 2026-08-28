@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -45,6 +44,7 @@ static Class	concreteClass = Nil;
   void		**_contents;
   unsigned	_capacity;
   unsigned	_grow_factor;
+  unsigned long	_version;
 }
 @end
 
@@ -112,11 +112,6 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
-- (id) init
-{
-  return [self initWithOptions: 0];
-}
-
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   [self subclassResponsibility: _cmd];
@@ -134,7 +129,7 @@ static Class	concreteClass = Nil;
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
   [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (BOOL) isEqual: (id)other
@@ -198,18 +193,50 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+
+  state->mutationsPtr = state->mutationsPtr;
+  count = MIN(len, [self count] - state->state);
+  if (count > 0)
+    {
+      IMP	imp = [self methodForSelector: @selector(pointerAtIndex:)];
+      int	p = state->state;
+      int	i;
+
+      for (i = 0; i < count; i++, p++)
+	{
+	  stackbuf[i] = (*imp)(self, @selector(pointerAtIndex:), p);
+	}
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
+}
+
 @end
 
 @implementation NSPointerArray (NSArrayConveniences)  
 
 + (id) pointerArrayWithStrongObjects
-{
-  return [self pointerArrayWithOptions: NSPointerFunctionsStrongMemory];
-}
-
+{               
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +strongObjectsPointerArray");
+  return [self strongObjectsPointerArray];
+}  
+                
 + (id) pointerArrayWithWeakObjects
-{
-  return [self pointerArrayWithOptions: NSPointerFunctionsZeroingWeakMemory];
+{         
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakObjectsPointerArray");
+  return [self weakObjectsPointerArray];
 }
 
 - (NSArray*) allObjects
@@ -280,20 +307,34 @@ static Class	concreteClass = Nil;
 {
   NSUInteger	insert = 0;
   NSUInteger	i;
-  // We can't use memmove here for __weak pointers, because that would omit the
-  // required read barriers.  We could use objc_memmoveCollectable() for strong
-  // pointers, but we may as well use the same code path for everything
-  for (i=0 ; i<_count ; i++)
+
+  _version++;
+
+  /* We can't use memmove here for __weak pointers, because that would omit the
+   * required read barriers.  We could use objc_memmoveCollectable() for strong
+   * pointers, but we may as well use the same code path for everything
+   */
+  for (i = 0 ; i < _count; i++)
     {
       id obj = pointerFunctionsRead(&_pf, &_contents[i]);
-      // If this object is not nil, but at least one before it has been, then
-      // move it back to the correct location.
-      if (nil != obj && i != insert)
-       {
-         pointerFunctionsAssign(&_pf, &_contents[insert++], obj);
-       }
+
+      /* Move each non-nil pointer back over any preceding nil slots, and
+       * advance the insertion point for every non-nil pointer.
+       */
+      if (nil != obj)
+        {
+          if (i != insert)
+            {
+              pointerFunctionsAssign(&_pf, &_contents[insert], obj);
+            }
+          insert++;
+        }
     }
-  _count = insert;
+  while (_count > insert)
+    {
+      _contents[--_count] = NULL;
+    }
+  _version++;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -308,8 +349,9 @@ static Class	concreteClass = Nil;
   for (i = 0; i < _count; i++)
     {
       NSLog(@"Copying %d, %p", i, _contents[i]);
-      pointerFunctionsAcquire(&_pf, &c->_contents[i],
-              pointerFunctionsRead(&_pf, &_contents[i]));
+      pointerFunctionsAssign(&_pf, &c->_contents[i],
+        pointerFunctionsAcquire(&_pf,
+	  pointerFunctionsRead(&_pf, &_contents[i])));
     }
   return c;
 }
@@ -317,6 +359,16 @@ static Class	concreteClass = Nil;
 - (NSUInteger) count
 {
   return _count;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  state->mutationsPtr = &_version;
+  return [super countByEnumeratingWithState: state
+				    objects: stackbuf
+				      count: len];
 }
 
 - (void) dealloc
@@ -330,7 +382,7 @@ static Class	concreteClass = Nil;
    */
   for (i = 0; i < _count; i++)
     {
-      pointerFunctionsAssign(&_pf, &_contents[i], 0);
+      pointerFunctionsRelinquish(&_pf, &_contents[i]);
     }
   if (_contents != 0)
     {
@@ -411,25 +463,27 @@ static Class	concreteClass = Nil;
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
+      memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
     }
-  memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
   return self;
 }
 
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index
 {
   NSUInteger	i;
-  
 
   if (index > _count)
     {
@@ -442,7 +496,8 @@ static Class	concreteClass = Nil;
       pointerFunctionsMove(&_pf, _contents+i, _contents + i-1);
       i--;
     }
-  pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
+  pointerFunctionsAssign(&_pf, &_contents[index],
+    pointerFunctionsAcquire(&_pf, pointer));
 }
 
 - (BOOL) isEqual: (id)other
@@ -465,9 +520,11 @@ static Class	concreteClass = Nil;
   while (count-- > 0)
     {
       if (pointerFunctionsEqual(&_pf,
-            pointerFunctionsRead(&_pf, &_contents[count]),
-            [other pointerAtIndex: count]) == NO)
-	return NO;
+	pointerFunctionsRead(&_pf, &_contents[count]),
+	[other pointerAtIndex: count]) == NO)
+	{
+	  return NO;
+	}
     }
   return YES;
 }
@@ -491,6 +548,7 @@ static Class	concreteClass = Nil;
 
 - (void) removePointerAtIndex: (NSUInteger)index
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -500,22 +558,33 @@ static Class	concreteClass = Nil;
     {
       pointerFunctionsMove(&_pf, &_contents[index-1], &_contents[index]);
     }
-  [self setCount: _count - 1];
+  _contents[--_count] = NULL;
+  _version++;
 }
 
 - (void) replacePointerAtIndex: (NSUInteger)index withPointer: (void*)item
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   pointerFunctionsReplace(&_pf, &_contents[index], item);
+  _version++;
 }
+
+
+#define	ZEROING 0
 
 - (void) setCount: (NSUInteger)count
 {
+  _version++;
   if (count > _count)
     {
+#if ZEROING
+      NSUInteger	index = _count;
+#endif
+
       _count = count;
       if (_count >= _capacity)
 	{
@@ -532,37 +601,45 @@ static Class	concreteClass = Nil;
 	  size = (new_cap + new_gf)*sizeof(void*);
 	  new_cap += new_gf;
 	  new_gf = new_cap / 2;
-	  if (_contents == 0)
+#if ZEROING
+	  /* The objc2 API for zeroing weak references passes the addresses of
+	   * pointers, so an implementation could zero the reference when the
+	   * associated object is deallocated.  This can potentially cause an
+	   * issue if a chunk of memory cntaining a weak reference is returned
+	   * to the heap and the runtime zeros part of it after it has been
+	   * re-used.  To be safe in that case we must move the weak references
+	   * explicitly before returning memry to the heap.
+	   */
+          ptr = NSZoneMalloc([self zone], size);
+	  if (0 == ptr)
 	    {
-	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
-		{
-		  ptr = (void**)NSAllocateCollectable(size, 0);
-		}
-	      else
-		{
-		  ptr = (void**)NSAllocateCollectable(size, NSScannedOption);
-		} 
+	      [NSException raise: NSMallocException
+			  format: @"Unable to grow array"];
 	    }
-	  else
+	  memset(ptr, '\0', size);
+	  if (_contents)
 	    {
-	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
+	      while (index-- > 0)
 		{
-		  ptr = (void**)NSReallocateCollectable(
-		    _contents, size, 0);
-		}
-	      else
-		{
-		  ptr = (void**)NSReallocateCollectable(
-		    _contents, size, NSScannedOption);
+		  pointerFunctionsMove(&_pf, ptr + index, _contents + index);
 		} 
+	      NSZoneFree([self zone], _contents);
 	    }
-	  if (ptr == 0)
+#else
+	  /* The gnustep libobjc2 implementation of the weak reference methods
+	   * does not zero the memory location until/unless something tries to
+	   * load a weakly referenced object from it, so it is safe to simply
+           * copy the array.
+	   */
+	  ptr = NSZoneRealloc([self zone], _contents, size);
+	  if (0 == ptr)
 	    {
 	      [NSException raise: NSMallocException
 			  format: @"Unable to grow array"];
 	    }
 	  memset(ptr + _capacity, '\0',
 	    (new_cap - _capacity) * sizeof(void*));
+#endif
 	  _contents = ptr;
 	  _capacity = new_cap;
 	  _grow_factor = new_gf;
@@ -576,6 +653,7 @@ static Class	concreteClass = Nil;
 	  pointerFunctionsRelinquish(&_pf, &_contents[_count]);
 	}
     }
+  _version++;
 }
 
 @end

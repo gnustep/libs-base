@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -47,7 +47,7 @@ convert_unicode(NSArray *args)
 	  data = [NSData dataWithContentsOfFile: file];
 	  myString = [[NSString alloc] initWithData: data
 					   encoding: NSUTF8StringEncoding];
-	  IF_NO_GC([myString autorelease];)
+	  IF_NO_ARC([myString autorelease];)
 	  if ([myString length] == 0)
 	    {
 	      myString = [[[NSString alloc] initWithData: data
@@ -155,7 +155,7 @@ main(int argc, char** argv, char **env)
 	  NS_DURING
 	    {
 	      NSString	*myString;
-	      id		result;
+	      id	result;
 
 	      myString = [NSString stringWithContentsOfFile: file];
 	      result = [myString propertyListFromStringsFileFormat];

@@ -10,6 +10,10 @@
 #include <windows.h>
 #else
 #include <time.h>
+
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/socket.h>
@@ -31,7 +35,7 @@
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	4096
 
-main()
+int main()
 {
   struct sockaddr_in	sin;
   int	size = sizeof(sin);

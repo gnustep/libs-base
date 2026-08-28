@@ -22,8 +22,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSConnection class reference</title>
    $Date$ $Revision$
@@ -82,7 +81,6 @@
 #endif
 
 #import "Foundation/NSEnumerator.h"
-#import "GNUstepBase/GSLock.h"
 
 /* Skip past an argument and also any offset information before the next.
  */
@@ -325,11 +323,12 @@ GS_PRIVATE_INTERNAL(NSConnection)
 - (void) addLocalObject: (NSDistantObject*)anObj;
 - (void) removeLocalObject: (NSDistantObject*)anObj;
 
-- (void) _doneInReply: (NSPortCoder*)c;
+- (void) _doneInReply: (NSPortCoder*) NS_CONSUMED c;
 - (void) _doneInRmc: (NSPortCoder*) NS_CONSUMED c;
-- (void) _failInRmc: (NSPortCoder*)c;
+- (void) _failInRmc: (NSPortCoder*) NS_CONSUMED c;
 - (void) _failOutRmc: (NSPortCoder*)c;
-- (NSPortCoder*) _getReplyRmc: (int)sn for: (const char*)request;
+- (NSPortCoder*) NS_RETURNS_RETAINED _getReplyRmc: (int)sn
+					      for: (const char*)request;
 - (NSPortCoder*) _newInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _newOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
 - (void) _portIsInvalid: (NSNotification*)notification;
@@ -337,12 +336,12 @@ GS_PRIVATE_INTERNAL(NSConnection)
                 type: (int)msgid
             sequence: (int)sno;
 
-- (void) _service_forwardForProxy: (NSPortCoder*)rmc;
-- (void) _service_release: (NSPortCoder*)rmc;
-- (void) _service_retain: (NSPortCoder*)rmc;
-- (void) _service_rootObject: (NSPortCoder*)rmc;
-- (void) _service_shutdown: (NSPortCoder*)rmc;
-- (void) _service_typeForSelector: (NSPortCoder*)rmc;
+- (void) _service_forwardForProxy: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_release: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_retain: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_rootObject: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_shutdown: (NSPortCoder*) NS_CONSUMED rmc;
+- (void) _service_typeForSelector: (NSPortCoder*) NS_CONSUMED rmc;
 - (void) _shutdown;
 + (void) _threadWillExit: (NSNotification*)notification;
 @end
@@ -379,7 +378,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	   * We don't want this connection to be destroyed by another thread
 	   * between now and when it's returned from this function and used!
 	   */
-	  IF_NO_GC([[c retain] autorelease];)
+	  IF_NO_ARC([[c retain] autorelease];)
 	  break;
 	}
     }
@@ -467,7 +466,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [self allocWithZone: NSDefaultMallocZone()];
       c = [c initWithReceivePort: r sendPort: s];
-      IF_NO_GC([c autorelease];)
+      IF_NO_ARC([c autorelease];)
     }
   return c;
 }
@@ -629,7 +628,6 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
-      GSMakeWeakPointer(self, "delegate");
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -859,9 +857,9 @@ static NSLock	*cached_proxies_gate = nil;
 {
   if (debug_connection)
     NSLog(@"deallocating %@", self);
-  [self finalize];
-  if (internal != nil)
+  if (GS_EXISTS_INTERNAL)
     {
+      [self finalize];
       GS_DESTROY_INTERNAL(NSConnection);
     }
   [super dealloc];
@@ -1008,6 +1006,11 @@ static NSLock	*cached_proxies_gate = nil;
 	    conn, r, s);
 	}
       return self;
+    }
+
+  if (nil == (self = [super init]))
+    {
+      return nil;
     }
 
   /* Create our private data structure.
@@ -1160,10 +1163,15 @@ static NSLock	*cached_proxies_gate = nil;
     }
   /* Here is the GNUstep version, which allows the delegate to specify
      a substitute.  Note: The delegate is responsible for freeing
-     newConn if it returns something different. */
+     the new connection if it returns something different. */
   if ([del respondsToSelector: @selector(connection:didConnect:)])
     {
-      self = [del connection: parent didConnect: self];
+      NSConnection	*conn = [del connection: parent didConnect: self];
+
+      if (conn != self)
+	{
+	  ASSIGN(self, conn);
+	}
     }
 
   nCenter = [NSNotificationCenter defaultCenter];
@@ -1259,7 +1267,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   [self setRequestMode: nil];
 
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
 
   if (debug_connection)
     {
@@ -1470,16 +1478,12 @@ static NSLock	*cached_proxies_gate = nil;
    * and try to use it while it is being deallocated.
    */
   GS_M_LOCK(connection_table_gate);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSHashRemove(connection_table, self);
-      GSM_UNLOCK(connection_table_gate);
-      [self dealloc];
     }
-  else
-    {
-      GSM_UNLOCK(connection_table_gate);
-    }
+  GSM_UNLOCK(connection_table_gate);
+  [super release];
 }
 
 /**
@@ -1576,6 +1580,15 @@ static NSLock	*cached_proxies_gate = nil;
 - (NSTimeInterval) replyTimeout
 {
   return IreplyTimeout;
+}
+
+/**
+ * Returns the first run loop mode that the NSConnection
+ * uses when waiting for an incoming request.
+ */
+- (NSString*) requestMode
+{
+  return [[self requestModes] firstObject];
 }
 
 /**
@@ -2037,9 +2050,17 @@ static NSLock	*cached_proxies_gate = nil;
 	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
 					      at: &is_exception];
 	  if (is_exception == YES)
-	    NSLog(@"Got exception with %s", name);
+	    {
+	      /* Decode the exception object, and log it. */
+	      id exc = [node->value.obj decodeObject];
+
+	      NSLog(@"%@ got exception from oneway method %s - %@",
+		self, name, exc);
+	    }
 	  else
-	    NSLog(@"Got response with %s", name);
+	    {
+	      NSLog(@"%@ got response from oneway method %s", self, name);
+	    }
 	  [self _doneInRmc: node->value.obj];
 	}
       GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);
@@ -2322,7 +2343,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  }
 	else
 	  {
-	    [GSIVar(conn, _requestQueue) addObject: rmc];
+	    [GSIVar(conn, _requestQueue) addObject: AUTORELEASE(rmc)];
 	  }
 	/*
 	 * Service any requests that were queued while we
@@ -2331,7 +2352,7 @@ static NSLock	*cached_proxies_gate = nil;
 	while (GSIVar(conn, _requestDepth) == 0
 	  && [GSIVar(conn, _requestQueue) count] > 0)
 	  {
-	    rmc = [GSIVar(conn, _requestQueue) objectAtIndex: 0];
+	    rmc = RETAIN([GSIVar(conn, _requestQueue) objectAtIndex: 0]);
 	    [GSIVar(conn, _requestQueue) removeObjectAtIndex: 0];
 	    GSM_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
@@ -2506,7 +2527,7 @@ static NSLock	*cached_proxies_gate = nil;
       unsigned		in_parameters = 0;
       unsigned		out_parameters = 0;
       NSMethodSignature	*sig;
-      const char	*encoded_types = forward_type;
+      const char	*encoded_types;
 
       NSParameterAssert (IisValid);
       if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
@@ -2839,8 +2860,10 @@ static NSLock	*cached_proxies_gate = nil;
       [tmp release];
       tmp = encoder;
       encoder = nil;
-      NSDebugMLLog(@"RMC", @"RMC %d replying with %s and %u out parameters",
-	seq, (YES == is_void ? "void result" : "result"), out_parameters);
+      NSDebugMLLog(@"RMC", @"RMC %d replying with %s"
+	@" and %u/%u in/out parameters",
+	seq, (YES == is_void ? "void result" : "result"),
+	in_parameters, out_parameters);
 
       [self _sendOutRmc: tmp type: METHOD_REPLY sequence: seq];
     }
@@ -3133,8 +3156,8 @@ static NSLock	*cached_proxies_gate = nil;
     {
       BOOL	warned = NO;
 
-      NSDebugMLLog(@"RMC", @"Waiting for reply RMC %d (%s) on %@",
-        sn, request, self);
+      NSDebugMLLog(@"RMC", @"Waiting up to %g sec for reply RMC %d (%s) on %@",
+        IreplyTimeout, sn, request, self);
       GS_M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
 	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn)) != 0
@@ -3254,7 +3277,7 @@ static NSLock	*cached_proxies_gate = nil;
   IrepInCount++;
 }
 
-- (void) _doneInRmc: (NSPortCoder*) NS_CONSUMED c
+- (void) _doneInRmc: (NSPortCoder*)c
 {
   GS_M_LOCK(IrefGate);
   if (debug_connection > 5)
@@ -3274,7 +3297,7 @@ static NSLock	*cached_proxies_gate = nil;
  * This method called if an exception occurred, and we don't know
  * whether we have already tidied the NSPortCoder object up or not.
  */
-- (void) _failInRmc: (NSPortCoder*)c
+- (void) _failInRmc: (NSPortCoder*) NS_CONSUMED c
 {
   GS_M_LOCK(IrefGate);
   if (cacheCoders == YES && IcachedDecoders != nil
@@ -3522,7 +3545,7 @@ static NSLock	*cached_proxies_gate = nil;
   node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(NSUInteger)target);
   NSAssert(node == 0, NSInternalInconsistencyException);
 
-  IF_NO_GC([anObj retain];)
+  IF_NO_ARC([anObj retain];)
   GSIMapAddPair(IlocalObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
   GSIMapAddPair(IlocalTargets,
     (GSIMapKey)(NSUInteger)target, (GSIMapVal)((id)anObj));
@@ -3610,10 +3633,17 @@ static NSLock	*cached_proxies_gate = nil;
 			anObj, target);
 	}
 
-      /*
-       * Remove the proxy from IlocalObjects and release it.
+      /* Remove the proxy from IlocalObjects and release it.
        */
       GSIMapRemoveKey(IlocalObjects, (GSIMapKey)anObj);
+
+      /* We need to suppress the clang analyser warning about the release
+       * because the static analysed does not know that the object was
+       * retained before it was stored in the map node.
+       */
+#ifdef  __clang_analyzer__
+      [[clang::suppress]]
+#endif
       RELEASE(prox);
 
       /*

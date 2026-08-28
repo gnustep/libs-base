@@ -1,7 +1,7 @@
 /** Implementation of NSArchiver for GNUstep
    Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: October 1998
 
    This file is part of the GNUstep Base Library.
@@ -18,11 +18,9 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSArchiver class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"

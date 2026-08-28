@@ -11,6 +11,12 @@
 #define	SSL_SUPPORTED	1 /* Assume Apple supports it */
 #endif
 
+/* How long to wait for a host outside this machine. A connection which is
+ * going to work does not need 30 seconds, and a runner with no route out
+ * should not spend that long finding out.
+ */
+#define	WAIT	10.0
+
 static NSOutputStream *defaultOutput = nil;
 static NSInputStream *defaultInput = nil;
 static int byteCount = 0;
@@ -28,8 +34,10 @@ static BOOL     done = NO;
   static uint8_t buffer[4096];
   static BOOL doneWrite = NO;
   int readSize;
-NSLog(@"Got %ld on %p", (long int)streamEvent, theStream);
-  switch (streamEvent) 
+
+  NSDebugMLLog(@"NSStream", @"Got %ld on %p",
+    (long int)streamEvent, theStream);
+  switch (streamEvent)
     {
     case NSStreamEventOpenCompleted: 
       {
@@ -73,7 +81,7 @@ NSLog(@"Got %ld on %p", (long int)streamEvent, theStream);
 NSLog(@"%@", [defaultInput streamError]);
             NSAssert([defaultInput streamError]==nil, @"read error");
           }
-        if (readSize == 0)
+        else if (readSize == 0)
 	  {
             [defaultInput close];
 	    [defaultInput removeFromRunLoop: [NSRunLoop currentRunLoop]
@@ -100,6 +108,7 @@ NSLog(@"%@", [defaultInput streamError]);
       {
         NSAssert1(1, @"Error! code is %ld",
           (long int)[[theStream streamError] code]);
+	done = YES;
         break;
       }  
     }
@@ -109,15 +118,24 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSRunLoop *rl;
+  NSString *name;
   NSHost *host;
   Listener *li;
   NSDate *d;
 
   rl = [NSRunLoop currentRunLoop];
-  host = [NSHost hostWithName: @"www.google.com"];
-  //host = [NSHost hostWithName: @"localhost"];
+  name = @"www.google.com";
+  //name = @"localhost";
+  host = [NSHost hostWithName: name];
 
-#if 1
+  START_SET("NSStream to an external host")
+  /* -hostWithName: answers a host whatever the name, so the test for a
+   * machine with no route out is whether an address was found for it.
+   */
+  if (nil == [host address])
+    {
+      SKIP("no address for www.google.com, so there is no route out")
+    }
   li = [[Listener new] autorelease];
   [NSStream getStreamsToHost: host port: 80
     inputStream: &defaultInput outputStream: &defaultOutput];
@@ -128,8 +146,8 @@ int main()
   [defaultOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [defaultInput open];
   [defaultOutput open];
-  
-  d = [NSDate dateWithTimeIntervalSinceNow: 30];
+
+  d = [NSDate dateWithTimeIntervalSinceNow: WAIT];
   while (done == NO && [d timeIntervalSinceNow] > 0.0)
     {
       [rl runMode: NSDefaultRunLoopMode beforeDate: d];
@@ -140,11 +158,13 @@ int main()
   PASS(byteCount>0, "read www.google.com");
   [defaultInput setDelegate: nil];
   [defaultOutput setDelegate: nil];
-#endif
+  END_SET("NSStream to an external host")
 
   START_SET("NSStream SSL")
     if (!SSL_SUPPORTED)
       SKIP("NSStream SSL functions not supported\nThe GNU TLS library was not provided when GNUstep-base was configured/built.")
+    if (nil == [host address])
+      SKIP("no address for www.google.com, so there is no route out")
     done = NO;
     byteCount = 0;
     defaultInput = nil;
@@ -161,10 +181,16 @@ int main()
 		       forKey: NSStreamSocketSecurityLevelKey];
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
+
+/* Our getStreamsToHost:port:inputStream:outputStream: does this using some
+ * randomly selected name fo the host.  To use a specific name we may want
+ * an override here.
+ * [defaultOutput setProperty: name forKey: GSTLSServerName];
+ */
     [defaultInput open];
     [defaultOutput open];
 
-    d = [NSDate dateWithTimeIntervalSinceNow: 30];
+    d = [NSDate dateWithTimeIntervalSinceNow: WAIT];
     while (done == NO && [d timeIntervalSinceNow] > 0.0)
       {
 	[rl runMode: NSDefaultRunLoopMode beforeDate: d];

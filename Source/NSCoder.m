@@ -2,7 +2,7 @@
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
+   From skeleton by:  Adam Fedor <fedor@gnu.org>
    Date: Mar 1995
 
    This file is part of the GNUstep Base Library.
@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSCoder class reference</title>
    $Date$ $Revision$
@@ -35,6 +34,7 @@
 #define	EXPOSE_NSCoder_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSSerialization.h"
 #import "Foundation/NSUserDefaults.h"
@@ -101,7 +101,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 - (NSInteger) versionForClassName: (NSString*)className
 {
   [self subclassResponsibility: _cmd];
-  return (NSInteger)NSNotFound;
+  return NSNotFound;
 }
 
 // Encoding Data
@@ -478,6 +478,16 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 
 #import	"GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+
+/* Private hook implemented by NSKeyedUnarchiver, letting -initWithCoder: below
+ * check an attacker-controllable element count against the sequential
+ * ("$<index>") keys actually present in the archive.  Unlike
+ * -containsValueForKey:, it does not escape a leading '$'.
+ */
+@interface NSKeyedUnarchiver (GSCoderArrayCount)
+- (BOOL) _containsRawKey: (NSString*)aKey;
+@end
 
 @implementation	_NSKeyedCoderOldStyleArray
 - (const void*) bytes
@@ -491,43 +501,66 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 - (void) dealloc
 {
   DESTROY(_d);
-  [super dealloc];
+  DEALLOC
 }
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  id		o;
-  void		*address;
-  unsigned	i;
-
-  _c = [aCoder decodeIntForKey: @"NS.count"];
-  _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
-  _t[1] = '\0';
-
-  /*
-   * We decode the size from the remote end, but discard it as we
-   * are probably safer to use the local size of the datatype involved.
-   */
-  _s = [aCoder decodeIntForKey: @"NS.size"];
-  _s = objc_sizeof_type(_t);
-
-  _d = o = [[NSMutableData alloc] initWithLength: _c * _s];
-  _a = address = [o mutableBytes];
-  for (i = 0; i < _c; i++)
+  if (nil != (self = [super init]))
     {
-      [aCoder decodeValueOfObjCType: _t at: address];
-      address += _s;
+      id	o;
+      void	*address;
+      unsigned	c;
+      unsigned	i;
+
+      _c = c = [aCoder decodeIntForKey: @"NS.count"];
+      _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
+      _t[1] = '\0';
+
+      /*
+       * We decode the size from the remote end, but discard it as we
+       * are probably safer to use the local size of the datatype involved.
+       */
+      _s = [aCoder decodeIntForKey: @"NS.size"];
+      _s = objc_sizeof_type(_t);
+
+      /* _c is decoded from the (possibly untrusted) archive.  Each element is
+       * stored under the sequential key "$<index>", so the last one
+       * ("$<_c-1>") must be present; if it is not, _c is larger than the data
+       * actually encoded.  Reject such a count rather than letting the _c * _s
+       * allocation (whose bare 'unsigned' product can also wrap) and the fill
+       * loop below be driven by an arbitrary attacker-supplied value.
+       */
+      if (_c > 0
+	&& [aCoder respondsToSelector: @selector(_containsRawKey:)]
+	&& NO == [(NSKeyedUnarchiver*)aCoder _containsRawKey:
+	  [NSString stringWithFormat: @"$%u", _c - 1]])
+	{
+	  RELEASE(self);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"invalid array count (%u) in archive", c];
+	}
+      _d = o = [[NSMutableData alloc] initWithLength: (NSUInteger)_c * _s];
+      _a = address = [o mutableBytes];
+      for (i = 0; i < _c; i++)
+	{
+	  [aCoder decodeValueOfObjCType: _t at: address];
+	  address += _s;
+	}
     }
   return self;
 }
 
 - (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
 {
-  t = GSSkipTypeQualifierAndLayoutInfo(t);
-  _t[0] = *t;
-  _t[1] = '\0';
-  _s = objc_sizeof_type(_t);
-  _c = c;
-  _a = a;
+  if (nil != (self = [super init]))
+    {
+      t = GSSkipTypeQualifierAndLayoutInfo(t);
+      _t[0] = *t;
+      _t[1] = '\0';
+      _s = objc_sizeof_type(_t);
+      _c = c;
+      _a = a;
+    }
   return self;
 }
 

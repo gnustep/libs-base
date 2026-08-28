@@ -83,7 +83,7 @@ const NSTimeInterval kDelay = 0.01;
 - (void) run
 {
   NSDate *until = [NSDate dateWithTimeIntervalSinceNow: 1.0];
-  Counter *c = [Counter new];
+  Counter *c = AUTORELEASE([Counter new]);
   [NSTimer scheduledTimerWithTimeInterval: 1.0
                                    target: self
                                  selector: @selector(timeout:)

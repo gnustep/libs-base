@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __NSXMLNodeOptions_h_GNUSTEP_BASE_INCLUDE
@@ -33,7 +32,7 @@ extern "C" {
 #endif
 
 /** This enumeration is a bitmask specifying input and output options
- * for nnode.
+ * for node.
  * <deflist>
  * <term>NSXMLNodeIsCDATA</term>
  * <desc>Indicates that a text node is CDATA</desc>
@@ -81,6 +80,7 @@ extern "C" {
  * <desc>Output this node in a readable format</desc>
  * <term>NSXMLDocumentIncludeContentTypeDeclaration</term>
  * <desc>Include a content type declaration for HTML or XHTML</desc>
+ * </deflist>
  */
 
 enum {

@@ -7,9 +7,10 @@ dnl
 dnl AC_SYS_PROCFS
 dnl This macro defines HAVE_PROCFS if either it finds a mounted /proc
 dnl or the user explicitly enables it for cross-compiles.
-AC_DEFUN(AC_SYS_PROCFS,
-[ AC_ARG_ENABLE(procfs,
-    [  --enable-procfs               Use /proc filesystem (default)],
+AC_DEFUN([AC_SYS_PROCFS],
+  [AC_ARG_ENABLE(procfs,
+    [AS_HELP_STRING([--enable-procfs],
+    [Use /proc filesystem (default)])],
     enable_procfs="$enableval", if test "$cross_compiling" = yes; then enable_procfs=cross; else enable_procfs=yes; fi;)
 
   AC_CACHE_CHECK([kernel support for /proc filesystem], ac_cv_sys_procfs,
@@ -48,16 +49,19 @@ AC_DEFUN(AC_SYS_PROCFS,
 dnl AC_SYS_PROCFS_PSINFO
 dnl This macro defines HAVE_PROCFS_PSINFO if it can read the psinfo 
 dnl structure from the /proc/%pid% directory
-AC_DEFUN(AC_SYS_PROCFS_PSINFO,
-[ AC_ARG_ENABLE(procfs-psinfo,
-    [  --enable-procfs-psinfo         Use /proc/%pid% to get info],
+AC_DEFUN([AC_SYS_PROCFS_PSINFO],
+  [AC_ARG_ENABLE(procfs-psinfo,
+    [AS_HELP_STRING([--enable-procfs-psinfo],
+    [Use /proc/%pid% to get info])],
     enable_procfs_psinfo="$enableval", if test "$cross_compiling" = yes; then enable_procfs_psinfo=cross; else enable_procfs_psinfo=yes; fi;)
 
   AC_CACHE_CHECK([support for /proc psinfo struct], ac_cv_sys_procfs_psinfo,
   [if test "$enable_procfs_psinfo" = yes; then
-    AC_TRY_RUN([#include "$srcdir/config/config.psinfo.c"],
-	ac_cv_sys_procfs_psinfo=yes, ac_cv_sys_procfs_psinfo=no, 
-	ac_cv_sys_procfs_psinfo=yes)
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.psinfo.c"]])],
+	[ac_cv_sys_procfs_psinfo=yes],
+	[ac_cv_sys_procfs_psinfo=no], 
+	[ac_cv_sys_procfs_psinfo=yes])
   elif test "$enable_procfs" = cross; then
     ac_cv_sys_procfs_psinfo=no
   else

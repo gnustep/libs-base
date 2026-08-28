@@ -20,8 +20,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
@@ -221,11 +220,11 @@ GS_EXPORT_CLASS
 - (void) setProcessName: (NSString*)newName;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
-/** Not implemented */
+/** Returns the number of CPUs or Cores detected on the device */
 - (NSUInteger) processorCount;
-/** Not implemented */
+/** Returns the number of CPUs or Cores actively on the running device */
 - (NSUInteger) activeProcessorCount;
-/** Not implemented */
+/** Amount of physical Memory */
 - (unsigned long long) physicalMemory;
 #endif
 
@@ -277,6 +276,13 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
 - (NSString *) androidCacheDir;
 #endif
 
+/** Changes the environment variables returned by this process info instance
+ * and if possible also changes the underlying process environment variables
+ * available to other libraries.  Returns YES if the lower level environment
+ * was changed as well as the environment dictionary of the receiver.
+ */
+- (BOOL) setValue: (NSString*)string inEnvironment: (NSString*)key;
+
 @end
 
 /**
@@ -298,6 +304,7 @@ GS_EXPORT void GSInitializeProcess(int argc, char **argv, char **envp);
  * for the Android data directory and asset loading via NSBundle.
  */
 GS_EXPORT void GSInitializeProcessAndroid(JNIEnv *env, jobject context);
+GS_EXPORT void GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char **argv, char **envp);
 #endif
 
 /**

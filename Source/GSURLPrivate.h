@@ -17,8 +17,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */ 
 
 #ifndef __GSURLPrivate_h_
@@ -56,11 +55,16 @@
  * Private accessors for URL loading classes
  */
 
+@interface	NSURL (Private)
+- (NSString*) _requestPath: (BOOL)withoutQuery;
+@end
+
 @interface	NSURLRequest (Private)
 - (BOOL) _debug;
 - (id<GSLogDelegate>) _debugLogDelegate;
 - (id) _propertyForKey: (NSString*)key;
 - (void) _setProperty: (id)value forKey: (NSString*)key;
+- (NSDictionary *) _insensitiveHeaders;
 @end
 
 

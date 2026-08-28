@@ -18,8 +18,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, see <http://www.gnu.org/licenses/> or write to the
-   Free Software Foundation, 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.
+   Free Software Foundation, 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __NSCalendar_h_GNUSTEP_BASE_INCLUDE
@@ -140,7 +139,7 @@ enum
   NSWrapCalendarComponents = (1UL << 0)
 };
 
-enum
+typedef NS_ENUM(NSInteger, NSDateComponentEnum)
 {
   NSDateComponentUndefined = NSIntegerMax,
   NSUndefinedDateComponent = NSDateComponentUndefined
@@ -153,20 +152,6 @@ GS_EXPORT_CLASS
 {
 @private
   void  *_NSDateComponentsInternal;
-/* FIXME ... remove dummy fields at next binary incompatible release
- */
-  void  *_dummy1;
-  void  *_dummy2;
-  void  *_dummy3;
-  void  *_dummy4;
-  void  *_dummy5;
-  void  *_dummy6;
-  void  *_dummy7;
-  void  *_dummy8;
-  void  *_dummy9;
-  void  *_dummy10;
-  void  *_dummy11;
-  void  *_dummy12;
 }
 
 - (NSInteger) day;
@@ -180,20 +165,20 @@ GS_EXPORT_CLASS
 - (NSInteger) weekdayOrdinal;
 - (NSInteger) year;
 
-- (void) setDay: (NSInteger) v;
-- (void) setEra: (NSInteger) v;
-- (void) setHour: (NSInteger) v;
-- (void) setMinute: (NSInteger) v;
-- (void) setMonth: (NSInteger) v;
-- (void) setSecond: (NSInteger) v;
-- (void) setWeek: (NSInteger) v;
-- (void) setWeekday: (NSInteger) v;
-- (void) setWeekdayOrdinal: (NSInteger) v;
-- (void) setYear: (NSInteger) v;
+- (void) setDay: (NSInteger)v;
+- (void) setEra: (NSInteger)v;
+- (void) setHour: (NSInteger)v;
+- (void) setMinute: (NSInteger)v;
+- (void) setMonth: (NSInteger)v;
+- (void) setSecond: (NSInteger)v;
+- (void) setWeek: (NSInteger)v;
+- (void) setWeekday: (NSInteger)v;
+- (void) setWeekdayOrdinal: (NSInteger)v;
+- (void) setYear: (NSInteger)v;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 - (NSInteger) quarter;
-- (void) setQuarter: (NSInteger) v;
+- (void) setQuarter: (NSInteger)v;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
@@ -231,33 +216,33 @@ GS_EXPORT_CLASS
 - (NSInteger) nanosecond;
 
 /** Sets the number of the week in this month. */
-- (void) setWeekOfMonth: (NSInteger) v;
+- (void) setWeekOfMonth: (NSInteger)v;
 
 /**
  * Sets the number of the week in this year.
- * Identical to calling <code>-setWeek</code>. */
-- (void) setWeekOfYear: (NSInteger) v;
+ * Identical to calling <code>-setWeek:</code>. */
+- (void) setWeekOfYear: (NSInteger)v;
 
 /**
  * Sets the year number for the current week.
  * See the explanation at <code>-yearForWeekOfYear</code>.
  */
-- (void) setYearForWeekOfYear: (NSInteger) v;
-- (void) setNanosecond: (NSInteger) v;
+- (void) setYearForWeekOfYear: (NSInteger)v;
+- (void) setNanosecond: (NSInteger)v;
 
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 - (BOOL) leapMonth;
-- (void) setLeapMonth: (BOOL) v;
+- (void) setLeapMonth: (BOOL)v;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 - (BOOL) isValidDate;
-- (BOOL) isValidDateInCalendar: (NSCalendar *) calendar;
-- (NSInteger) valueForComponent: (NSCalendarUnit) unit;
-- (void) setValue: (NSInteger) value
-     forComponent: (NSCalendarUnit) unit;
+- (BOOL) isValidDateInCalendar: (NSCalendar*)calendar;
+- (NSInteger) valueForComponent: (NSCalendarUnit)unit;
+- (void) setValue: (NSInteger)value
+     forComponent: (NSCalendarUnit)unit;
 #endif
 @end
 
@@ -268,67 +253,176 @@ GS_EXPORT_CLASS
 {
 @private
   void  *_NSCalendarInternal;
-/* FIXME ... remove dummy fields at next binary incompatible release
- */
-  void  *_dummy1;
-  void  *_dummy2;
-  void  *_dummy3;
 }
 
-+ (id) currentCalendar;
-+ (id) calendarWithIdentifier: (NSString *) string;
+/**
+ * Returns the current calendar.
+ */
++ (NSCalendar*) currentCalendar;
 
-- (id) initWithCalendarIdentifier: (NSString *) string;
+/**
+ * Create a calendar with the given string as identifier.
+ */
++ (instancetype) calendarWithIdentifier: (NSString*)string;
+
+/**
+ * Instantiate a calendar with the given string as identifier.
+ */
+- (id) initWithCalendarIdentifier: (NSString*)string;
+
+/**
+ * Returns the calendar identifier for the receiver.
+ */
 - (NSString *) calendarIdentifier;
 
-- (NSDateComponents *) components: (NSUInteger) unitFlags
-                         fromDate: (NSDate *) date;
+/**
+ * Returns the calendar units specified by unitFlags for the given date object.
+ */
+- (NSDateComponents *) components: (NSUInteger)unitFlags
+                         fromDate: (NSDate *)date;
 /**
  * Compute the different between the specified components in the two dates.
  * Values are summed up as long as now higher-granularity unit is specified.
  * That means if you want to extract the year and the day from two dates
  * which are 13 months + 1 day apart, you will get 1 as the result for the year
- * but the rest of the difference in days. (29 <= x <= 32, depending on the 
- * month). 
+ * but the rest of the difference in days. (29 &lt;= x &lt;= 32, depending
+ * on the month). 
  *
  * Please note that the NSWrapCalendarComponents option that should affect the
  * calculations is not presently supported.
  */
-- (NSDateComponents *) components: (NSUInteger) unitFlags
-                         fromDate: (NSDate *) startingDate
-                           toDate: (NSDate *) resultDate
-                          options: (NSUInteger) opts;
-- (NSDate *) dateByAddingComponents: (NSDateComponents *) comps
-                             toDate: (NSDate *) date
-                            options: (NSUInteger) opts;
-- (NSDate *) dateFromComponents: (NSDateComponents *) comps;
+- (NSDateComponents *) components: (NSUInteger)unitFlags
+                         fromDate: (NSDate *)startingDate
+                           toDate: (NSDate *)resultDate
+                          options: (NSUInteger)opts;
 
+/**
+ * Returns a date object created by adding the NSDateComponents in comps to
+ * to object date with the options specified by opts.
+ */
+- (NSDate *) dateByAddingComponents: (NSDateComponents *)comps
+                             toDate: (NSDate *)date
+                            options: (NSUInteger)opts;
+
+/**
+ * Creates an NSDate from NSDateComponents in comps.
+ */
+- (NSDate *) dateFromComponents: (NSDateComponents *)comps;
+
+/**
+ * Returns the locale of the receiver.
+ */
 - (NSLocale *) locale;
-- (void)setLocale: (NSLocale *) locale;
-- (NSUInteger) firstWeekday;
-- (void) setFirstWeekday: (NSUInteger) weekday;
-- (NSUInteger) minimumDaysInFirstWeek;
-- (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw;
-- (NSTimeZone *) timeZone;
-- (void) setTimeZone: (NSTimeZone *) tz;
 
-- (NSRange) maximumRangeOfUnit: (NSCalendarUnit) unit;
-- (NSRange) minimumRangeofUnit: (NSCalendarUnit) unit;
-- (NSUInteger) ordinalityOfUnit: (NSCalendarUnit) smaller
-                         inUnit: (NSCalendarUnit) larger
-                        forDate: (NSDate *) date;
-- (NSRange) rangeOfUnit: (NSCalendarUnit) smaller
-                 inUnit: (NSCalendarUnit) larger
-                forDate: (NSDate *) date;
+/**
+ * Sets the locale of the receiver.
+ */
+- (void)setLocale: (NSLocale *)locale;
+
+/**
+ * Returns the integer value of the first weekday (0-6).
+ */
+- (NSUInteger) firstWeekday;
+
+/**
+ * Set the integer first weekday of the week (0-6).
+ */
+- (void) setFirstWeekday: (NSUInteger)weekday;
+
+/**
+ * Returns the minimum number of days in the first week of the receiver.
+ */
+- (NSUInteger) minimumDaysInFirstWeek;
+
+/**
+ * Sets the minimum number of days in the first week of the receiver.
+ */
+- (void) setMinimumDaysInFirstWeek: (NSUInteger)mdw;
+
+/**
+ * Returns the NSTimeZone associated with the receiver.
+ */
+- (NSTimeZone *) timeZone;
+
+/**
+ * Sets tz as the current NSTimeZone of the receiver.
+ */
+- (void) setTimeZone: (NSTimeZone *)tz;
+
+/**
+ * Returns the maximum range of unit.
+ */
+- (NSRange) maximumRangeOfUnit: (NSCalendarUnit)unit;
+
+/**
+ * Returns the minimum range of unit.
+ */
+- (NSRange) minimumRangeofUnit: (NSCalendarUnit)unit;
+
+/**
+ * Returns the ordinality of unit smaller within the
+ * unit larger with the given date.
+ */
+- (NSUInteger) ordinalityOfUnit: (NSCalendarUnit)smaller
+                         inUnit: (NSCalendarUnit)larger
+                        forDate: (NSDate *)date;
+
+/**
+ * Returns the range of unit smaller in larger in date.
+ */
+- (NSRange) rangeOfUnit: (NSCalendarUnit)smaller
+                 inUnit: (NSCalendarUnit)larger
+                forDate: (NSDate *)date;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-+ (id) autoupdatingCurrentCalendar;
+/**
+ * A calendar that tracks changes to the user's calendar.
+ */
++ (NSCalendar*) autoupdatingCurrentCalendar;
 
-- (BOOL) rangeOfUnit: (NSCalendarUnit) unit
+/** Returns by referene the started time and duration of a given unit
+ * containing the given date.
+ */ 
+- (BOOL) rangeOfUnit: (NSCalendarUnit)unit
            startDate: (NSDate **) datep
             interval: (NSTimeInterval *)tip
              forDate: (NSDate *)date;
 #endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+/**
+ * Returns by reference the era, year, month, and day from the given date.
+ */
+- (void) getEra: (NSInteger *)eraValuePointer
+           year: (NSInteger *)yearValuePointer
+          month: (NSInteger *)monthValuePointer
+            day: (NSInteger *)dayValuePointer
+       fromDate: (NSDate *)date;
+
+/** Returns by reference the hour, minute, second, and nanosecond from the
+ * given date.
+ */
+- (void) getHour: (NSInteger *)hourValuePointer
+          minute: (NSInteger *)minuteValuePointer
+          second: (NSInteger *)secondValuePointer
+      nanosecond: (NSInteger *)nanosecondValuePointer
+        fromDate: (NSDate *)date;
+
+/** Returns by reference the era, year, week of year, and weekday from the
+ * given date.
+ */
+- (void) getEra: (NSInteger *)eraValuePointer 
+yearForWeekOfYear: (NSInteger *)yearValuePointer 
+     weekOfYear: (NSInteger *)weekValuePointer 
+        weekday: (NSInteger *)weekdayValuePointer 
+       fromDate: (NSDate *)date;
+
+/** Returns the integer value of the specified unit from the given date.
+ */
+- (NSInteger) component: (NSCalendarUnit)unit 
+               fromDate: (NSDate *)date;
+#endif
+
 @end
 
 #if	defined(__cplusplus)

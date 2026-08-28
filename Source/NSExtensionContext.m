@@ -1,4 +1,4 @@
-/* Implementation of class NSExtensionContext
+/** Implementation of class NSExtensionContext
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory Casamento <greg.casamento@gmail.com>
@@ -18,15 +18,15 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
-#include <Foundation/NSExtensionContext.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSExtensionContext.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSExtensionContext
 
@@ -40,16 +40,20 @@
   return _inputItems;
 }
   
-- (void)completeRequestReturningItems: (NSArray *)items completionHandler: (GSExtensionContextReturningItemsCompletionHandler)completionHandler
+- (void) completeRequestReturningItems: (NSArray *)items
+		     completionHandler: (GSExtensionContextReturningItemsCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
-- (void)cancelRequestWithError:(NSError *)error
+- (void) cancelRequestWithError:(NSError *)error
 {
+  [self notImplemented: _cmd];
 }
 
-- (void)openURL: (NSURL *)URL completionHandler: (GSOpenURLCompletionHandler)completionHandler
+- (void) openURL: (NSURL *)URL completionHandler: (GSOpenURLCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
 @end

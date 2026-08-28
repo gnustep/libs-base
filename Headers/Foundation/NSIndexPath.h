@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: NSIndexPath.m
 
@@ -65,12 +64,41 @@ GS_EXPORT_CLASS
 /**
  * Return a path containing the single value anIndex.
  */
-+ (id) indexPathWithIndex: (NSUInteger)anIndex;
++ (instancetype) indexPathWithIndex: (NSUInteger)anIndex;
 
 /**
  * Return a path containing all the indexes in the supplied array.
  */
-+ (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
++ (instancetype) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11,GS_API_LATEST)
+/**
+ * Return a path containing an item number and section.
+ */
++ (instancetype) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
+
+/**
+ * Return an index number identifying an item in a collection view
+ */
+- (NSInteger) item;
+
+/**
+ * Return an index number identifying a section in a collection view
+ */
+- (NSInteger) section;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13,GS_API_LATEST)
+/**
+ * Return a path containing row number and section.
+ */
++ (instancetype) indexPathForRow: (NSInteger)item inSection: (NSInteger)section;
+
+/**
+ * Return an index number identifying a row in a table view
+ */
+- (NSInteger) item;
+#endif
 
 /**
  * Compares other with the receiver.<br />

@@ -1,33 +1,11 @@
 Missing macros:
-	NS_ENUM
-	NS_OPTIONS
-	NS_AVAILABLE
 	NS_RETURNS_INNER_POINTER
-	NS_ENUM_AVAILABLE
 	NS_BLOCKS_AVAILABLE
-	NS_CLASS_AVAILABLE
-	NS_AVAILABLE_MAC
 	NS_ENUM_AVAILABLE_IOS
-	NS_DEPRECATED
-	NS_UNAVAILABLE
-	NS_AUTOMATED_REFCOUNT_WEAK_UNAVAILABLE
 	NS_AVAILABLE_IOS
-
-Missing headers:
-==
-NONE
 
 -------------------------------------------------------------
 FoundationErrors:
-	NSFileWriteFileExistsError
-	NSFileWriteVolumeReadOnlyError
-	NSFeatureUnsupportedError
-	NSPropertyListReadCorruptError
-    NSPropertyListReadUnknownVersionError
-    NSPropertyListReadStreamError
-    NSPropertyListWriteStreamError
-    NSPropertyListErrorMinimum
-    NSPropertyListErrorMaximum
     NSXPCConnectionInterrupted
     NSXPCConnectionInvalid
     NSXPCConnectionReplyInvalid
@@ -53,10 +31,6 @@ NSBundle:
 
 	/** Not implemented */ (GNUstep comment)
 	- executableArchitectures;
--------------------------------------------------------------
-NSByteOrder:
-	NSSwappedFloat — incompatible declaration
-	NSSwappedDouble — incompatible declaration
 -------------------------------------------------------------
 NSCalendar:
 	NSWeekOfMonthCalendarUnit
@@ -177,26 +151,10 @@ NSException:
 NSExpression:
 	@class NSPredicate
 
-	NSUnionSetExpressionType
-    NSIntersectSetExpressionType
-    NSMinusSetExpressionType
-    NSSubqueryExpressionType
-    NSAggregateExpressionType
-
-    + expressionWithFormat:argumentArray:
-	+ expressionWithFormat:
-	+ expressionWithFormat:arguments:
-	+ expressionForAggregate:
-	+ expressionForUnionSet:with:
-	+ expressionForIntersectSet:with
-	+ expressionForMinusSet:with:
 	+ expressionForSubquery:usingIteratorVariable:predicate:
 	+ expressionForFunction:selectorName:arguments:
 	+ expressionForBlock:arguments:	
-	- collection
 	- predicate
-	- leftExpression
-	- rightExpression
 	- expressionBlock
 -------------------------------------------------------------
 NSFileHandle:
@@ -218,7 +176,6 @@ NSFileManager:
 
 	- mountedVolumeURLsIncludingResourceValuesForKeys:options:
 	- contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:
-	- URLsForDirectory:inDomains:
 	- createDirectoryAtURL:withIntermediateDirectories:attributes:error:
 	- createSymbolicLinkAtURL:withDestinationURL:error:
 	- setDelegate:
@@ -260,18 +217,7 @@ NSGeometry:
 	<Foundation/NSValue.h>
 	<Foundation/NSCoder.h>
 
-	incompatible NSRectEdge
-	NSAlignmentOptions
-
 	@class NSString
-
-	NSRectFromCGRect()
-	NSRectToCGRect()
-	NSPointFromCGPoint()
-	NSPointToCGPoint()
-	NSSizeFromCGSize()
-	NSSizeToCGSize()
-	NSIntegralRectWithOptions()
 
 	@interface NSValue (NSValueGeometryExtensions)
 	@interface NSCoder (NSGeometryCoding)
@@ -307,12 +253,7 @@ NSIndexSet:
 	- enumerateRangesUsingBlock:
 	- enumerateRangesWithOptions:usingBlock:
 	- enumerateRangesInRange:options:usingBlock:
--------------------------------------------------------------
-NSInvocation:
-	<stdbool.h>
 
-	enum _NSObjCValueType
-	typedef struct NSObjCValue
 -------------------------------------------------------------
 NSKeyedArchiver:
 	<NSGeometry.h>
@@ -565,12 +506,10 @@ NSString:
 	NSCharacterConversionException
 	NSStringEnumerationOptions
 
-	- localizedStandardCompare:
 	- uppercaseStringWithLocale:
 	- lowercaseStringWithLocale:
 	- capitalizedStringWithLocale:
 	- enumerateSubstringsInRange:options:usingBlock:
-	- enumerateLinesUsingBlock:
 	- getBytes:maxLength:usedLength:encoding:options:range:remainingRange:
 	- decomposedStringWithCanonicalMapping
 	- precomposedStringWithCanonicalMapping
@@ -936,3 +875,5 @@ Good headers:
 	<NSXMLDTD.h>
 	<NSXMLDTDNode.h>
 	<NSXMLElement.h>
+	<NSInvocation.h>
+	<NSByteOrder.h>

@@ -8,12 +8,17 @@
 
 int main(int argc, char **argv, char **env)
 {
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = YES;
+#endif
+
   CREATE_AUTORELEASE_POOL(arp);
   NSFileManager 	*fm;
   NSBundle 		*bundle;
   BOOL 			loaded;
   NSString 		*helperPath;
-
+  
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
@@ -29,7 +34,7 @@ int main(int argc, char **argv, char **env)
       TestWebServer		*server;
       NSMutableString		*payload;
       NSURLConnectionTest 	*testCase;
-      BOOL 			debug = NO;
+      BOOL 			debug = GSDebugSet(@"dflt");
       int			i;
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
@@ -41,11 +46,11 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
 	initWithAddress: @"localhost"
-	port: @"1234"
+	port: @"0"
 	mode: NO
         extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1234 HTTPS
+      [server start: d]; // localhost, HTTPS
 
       /* Simple POST via HTTPS with the response's status code 400 and
        * non-empty response's body
@@ -82,7 +87,7 @@ int main(int argc, char **argv, char **env)
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... big payload... response 400 .... POST https://localhost:1234/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... big payload... response 400 .... POST https://localhost/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -97,8 +102,11 @@ int main(int argc, char **argv, char **env)
 		  format: @"can't load bundle TestConnection"];
     }
 
-
   DESTROY(arp);
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = NO;
+#endif
 
   return 0;
 }

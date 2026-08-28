@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */
@@ -77,31 +76,37 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_TABLE_S	instanceSize
   
 #define IS_WEAK(M) \
-      M->cb.pf.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.options, NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf, X.ptr))
 #define GSI_MAP_EQUAL(M, X, Y)\
  (M->legacy ? M->cb.old.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
-#define GSI_MAP_RELEASE_KEY(M, X)\
- (M->legacy ? M->cb.old.release(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
-#define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAcquire(&M->cb.pf, &X.ptr, X.ptr))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 \
- : (IS_WEAK(M) ? YES : NO))
+ (M->legacy ? 0 : (IS_WEAK(M) ? 1 : 0))
 
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-		*(addr) = x;\
-	else\
-	 pointerFunctionsAssign(&M->cb.pf, (void**)addr, (x).obj);
+/* NSPointerFunctions provides functions which combine the actions of
+ * memory allocation/deallocation with those of assignment, so we make
+ * the separete retain/release macros a no-op nd do all the work in the
+ * store/clear macros.
+ */
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_KEY(M, X) nil
+#define GSI_MAP_CLEAR_KEY(M, addr)\
+  if (M->legacy) \
+    { M->cb.old.release(M, (*addr).ptr); (*addr).ptr = 0; }\
+  else\
+    pointerFunctionsRelinquish(&M->cb.pf, (void**)addr);
+#define GSI_MAP_STORE_KEY(M, addr, x)\
+  if (M->legacy)\
+    { *(addr) = x; M->cb.old.retain(M, (*addr).ptr); }\
+  else\
+    pointerFunctionsReplace(&M->cb.pf, (void**)addr, (x).obj);
+
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr) :\
-	 (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
+   (M->legacy ? *(addr) :\
+   (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
 
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
@@ -452,11 +457,20 @@ NSHashInsert(NSHashTable *table, const void *element)
 	  GSIMapAddKey(t, (GSIMapKey)element);
 	  ((NSConcreteHashTable*)table)->version++;
 	}
-      else if (element != n->key.ptr)
-	{
-	  GSI_MAP_RELEASE_KEY(t, n->key);
-	  n->key = (GSIMapKey)element;
-	  GSI_MAP_RETAIN_KEY(t, n->key);
+      else if (GSI_MAP_READ_KEY(t, &n->key).ptr != element)
+        {
+	  if (t->legacy)
+	    {
+	      t->cb.old.release(t, n->key.ptr);
+	      n->key = (GSIMapKey)element;
+	      t->cb.old.retain(t, n->key.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	      pointerFunctionsReplace(&t->cb.pf, (void**)&n->key,
+		(void*)element);
+	    }
 	  ((NSConcreteHashTable*)table)->version++;
 	}
     }
@@ -615,22 +629,20 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
     }
   if (enumerator->map != 0)		// Got a GSIMapTable enumerator
     {
+      NSConcreteHashTable *map = enumerator->map;
       GSIMapNode    n;
 
       /* The 'map' field is non-null, so this NSHashEnumerator is actually
        * a GSIMapEnumerator.
        */
-      n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-      if (n == 0)
+      while ((n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator)) != 0)
 	{
-	  return 0;
-	}
-      else
-	{
-          NSConcreteHashTable *map = enumerator->map;
+	  void	*v = GSI_MAP_READ_KEY(map, &n->key).ptr;
 
-          return GSI_MAP_READ_KEY(map, &n->key).ptr;
+
+	  return v;
 	}
+      return 0;
     }
   else if (enumerator->node != 0)	// Got an enumerator object
     {
@@ -836,11 +848,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   GSIMapTable   t = (GSIMapTable)self;
   GSIMapNode	n;
 
-  if (anObject == nil)
+  if (nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* Tested behavior on os-x 14.5 is to do nothing if the arg is nil
+       */
+      return;
     }
 
   n = GSIMapNodeForKey(t, (GSIMapKey)anObject);
@@ -849,11 +861,19 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
       GSIMapAddKey(t, (GSIMapKey)anObject);
       version++;
     }
-  else if (n->key.obj != anObject)
+  else if (GSI_MAP_READ_KEY(t, &n->key).ptr != anObject)
     {
-      GSI_MAP_RELEASE_KEY(t, n->key);
-      n->key = (GSIMapKey)anObject;
-      GSI_MAP_RETAIN_KEY(t, n->key);
+      if (t->legacy)
+	{
+	  t->cb.old.release(t, n->key.ptr);
+	  n->key.ptr = anObject;
+	  t->cb.old.retain(t, n->key.ptr);
+	}
+      else
+	{
+	  pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	  pointerFunctionsReplace(&t->cb.pf, (void**)&n->key, (void*)anObject);
+	}
       version++;
     }
 }
@@ -886,7 +906,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
     {
       return nil;
     }
-  return node->key.obj;
+  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 }
 
 - (BOOL) containsObject: (id)anObject
@@ -901,6 +921,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 	}
     }
   return NO;
+}
+
+- (void) compact
+{
+  GSIMapRemoveWeak(self);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -958,32 +983,35 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 		       capacity: (NSUInteger)initialCapacity
 {
-  legacy = NO;
-  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
+  if (nil != (self = [super init]))
     {
-      static NSConcretePointerFunctions	*defaultFunctions = nil;
-
-      if (defaultFunctions == nil)
+      legacy = NO;
+      if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
 	{
-          defaultFunctions
-	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+	  if (defaultFunctions == nil)
+	    {
+	      defaultFunctions
+		= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	    }
+	  functions = defaultFunctions;
 	}
-      functions = defaultFunctions;
-    }
-  memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
-    sizeof(self->cb.pf));
+      memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
+	sizeof(self->cb.pf));
 
 #if	GC_WITH_GC
-  if (self->cb.pf.usesWeakReadAndWriteBarriers)
-    {
-      zone = (NSZone*)nodeW;
-    }
-  else
-    {
-      zone = (NSZone*)nodeS;
-    }
+      if (self->cb.pf.usesWeakReadAndWriteBarriers)
+	{
+	  zone = (NSZone*)nodeW;
+	}
+      else
+	{
+	  zone = (NSZone*)nodeS;
+	}
 #endif
-  GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+      GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
+    }
   return self;
 }
 
@@ -1003,7 +1031,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
       if (node)
 	{
-	  return node->key.obj;
+	  return (GSI_MAP_READ_KEY(self, &node->key).obj);
 	}
     }
   return nil;
@@ -1063,13 +1091,13 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (id) nextObject
 {
-  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+  GSIMapKey	key;
 
-  if (node == 0)
+  if (GSIMapEnumeratorNext(&enumerator, &key))
     {
-      return nil;
+      return key.obj;
     }
-  return node->key.obj;
+  return nil;
 }
 
 - (void) dealloc

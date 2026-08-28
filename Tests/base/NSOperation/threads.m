@@ -4,6 +4,8 @@
 #import <Foundation/NSThread.h>
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDate.h>
+#import <Foundation/NSRunLoop.h>
 #import "ObjectTesting.h"
 
 
@@ -124,8 +126,8 @@ static NSLock *lock = nil;
 static NSMutableArray *list = nil;
 + (void) initialize
 {
-  lock = [NSLock new];
-  list = [NSMutableArray new];
+  if (nil == lock) lock = [NSLock new];
+  if (nil == list) list = [NSMutableArray new];
 }
 - (void) main
 {
@@ -134,6 +136,28 @@ static NSMutableArray *list = nil;
   [lock unlock];
 }
 @end
+
+static BOOL
+waitForOperation(NSOperation *op, NSTimeInterval timeout)
+{
+  NSDate	*end;
+
+  end = [NSDate dateWithTimeIntervalSinceNow: timeout];
+  while (NO == [op isFinished] && [end timeIntervalSinceNow] > 0.0)
+    {
+      NSDate	*next;
+      BOOL	handled;
+
+      next = [NSDate dateWithTimeIntervalSinceNow: 0.01];
+      handled = [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+					 beforeDate: next];
+      if (NO == handled)
+	{
+	  [NSThread sleepForTimeInterval: 0.01];
+	}
+    }
+  return [op isFinished];
+}
 
 int main()
 {
@@ -224,14 +248,30 @@ int main()
 
   PASS(([NSOperationQueue currentQueue] == [NSOperationQueue mainQueue]), "current queue outside -main is main queue");
   PASS(([NSOperationQueue mainQueue] != nil), "main queue is not nil");
+
+  obj = [OpFlag new];
+  [NSThread detachNewThreadSelector: @selector(addOperation:)
+			   toTarget: [NSOperationQueue mainQueue]
+			 withObject: obj];
+  PASS((YES == waitForOperation(obj, 2.0)),
+    "main queue runs enqueued operations");
+  PASS(([obj ran] == YES), "main queue operation ran");
+  PASS(([obj thread] == [NSThread mainThread]),
+    "main queue operation ran in main thread");
+  PASS(([obj queue] == [NSOperationQueue mainQueue]),
+    "main queue operation reported main queue");
+  RELEASE(obj);
+
   obj = [OpFlag new];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "main queue runs an operation");
   PASS(([obj thread] != [NSThread currentThread]),
     "operation ran in other thread");
+  RELEASE(obj);
 
   [q setSuspended: YES];
+
   obj = [OpFlag new];
   [q addOperation: obj];
   [NSThread sleepForTimeInterval: 0.1];
@@ -239,7 +279,7 @@ int main()
   [q setSuspended: NO];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "unsuspend works");
-  [obj release];
+  RELEASE(obj);
 
   [q setMaxConcurrentOperationCount: 0];
   obj = [OpFlag new];

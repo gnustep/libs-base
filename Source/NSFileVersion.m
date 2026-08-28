@@ -19,20 +19,19 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
-#include <Foundation/NSFileVersion.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSPersonNameComponents.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSData.h>
+#import "Foundation/NSFileVersion.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSPersonNameComponents.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSData.h"
 
 @interface NSFileVersion (Private)
 - (void) _setURL: (NSURL *)u;

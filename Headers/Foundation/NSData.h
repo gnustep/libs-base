@@ -1,4 +1,4 @@
-/* Interface for NSData for GNUStep
+/**Interface for NSData for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #ifndef __NSData_h_GNUSTEP_BASE_INCLUDE
@@ -39,6 +38,24 @@ extern "C" {
 @class	NSError;
 @class	NSURL;
 #endif
+
+enum {
+  /** Suggests using memory mapping for the file if it can be done securely
+   */
+  NSDataReadingMappedIfSafe =   1UL << 0,
+  /** Suggests avoiding file system caching for the read operation
+   */
+  NSDataReadingUncached =       1UL << 1,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+  /** Strongly requests memory mapping the file; overrides MappedIfSafe
+   * if both are set
+   */
+  NSDataReadingMappedAlways =   1UL << 3,
+#endif
+};
+/** A bitmask of options for intiialising an NSData instance by reading.
+ */
+typedef NSUInteger NSDataReadingOptions;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 enum {
@@ -81,32 +98,40 @@ enum {
 DEFINE_BLOCK_TYPE(GSDataDeallocatorBlock, void, void*, NSUInteger);
 #endif
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
-@interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSData : NSObject <NSCoding, NSSecureCoding, NSCopying, NSMutableCopying>
 
 // Allocating and Initializing a Data Object
 
-+ (id) data;
-+ (id) dataWithBytes: (const void*)bytes
-	      length: (NSUInteger)length;
-+ (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (NSUInteger)length;
++ (instancetype) data;
++ (_Nonnull instancetype) dataWithBytes: (const void *_Nullable)bytes
+                                length: (NSUInteger)length;
++ (instancetype) dataWithBytesNoCopy: (void *_Nullable)bytes
+                              length: (NSUInteger)length;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (id) dataWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize
-	      freeWhenDone: (BOOL)shouldFree;
++ (instancetype) dataWithBytesNoCopy: (void *_Nullable)aBuffer
+                              length: (NSUInteger)bufferSize
+                        freeWhenDone: (BOOL)shouldFree;
 #endif
-+ (id) dataWithContentsOfFile: (NSString*)path;
-+ (id) dataWithContentsOfMappedFile: (NSString*)path;
++ (instancetype _Nullable) dataWithContentsOfFile: (NSString *)path
+                                          options: (NSDataReadingOptions)readOptionsMask
+                                            error: (NSError *_Nullable *_Nullable)errorPtr;
++ (instancetype _Nullable) dataWithContentsOfFile: (NSString*)path;
++ (instancetype _Nullable) dataWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (id) dataWithContentsOfURL: (NSURL*)url;
++ (instancetype _Nullable) dataWithContentsOfURL: (NSURL *)url
+                                         options: (NSDataReadingOptions)readOptionsMask
+                                           error: (NSError *_Nullable *_Nullable)errorPtr;
++ (instancetype _Nullable) dataWithContentsOfURL: (NSURL*)url;
 #endif
-+ (id) dataWithData: (NSData*)data;
++ (instancetype) dataWithData: (NSData*)data;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
-- (id) initWithBase64EncodedData: (NSData*)base64Data
-                         options: (NSDataBase64DecodingOptions)options;
-- (id) initWithBase64EncodedString: (NSString*)base64String
-                           options: (NSDataBase64DecodingOptions)options;
+- (instancetype _Nullable) initWithBase64EncodedData: (NSData*)base64Data
+  options: (NSDataBase64DecodingOptions)options;
+- (instancetype _Nullable) initWithBase64EncodedString: (NSString*)base64String
+  options: (NSDataBase64DecodingOptions)options;
 /**
  * <override-subclass/>
  * Initialize the receiver to hold memory pointed to by bytes without copying.
@@ -118,25 +143,31 @@ GS_EXPORT_CLASS
                               length: (NSUInteger)length
                          deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
-- (id) initWithBytes: (const void*)aBuffer
-	      length: (NSUInteger)bufferSize;
-- (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize;
+- (_Nonnull instancetype) initWithBytes: (const void *_Nullable)aBuffer
+                                length: (NSUInteger)bufferSize;
+- (instancetype) initWithBytesNoCopy: (void *_Nullable)aBuffer
+                              length: (NSUInteger)bufferSize;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize
-	      freeWhenDone: (BOOL)shouldFree;
+- (instancetype) initWithBytesNoCopy: (void *_Nullable)aBuffer
+                              length: (NSUInteger)bufferSize
+                        freeWhenDone: (BOOL)shouldFree;
 #endif
-- (id) initWithContentsOfFile: (NSString*)path;
-- (id) initWithContentsOfMappedFile: (NSString*)path;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
+- (instancetype _Nullable) initWithContentsOfFile: (NSString *) path
+                                          options: (NSDataReadingOptions) readOptionsMask
+                                            error: (NSError *_Nullable *_Nullable) errorPtr;
+- (instancetype _Nullable) initWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithContentsOfURL: (NSURL*)url;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL*)url;
+- (instancetype _Nullable) initWithContentsOfURL: (NSURL *)url
+                                         options: (NSDataReadingOptions)readOptionsMask
+                                           error: (NSError *_Nullable *_Nullable)errorPtr;
 #endif
-- (id) initWithData: (NSData*)data;
+- (instancetype) initWithData: (NSData*)data;
 
 // Accessing Data
 
-- (const void*) bytes;
+- (const void *_Nullable) bytes;
 - (NSString*) description;
 - (void) getBytes: (void*)buffer;
 - (void) getBytes: (void*)buffer
@@ -154,7 +185,8 @@ GS_EXPORT_CLASS
 // base64
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options;
-- (NSString *) base64EncodedStringWithOptions: (NSDataBase64EncodingOptions)options;
+- (NSString *) base64EncodedStringWithOptions:
+  (NSDataBase64EncodingOptions)options;
 #endif
 
 // Querying a Data Object
@@ -316,30 +348,30 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSMutableData :  NSData
 
-+ (id) dataWithCapacity: (NSUInteger)numBytes;
-+ (id) dataWithLength: (NSUInteger)length;
-- (id) initWithCapacity: (NSUInteger)capacity;
-- (id) initWithLength: (NSUInteger)length;
++ (instancetype) dataWithCapacity: (NSUInteger)numBytes;
++ (instancetype) dataWithLength: (NSUInteger)length;
+- (instancetype) initWithCapacity: (NSUInteger)capacity;
+- (instancetype) initWithLength: (NSUInteger)length;
 
 // Adjusting Capacity
 
 - (void) increaseLengthBy: (NSUInteger)extraLength;
 - (void) setLength: (NSUInteger)size;
-- (void*) mutableBytes;
+- (void *_Nullable) mutableBytes;
 
 // Appending Data
 
-- (void) appendBytes: (const void*)aBuffer
+- (void) appendBytes: (const void *_Nullable)aBuffer
 	      length: (NSUInteger)bufferSize;
 - (void) appendData: (NSData*)other;
 
 // Modifying Data
 
 - (void) replaceBytesInRange: (NSRange)aRange
-		   withBytes: (const void*)bytes;
+		   withBytes: (const void *_Nullable)bytes;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) replaceBytesInRange: (NSRange)aRange
-		   withBytes: (const void*)bytes
+		   withBytes: (const void *_Nullable)bytes
 		      length: (NSUInteger)length;
 #endif
 - (void) resetBytesInRange: (NSRange)aRange;
@@ -361,6 +393,8 @@ GS_EXPORT_CLASS
 	       atIndex: (unsigned int)index;
 
 @end
+
+NS_ASSUME_NONNULL_END
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 

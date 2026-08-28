@@ -13,7 +13,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYING.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -49,20 +49,20 @@
 #endif
 
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #ifndef NSIG
@@ -102,13 +102,13 @@ gdnc_log (int prio, const char *ebuf)
     }
   else if (prio == LOG_INFO)
     {
-      write (1, ebuf, strlen (ebuf));
-      write (1, "\n", 1);
+      fprintf (stdout, "%s\n", ebuf);
+      fflush (stdout);
     }
   else
     {
-      write (2, ebuf, strlen (ebuf));
-      write (2, "\n", 1);
+      fprintf (stderr, "%s\n", ebuf);
+      fflush (stderr);
     }
 
   if (prio == LOG_CRIT)
@@ -280,7 +280,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  observers = [NSMutableArray new];
+  if (nil != (self = [super init]))
+    {
+      observers = [NSMutableArray new];
+    }
   return self;
 }
 @end
@@ -316,7 +319,10 @@ ihandler(int sig)
 
 - (id) init
 {
-  queue = [[NSMutableArray alloc] initWithCapacity: 1];
+  if (nil != (self = [super init]))
+    {
+      queue = [[NSMutableArray alloc] initWithCapacity: 1];
+    }
   return self;
 }
 @end
@@ -432,6 +438,10 @@ ihandler(int sig)
   NSPortNameServer	*ns;
   NSUserDefaults	*defs;
 
+  if (nil == (self = [super init]))
+    {
+      return self;
+    }
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
@@ -493,7 +503,7 @@ ihandler(int sig)
     {
       if ([conn registerName: service withNameServer: ns] == NO)
 	{
-	  NSLog(@"gdnc - unable to register with name server as %@ - quiting.",
+	  NSLog(@"gdnc - unable to register with name server as %@ - quitting.",
 	    service);
 	  DESTROY(self);
 	  return self;
@@ -508,7 +518,7 @@ ihandler(int sig)
 
       if (host == nil)
 	{
-	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quiting.", hostname);
+	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quitting.", hostname);
 	  DESTROY(self);
 	  return self;
 	}

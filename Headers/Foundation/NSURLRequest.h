@@ -1,4 +1,4 @@
-/* Interface for NSURLRequest for GNUstep
+/**Interface for NSURLRequest for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>
@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSURLRequest_h_GNUSTEP_BASE_INCLUDE
@@ -271,6 +270,16 @@ GS_EXPORT_CLASS
  */
 - (NSString *) valueForHTTPHeaderField: (NSString *)field;
 
+#if OS_API_VERSION(MAC_OS_VERSION_11_0, GS_API_LATEST)
+/**
+ * Indicates whether the URL loading system assumes the host is HTTP/3 capable.
+ *
+ * This method returns the current assumption of the URL loading system regarding
+ * the server's HTTP capabilities.
+ */
+- (BOOL) assumesHTTP3Capable;
+#endif
+
 @end
 
 
@@ -321,10 +330,22 @@ GS_EXPORT_CLASS
 - (void) setHTTPShouldHandleCookies: (BOOL)should;
 
 /**
- * Sets the value for the sapecified header field, replacing any
- * previously set value.
+ * Sets the value for the specified header field, replacing any
+ * previously set value. Setting a nil value deletes a previously set
+ * header field.
  */
 - (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
+
+#if OS_API_VERSION(MAC_OS_VERSION_11_0, GS_API_LATEST)
+/**
+ * Sets whether the URL loading system should assume the host is HTTP/3 capable.
+ *
+ * This method configures the URL loading system's assumptions about the
+ * server's HTTP capabilities, optimizing the connection process if HTTP/3 is
+ * supported.
+ */
+- (void) setAssumesHTTP3Capable: (BOOL)capable;
+#endif
 
 @end
 
