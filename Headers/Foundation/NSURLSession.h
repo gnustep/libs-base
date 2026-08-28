@@ -38,7 +38,6 @@
 #import <Foundation/NSProgress.h>
 #import <Foundation/NSDate.h>
 #import <GNUstepBase/GSBlocks.h>
-
 #if GS_HAVE_NSURLSESSION
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
@@ -61,6 +60,9 @@
 @class NSURLSessionDataTask;
 @class NSURLSessionUploadTask;
 @class NSURLSessionDownloadTask;
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+@class NSURLSessionWebSocketTask;
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -215,6 +217,21 @@ GS_NSURLSession_IVARS;
  * -getAllTasksWithCompletionHandler:, which requires a compiler with blocks.
  */
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks;
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+/* Creates a WebSocket task to connect to the given URL. */
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url;
+
+/* Creates a WebSocket task to download the contents of the given URL
+ * and an Array of strings to negotiate the WebSocket protocol with the server
+ */
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
+                                          protocols:
+  (GS_GENERIC_CLASS(NSArray, NSString *) *)protocols;
+
+/* Creates a WebSocket task with the given request. */
+- (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request;
+#endif
 
 /**
  * Returns the tasks the session currently holds which are a kind of aClass.
@@ -444,6 +461,86 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
 GS_EXPORT_CLASS
 @interface NSURLSessionStreamTask : NSURLSessionTask
+@end
+#endif
+
+typedef  NS_ENUM(NSInteger, NSURLSessionWebSocketCloseCode) {
+  // A code that indicates the connection is still open.
+  NSURLSessionWebSocketCloseCodeInvalid = 0,
+  // A code that indicates normal connection closure.
+  NSURLSessionWebSocketCloseCodeNormalClosure = 1000,
+  // A code that indicates an endpoint is going away.
+  NSURLSessionWebSocketCloseCodeGoingAway = 1001,
+  // A code that indicates an endpoint terminated the connection due to a protocol error.
+  NSURLSessionWebSocketCloseCodeProtocolError = 1002,
+  // A code that indicates an endpoint terminated the connection after receiving a type of data it can’t accept.
+  NSURLSessionWebSocketCloseCodeUnsupportedData = 1003,
+  // A reserved code that indicates an endpoint expected a status code and didn’t receive one.
+  NSURLSessionWebSocketCloseCodeNoStatusReceived = 1005,
+  // A reserved code that indicates the connection closed without a close control frame.
+  NSURLSessionWebSocketCloseCodeAbnormalClosure = 1006,
+  // A code that indicates the server terminated the connection because it received data inconsistent with the message’s type.
+  NSURLSessionWebSocketCloseCodeInvalidFramePayloadData = 1007,
+  // A code that indicates an endpoint terminated the connection because it received a message that violates its policy.
+  NSURLSessionWebSocketCloseCodePolicyViolation = 1008,
+  // A code that indicates an endpoint is terminating the connection because it received a message too big for it to process.
+  NSURLSessionWebSocketCloseCodeMessageTooBig = 1009,
+  // A code that indicates the client terminated the connection because the server didn’t negotiate a required extension.
+  NSURLSessionWebSocketCloseCodeMandatoryExtensionMissing = 1010,
+  // A code that indicates the server terminated the connection because it encountered an unexpected condition.
+  NSURLSessionWebSocketCloseCodeInternalServerError = 1011,
+  // A reserved code that indicates the connection closed due to the failure to perform a TLS handshake.
+  NSURLSessionWebSocketCloseCodeTLSHandshakeFailure = 1015,
+};
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+typedef NS_ENUM(NSInteger, NSURLSessionWebSocketMessageType) {
+  NSURLSessionWebSocketMessageTypeData = 0,
+  NSURLSessionWebSocketMessageTypeString = 1,
+};
+
+GS_EXPORT_CLASS
+@interface NSURLSessionWebSocketMessage : NSObject
+{
+  NSURLSessionWebSocketMessageType _type;
+  NSData *_data;
+  NSString *_string;
+}
+
+- (instancetype) initWithData: (NSData *)data;
+- (instancetype) initWithString: (NSString *)string;
+
+- (NSURLSessionWebSocketMessageType) type;
+- (NSData * _Nullable) data;
+- (NSString * _Nullable) string;
+@end
+
+GS_EXPORT_CLASS
+@interface NSURLSessionWebSocketTask : NSURLSessionTask
+{
+  void   *_completionHandler;
+  NSInteger _maximumMessageSize;
+  NSURLSessionWebSocketCloseCode _closeCode;
+  NSData *_closeReason;
+  NSMutableArray *_sendQueue;
+  NSMutableArray *_recvQueue;
+}
+
+- (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode
+                      reason: (NSData * _Nullable)reason;
+
+- (void) sendMessage: (NSURLSessionWebSocketMessage *)message
+   completionHandler: (void (^)(NSError *_Nullable error))completionHandler;
+- (void) receiveMessageWithCompletionHandler:
+  (void (^)(NSURLSessionWebSocketMessage *_Nullable message,
+    NSError *_Nullable error))completionHandler;
+- (void) sendPingWithPongReceiveHandler:
+  (void (^)(NSError *_Nullable error))pongReceiveHandler;
+
+- (NSInteger) maximumMessageSize;
+- (void) setMaximumMessageSize: (NSInteger)maximumMessageSize;
+- (NSURLSessionWebSocketCloseCode) closeCode;
+- (NSData * _Nullable) closeReason;
 @end
 #endif
 
@@ -694,6 +791,22 @@ GS_EXPORT_CLASS
   taskNeedsNewBodyStream: (NSURLSessionTask *)task;
 
 @end
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+@protocol NSURLSessionWebSocketDelegate <NSURLSessionTaskDelegate>
+@optional
+
+- (void) URLSession: (NSURLSession *)session
+  webSocketTask: (NSURLSessionWebSocketTask *)webSocketTask
+  didOpenWithProtocol: (NSString * _Nullable)protocol;
+
+- (void) URLSession: (NSURLSession *)session
+  webSocketTask: (NSURLSessionWebSocketTask *)webSocketTask
+  didCloseWithCode: (NSURLSessionWebSocketCloseCode)closeCode
+  reason: (NSData * _Nullable)reason;
+
+@end
+#endif
 
 @protocol NSURLSessionDataDelegate <NSURLSessionTaskDelegate>
 @optional
