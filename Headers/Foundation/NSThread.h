@@ -416,11 +416,13 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
 /**
  * Detaches a new thread with block as its entry point.
  */
-+ (void) detachNewThreadWithBlock: (GSThreadBlock)block;
++ (void) detachNewThreadWithBlock: (GSThreadBlock)block
+  GS_NON_PORTABLE(use -detachNewThreadSelector:toTarget:withObject: instead);
 
 /** Initialises a NSThread object with block as the entry point.
  */
-- (instancetype) initWithBlock: (GSThreadBlock)block;
+- (instancetype) initWithBlock: (GSThreadBlock)block
+  GS_NON_PORTABLE(use -initWithTarget:selector:object: instead);
 #endif // OS_API_VERSION
 
 @end
