@@ -21,6 +21,10 @@ on:
         description: "tools-windows-msvc branch (leave empty to use latest pre-built release)"
         required: false
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   APT_PACKAGES: >-
     git
@@ -51,6 +55,7 @@ env:
   RPM_PACKAGES: >-
     which
     gzip
+    findutils
     git
     cmake
     clang
@@ -128,7 +133,7 @@ jobs:
         working-directory: ${{ env.SRC_PATH }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           path: ${{ env.SRC_PATH }}
 
@@ -171,7 +176,7 @@ jobs:
           make check
 
       - name: Upload logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Logs - ${{ matrix.name }}
@@ -257,7 +262,7 @@ jobs:
         working-directory: ${{ env.SRC_PATH }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           path: ${{ env.SRC_PATH }}
 
@@ -369,7 +374,7 @@ jobs:
             CONFIGURE_OPTS="$CONFIGURE_OPTS --host=$HOST"
           fi
           ./configure $CONFIGURE_OPTS
-          make && make install
+          make -j$(nproc) && make install
 
       - name: Run tests
         continue-on-error: ${{ matrix.allow-test-failures || false }}
@@ -382,7 +387,7 @@ jobs:
           make check
 
       - name: Upload logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Logs - ${{ matrix.name }}

@@ -14,6 +14,10 @@ int main()
   NSURL		*rel;
   NSData	*data;
   NSString	*str;
+#if	!defined(_WIN32)
+  NSString	*tmp;
+  const char	*ptr;
+#endif
   NSNumber      *num;
   unsigned      i;
   unichar       bad[] = {'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w',
@@ -148,13 +152,17 @@ int main()
   PASS_EQUAL([url resourceSpecifier], @"/%5C%5CSERVER%5CSHARE%5C",
     "resourceSpecifier of \\\\SERVER\\SHARE\\ is /%5C%5CSERVER%5CSHARE%5C");
 #else
-  url = [NSURL fileURLWithPath: @"/usr"];
+  tmp = NSTemporaryDirectory();
+  url = [NSURL fileURLWithPath: tmp];
   str = [url path];
-  PASS_EQUAL(str, @"/usr", "Path of file URL /usr is /usr");
-  PASS_EQUAL([url description], @"file:///usr/",
-    "File URL /usr is file:///usr/");
-  PASS_EQUAL([url resourceSpecifier], @"/usr/",
-    "resourceSpecifier of /usr is /usr/");
+  ptr = [tmp UTF8String];
+  PASS_EQUAL(str, tmp, "Path of file URL %s is %s", ptr, ptr);
+  str = [NSString stringWithFormat: @"file://%@/", tmp];
+  PASS_EQUAL([url description], str,
+    "File URL %s is file://%s/", ptr, ptr);
+  str = [NSString stringWithFormat: @"%@/", tmp];
+  PASS_EQUAL([url resourceSpecifier], str,
+    "resourceSpecifier of %s is %s/", ptr, ptr);
 #endif
 
   PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil isDirectory: YES],

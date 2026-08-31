@@ -1375,6 +1375,15 @@ register_printf_atsign ()
   if (NULL == aString)
     [NSException raise: NSInvalidArgumentException
       format: @"[NSString+stringWithString:]: NULL string"];
+  if (self == NSStringClass)
+    {
+      /* Each concrete string class settles in -copyWithZone: whether it may
+       * be shared, and answers a full copy where it may not, so a copy is
+       * both what this method promises and the cheapest thing that keeps
+       * that promise.
+       */
+      return AUTORELEASE([aString copy]);
+    }
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithString: aString];
   return AUTORELEASE(obj);
@@ -3470,8 +3479,18 @@ register_printf_atsign ()
 
 - (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
 {
+  NSUInteger    length;
   NSRange	startRange;
 
+  length = [self length];
+  if (NSMaxRange(range) > length)
+    {
+      [NSException raise: NSRangeException format:@"Invalid location."];
+    }
+  else if (range.location == length)
+    {
+      return range;
+    }
   startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
   if (NSMaxRange(startRange) >= NSMaxRange(range))
     {

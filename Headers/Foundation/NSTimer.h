@@ -71,8 +71,9 @@ GS_EXPORT_CLASS
   
 + (NSTimer *) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
                                      repeats: (BOOL)f
-                                       block: (GSTimerBlock)block;
-  
+                                       block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: instead);
+
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f;
@@ -85,7 +86,8 @@ GS_EXPORT_CLASS
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 			   repeats: (BOOL)f
-			     block: (GSTimerBlock)block;
+			     block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use timerWithTimeInterval:target:selector:userInfo:repeats: instead);
 
 - (void) fire;
 - (NSDate*) fireDate;
@@ -111,7 +113,8 @@ GS_EXPORT_CLASS
 - (instancetype) initWithFireDate: (NSDate *)date 
                          interval: (NSTimeInterval)interval 
                           repeats: (BOOL)repeats 
-                            block: (GSTimerBlock)block;
+                            block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use initWithFireDate:interval:target:selector:userInfo:repeats: instead);
 #endif
   
 @end

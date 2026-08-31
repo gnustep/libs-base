@@ -60,6 +60,9 @@
 /* Built in default value for GNUstep local library */
 #undef GNUSTEP_TARGET_LOCAL_LIBRARY
 
+/* Built in default value for GNUstep local resources */
+#undef GNUSTEP_TARGET_LOCAL_RESOURCES
+
 /* Built in default value for GNUstep local services */
 #undef GNUSTEP_TARGET_LOCAL_SERVICES
 
@@ -102,6 +105,9 @@
 /* Built in default value for GNUstep network library */
 #undef GNUSTEP_TARGET_NETWORK_LIBRARY
 
+/* Built in default value for GNUstep network resources */
+#undef GNUSTEP_TARGET_NETWORK_RESOURCES
+
 /* Built in default value for GNUstep network services */
 #undef GNUSTEP_TARGET_NETWORK_SERVICES
 
@@ -140,6 +146,9 @@
 
 /* Built in default value for GNUstep system library */
 #undef GNUSTEP_TARGET_SYSTEM_LIBRARY
+
+/* Built in default value for GNUstep system resources */
+#undef GNUSTEP_TARGET_SYSTEM_RESOURCES
 
 /* Built in default value for GNUstep system services */
 #undef GNUSTEP_TARGET_SYSTEM_SERVICES
@@ -185,6 +194,9 @@
 
 /* Built in default value for GNUstep user_dir library */
 #undef GNUSTEP_TARGET_USER_DIR_LIBRARY
+
+/* Built in default value for GNUstep user_dir resources */
+#undef GNUSTEP_TARGET_USER_DIR_RESOURCES
 
 /* Built in default value for GNUstep user_dir services */
 #undef GNUSTEP_TARGET_USER_DIR_SERVICES

@@ -46,11 +46,11 @@ testHopeful = YES;
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
         initWithAddress: @"localhost"
-                   port: @"1233"
+                   port: @"0"
                    mode: NO
                   extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1233 HTTPS
+      [server start: d]; // localhost, HTTPS
 
       /*
        *  Simple GET via HTTPS with empty response's body and
@@ -64,7 +64,7 @@ testHopeful = YES;
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... GET https://localhost:1233/");
+      PASS([testCase isSuccess], "HTTPS... GET https://localhost/");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -83,7 +83,7 @@ testHopeful = YES;
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost:1233/400");
+      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -104,7 +104,7 @@ testHopeful = YES;
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost:1233/400");
+      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -126,12 +126,12 @@ testHopeful = YES;
         @"/301", @"Path",      // request the handler responding with a redirect
         @"/", @"RedirectPath", // the URL's path of redirecting
         @"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
-        @"1236", @"AuxPort",   // the port of the auxilliary instance			  
+        @"0", @"AuxPort",   // the port of the auxilliary instance			  
         refs, @"ReferenceFlags", // the expected reference set difference
         nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost:1233/301");
+      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost/301");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 

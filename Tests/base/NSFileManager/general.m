@@ -302,7 +302,7 @@ int main()
     e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: @"."]
   includingPropertiesForKeys: nil
 		     options: 0
-		errorHandler: nil]; 
+		errorHandler: 0]; 
 
     while (nil != (u = [e nextObject]))
       {
@@ -325,7 +325,7 @@ int main()
     e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: @"."]
   includingPropertiesForKeys: nil
 		     options: NSDirectoryEnumerationSkipsPackageDescendants
-		errorHandler: nil];
+		errorHandler: 0];
 
     while (nil != (u = [e nextObject]))
       {

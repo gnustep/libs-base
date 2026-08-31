@@ -1,3 +1,136 @@
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m: Hand the variadic arguments of
+	[NSExpression+expressionWithFormat:] to the predicate scanner, the
+	way [NSPredicate+predicateWithFormat:] always has, instead of
+	formatting them into the string before parsing it.  A string
+	argument now substitutes for %@ as the constant it is; formatted
+	into the string it would parse as a key path.  The walk which
+	consumes one typed argument per conversion moves to a function the
+	two entry points share.
+	* Tests/base/NSPredicate/functionNames.m: Substitute %@ and %K
+	arguments into expression formats and check what they parse as.
+
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m(parseFunctionalExpression): Accept the
+	colon form of a function call OS X writes in format strings, as
+	in "uppercase:(name)"; the colon becomes part of the function
+	name.
+	* Tests/base/NSPredicate/functionNames.m: Test it, and that
+	"now()" parses.
+
+2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
+
+	* Source/NSPredicate.m: Implement the uppercase:, lowercase: and
+	now functions of NSExpression, named as OS X names them.
+	* Tests/base/NSPredicate/functionNames.m: Test them.
+
+2026-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSString.m(rangeOfComposedCharacterSequencesForRange:):
+	Add extra guards for the range argument.
+
+2026-08-13 Todd White <todd.white@thalion.global>
+
+	* Source/NSNotificationCenter.m: Post under a lock chosen by the
+	notification name, so that posts of different names do not
+	serialise against each other.  The one table lock becomes an array
+	of stripes which lockNCTable takes in full and in order, so it
+	means what it meant before and every other caller is unchanged.
+	Observations registered with no name get a lock of their own,
+	consulted only where such an observation exists, and the free list
+	shared by the stripes is guarded where it is pushed.
+	* Source/NSUserDefaults.m: Post NSUserDefaultsDidChangeNotification
+	from the methods which alter what a lookup can see and posted
+	nothing: addSuiteNamed:, removeSuiteNamed:, setSearchList:,
+	setVolatileDomain:forName:, removeVolatileDomainForName: and
+	registerDefaults:.
+	* Tests/base/NSUserDefaults/notifications.m: New test that each of
+	those methods posts the notification.
+
+2026-08-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* configure:
+	* configure.ac:
+	* standalone.conf:
+	Update to match gnustep-make changes for resource location config.
+	Add path utilitites option GSResourcesDirectory to locate resources
+	stored outside app bundles (use it for tool bundles).
+
+2026-08-12 Todd White <todd.white@thalion.global>
+
+	* Source/NSBundle.m: Let a thread reuse the localization table it
+	was last given for a bundle and table name, holding a retain on
+	that table, so that -localizedStringForKey:value:table: takes the
+	lock every bundle shares only where a table is loaded.  Protect
+	-infoDictionary with the same lock, and take it in
+	-cleanPathCache, which destroyed the information dictionary and
+	the localization tables without it.
+
+2026-08-12 Todd White <todd.white@thalion.global>
+
+	* Source/NSNotificationCenter.m: Take the table lock for the
+	cleanup of the array of observations only when the post put
+	something in it.  The array is local to the call, so its count
+	may be read without the lock.
+
+2026-08-12 Todd White <todd.white@thalion.global>
+
+	* Source/NSMethodSignature.m:
+	* Source/GSInvocation.h:
+	* Source/NSDistantObject.m:
+	* Source/NSInvocation.m: Answer a set of types that has been seen
+	before from a table read without the cache lock, and keep a
+	cached signature for the life of the process rather than counting
+	references to it, which is what the cache already does.  Limit how
+	many sets of types may be cached, answering an uncached signature
+	past the limit rather than failing, and use an uncached signature
+	for types which came from a connection or an archive, so that a
+	peer cannot fill the cache.
+
+2026-08-11 Todd White <todd.white@thalion.global>
+
+	* Source/NSKeyValueCoding+Caching.m: Let each thread keep the
+	slots it has most recently used, so that valueForKey: reads the
+	shared table, and takes its lock, only for a class and key that
+	thread has not seen.  A slot is added to the shared table once
+	and never removed, so a pointer to one stays valid.
+
+2026-08-11 Todd White <todd.white@thalion.global>
+
+	* Source/NSString.m: Answer a copy from +stringWithString:
+	rather than allocating a string and initialising it from the
+	argument, so that a string which may be shared is shared.  A
+	subclass keeps the earlier path.
+	* Source/NSCalendarDate.m: Read the second that GSPrivateTimeNow
+	records before writing it, and write it only when it has
+	changed, so that every thread asking for the time does not
+	dirty the line it sits in.  The read and the write are relaxed
+	atomic operations.
+
+2026-08-10 Todd White <todd.white@thalion.global>
+
+	* Source/NSProcessInfo.m:
+	* Tests/base/NSProcessInfo/initialise.m:
+	Use the process environment when a process is initialised without
+	one, and pass the environment given to
+	GSInitializeProcessAndroidWithArgs() on to the initialisation.
+	* Source/NSBundle.m:
+	* Tests/base/NSTask/nopath.m:
+	Do not loop forever looking for an executable when the environment
+	has no PATH.
+
+2026-08-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSData+GNUstepBase.h:
+	* Source/Additions/NSData+GNUstepBase.m:
+	New method to more efficiently get randomness.
+
 2026-07-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRunLoop.h:

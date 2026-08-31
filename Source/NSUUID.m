@@ -32,9 +32,9 @@ static int uuid_from_string(const char *string, unsigned char *uuid);
 static void string_from_uuid(const unsigned char *uuid, char *string);
 static int random_uuid(unsigned char *uuid);
 
-static const int kUUIDStringLength = 36;
-static const int kUnformattedUUIDStringLength = 32;
-static const int kUUIDByteCount = 16;
+static const int UUIDStringLength = 36;
+static const int UnformattedUUIDStringLength = 32;
+static const int UUIDByteCount = 16;
 
 
 /**
@@ -84,14 +84,14 @@ static const int kUUIDByteCount = 16;
 {
   if (nil != (self = [super init]))
     {
-      memcpy(self->uuid, bytes, kUUIDByteCount);
+      memcpy(self->uuid, bytes, UUIDByteCount);
     }
   return self;
 }
 
 - (NSString *) UUIDString
 {
-  char           uuidChars[kUUIDStringLength + 1];
+  char           uuidChars[UUIDStringLength + 1];
   NSString      *string;
 
   string_from_uuid(uuid, uuidChars);
@@ -102,7 +102,7 @@ static const int kUUIDByteCount = 16;
 
 - (void) getUUIDBytes: (gsuuid_t)bytes
 {
-  memcpy(bytes, uuid, kUUIDByteCount);
+  memcpy(bytes, uuid, UUIDByteCount);
 }
 
 - (BOOL) isEqual: (NSUUID *)other
@@ -113,19 +113,19 @@ static const int kUUIDByteCount = 16;
     {
       return NO;
     }
-  comparison = memcmp(self->uuid, other->uuid, kUUIDByteCount);
+  comparison = memcmp(self->uuid, other->uuid, UUIDByteCount);
   return (comparison == 0) ? YES : NO;
 }
 
 - (NSUInteger) hash
 {
   // more expensive than casting but that's not alignment-safe
-  NSUInteger    uintegerArray[kUUIDByteCount/sizeof(NSUInteger)];
+  NSUInteger    uintegerArray[UUIDByteCount/sizeof(NSUInteger)];
   NSUInteger    hash = 0;
   int		i;
 
-  memcpy(uintegerArray, uuid, kUUIDByteCount);
-  for (i = 0; i < kUUIDByteCount/sizeof(NSUInteger); i++)
+  memcpy(uintegerArray, uuid, UUIDByteCount);
+  for (i = 0; i < UUIDByteCount/sizeof(NSUInteger); i++)
     {
       hash ^= uintegerArray[i];
     }
@@ -143,11 +143,11 @@ static NSString *uuidKey = @"uuid";
 {
   if ([aCoder allowsKeyedCoding])
     {
-      [aCoder encodeBytes: uuid length: kUUIDByteCount forKey: uuidKey];
+      [aCoder encodeBytes: uuid length: UUIDByteCount forKey: uuidKey];
     }
   else
     {
-      [aCoder encodeBytes: uuid length: kUUIDByteCount];
+      [aCoder encodeBytes: uuid length: UUIDByteCount];
     }
 }
 
@@ -168,9 +168,9 @@ static NSString *uuidKey = @"uuid";
 	  decodedUUID
             = [aDecoder decodeBytesWithReturnedLength: &decodedLength];
 	}
-      if (decodedLength == kUUIDByteCount)
+      if (decodedLength == UUIDByteCount)
 	{
-	  memcpy(uuid, decodedUUID, kUUIDByteCount);
+	  memcpy(uuid, decodedUUID, UUIDByteCount);
 	}
       else
 	{
@@ -184,14 +184,14 @@ static NSString *uuidKey = @"uuid";
 
 static int uuid_from_string(const char *string, unsigned char *uuid)
 {
-  char	unformatted[kUnformattedUUIDStringLength];
+  char	unformatted[UnformattedUUIDStringLength];
   int	i;
 
-  if (NULL == string || strlen(string) != kUUIDStringLength)
+  if (NULL == string || strlen(string) != UUIDStringLength)
     {
       return -1;
     }
-  for (i = 0; i < kUUIDStringLength; i++)
+  for (i = 0; i < UUIDStringLength; i++)
     {
       char c = string[i];
 
@@ -216,7 +216,7 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
   memcpy(unformatted+16, string+19, 4);
   memcpy(unformatted+20, string+24, 12);
 
-  for (i = 0; i < kUUIDByteCount; i++)
+  for (i = 0; i < UUIDByteCount; i++)
     {
       int	hi = unformatted[2*i];
       int	lo = unformatted[2*i+1];
@@ -252,10 +252,10 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
 
 static void string_from_uuid(const unsigned char *uuid, char *string)
 {
-  char	unformatted[kUnformattedUUIDStringLength];
+  char	unformatted[UnformattedUUIDStringLength];
   int	i;
 
-  for (i = 0; i < kUUIDByteCount; i++)
+  for (i = 0; i < UUIDByteCount; i++)
     {
       unsigned char byte = uuid[i];
       char thisPair[3];
@@ -271,12 +271,11 @@ static void string_from_uuid(const unsigned char *uuid, char *string)
   memcpy(string + 19, unformatted + 16, 4);
   string[23] = '-';
   memcpy(string + 24, unformatted + 20, 12);
-  string[kUUIDStringLength] = '\0';
+  string[UUIDStringLength] = '\0';
 }
 
 static int random_uuid(unsigned char *uuid)
 {
-  NSData        *rnd;
   unsigned char timeByte;
   unsigned char sequenceByte;
 
@@ -285,13 +284,10 @@ static int random_uuid(unsigned char *uuid)
    * problems (and are more work...)
    */
 
-  rnd = [NSData dataWithRandomBytesOfLength: kUUIDByteCount];
-  if (nil == rnd)
+  if (NO == [NSData randomBytes: uuid ofLength: UUIDByteCount])
     {
       return -1;
     }
-
-  memcpy(uuid, [rnd bytes], kUUIDByteCount);
 
   /* as required by the RFC, bits 48-51 should contain 0b0100 (4)
    * and bits 64-65 should contain 0b01 (1)
@@ -306,3 +302,4 @@ static int random_uuid(unsigned char *uuid)
 
   return 0;
 }
+

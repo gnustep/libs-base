@@ -28,6 +28,8 @@
  */
 
 #import "Foundation/NSException.h"
+#import "Foundation/NSURLCache.h"
+#import "Foundation/NSURLCredentialStorage.h"
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSHTTPCookie.h"
 
@@ -229,11 +231,6 @@ static NSURLSessionConfiguration * def = nil;
   ASSIGN(_HTTPAdditionalHeaders, headers);
 }
 
-- (NSURLRequest *) configureRequest: (NSURLRequest *)request
-{
-  return [self setCookiesOnRequest: request];
-}
-
 - (NSURLRequest *) setCookiesOnRequest: (NSURLRequest *)request
 {
   NSMutableURLRequest * r = AUTORELEASE([request mutableCopy]);
@@ -261,6 +258,11 @@ static NSURLSessionConfiguration * def = nil;
 
   return AUTORELEASE([r copy]);
 } /* setCookiesOnRequest */
+
+- (NSURLRequest *) configureRequest: (NSURLRequest *)request
+{
+  return [self setCookiesOnRequest: request];
+}
 
 - (NSURLCredentialStorage *) URLCredentialStorage
 {

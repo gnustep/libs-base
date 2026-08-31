@@ -299,6 +299,7 @@
     qu = Quechua;
     raj = Rajasthani;
     rm = Romansh;
+    rm_CH = SwitzerlandRomansh;
     rn = Rundi;
     ro = Romanian;
     ru = Russian;

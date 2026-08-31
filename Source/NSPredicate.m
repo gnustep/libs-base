@@ -332,11 +332,14 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return p;
 }
 
-+ (NSPredicate *) predicateWithFormat: (NSString *)format
-                            arguments: (va_list)args
+/* Walks a format string, consuming one typed variadic argument for each
+ * conversion specification and collecting them for the scanner, which
+ * substitutes them while parsing (%@ as a constant, %K as a key path).
+ * Text inside quoted literals is passed over without consuming anything.
+ */
+static NSMutableArray *
+argumentsFromFormat(NSString *format, va_list args)
 {
-  GSPredicateScanner	*s;
-  NSPredicate		*p;
   const char            *ptr = [format UTF8String];
   NSMutableArray        *arr = [NSMutableArray arrayWithCapacity: 10];
 
@@ -458,6 +461,16 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
             }
         }
     }
+  return arr;
+}
+
++ (NSPredicate *) predicateWithFormat: (NSString *)format
+                            arguments: (va_list)args
+{
+  GSPredicateScanner	*s;
+  NSPredicate		*p;
+  NSMutableArray        *arr = argumentsFromFormat(format, args);
+
   s = AUTORELEASE([[GSPredicateScanner alloc] initWithString: format
 							args: arr]);
   p = [s parse];
@@ -2024,11 +2037,16 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 + (NSExpression *) expressionWithFormat: (NSString *)format
 			      arguments: (va_list)args
 {
-  NSString *expString = AUTORELEASE([[NSString alloc] initWithFormat: format
-							   arguments: args]);
+  /* The arguments are handed to the scanner and substituted where the
+   * format references them, %@ becoming a constant expression and %K a
+   * key path, as they are for a predicate format.  (Formatting them
+   * into the string and parsing the result would lose what they were:
+   * a string substituted for %@ would parse as a key path.)
+   */
+  NSMutableArray *arr = argumentsFromFormat(format, args);
   GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
-					      initWithString: expString
-							args: nil]);
+					      initWithString: format
+							args: arr]);
   return [scanner parseExpression];
 }
 
@@ -3278,7 +3296,22 @@ do { \
   return nil;
 }
 
-// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
+- (id) _eval_uppercase: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] uppercaseString];
+}
+
+- (id) _eval_lowercase: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] lowercaseString];
+}
+
+- (id) _eval_now: (NSArray *)expressions
+{
+  return [NSDate date];
+}
+
+// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn
 
 @end
 
@@ -4005,16 +4038,26 @@ do { \
     
   while (YES)
     {
-      if ([self scanString: @"(" intoString: NULL])
-        { 
-          // function - this parser allows for (max)(a, b, c) to be properly 
-          // recognized and even (%K)(a, b, c) if %K evaluates to "max"
-          NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+      BOOL colonCall = NO;
 
-          if (![left keyPath])
+      if ([self scanString: @"(" intoString: NULL]
+        || (colonCall = [self scanString: @":(" intoString: NULL]))
+        {
+          // function - this parser allows for (max)(a, b, c) to be properly
+          // recognized and even (%K)(a, b, c) if %K evaluates to "max".
+          // The name may take its trailing colon as OS X writes it, as in
+          // uppercase:(name); the colon becomes part of the function name.
+          NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+          NSString *name = [left keyPath];
+
+          if (!name)
             {
-              [NSException raise: NSInvalidArgumentException 
+              [NSException raise: NSInvalidArgumentException
                           format: @"Invalid function identifier: %@", left];
+            }
+          if (colonCall)
+            {
+              name = [name stringByAppendingString: @":"];
             }
 
           if (![self scanString: @")" intoString: NULL])
@@ -4030,11 +4073,11 @@ do { \
 
               if (![self scanString: @")" intoString: NULL])
                 {
-                  [NSException raise: NSInvalidArgumentException 
+                  [NSException raise: NSInvalidArgumentException
                               format: @"Missing ) in function arguments"];
                 }
             }
-          left = [NSExpression expressionForFunction: [left keyPath] 
+          left = [NSExpression expressionForFunction: name
                                            arguments: args];
         }
       else if ([self scanString: @"[" intoString: NULL])

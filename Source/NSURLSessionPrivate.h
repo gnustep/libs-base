@@ -37,10 +37,15 @@
 #import <winsock2.h>
 #endif
 
+@class NSInvocation;
+
 extern NSString * GS_NSURLSESSION_DEBUG_KEY;
 
-/* A block executed on the session work thread. */
-typedef void (^GSURLSessionWorkBlock)(void);
+/* Return an invocation for aSelector on target, with the target and the
+ * selector already set.  Arguments start at index 2.
+ */
+extern NSInvocation *
+GSURLSessionInvocation(id target, SEL aSelector);
 
 /* libcurl asks us to monitor a socket for reading, writing or both
  * (CURL_POLL_INOUT).  We integrate this with the NSRunLoop of the session
@@ -71,13 +76,36 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
   GSURLSessionHasInputStream = (1 << 4)
 };
 
-@interface
-  NSURLSession(Private)
+@interface NSURLSession(Private)
 
-/* Schedule a block to run on the session work thread's run loop.  If the
- * caller is already on the work thread the block runs immediately.
+- (void) _checkForCompletion;
+
+- (instancetype) initWithConfiguration: (NSURLSessionConfiguration *)
+  configuration
+  delegate: (id<NSURLSessionDelegate>)delegate
+  delegateQueue: (NSOperationQueue *)queue;
+
+/* Send aSelector to target on the session work thread's run loop.  If the
+ * caller is already on the work thread the message is sent immediately.
  */
-- (void)_performOnWorkThread: (GSURLSessionWorkBlock)block;
+- (void)_performSelectorOnWorkThread: (SEL)aSelector
+			      target: (id)target
+			  withObject: (id)anObject;
+
+- (void)_performSelectorOnWorkThread: (SEL)aSelector
+			      target: (id)target
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)shouldWait;
+
+/* As above, for a message taking more than a single object argument.  The
+ * arguments are retained if the invocation has to be scheduled.
+ */
+- (void)_performInvocationOnWorkThread: (NSInvocation *)anInvocation;
+
+/* Add anInvocation to the delegate queue, retaining its arguments.  A no-op
+ * if the session has no delegate queue.
+ */
+- (void)_enqueueDelegateInvocation: (NSInvocation *)anInvocation;
 
 -(NSData *)_certificateBlob;
 -(NSString *)_certificatePath;
@@ -86,6 +114,8 @@ typedef NS_ENUM(NSInteger, GSURLSessionProperties)
  * Modifications are performed on the workQueue.
  */
 -(void)_resumeTask: (NSURLSessionTask *)task;
+      	
+- (void) _setSharedSession: (BOOL)flag;
 
 /* The following methods must only be called from within callbacks dispatched on
  * the workQueue.*/

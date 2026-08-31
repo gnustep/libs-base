@@ -1368,6 +1368,7 @@ newLanguages(NSArray *oldNames)
 
 - (void) addSuiteNamed: (NSString*)aName
 {
+  BOOL		haveChange = NO;
   NSUInteger	index;
 
   if (aName == nil)
@@ -1387,6 +1388,7 @@ newLanguages(NSArray *oldNames)
       // Ensure that any persistent domain with the specified name is loaded.
       [self persistentDomainForName: aName];
       updateCache(self);
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -1396,6 +1398,12 @@ newLanguages(NSArray *oldNames)
     }
   NS_ENDHANDLER
   RELEASE(aName);
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (NSArray*) arrayForKey: (NSString*)defaultName
@@ -1781,6 +1789,8 @@ static BOOL isPlistObject(id o)
 
 - (void) setSearchList: (NSArray*)newList
 {
+  BOOL	haveChange = NO;
+
   [_lock lock];
   NS_DURING
     {
@@ -1800,6 +1810,7 @@ static BOOL isPlistObject(id o)
               [self persistentDomainForName:  n];
             }
           updateCache(self);
+          haveChange = YES;
         }
       [_lock unlock];
     }
@@ -1809,6 +1820,12 @@ static BOOL isPlistObject(id o)
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
@@ -2108,6 +2125,8 @@ static BOOL isPlistObject(id o)
 
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
+  BOOL	haveChange = NO;
+
   [_lock lock];
   NS_DURING
     {
@@ -2117,6 +2136,7 @@ static BOOL isPlistObject(id o)
         {
           updateCache(self);
         }
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -2125,11 +2145,18 @@ static BOOL isPlistObject(id o)
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
 {
+  BOOL	haveChange = NO;
   id	dict;
 
   [_lock lock];
@@ -2156,6 +2183,7 @@ static BOOL isPlistObject(id o)
         {
           updateCache(self);
         }
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -2164,6 +2192,12 @@ static BOOL isPlistObject(id o)
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
@@ -2267,6 +2301,7 @@ static BOOL isPlistObject(id o)
 
 - (void) registerDefaults: (NSDictionary*)newVals
 {
+  BOOL			haveChange = NO;
   NSMutableDictionary	*regDefs;
 
   [_lock lock];
@@ -2282,6 +2317,7 @@ static BOOL isPlistObject(id o)
       DESTROY(_dictionaryRep);
       [regDefs addEntriesFromDictionary: newVals];
       updateCache(self);
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -2290,10 +2326,18 @@ static BOOL isPlistObject(id o)
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (void) removeSuiteNamed: (NSString*)aName
 {
+  BOOL	haveChange = NO;
+
   if (aName == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -2305,6 +2349,7 @@ static BOOL isPlistObject(id o)
       DESTROY(_dictionaryRep);
       [_searchList removeObject: aName];
       updateCache(self);
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -2313,6 +2358,12 @@ static BOOL isPlistObject(id o)
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (BOOL) writeDictionary: (NSDictionary*)dict
