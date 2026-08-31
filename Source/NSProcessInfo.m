@@ -1053,21 +1053,23 @@ int main(int argc, char *argv[], char *env[])
 
   if (!_gnu_sharedProcessInfoObject)
     {
-      _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
       [procLock lock];
-      if (mySet != nil)
+      if (!_gnu_sharedProcessInfoObject)
 	{
-	  NSEnumerator	*e = [mySet objectEnumerator];
-	  NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
-	  id		o;
-
-	  while ((o = [e nextObject]) != nil)
+	  _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+	  if (mySet != nil)
 	    {
-              [s addObject: o];
+	      NSEnumerator	*e = [mySet objectEnumerator];
+	      NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
+	      id		o;
+
+	      while ((o = [e nextObject]) != nil)
+		{
+		  [s addObject: o];
+		}
+	      DESTROY(mySet);
 	    }
-	  [mySet release];
-	  mySet = nil;
-        }
+	}
       [procLock unlock];
     }
 
