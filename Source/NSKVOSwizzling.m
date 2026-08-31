@@ -127,7 +127,7 @@ _NSKVOEnsureObjectIsKVOAware(id object)
     (IMP)(NSKVO$nilIMP), "v@:");
 }
 
-#pragma region Method Implementations
+// ########### Method Implementations
 // Selector mappings: the class-level mapping from a selector (setX:) to the KVC
 // key ("x") to which it corresponds. This is necessary because both "X" and "x"
 // map to setX:, but we need to be cognizant of precisely which it was for any
@@ -455,7 +455,7 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
 }
   [self didChangeValueForKey: key];
 }
-#pragma endregion
+
 
 #define GENERATE_NOTIFYING_SET_IMPL(funcName, type)                            \
   static void funcName(id self, SEL _cmd, type val)                            \
