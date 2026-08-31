@@ -9,7 +9,7 @@
 
 int main()
 { 
-  START_SET("NSBundle general")
+  ENTER_POOL
   NSFileManager *fm;
   NSBundle *classBundle, *identifierBundle, *bundle;
   NSString *path, *exepath;
@@ -51,6 +51,7 @@ int main()
   END_SET("NSBundle GNUstep general")
 #endif
 
+  START_SET("NSBundle general")
   classBundle = [NSBundle bundleForClass: [TestClass class]];
 
   TEST_FOR_CLASS(@"NSBundle",classBundle,
@@ -86,6 +87,6 @@ int main()
     "+bundleWithIdentifier returns nil for non-existent identifier");
 
   END_SET("NSBundle general")
-
+  LEAVE_POOL
   return 0;
 }
