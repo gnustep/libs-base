@@ -392,6 +392,7 @@ ifeq ($(GNUSTEP_BASE_WITH_NSURLSESSION), 1)
   BASE_MFILES += \
 	NSURLSession.m \
 	NSURLSessionTask.m \
+	NSURLSessionWebSocketTask.m \
 	NSURLSessionConfiguration.m
 endif
 
@@ -669,4 +670,3 @@ include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble
-

@@ -179,7 +179,7 @@ nextSessionIdentifier()
 /* CURLMOPT_TIMERFUNCTION: Callback to receive timer requests from libcurl */
 static int
 timer_callback(CURLM * multi,      /* multi handle */
-               long timeout_ms,   /* timeout in number of ms */
+               long timeout_ms,    /* timeout in number of ms */
                void * clientp)     /* private callback pointer */
 {
   NSURLSession * session = (NSURLSession *)clientp;
@@ -211,7 +211,7 @@ socket_callback(CURL * easy,           /* easy handle */
                 curl_socket_t s,       /* socket */
                 int what,              /* describes the socket */
                 void * clientp,        /* private callback pointer */
-                void * socketp)                /* private socket pointer */
+                void * socketp)        /* private socket pointer */
 {
   NSURLSession * session = clientp;
   const char * whatstr[] = { "none", "IN", "OUT", "INOUT", "REMOVE" };
@@ -876,6 +876,17 @@ static NSURLSession * sharedSession = nil;
   curl_socket_t socket;
   int action = 0;
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+  for (NSURLSessionTask *task in _tasks)
+    {
+      if ([task isKindOfClass: [NSURLSessionWebSocketTask class]])
+        {
+          [(NSURLSessionWebSocketTask *)task
+            _resumeSendIfWaitingForReadableSocket];
+        }
+    }
+#endif
+
 #if	defined(_WIN32)
   WSANETWORKEVENTS occurred;
 
@@ -1205,6 +1216,42 @@ static NSURLSession * sharedSession = nil;
 {
   return [self notImplemented: _cmd];
 }
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
+{
+  NSURLRequest * request;
+
+  request = [NSURLRequest requestWithURL: url];
+  return [self webSocketTaskWithRequest: request];
+}
+
+- (NSURLSessionWebSocketTask *) webSocketTaskWithURL: (NSURL *)url
+                                          protocols:
+  (GS_GENERIC_CLASS(NSArray, NSString *) *)protocols
+{
+  NSURLRequest * request;
+
+  (void)protocols;
+  request = [NSURLRequest requestWithURL: url];
+  return [self webSocketTaskWithRequest: request];
+}
+
+- (NSURLSessionWebSocketTask *) webSocketTaskWithRequest: (NSURLRequest *)request
+{
+  NSURLSessionWebSocketTask * task;
+  NSInteger identifier;
+
+  identifier = [self _nextTaskIdentifier];
+  task = [[NSURLSessionWebSocketTask alloc] initWebSocketTask: self
+                                                       request: request
+                                                taskIdentifier: identifier];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)internal->_delegate];
+  [task _setProperties: GSURLSessionUpdatesDelegate];
+  [self _didCreateTask: task];
+  return AUTORELEASE(task);
+}
+#endif
 
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks
 {

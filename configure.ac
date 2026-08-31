@@ -3894,6 +3894,7 @@ if test "$with_curl" != ""; then
 fi
 
 HAVE_LIBCURL=0
+CURL_HAS_WEBSOCKETS=0
 SKIP_CURL_CONFIG=0
 curl_all=no
 AC_MSG_CHECKING([for libcurl])
@@ -3918,6 +3919,9 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG
     AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
     if test "$curl_ok" = yes; then
       HAVE_LIBCURL=1
+      if test $curl_maj -gt 8 -o \( $curl_maj -eq 8 -a $curl_min -ge 16 \); then
+        CURL_HAS_WEBSOCKETS=1
+      fi
       CURLCFLAGS=`$CURL_CONFIG --cflags`
       CURLLIBS=`$CURL_CONFIG --libs`
       CFLAGS="$CFLAGS $CURLCFLAGS"
@@ -3933,6 +3937,9 @@ else
         AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
         if test "$curl_ok" = yes; then
           HAVE_LIBCURL=1
+          if $PKG_CONFIG --atleast-version 8.16.0 libcurl; then
+            CURL_HAS_WEBSOCKETS=1
+          fi
           CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
           CURLLIBS=`$PKG_CONFIG --libs libcurl`
           CFLAGS="$CFLAGS $CURLCFLAGS"
@@ -3963,6 +3970,7 @@ if test $HAVE_LIBCURL = 1; then
 fi
 
 GS_HAVE_NSURLSESSION=0
+GS_HAVE_NSURLSESSION_WEBSOCKETS=0
 AC_ARG_ENABLE(nsurlsession,
   [AS_HELP_STRING([--disable-nsurlsession],
   [Disable support for NSURLSession])],,
@@ -3972,8 +3980,13 @@ if test $enable_nsurlsession = yes; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi
   GS_HAVE_NSURLSESSION=1
+  if test $CURL_HAS_WEBSOCKETS = 1 -a $HAVE_BLOCKS = 1 \
+      -a "$CLANG_CC" = yes; then
+    GS_HAVE_NSURLSESSION_WEBSOCKETS=1
+  fi
 fi
 AC_SUBST(GS_HAVE_NSURLSESSION)
+AC_SUBST(GS_HAVE_NSURLSESSION_WEBSOCKETS)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal

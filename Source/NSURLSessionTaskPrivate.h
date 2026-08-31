@@ -36,10 +36,32 @@
   NSURLSessionTask(Private)
 
 - (instancetype)initWithSession: (NSURLSession *)session
- request: (NSURLRequest *)request
- taskIdentifier: (NSUInteger)identifier;
+                         request: (NSURLRequest *)request
+                  taskIdentifier: (NSUInteger)identifier;
+
+- (void)_initTaskStateWithSession: (NSURLSession *)session
+                          request: (NSURLRequest *)request
+                   taskIdentifier: (NSUInteger)identifier;
+- (void)_initializeEasyhandleForRequest: (NSURLRequest *)request;
+- (void)_configureEasyhandleForRequestBody: (NSURLRequest *)request;
+- (void)_configureTransferCallbacks;
+- (void)_configureProtocolOptionsForRequest: (NSURLRequest *)request
+                              configuration:
+  (NSURLSessionConfiguration *)configuration;
+- (NSMutableDictionary *)_mergedRequestHeadersForRequest:
+  (NSURLRequest *)request
+                                                        configuration:
+  (NSURLSessionConfiguration *)configuration
+                                                                 URL:
+  (NSURL *)url;
+- (void)_installRequestHeaders:
+  (NSDictionary *)requestHeaders;
 
 -(CURL *)_easyHandle;
+-(void)_setEasyHandle: (CURL *)handle;
+-(char *)_errorBuffer;
+-(struct curl_slist *)_headerList;
+-(void)_setHeaderList: (struct curl_slist *)headerList;
 
 /* Enable or disable libcurl verbose output. Disabled by default. */
 -(void)_setVerbose: (BOOL)flag;
@@ -114,6 +136,10 @@
 -(void)_setHeaderCallbackCount: (NSInteger)count;
 
 -(NSFileHandle *)_createTemporaryFileHandleWithError: (NSError **)error;
+-(NSError *)_errorForCURLcode: (CURLcode)code;
+-(NSError *)_storedTaskError;
+-(void)_setStoredTaskError: (NSError *)error;
+-(void)_clearErrorBuffer;
 
 @end
 
@@ -135,3 +161,15 @@
 -(void)_setCompletionHandler: (GSNSURLSessionDownloadCompletionHandler)handler;
 
 @end
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+@interface NSURLSessionWebSocketTask(Private)
+
+- (instancetype)initWebSocketTask: (NSURLSession *)session
+                          request: (NSURLRequest *)request
+                   taskIdentifier: (NSUInteger)identifier;
+- (void)_resumeSendIfWaitingForReadableSocket;
+- (void)_notifyDidOpenWithProtocol: (NSString *)protocol;
+
+@end
+#endif
