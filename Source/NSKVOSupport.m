@@ -1037,24 +1037,21 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   keyLength = [key length];
   if (keyLength > 0)
     {
-      static const char *const sc_prefix = "keyPathsForValuesAffecting";
-      static const size_t      sc_prefixLength = 26; // strlen(sc_prefix)
-      static const size_t      sc_bufferSize = 128;
-
-      // max length of a key that can guaranteed fit in the char buffer,
-      // even if UTF16->UTF8 conversion causes length to double, or a null
-      // terminator is needed
-      static const size_t sc_safeKeyLength
-        = (sc_bufferSize - sc_prefixLength) / 2 - 1; // 50
-
-      const char *rawKey;
-      size_t      rawKeyLength;
-      SEL         sel;
+      static const char *const	sc_prefix = "keyPathsForValuesAffecting";
+      static const size_t      	sc_prefixLength = 26; // strlen(sc_prefix)
+      static const size_t      	sc_bufferSize = 128;
+      const char 		*rawKey;
+      size_t      		rawKeyLength;
+      SEL         		sel;
 
       rawKey = [key UTF8String];
       rawKeyLength = strlen(rawKey);
 
-      if (keyLength <= sc_safeKeyLength)
+      /* max length of a key that can guaranteed fit in the char buffer,
+       * even if UTF16->UTF8 conversion causes length to double, or a null
+       * terminator is needed
+       */
+      if (keyLength <= (sc_bufferSize - sc_prefixLength) / 2 - 1)
         {
           // fast path using c string manipulation, will cover most cases, as
           // most keyPaths are short
@@ -1101,9 +1098,10 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
       if (unlikely(nil != affectingKeys))
         {
           NSSet *set = [affectingKeys objectForKey:key];
+
           if (set != nil)
             {
-            return set;
+	      return set;
             }
         }
     }
