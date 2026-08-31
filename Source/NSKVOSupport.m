@@ -64,7 +64,7 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   return keyPath;
 }
 
-#pragma region Key Observer
+// ########### Key Observer
 @implementation _NSKVOKeyObserver
 /* GCC does not perform clang's default (automatic) property synthesis, so the
  * accessors are synthesized explicitly. */
@@ -117,9 +117,9 @@ _NSKVCSplitKeypath(NSString *keyPath, NSString **pRemainder)
   __atomic_store_n(&_isRemoved, removed, __ATOMIC_SEQ_CST);
 }
 @end
-#pragma endregion
 
-#pragma region Keypath Observer
+
+// ########### Keypath Observer
 /* The entire change dictionary for an observation registered with no options.
  * The same dictionary serves every such observation and every change, rather
  * than an equal one built per change.  It is immutable, so a write to it from
@@ -209,9 +209,9 @@ static NSDictionary *_kvoSettingChange = nil;
   return __atomic_fetch_sub(&_changeDepth, 1, __ATOMIC_SEQ_CST) == 1;
 }
 @end
-#pragma endregion
 
-#pragma region Forwarding Relay
+
+// ########### Forwarding Relay
 /* Stands between an object that registers observations on the objects it
  * holds and the observer of the whole key path.  The change is reported for
  * the key path being observed, on the object being observed, whichever of the
@@ -284,9 +284,9 @@ static NSDictionary *_kvoSettingChange = nil;
 }
 
 @end
-#pragma endregion
 
-#pragma region Object - level Observation Info
+
+// ########### Object - level Observation Info
 @implementation _NSKVOObservationInfo
 - (instancetype) init
 {
@@ -527,9 +527,9 @@ _createObservationInfoForObject(id object)
   [observationInfo release];
   return observationInfo;
 }
-#pragma endregion
 
-#pragma region Observer / Key Registration
+
+// ########### Observer / Key Registration
 static _NSKVOKeyObserver *
 _addKeypathObserver(id object, NSString *keypath,
                     _NSKVOKeypathObserver *keyPathObserver,
@@ -825,9 +825,9 @@ _addKeypathObserver(id object, NSString *keypath,
 
   return keyObserver;
 }
-#pragma endregion
 
-#pragma region Observer / Key Deregistration
+
+// ########### Observer / Key Deregistration
 static void
 _removeNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   BOOL dependents)
@@ -933,9 +933,9 @@ _removeKeypathObserver(id object, NSString *keypath, id observer, void *context)
     @" as it is not a registered observer.",
     observer, keypath, object];
 }
-#pragma endregion
 
-#pragma region KVO Core Implementation - NSObject category
+
+// ########### KVO Core Implementation - NSObject category
 
 static const char *const KVO_MAP = "_NSKVOMap";
 
@@ -1701,9 +1701,9 @@ _kvoDidSetMutation(_NSKVOKeyObserver *keyObserver, void *context)
 }
 @end
 
-#pragma endregion
 
-#pragma region KVO Core Implementation - Private Access
+
+// ########### KVO Core Implementation - Private Access
 
 @implementation
 NSObject (NSKeyValueObservingPrivate)
@@ -1769,9 +1769,9 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 
 @end
 
-#pragma endregion
 
-#pragma region KVO Core Implementation - NSArray category
+
+// ########### KVO Core Implementation - NSArray category
 
 @implementation
 NSArray (NSKeyValueObserving)
@@ -1842,9 +1842,9 @@ NSArray (NSKeyValueObserving)
 
 @end
 
-#pragma endregion
 
-#pragma region KVO Core Implementation - NSSet category
+
+// ########### KVO Core Implementation - NSSet category
 
 @implementation
 NSSet (NSKeyValueObserving)
@@ -1871,9 +1871,9 @@ NSSet (NSKeyValueObserving)
 
 @end
 
-#pragma endregion
 
-#pragma region KVO forwarding - NSProxy category
+
+// ########### KVO forwarding - NSProxy category
 
 @implementation
 NSProxy (NSKeyValueObserving)
@@ -1887,4 +1887,4 @@ NSProxy (NSKeyValueObserving)
 
 @end
 
-#pragma endregion
+
