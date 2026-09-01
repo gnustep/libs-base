@@ -175,11 +175,11 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
     || node->type == XML_PI_NODE)
     {
       node->content
-	= (xmlChar *)adoptString(node->content, oldDoc, doc, adoptStr);
+        = (xmlChar *)adoptString(node->content, oldDoc, doc, adoptStr);
       if (node->type == XML_PI_NODE)
-	{
-	  node->name = adoptString(node->name, oldDoc, doc, adoptStr);
-	}
+        {
+          node->name = adoptString(node->name, oldDoc, doc, adoptStr);
+        }
     }
 
   if (node->type == XML_ELEMENT_NODE)
