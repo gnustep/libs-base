@@ -307,140 +307,140 @@ createRoutes(Class routeClass, NSURL *baseURL)
 
 - (void) checkDownload: (URLManager *)mgr
 {
-    NSURL         *location;
-    NSData        *data;
-    NSString      *string;
-    NSFileManager *fm;
+  NSURL         *location;
+  NSData        *data;
+  NSString      *string;
+  NSFileManager *fm;
 
-    location = mgr->didFinishDownloadingURL;
-    fm = [NSFileManager defaultManager];
+  location = mgr->didFinishDownloadingURL;
+  fm = [NSFileManager defaultManager];
 
-    PASS_EQUAL(mgr->currentSession, session,
-               "%s URLManager Session is equal to session", prefix);
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
 
-    /* Check URLSession:didCreateTask: callback */
-    PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
-         prefix);
-    PASS_EQUAL(mgr->didCreateTask, task,
-               "%s didCreateTask: task is equal to returned task", prefix);
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
 
-    /* Check URLSession:task:didCompleteWithError: */
-    PASS(nil == mgr->didCompleteError,
-         "%s didCompleteWithError: No error occurred", prefix)
-    PASS(mgr->didCompleteCount == 1,
-         "%s didCompleteWithError: Count is correct", prefix);
-    PASS_EQUAL(mgr->didCompleteTask, task,
-               "%s didCompleteWithError: task is equal to returned task",
-               prefix);
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil == mgr->didCompleteError,
+       "%s didCompleteWithError: No error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
 
-    /* Check Progress Reporting */
-    PASS(mgr->didWriteDataCount == 1, "%s didWriteData: count is correct",
-         prefix);
-    PASS(mgr->downloadTotalBytesWritten
-           == mgr->downloadTotalBytesExpectedToWrite,
-         "%s didWriteData: Downloaded all expected data", prefix);
-    PASS(nil != mgr->didFinishDownloadingURL,
-         "%s didWriteData: Download location is not nil", prefix);
-    PASS([location isFileURL], "%s location is a fileURL", prefix);
+  /* Check Progress Reporting */
+  PASS(mgr->didWriteDataCount == 1, "%s didWriteData: count is correct",
+       prefix);
+  PASS(mgr->downloadTotalBytesWritten
+	 == mgr->downloadTotalBytesExpectedToWrite,
+       "%s didWriteData: Downloaded all expected data", prefix);
+  PASS(nil != mgr->didFinishDownloadingURL,
+       "%s didWriteData: Download location is not nil", prefix);
+  PASS([location isFileURL], "%s location is a fileURL", prefix);
 
-    data = [NSData dataWithContentsOfURL:location];
-    PASS(nil != data, "%s dataWithContentsOfURL is not nil", prefix)
+  data = [NSData dataWithContentsOfURL:location];
+  PASS(nil != data, "%s dataWithContentsOfURL is not nil", prefix)
 
-    string = [[NSString alloc] initWithData:data
-                                   encoding:NSASCIIStringEncoding];
-    PASS(nil != string, "%s string from data is not nil", prefix);
-    PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
+  string = [[NSString alloc] initWithData:data
+				 encoding:NSASCIIStringEncoding];
+  PASS(nil != string, "%s string from data is not nil", prefix);
+  PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
 
-    [string release];
+  [string release];
 
-    /* Remove Downloaded Item */
-    if (location)
-      {
-        [fm removeItemAtURL:location error:NULL];
-      }
+  /* Remove Downloaded Item */
+  if (location)
+    {
+      [fm removeItemAtURL:location error:NULL];
+    }
 
-    [countLock lock];
-    currentCountOfCompletedTasks += 1;
-    [countLock unlock];
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
 }
 
 - (void) checkData: (URLManager *)mgr
 {
-    PASS_EQUAL(mgr->currentSession, session,
-               "%s URLManager Session is equal to session", prefix);
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
 
-    /* Check URLSession:didCreateTask: callback */
-    PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
-         prefix);
-    PASS_EQUAL(mgr->didCreateTask, task,
-               "%s didCreateTask: task is equal to returned task", prefix);
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
 
-    /* Check URLSession:task:didCompleteWithError: */
-    PASS(nil == mgr->didCompleteError,
-         "%s didCompleteWithError: No error occurred", prefix)
-    PASS(mgr->didCompleteCount == 1,
-         "%s didCompleteWithError: Count is correct", prefix);
-    PASS_EQUAL(mgr->didCompleteTask, task,
-               "%s didCompleteWithError: task is equal to returned task",
-               prefix);
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil == mgr->didCompleteError,
+       "%s didCompleteWithError: No error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
 
-    NSData *data = mgr->accumulatedData;
-    PASS(mgr->didReceiveDataCount == 1, "%s didReceiveData: Count is correct",
-         prefix);
-    PASS(nil != data, "%s data in didReceiveData is not nil", prefix);
+  NSData *data = mgr->accumulatedData;
+  PASS(mgr->didReceiveDataCount == 1, "%s didReceiveData: Count is correct",
+       prefix);
+  PASS(nil != data, "%s data in didReceiveData is not nil", prefix);
 
-    NSString *string = [[NSString alloc] initWithData:data
-                                             encoding:NSASCIIStringEncoding];
-    PASS(nil != string, "%s string from data is not nil", prefix);
-    PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
+  NSString *string = [[NSString alloc] initWithData:data
+					   encoding:NSASCIIStringEncoding];
+  PASS(nil != string, "%s string from data is not nil", prefix);
+  PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
 
-    [string release];
+  [string release];
 
-    [countLock lock];
-    currentCountOfCompletedTasks += 1;
-    [countLock unlock];
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
 }
 
 - (void) checkFailedRequest: (URLManager *)mgr
 {
-    PASS_EQUAL(mgr->currentSession, session,
-               "%s URLManager Session is equal to session", prefix);
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
 
-    /* Check URLSession:didCreateTask: callback */
-    PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
-         prefix);
-    PASS_EQUAL(mgr->didCreateTask, task,
-               "%s didCreateTask: task is equal to returned task", prefix);
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
 
-    /* Check URLSession:task:didCompleteWithError: */
-    PASS(nil != mgr->didCompleteError,
-         "%s didCompleteWithError: An error occurred", prefix)
-    PASS(mgr->didCompleteCount == 1,
-         "%s didCompleteWithError: Count is correct", prefix);
-    PASS_EQUAL(mgr->didCompleteTask, task,
-               "%s didCompleteWithError: task is equal to returned task",
-               prefix);
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil != mgr->didCompleteError,
+       "%s didCompleteWithError: An error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
 
-    /* Check didReceiveResponse if not a canceled redirect */
-    if (!mgr->cancelRedirect)
-      {
-        PASS(mgr->didReceiveResponseCount == 1,
-             "%s didReceiveResponse: Count is correct", prefix);
-        PASS(nil != mgr->didReceiveResponse, "%s didReceiveResponse is not nil",
-             prefix);
-        PASS_EQUAL(mgr->didReceiveResponseTask, task,
-                   "%s didReceiveResponse: task is equal to returned task",
-                   prefix);
-      }
-    else
-      {
-        PASS_EQUAL([mgr->didCompleteError code], NSURLErrorCancelled,
-                   "%s didCompleteError is NSURLErrorCancelled", prefix);
-      }
+  /* Check didReceiveResponse if not a canceled redirect */
+  if (!mgr->cancelRedirect)
+    {
+      PASS(mgr->didReceiveResponseCount == 1,
+	   "%s didReceiveResponse: Count is correct", prefix);
+      PASS(nil != mgr->didReceiveResponse, "%s didReceiveResponse is not nil",
+	   prefix);
+      PASS_EQUAL(mgr->didReceiveResponseTask, task,
+		 "%s didReceiveResponse: task is equal to returned task",
+		 prefix);
+    }
+  else
+    {
+      PASS_EQUAL([mgr->didCompleteError code], NSURLErrorCancelled,
+		 "%s didCompleteError is NSURLErrorCancelled", prefix);
+    }
 
-    [countLock lock];
-    currentCountOfCompletedTasks += 1;
-    [countLock unlock];
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
 }
 
 @end
@@ -464,7 +464,7 @@ testSimpleDownloadTransfer(NSURL *baseURL)
   NSURL *contentOKURL;
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   expectedCountOfTasksToComplete += 1;
 
@@ -503,7 +503,7 @@ testDownloadTransferWithRedirect(NSURL *baseURL)
   NSURL *contentOKURL;
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   expectedCountOfTasksToComplete += 1;
 
@@ -585,7 +585,7 @@ testDataTransferWithCanceledRedirect(NSURL *baseURL)
   NSURL *contentOKURL;
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   mgr->cancelRedirect = YES;
   expectedCountOfTasksToComplete += 1;
@@ -621,7 +621,7 @@ testDataTransferWithRelativeRedirect(NSURL *baseURL)
   const char                *prefix = "<DataTransferWithRelativeRedirect>";
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = 1;
   expectedCountOfTasksToComplete += 1;
 
@@ -709,7 +709,7 @@ testParallelDataTransfer(NSURL *baseURL)
   NSInteger i;
 
   /* URL Delegate Setup */
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   mgr->numberOfExpectedTasksBeforeCheck = numberOfParallelTasks;
   expectedCountOfTasksToComplete += numberOfParallelTasks;
 
@@ -904,7 +904,7 @@ testInvalidateAndCancel(NSURL *baseURL)
   const char                *prefix = "<InvalidateAndCancel>";
   NSDate                    *deadline;
 
-  mgr = [URLManager new];
+  mgr = AUTORELEASE([URLManager new]);
   contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
 
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -983,14 +983,14 @@ testSessionTeardownWithoutInvalidate(NSURL *baseURL)
 int
 main(int argc, char *argv[])
 {
-  {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
     NSBundle      *bundle;
     NSString      *helperPath;
     NSURL         *baseURL;
     NSFileManager *fm;
     HTTPServer    *server;
     NSDate        *deadline;
+    URLManager		*downloadManager;
 
     Class httpServerClass;
     Class routeClass;
@@ -1012,12 +1012,12 @@ main(int argc, char *argv[])
 
     serialDelegateQueue = [[NSOperationQueue alloc] init];
     [serialDelegateQueue setMaxConcurrentOperationCount: 1];
+
     sharedTestSession = [NSURLSession
       sessionWithConfiguration: [NSURLSessionConfiguration
                                   defaultSessionConfiguration]
                       delegate: nil
                  delegateQueue: serialDelegateQueue];
-    RETAIN(sharedTestSession);
 
     bundle = [NSBundle bundleWithPath:helperPath];
     if (![bundle load])
@@ -1047,7 +1047,7 @@ main(int argc, char *argv[])
     [server resume];
 
     // Call Test Functions here
-    testSimpleDownloadTransfer(baseURL);
+    downloadManager = testSimpleDownloadTransfer(baseURL);
 #if __has_feature(blocks)
     testDownloadTransferWithBlock(baseURL);
 #endif
@@ -1081,14 +1081,17 @@ main(int argc, char *argv[])
       && [[NSRunLoop currentRunLoop] runSliceUntil:deadline])
       ;
 
+    [downloadManager invalidate];
+    [sharedTestSession invalidateAndCancel];
+
     [server suspend];
     PASS(expectedCountOfTasksToComplete == currentCountOfCompletedTasks,
          "All transfers were completed before a timeout occurred");
 
     [server release];
     [countLock release];
-  DESTROY(arp);
-}
+  LEAVE_POOL
+
   return 0;
 }
 

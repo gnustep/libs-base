@@ -79,6 +79,11 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   return self;
 }
 
+- (void) invalidate
+{
+  [currentSession invalidateAndCancel];
+}
+
 - (void)setCheckBlock:(URLManagerCheckBlock)block
 {
   if (NULL != block)

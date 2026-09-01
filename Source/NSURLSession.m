@@ -301,7 +301,7 @@ static NSURLSession * sharedSession = nil;
   GS_MUTEX_LOCK(lock);
   if (nil == sharedSession)
     {
-      NSURLSessionConfiguration * configuration =
+      NSURLSessionConfiguration	*configuration =
         [NSURLSessionConfiguration defaultSessionConfiguration];
 
       sharedSession
