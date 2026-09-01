@@ -1619,20 +1619,22 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   /* The delegate cancelled this task from a callback (a redirect refusal or a
    * NSURLSessionResponseCancel disposition).  libcurl can still report the
    * already-buffered response as completing successfully before the cancel
-   * takes effect, so deliver a cancellation rather than that spurious success. */
+   * takes effect, so deliver a cancellation rather than that spurious success.
+   */
   if (CURLE_OK == code && [self _shouldStopTransfer])
     {
       code = CURLE_ABORTED_BY_CALLBACK;
     }
 
-  error = errorForCURLcode(internal->_easyHandle, code, internal->_curlErrorBuffer);
+  error = errorForCURLcode(internal->_easyHandle, code,
+    internal->_curlErrorBuffer);
 
   if (internal->_properties & GSURLSessionWritesDataToFile)
     {
       NSFileHandle	*handle;
 
-      if (nil !=
-          (handle = [internal->_taskData objectForKey: taskTemporaryFileHandleKey]))
+      handle = [internal->_taskData objectForKey: taskTemporaryFileHandleKey];
+      if (handle)
         {
           [handle closeFile];
         }
@@ -1641,14 +1643,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   if (internal->_properties & GSURLSessionUpdatesDelegate)
     {
       if (internal->_properties & GSURLSessionWritesDataToFile
-	&& [internal->_delegate respondsToSelector: didFinishDownloadingToURLSel])
+	&& [internal->_delegate
+	  respondsToSelector: didFinishDownloadingToURLSel])
         {
-          NSURL	*url = [internal->_taskData objectForKey: taskTemporaryFileLocationKey];
+          NSURL			*url;
           NSInvocation		*inv;
           NSURLSession		*session = internal->_session;
           NSURLSessionTask	*task = self;
 
-          inv = GSURLSessionInvocation(internal->_delegate, didFinishDownloadingToURLSel);
+          url = [internal->_taskData
+	    objectForKey: taskTemporaryFileLocationKey];
+          inv = GSURLSessionInvocation(internal->_delegate,
+	    didFinishDownloadingToURLSel);
           [inv setArgument: &session atIndex: 2];
           [inv setArgument: &task atIndex: 3];
           [inv setArgument: &url atIndex: 4];
@@ -1661,7 +1667,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           NSURLSession		*session = internal->_session;
           NSURLSessionTask	*task = self;
 
-          inv = GSURLSessionInvocation(internal->_delegate, didCompleteWithErrorSel);
+          inv = GSURLSessionInvocation(internal->_delegate,
+	    didCompleteWithErrorSel);
           [inv setArgument: &session atIndex: 2];
           [inv setArgument: &task atIndex: 3];
           [inv setArgument: &error atIndex: 4];
@@ -1703,7 +1710,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       NSURLResponse	*response = internal->_response;
 
       downloadTask = (NSURLSessionDownloadTask *)self;
-      tempFile = [internal->_taskData objectForKey: taskTemporaryFileLocationKey];
+      tempFile = [internal->_taskData
+	objectForKey: taskTemporaryFileLocationKey];
 
       inv = GSURLSessionInvocation(downloadTask,
 	@selector(_callDownloadCompletionHandlerWithURL:response:error:));
@@ -1712,8 +1720,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       [inv setArgument: &error atIndex: 4];
       [internal->_session _enqueueDelegateInvocation: inv];
     }
-
-  RELEASE(internal->_session);
+ 
+  [internal->_session _removeHandle: internal->_easyHandle];
+  DESTROY(internal->_session);
 } /* _transferFinishedWithCode */
 
 /* Called in header_callback */
@@ -1784,8 +1793,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
    * CURLMSG_DONE in -[NSURLSessionTask _checkForCompletion].
    */
   [internal->_session _performSelectorOnWorkThread: @selector(_workCancel)
-				  target: self
-			      withObject: nil];
+					    target: self
+					withObject: nil];
 }
 
 - (void) _workCancel
@@ -1798,8 +1807,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   /* If the task was awaiting a didReceiveResponse disposition its completion
    * was being held back; resolve that state so the cancellation is delivered
-   * (as a cancellation, since internal->_shouldStopTransfer is set) rather than left
-   * pending a disposition that will never arrive. */
+   * (as a cancellation, since internal->_shouldStopTransfer is set) rather
+   * than left pending a disposition that will never arrive.
+   */
   gs_atomic_store(&internal->_awaitingResponseDisposition, NO);
   [internal->_session _deliverHeldCompletionForTask: self];
 }
@@ -1936,24 +1946,27 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) dealloc
 {
-  /* The session retains this task until the transfer is complete and the easy
-   * handle removed from the multi handle.
-   *
-   * It is save to release the curl handle here.
-   */
-  curl_easy_cleanup(internal->_easyHandle);
-  curl_slist_free_all(internal->_headerList);
+  if (internal)
+    {
+      /* The session retains this task until the transfer is complete and the
+       * easy handle removed from the multi handle.
+       *
+       * It is safe to release the curl handle here.
+       */
+      curl_easy_cleanup(internal->_easyHandle);
+      curl_slist_free_all(internal->_headerList);
 
-  RELEASE(internal->_originalRequest);
-  RELEASE(internal->_currentRequest);
-  RELEASE(internal->_response);
-  RELEASE(internal->_progress);
-  RELEASE(internal->_earliestBeginDate);
-  RELEASE(internal->_taskDescription);
-  RELEASE(internal->_taskData);
-  RELEASE(internal->_delegate);
+      RELEASE(internal->_originalRequest);
+      RELEASE(internal->_currentRequest);
+      RELEASE(internal->_response);
+      RELEASE(internal->_progress);
+      RELEASE(internal->_earliestBeginDate);
+      RELEASE(internal->_taskDescription);
+      RELEASE(internal->_taskData);
+      RELEASE(internal->_delegate);
 
-  GS_DESTROY_INTERNAL(NSURLSessionTask);
+      GS_DESTROY_INTERNAL(NSURLSessionTask);
+    }
   DEALLOC
 }
 
