@@ -904,7 +904,7 @@ testInvalidateAndCancel(NSURL *baseURL)
   const char                *prefix = "<InvalidateAndCancel>";
   NSDate                    *deadline;
 
-  mgr = AUTORELEASE([URLManager new]);
+  mgr = [URLManager new];
   contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
 
   configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -1053,6 +1053,7 @@ main(int argc, char *argv[])
 #endif
 
     testParallelDataTransfer(baseURL);
+
 #if __has_feature(blocks)
     testDataTaskWithBlock(baseURL);
 #endif

@@ -1038,7 +1038,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       /* Configure initial task data
        */
       [internal->_taskData setObject: [NSMutableDictionary dictionary]
-		    forKey: @"headers"];
+			      forKey: @"headers"];
 
       /* Easy Handle Configuration
        */
@@ -1721,7 +1721,6 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       [internal->_session _enqueueDelegateInvocation: inv];
     }
  
-  [internal->_session _removeHandle: internal->_easyHandle];
   DESTROY(internal->_session);
 } /* _transferFinishedWithCode */
 
@@ -1823,6 +1822,12 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   internal->_priority = priority;
 }
 
+#if 1
+- (id) copyWithZone: (NSZone *)zone
+{
+  return RETAIN(self);
+}
+#else
 - (id) copyWithZone: (NSZone *)zone
 {
   NSURLSessionTask	*copy = [[[self class] alloc] init];
@@ -1842,6 +1847,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   return copy;
 }
+#endif
 
 // ########### Getter and Setter
 

@@ -542,30 +542,40 @@ static NSURLSession * sharedSession = nil;
   curl_multi_remove_handle(internal->_multiHandle, [task _easyHandle]);
 
   /* -_transferFinishedWithCode: may release the last reference to the
-   * session, so keep both alive across the call. */
+   * session, so keep both alive across the call.
+   */
   RETAIN(self);
   RETAIN(task);
   [internal->_tasks removeObject: task];
   [task _transferFinishedWithCode: code];
   RELEASE(task);
 
-  /* Send URLSession:didBecomeInvalidWithError: to the delegate once the last
-   * task of an invalidated session has finished. */
-  if (internal->_invalidated && [internal->_tasks count] == 0
-    && [internal->_delegate respondsToSelector:
-      @selector(URLSession:didBecomeInvalidWithError:)])
+  /* Finalisation once the last task of an invalidated session has finished.
+   */
+  if (internal->_invalidated && [internal->_tasks count] == 0)
     {
-      /* We only support explicit invalidation for now, so error is nil. */
-      NSInvocation	*inv;
-      NSURLSession	*session = self;
-      NSError		*error = nil;
+      if ([internal->_delegate respondsToSelector:
+	@selector(URLSession:didBecomeInvalidWithError:)])
+	{
+	  /* We only support explicit invalidation for now, so error is nil. */
+	  NSInvocation	*inv;
+	  NSURLSession	*session = self;
+	  NSError	*error = nil;
 
-      inv = GSURLSessionInvocation(internal->_delegate,
-	@selector(URLSession:didBecomeInvalidWithError:));
-      [inv setArgument: &session atIndex: 2];
-      [inv setArgument: &error atIndex: 3];
-      [self _enqueueDelegateInvocation: inv];
+	  inv = GSURLSessionInvocation(internal->_delegate,
+	    @selector(URLSession:didBecomeInvalidWithError:));
+	  [inv setArgument: &session atIndex: 2];
+	  [inv setArgument: &error atIndex: 3];
+	  [self _enqueueDelegateInvocation: inv];
+	}
+
+      /* The delegate must be released once the session is invalidated (so we
+       * will not send it more messages) in order to avoid retain loops keeping
+       * both session and delegate alive.
+       */
+      DESTROY(internal->_delegate);
     }
+
   RELEASE(self);
 }
 
@@ -1048,11 +1058,6 @@ static NSURLSession * sharedSession = nil;
 - (void) _workInvalidate
 {
   internal->_invalidated = YES;
-  /* The deletage must be released once the session is invalidated (so we
-   * will not send it more messages) in order to avoid retain loops keeping
-   * both session and delegate alive.
-   */
-  DESTROY(internal->_delegate);
 }
 
 - (void) invalidateAndCancel
@@ -1079,8 +1084,8 @@ static NSURLSession * sharedSession = nil;
 
 - (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
 {
-  NSURLSessionDataTask * task;
-  NSInteger identifier;
+  NSURLSessionDataTask	*task;
+  NSInteger 		identifier;
 
   identifier = [self _nextTaskIdentifier];
   task = [[NSURLSessionDataTask alloc] initWithSession: self
