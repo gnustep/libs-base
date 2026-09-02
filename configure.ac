@@ -4044,7 +4044,8 @@ then
   [  --with-thread-signal=yes/SIG/no   Specify whether a POSIX signal should be
 				used to wake threads for inter-thread messaging.
 				If yes, the signal must be specified at runtime
-				but a default signal to use may be given.],
+				with the NSThread +setThreadSignal: method, but
+				a default signal to use may be given here.],
     result="$withval",
     result="yes"
   )
@@ -4061,7 +4062,7 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Check dor 'dot', needed for graphs in autogsdoc output.
+# Check for 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
 

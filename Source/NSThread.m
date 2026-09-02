@@ -169,7 +169,7 @@ typedef struct {
 #endif
 
 #if     defined(USE_THREAD_SIGNAL)
-static int    signalValue = 0;
+static int    signalValue = USE_THREAD_SIGNAL;
 
 #if     defined(SA_SIGINFO)
 

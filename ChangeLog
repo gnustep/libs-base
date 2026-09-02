@@ -1,9 +1,11 @@
-2023-03-13 Richard Frith-Macdonald <rfm@gnu.org>
+2026-09-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add test for eventfd presence on linux and use it
 	rather than a pipe for inter-thread signalling.  This reduces the
 	per-thread resource overhead from two file descriptors (a pipe) to
 	a single one, as well as being more efficient than an pipe.
+	This code should be reliable and is enabeld unconditionally.
+	Experimental alternative:
 	Add tests for ppoll and pthread_kill to determine if it is possible
 	to have an option to use signals to wake the run loop for inter-thread
 	messaging rather than using file descriptor(s).  This avoids the
@@ -11,7 +13,9 @@
 	if a program is linked with other libraries which interfere with
 	signals, they may break inter-thread messaging.
 	Add --with-thread-signal=... to control whether a signal can be used
-	and (if so) whether/what the default signal is.
+	and (if so) whether/what the default signal is. Specifying 'yes' will
+	enable the feature, but only when the +[NSThread setThreadSignal:]
+	method is called to set a non-zero signal number.
 	* configure: Regenerate
 	* Headers/GNUstepBase/config.h.in: Regenerate
 	* Source/GSPrivate.h: Update thread specific info to hold pthread ID
