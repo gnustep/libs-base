@@ -130,6 +130,10 @@ typedef struct {
 #  include <sys/fcntl.h>
 #endif
 
+#if     defined(HAVE_SYS_EVENTFD_H)
+#  include <sys/eventfd.h>
+#endif
+
 #if defined(__POSIX_SOURCE)\
         || defined(__EXT_POSIX1_198808)\
         || defined(O_NONBLOCK)
@@ -1964,50 +1968,71 @@ lockInfoErr(NSString *str)
 @implementation GSRunLoopThreadInfo
 - (void) addPerformer: (id)performer
 {
-  BOOL  signalled = NO;
+  BOOL  signalled;
 
   [lock lock];
+
+  /* If there are any performers present, the thread must already have
+   * been signalled to handle them, so we don't need to signal again.
+   */
+  signalled = [performers count] ? YES : NO;
+
 #if defined(_WIN32)
-  if (INVALID_HANDLE_VALUE != event)
+  if (NO == signalled)
     {
-      if (SetEvent(event) == 0)
-        {
-          NSLog(@"Set event failed - %@", [NSError _last]);
-        }
-      else
-        {
-          signalled = YES;
-        }
+      if (INVALID_HANDLE_VALUE != event)
+	{
+	  if (SetEvent(event) == 0)
+	    {
+	      NSLog(@"Set event failed - %@", [NSError _last]);
+	    }
+	  else
+	    {
+	      signalled = YES;
+	    }
+	}
     }
 #else
-{
-  NSTimeInterval        start = 0.0;
-
-  /* The write could concievably fail if the pipe is full.
-   * In that case we need to release the lock temporarily to allow the other
-   * thread to consume data from the pipe.  It's possible that the thread
-   * and its runloop might stop during that ... so we need to check that
-   * outputFd is still valid.
-   */
-  while (outputFd >= 0
-    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
+  if (NO == signalled)
     {
-      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+#if     defined(HAVE_SYS_EVENTFD_H)
+        {
+          uint64_t  val = 1;
 
-      if (0.0 == start)
-        {
-          start = now;
+          signalled = (write(outputFd, &val, 8) > 0) ? YES : NO;
         }
-      else if (now - start >= 1.0)
-        {
-          NSLog(@"Unable to signal %@ within a second; blocked?", self);
-          break;
-        }
-      [lock unlock];
-      [lock lock];
-    }
-}
+#else
+	{
+	  NSTimeInterval        start = 0.0;
+
+	  /* The write could concievably fail if the pipe is full.
+	   * In that case we need to release the lock temporarily to
+	   * allow the other thread to consume data from the pipe.
+	   * It's possible that the thread and its runloop might stop
+	   * during that. so we need to check that outputFd is still valid.
+	   */
+	  while (outputFd >= 0
+	    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
+	    {
+	      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+
+	      if (0.0 == start)
+		{
+		  start = now;
+		}
+	      else if (now - start >= 1.0)
+		{
+		  NSLog(@"Unable to signal %@ within a second; blocked?", self);
+		  break;
+		}
+	      [lock unlock];
+	      [lock lock];
+	    }
+	}
 #endif
+    }
+#endif
+
   if (YES == signalled)
     {
       [performers addObject: performer];
@@ -2038,6 +2063,38 @@ lockInfoErr(NSString *str)
       DESTROY(self);
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create event to handle perform in thread"];
+    }
+#elif   defined(HAVE_SYS_EVENTFD_H)
+  int   desc;
+
+  inputFd = -1;
+  outputFd = -1;
+  if ((desc = eventfd(0, 0)) >= 0)
+    {
+      int       e;
+
+      inputFd = desc;
+      outputFd = desc;
+      if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+        {
+          e |= NBLK_OPT;
+          if (fcntl(desc, F_SETFL, e) < 0)
+            {
+              [NSException raise: NSInternalInconsistencyException
+                format: @"Failed to set non block flag for perform in thread"];
+            }
+        }
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"Failed to get non block flag for perform in thread"];
+	}
+    }
+  else
+    {
+      DESTROY(self);
+      [NSException raise: NSInternalInconsistencyException
+        format: @"Failed to create eventfd to handle perform in thread"];
     }
 #else
   int	fd[2];
@@ -2132,6 +2189,16 @@ lockInfoErr(NSString *str)
         {
           NSLog(@"Reset event failed - %@", [NSError _last]);
         }
+    }
+#elif   defined(HAVE_SYS_EVENTFD_H)
+  if (inputFd >= 0)
+    {
+      uint64_t  val;
+
+      /* This resets the eventfd to zero nothing to read until a write
+       * has been done.
+       */
+      read(inputFd, &val, 8);
     }
 #else
   if (inputFd >= 0)

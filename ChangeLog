@@ -1,3 +1,15 @@
+2026-09-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Add test for eventfd presence on linux and use it
+        rather than a pipe for inter-thread signalling.  This reduces the
+        per-thread resource overhead from two file descriptors (a pipe) to
+        a single one, as well as being more efficient than a pipe.
+        * configure: Regenerate
+        * Headers/GNUstepBase/config.h.in: Regenerate
+        * Source/NSThread.m: Implement optional inter-thread messaging using
+        eventfd (where available) rather than a pipe.
+        * Source/NSRunLoop.m: Use eventfd header if available
+
 2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
 
 	* Source/NSPredicate.m: Hand the variadic arguments of

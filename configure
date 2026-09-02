@@ -16053,6 +16053,17 @@ fi
 
 
 #--------------------------------------------------------------------
+# Can we use eventfd rather than a pipe for interthread signals?
+#--------------------------------------------------------------------
+ac_fn_c_check_header_compile "$LINENO" "sys/eventfd.h" "ac_cv_header_sys_eventfd_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_eventfd_h" = xyes
+then :
+  printf '%s\n' "#define HAVE_SYS_EVENTFD_H 1" >>confdefs.h
+
+fi
+
+
+#--------------------------------------------------------------------
 # Check dor 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 

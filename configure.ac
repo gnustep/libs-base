@@ -4014,6 +4014,11 @@ fi
 AC_SUBST(USE_GMP)
 
 #--------------------------------------------------------------------
+# Can we use eventfd rather than a pipe for interthread signals?
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/eventfd.h)
+
+#--------------------------------------------------------------------
 # Check dor 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
