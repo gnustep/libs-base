@@ -174,8 +174,9 @@
 
 - (void) run
 {
-  NSDate                *until = [NSDate dateWithTimeIntervalSinceNow: 5.0];
-  NSThread              *t;
+  NSDate        *until = [NSDate dateWithTimeIntervalSinceNow: 5.0];
+  NSThread      *t;
+  int		i;
   
   [NSTimer scheduledTimerWithTimeInterval: 5.0
                                    target: self
@@ -197,7 +198,7 @@
           waitUntilDone: NO];
 
   countStart = [NSDate timeIntervalSinceReferenceDate];
-  for (int i = 0; i < CALLS; i++)
+  for (i = 0; i < CALLS; i++)
     {
       [self performSelector: @selector(threadCount:)
                    onThread: t
