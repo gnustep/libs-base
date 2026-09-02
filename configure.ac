@@ -4045,7 +4045,8 @@ then
 				used to wake threads for inter-thread messaging.
 				If yes, the signal must be specified at runtime
 				with the NSThread +setThreadSignal: method, but
-				a default signal to use may be given here.],
+				a default signal to use may be given here. This
+				feature is experimental!],
     result="$withval",
     result="yes"
   )
