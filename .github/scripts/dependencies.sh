@@ -64,6 +64,19 @@ install_libdispatch() {
 
 mkdir -p $DEPS_PATH
 
+# Allow the packages we install locally to have their pkg-config info found.
+# NB. windows uses a semicolon rather than a colon as a path separator.
+if [ x"$PKG_CONFIG_PATH" = x ]; then
+  PKG_CONFIG_PATH=$INSTALL_PATH/lib/pkgconfig
+else
+  if [ "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_MINGW" != "true" ]; then
+    PKG_PATH_SEP=":"
+  else
+    PKG_PATH_SEP=";"
+  fi
+  PKG_CONFIG_PATH=$INSTALL_PATH/lib/pkgconfig$PKG_PATH_SEP$PKG_CONFIG_PATH
+fi
+
 # Windows MSVC toolchain uses tools-windows-msvc scripts to install non-GNUstep dependencies;
 # the MSYS2 toolchain uses Pacman to install non-GNUstep dependencies.
 if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_MINGW" != "true" ]; then
