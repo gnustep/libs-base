@@ -79,6 +79,44 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   return self;
 }
 
+- (void) empty
+{
+  DESTROY(currentSession);
+
+  DESTROY(didCreateTask);
+  DESTROY(didBecomeInvalidError);
+
+  DESTROY(httpRedirectionTask);
+  DESTROY(httpRedirectionResponse);
+  DESTROY(httpRedirectionRequest);
+
+  DESTROY(didCompleteTask);
+  DESTROY(didCompleteError);
+
+  DESTROY(didWriteDataTask);
+
+  DESTROY(didFinishDownloadingTask);
+  DESTROY(didFinishDownloadingURL);
+
+  DESTROY(didReceiveResponseTask);
+  DESTROY(didReceiveResponse);
+
+  DESTROY(didReceiveDataTask);
+  DESTROY(accumulatedData);
+
+  DESTROY(_checkTarget);
+  if (NULL != _checkBlock)
+    {
+      Block_release(_checkBlock);
+      _checkBlock = NULL;
+    }
+}
+
+- (void) invalidate
+{
+  [currentSession invalidateAndCancel];
+}
+
 - (void)setCheckBlock:(URLManagerCheckBlock)block
 {
   if (NULL != block)
@@ -100,7 +138,6 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
      didCreateTask:(NSURLSessionTask *)task
 {
   ASSIGN(currentSession, session);
-
   didCreateTaskCount += 1;
   ASSIGN(didCreateTask, task);
 }
@@ -213,37 +250,10 @@ DEFINE_BLOCK_TYPE(URLManagerCheckBlock, void, URLManager *);
   didFinishDownloadingCount += 1;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-  RELEASE(currentSession);
-
-  RELEASE(didCreateTask);
-  RELEASE(didBecomeInvalidError);
-
-  RELEASE(httpRedirectionTask);
-  RELEASE(httpRedirectionResponse);
-  RELEASE(httpRedirectionRequest);
-
-  RELEASE(didCompleteTask);
-  RELEASE(didCompleteError);
-
-  RELEASE(didWriteDataTask);
-
-  RELEASE(didFinishDownloadingTask);
-  RELEASE(didFinishDownloadingURL);
-
-  RELEASE(didReceiveResponseTask);
-  RELEASE(didReceiveResponse);
-
-  RELEASE(didReceiveDataTask);
-  RELEASE(accumulatedData);
-
-  RELEASE(_checkTarget);
-  if (NULL != _checkBlock)
-    {
-      Block_release(_checkBlock);
-    }
-  [super dealloc];
+  [self empty];
+  DEALLOC
 }
 
 @end

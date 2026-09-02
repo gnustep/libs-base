@@ -71,7 +71,7 @@
    * keeps GNUstep free of a libdispatch dependency.  The helper holds the \
    * session unretained so that it does not keep the session alive. \
    */ \
-  GSURLSessionWorkThread * _workHelper; \
+  GSURLSessionWorkThread	*_workHelper; \
  \
   GS_NSURLSession_PLATFORM_IVARS \
  \
@@ -207,14 +207,15 @@ timer_callback(CURLM * multi,      /* multi handle */
 /* CURLMOPT_SOCKETFUNCTION: libcurl requests socket monitoring using this
  * callback */
 static int
-socket_callback(CURL * easy,           /* easy handle */
-                curl_socket_t s,       /* socket */
-                int what,              /* describes the socket */
-                void * clientp,        /* private callback pointer */
-                void * socketp)                /* private socket pointer */
+socket_callback(
+  CURL		*easy,          /* easy handle */
+  curl_socket_t	s,		/* socket */
+  int 		what,           /* describes the socket */
+  void 		*clientp,       /* private callback pointer */
+  void		*socketp)       /* private socket pointer */
 {
-  NSURLSession * session = clientp;
-  const char * whatstr[] = { "none", "IN", "OUT", "INOUT", "REMOVE" };
+  NSURLSession	*session = clientp;
+  const char	*whatstr[] = { "none", "IN", "OUT", "INOUT", "REMOVE" };
 
   NSDebugLLog(
     GS_NSURLSESSION_DEBUG_KEY,
@@ -251,9 +252,9 @@ socket_callback(CURL * easy,           /* easy handle */
 @interface GSURLSessionWorkThread : NSObject
 {
 @public
-  NSThread * thread;
-  NSPort * port;
-  BOOL shouldExit;
+  NSThread	*thread;
+  NSPort	*port;
+  BOOL 		shouldExit;
 }
 - (void) run;
 - (void) stop;
@@ -262,19 +263,18 @@ socket_callback(CURL * easy,           /* easy handle */
 @implementation GSURLSessionWorkThread
 - (void) run
 {
-  NSAutoreleasePool * pool = [NSAutoreleasePool new];
-  NSRunLoop * rl = [NSRunLoop currentRunLoop];
+  ENTER_POOL
+  NSRunLoop	*rl = [NSRunLoop currentRunLoop];
 
   [rl addPort: port forMode: NSDefaultRunLoopMode];
   while (!shouldExit)
     {
-      NSAutoreleasePool * inner = [NSAutoreleasePool new];
-
+      ENTER_POOL
       [rl runMode: NSDefaultRunLoopMode beforeDate: [NSDate distantFuture]];
-      [inner release];
+      LEAVE_POOL
     }
   [rl removePort: port forMode: NSDefaultRunLoopMode];
-  [pool release];
+  LEAVE_POOL
 }
 
 - (void) stop
@@ -301,7 +301,7 @@ static NSURLSession * sharedSession = nil;
   GS_MUTEX_LOCK(lock);
   if (nil == sharedSession)
     {
-      NSURLSessionConfiguration * configuration =
+      NSURLSessionConfiguration	*configuration =
         [NSURLSessionConfiguration defaultSessionConfiguration];
 
       sharedSession
@@ -318,7 +318,7 @@ static NSURLSession * sharedSession = nil;
 + (NSURLSession *) sessionWithConfiguration:
   (NSURLSessionConfiguration *)configuration
 {
-  NSURLSession * session;
+  NSURLSession	*session;
 
   session = [[NSURLSession alloc] initWithConfiguration: configuration
                                                delegate: nil
@@ -332,7 +332,7 @@ static NSURLSession * sharedSession = nil;
   delegate: (id<NSURLSessionDelegate>)delegate
   delegateQueue: (NSOperationQueue *)queue
 {
-  NSURLSession * session;
+  NSURLSession	*session;
 
   session = [[NSURLSession alloc] initWithConfiguration: configuration
                                                delegate: delegate
@@ -350,8 +350,8 @@ static NSURLSession * sharedSession = nil;
 
   if (self)
     {
-      NSString * queueLabel;
-      NSString * caPath;
+      NSString	*queueLabel;
+      NSString	*caPath;
       NSUInteger sessionIdentifier;
 
       GS_CREATE_INTERNAL(NSURLSession);
@@ -368,16 +368,17 @@ static NSURLSession * sharedSession = nil;
 
       internal->_timer = nil;
 #if	defined(_WIN32)
-      internal->_socketForEvent = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-        NSIntegerMapValueCallBacks, 0);
+      internal->_socketForEvent = NSCreateMapTable(
+	NSNonOwnedPointerMapKeyCallBacks, NSIntegerMapValueCallBacks, 0);
 #endif
       /* A port keeps the work thread run loop from exiting when it has no
        * other input sources. */
       internal->_workHelper = [[GSURLSessionWorkThread alloc] init];
       internal->_workHelper->port = [[NSPort port] retain];
-      internal->_workHelper->thread = [[NSThread alloc] initWithTarget: internal->_workHelper
-                                                    selector: @selector(run)
-                                                      object: nil];
+      internal->_workHelper->thread
+	= [[NSThread alloc] initWithTarget: internal->_workHelper
+				  selector: @selector(run)
+				    object: nil];
       [internal->_workHelper->thread setName: queueLabel];
       [queueLabel release];
       [internal->_workHelper->thread start];
@@ -404,10 +405,14 @@ static NSURLSession * sharedSession = nil;
       internal->_multiHandle = curl_multi_init();
 
       // Set up CURL multi callbacks
-      curl_multi_setopt(internal->_multiHandle, CURLMOPT_SOCKETFUNCTION, socket_callback);
-      curl_multi_setopt(internal->_multiHandle, CURLMOPT_SOCKETDATA, self);
-      curl_multi_setopt(internal->_multiHandle, CURLMOPT_TIMERFUNCTION, timer_callback);
-      curl_multi_setopt(internal->_multiHandle, CURLMOPT_TIMERDATA, self);
+      curl_multi_setopt(internal->_multiHandle,
+	CURLMOPT_SOCKETFUNCTION, socket_callback);
+      curl_multi_setopt(internal->_multiHandle,
+	CURLMOPT_SOCKETDATA, self);
+      curl_multi_setopt(internal->_multiHandle,
+	CURLMOPT_TIMERFUNCTION, timer_callback);
+      curl_multi_setopt(internal->_multiHandle,
+	CURLMOPT_TIMERDATA, self);
 
       // Configure Multi Handle
       curl_multi_setopt(
@@ -418,14 +423,15 @@ static NSURLSession * sharedSession = nil;
       /* Check if GSCACertificateFilePath is set */
 
       caPath = [[NSUserDefaults standardUserDefaults]
-                objectForKey: GSCACertificateFilePath];
+	objectForKey: GSCACertificateFilePath];
       if (caPath)
         {
           NSDebugMLLog(
             GS_NSURLSESSION_DEBUG_KEY,
             @"Found a GSCACertificateFilePath entry in UserDefaults");
 
-          internal->_certificateBlob = [[NSData alloc] initWithContentsOfFile: caPath];
+          internal->_certificateBlob
+	    = [[NSData alloc] initWithContentsOfFile: caPath];
           if (!internal->_certificateBlob)
             {
               NSDebugMLLog(
@@ -529,37 +535,47 @@ static NSURLSession * sharedSession = nil;
  * has already been finished by another path. */
 - (void) _finishTask: (NSURLSessionTask *)task withCode: (CURLcode)code
 {
-  if (![internal->_tasks containsObject: task])
+  if ([internal->_tasks indexOfObjectIdenticalTo: task] == NSNotFound)
     {
       return;
     }
   curl_multi_remove_handle(internal->_multiHandle, [task _easyHandle]);
 
   /* -_transferFinishedWithCode: may release the last reference to the
-   * session, so keep both alive across the call. */
+   * session, so keep both alive across the call.
+   */
   RETAIN(self);
   RETAIN(task);
   [internal->_tasks removeObject: task];
   [task _transferFinishedWithCode: code];
   RELEASE(task);
 
-  /* Send URLSession:didBecomeInvalidWithError: to the delegate once the last
-   * task of an invalidated session has finished. */
-  if (internal->_invalidated && [internal->_tasks count] == 0
-    && [internal->_delegate respondsToSelector:
-      @selector(URLSession:didBecomeInvalidWithError:)])
+  /* Finalisation once the last task of an invalidated session has finished.
+   */
+  if (internal->_invalidated && [internal->_tasks count] == 0)
     {
-      /* We only support explicit invalidation for now, so error is nil. */
-      NSInvocation	*inv;
-      NSURLSession	*session = self;
-      NSError		*error = nil;
+      if ([internal->_delegate respondsToSelector:
+	@selector(URLSession:didBecomeInvalidWithError:)])
+	{
+	  /* We only support explicit invalidation for now, so error is nil. */
+	  NSInvocation	*inv;
+	  NSURLSession	*session = self;
+	  NSError	*error = nil;
 
-      inv = GSURLSessionInvocation(internal->_delegate,
-	@selector(URLSession:didBecomeInvalidWithError:));
-      [inv setArgument: &session atIndex: 2];
-      [inv setArgument: &error atIndex: 3];
-      [self _enqueueDelegateInvocation: inv];
+	  inv = GSURLSessionInvocation(internal->_delegate,
+	    @selector(URLSession:didBecomeInvalidWithError:));
+	  [inv setArgument: &session atIndex: 2];
+	  [inv setArgument: &error atIndex: 3];
+	  [self _enqueueDelegateInvocation: inv];
+	}
+
+      /* The delegate must be released once the session is invalidated (so we
+       * will not send it more messages) in order to avoid retain loops keeping
+       * both session and delegate alive.
+       */
+      DESTROY(internal->_delegate);
     }
+
   RELEASE(self);
 }
 
@@ -576,7 +592,8 @@ static NSURLSession * sharedSession = nil;
 /* Called on the work thread after the delegate allows a response.  If libcurl
  * completed the transfer while the delegate was answering didReceiveResponse
  * its completion was held back in -_checkForCompletion; deliver it now.  If
- * nothing was held, the transfer is still running and completes normally. */
+ * nothing was held, the transfer is still running and completes normally.
+ */
 - (void) _deliverHeldCompletionForTask: (NSURLSessionTask *)task
 {
   if ([task _heldCompletionCode] < 0)
@@ -693,7 +710,7 @@ static NSURLSession * sharedSession = nil;
  */
 - (void) _removeSocket: (struct SourceInfo *)sources
 {
-  NSRunLoop * rl = [NSRunLoop currentRunLoop];
+  NSRunLoop	*rl = [NSRunLoop currentRunLoop];
 
   NSDebugMLLog(
     GS_NSURLSESSION_DEBUG_KEY,
@@ -736,10 +753,11 @@ static NSURLSession * sharedSession = nil;
  * (socketp) in socket_callback is NULL, meaning we first need to
  * allocate our SourceInfo structure.
  */
-- (int) _addSocket: (curl_socket_t)socket easyHandle: (CURL *)easy what: (int)
-  what
+- (int) _addSocket: (curl_socket_t)socket
+	easyHandle: (CURL *)easy
+	      what: (int)what
 {
-  struct SourceInfo * info;
+  struct SourceInfo	*info;
 
   NSDebugMLLog(
     GS_NSURLSESSION_DEBUG_KEY,
@@ -778,8 +796,8 @@ static NSURLSession * sharedSession = nil;
  * than being torn down and recreated.
  */
 - (int) _setSocket: (curl_socket_t)socket
-  sources: (struct SourceInfo *)sources
-  what: (int)what
+	   sources: (struct SourceInfo *)sources
+	      what: (int)what
 {
   NSRunLoop * rl = [NSRunLoop currentRunLoop];
   BOOL wantRead = (CURL_POLL_IN == what || CURL_POLL_INOUT == what);
@@ -873,8 +891,8 @@ static NSURLSession * sharedSession = nil;
                  extra: (void*)extra
                forMode: (NSString*)mode
 {
-  curl_socket_t socket;
-  int action = 0;
+  curl_socket_t	socket;
+  int 		action = 0;
 
 #if	defined(_WIN32)
   WSANETWORKEVENTS occurred;
@@ -897,10 +915,12 @@ static NSURLSession * sharedSession = nil;
     action = CURL_CSELECT_IN;
 #endif
 
-  curl_multi_socket_action(internal->_multiHandle, socket, action, &internal->_stillRunning);
+  curl_multi_socket_action(internal->_multiHandle, socket, action,
+    &internal->_stillRunning);
   [self _checkForCompletion];
 
-  /* When internal->_stillRunning reaches zero, all transfers are complete/done */
+  /* When internal->_stillRunning reaches zero, all transfers are complete/done
+   */
   if (internal->_stillRunning <= 0)
     {
       [self _suspendTimer];
@@ -1038,11 +1058,6 @@ static NSURLSession * sharedSession = nil;
 - (void) _workInvalidate
 {
   internal->_invalidated = YES;
-  /* The deletage must be released once the session is invalidated (so we
-   * will not send it more messages) in order to avoid retain loops keeping
-   * both session and delegate alive.
-   */
-  DESTROY(internal->_delegate);
 }
 
 - (void) invalidateAndCancel
@@ -1069,8 +1084,8 @@ static NSURLSession * sharedSession = nil;
 
 - (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
 {
-  NSURLSessionDataTask * task;
-  NSInteger identifier;
+  NSURLSessionDataTask	*task;
+  NSInteger 		identifier;
 
   identifier = [self _nextTaskIdentifier];
   task = [[NSURLSessionDataTask alloc] initWithSession: self
@@ -1306,44 +1321,47 @@ static NSURLSession * sharedSession = nil;
 
 - (void) dealloc
 {
-  /* Stop the work thread and wait for it to finish before releasing state
-   * it might touch.  We target the helper (not self) so this does not
-   * transiently resurrect a session already at zero retain count.  A
-   * pending timer would retain self and defer dealloc, so none is pending
-   * here.
-   */
-  if (internal->_workHelper != nil)
+  if (internal)
     {
-      [internal->_workHelper performSelector: @selector(stop)
-                          onThread: internal->_workHelper->thread
-                        withObject: nil
-                     waitUntilDone: YES];
-      while (![internal->_workHelper->thread isFinished])
-        {
-          [NSThread sleepForTimeInterval: 0.001];
-        }
-      RELEASE(internal->_workHelper->thread);
-      RELEASE(internal->_workHelper->port);
-      RELEASE(internal->_workHelper);
-    }
+      /* Stop the work thread and wait for it to finish before releasing state
+       * it might touch.  We target the helper (not self) so this does not
+       * transiently resurrect a session already at zero retain count.  A
+       * pending timer would retain self and defer dealloc, so none is pending
+       * here.
+       */
+      if (internal->_workHelper != nil)
+	{
+	  [internal->_workHelper performSelector: @selector(stop)
+			      onThread: internal->_workHelper->thread
+			    withObject: nil
+			 waitUntilDone: YES];
+	  while (![internal->_workHelper->thread isFinished])
+	    {
+	      [NSThread sleepForTimeInterval: 0.001];
+	    }
+	  RELEASE(internal->_workHelper->thread);
+	  RELEASE(internal->_workHelper->port);
+	  RELEASE(internal->_workHelper);
+	}
 
-  RELEASE(internal->_delegateQueue);
-  RELEASE(internal->_delegate);
-  RELEASE(internal->_configuration);
-  RELEASE(internal->_tasks);
-  RELEASE(internal->_certificateBlob);
-  RELEASE(internal->_certificatePath);
+      RELEASE(internal->_delegateQueue);
+      RELEASE(internal->_delegate);
+      RELEASE(internal->_configuration);
+      RELEASE(internal->_tasks);
+      RELEASE(internal->_certificateBlob);
+      RELEASE(internal->_certificatePath);
 
-  curl_multi_cleanup(internal->_multiHandle);
+      curl_multi_cleanup(internal->_multiHandle);
 
 #if	defined(_WIN32)
-  if (internal->_socketForEvent != NULL)
-    {
-      NSFreeMapTable(internal->_socketForEvent);
-    }
+      if (internal->_socketForEvent != NULL)
+	{
+	  NSFreeMapTable(internal->_socketForEvent);
+	}
 #endif
 
-  GS_DESTROY_INTERNAL(NSURLSession);
+      GS_DESTROY_INTERNAL(NSURLSession);
+    }
   DEALLOC
 }
 

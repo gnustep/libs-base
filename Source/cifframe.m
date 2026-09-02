@@ -649,7 +649,8 @@ cifframe_type(const char *typePtr, const char **advance, NSPointerArray **extra)
 }
 
 GSCodeBuffer*
-cifframe_closure(NSMethodSignature *sig, void (*cb)())
+cifframe_closure(NSMethodSignature *sig,
+  void (*cb)(ffi_cif *, void *, void **, void *))
 {
   NSMutableData		*frame = nil;
   NSPointerArray	*extra = nil;

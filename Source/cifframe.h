@@ -53,7 +53,7 @@ typedef struct _cifframe_t {
 @class	NSMutableData;
 
 extern GSCodeBuffer* cifframe_closure(NSMethodSignature *sig,
-  void (*func)()) GS_ATTRIB_PRIVATE;
+  void (*func)(ffi_cif *, void *, void **, void *)) GS_ATTRIB_PRIVATE;
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
   int size) GS_ATTRIB_PRIVATE;

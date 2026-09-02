@@ -630,7 +630,12 @@ signatureSlotFor(const char *types)
        */
       if (blen > 4096)
 	{
-	  RELEASE(self);
+	  /* Instances of this class are meant to be cached forever,
+	   * so their -release method does nothing.  That means that
+	   * an initialisation failure must deallocate the instance
+	   * to avoid a leak.
+	   */
+	  [self dealloc];
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Method signature type encoding is too long"];
 	}

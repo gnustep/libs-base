@@ -40,19 +40,26 @@ main(int argc, char *argv[])
   START_SET("NSDecimalNumber decimalNumberWithString")
   NSDecimalNumber	*d;
 
-  d = [NSDecimalNumber decimalNumberWithString: @"123.45"];
+  /* NB. Specify nil as the locale to force the use of the standard locale
+   * (a dot as a decimal separator) rather than the default locale of the
+   * system on which the test is running.
+   */
+  d = [NSDecimalNumber decimalNumberWithString: @"123.45"
+					locale: nil];
   PASS(d != nil
     && [d doubleValue] > 123.44 && [d doubleValue] < 123.46,
     "a normal decimal string parses to the right value")
 
   /* 300 fractional digits is far more than the mantissa can hold; it must be
    * parsed (with reduced precision) without overflowing the buffer. */
-  d = [NSDecimalNumber decimalNumberWithString: longDigits(@"0.", 300)];
+  d = [NSDecimalNumber decimalNumberWithString: longDigits(@"0.", 300)
+					locale: nil];
   PASS(d != nil,
     "a 300-fractional-digit string is parsed without overflowing the mantissa")
 
   /* 300 integer digits likewise must not overflow the buffer. */
-  d = [NSDecimalNumber decimalNumberWithString: longDigits(@"", 300)];
+  d = [NSDecimalNumber decimalNumberWithString: longDigits(@"", 300)
+					locale: nil];
   PASS(d != nil,
     "a 300-integer-digit string is parsed without overflowing the mantissa")
 

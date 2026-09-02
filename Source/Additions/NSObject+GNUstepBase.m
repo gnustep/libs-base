@@ -175,7 +175,10 @@ struct trackLink {
 };
 
 static struct trackLink	*tracked = 0;
-static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
+static BOOL		trackLive = NO;
+static gs_mutex_t	trackInit = GS_MUTEX_INIT_STATIC;
+static gs_mutex_t	trackLock;
+
 
 static void
 handleExit()
@@ -261,8 +264,9 @@ handleExit()
 
 	  if (tracked->instance)
 	    {
-	      fprintf(stderr, "Tracking ownership -[%p dealloc]"
-		" not called by exit.\n", tracked->object);
+	      fprintf(stderr, "Tracking ownership -[%p dealloc] thread %p "
+		" not called by exit.\n",
+		tracked->object, GSCurrentThread());
 	    }
 	  free(tracked);
 	  tracked = next;
@@ -506,21 +510,21 @@ findSuper(Class c)
 /* Lookup the object in the tracking list.
  * If found as a tracked instance or found as an instance of a class for which
  * all instances are tracked, return YES.  Otherwise return NO (should not log).
+ * Must be called with the trackLock held!
  */
 static BOOL
-findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
+findMethods(id o, IMP *dea, IMP *rel, IMP *ret, unsigned *cnt)
 {
   struct trackLink	*l;
   Class                 c;
 
-  GS_MUTEX_LOCK(trackLock);
+  if (cnt) *cnt = [o retainCount];
   l = find(o);
   if (l)
     {
       *dea = l->dealloc;
       *rel = l->release;
       *ret = l->retain;
-      GS_MUTEX_UNLOCK(trackLock);
       return YES;
     }
   c = object_getClass(o);
@@ -542,10 +546,8 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
       *rel = l->release;
       *ret = l->retain;
       all = l->global;
-      GS_MUTEX_UNLOCK(trackLock);
       return all;
     }
-  GS_MUTEX_UNLOCK(trackLock);
   fprintf(stderr, "Tracking ownership - unable to find entry for"
     " instance %p of '%s'.\n", o, class_getName(c));
   fprintf(stderr, "Tracking ownership %p problem at %s.\n",
@@ -567,7 +569,8 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
   IMP	retain = 0;
   IMP	release = 0;
 
-  if (findMethods(self, &dealloc, &release, &retain) == NO)
+  GS_MUTEX_LOCK(trackLock);
+  if (findMethods(self, &dealloc, &release, &retain, NULL) == NO)
     {
       /* Not a tracked instance ... dealloc without logging.
        */
@@ -579,7 +582,6 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
 
       /* If there's a link for tracking this specific instance, remove it.
        */
-      GS_MUTEX_LOCK(trackLock);
       if ((l = tracked) != 0)
         {
           if (YES == l->instance && l->object == self)
@@ -603,19 +605,21 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
                 }
             }
         }
-      GS_MUTEX_UNLOCK(trackLock);
-      fprintf(stderr, "Tracking ownership -[%p dealloc] at %s.\n",
-        self, stackTrace(2));
+      fprintf(stderr, "Tracking ownership -[%p dealloc] thread %p at %s.\n",
+        self, GSCurrentThread(), stackTrace(2));
       (*dealloc)(self, _cmd);
     }
+  GS_MUTEX_UNLOCK(trackLock);
 }
 - (void) _replacementRelease
 {
   IMP	dealloc = 0;
   IMP	retain = 0;
   IMP	release = 0;
+  unsigned rc;
 
-  if (findMethods(self, &dealloc, &release, &retain) == NO)
+  GS_MUTEX_LOCK(trackLock);
+  if (findMethods(self, &dealloc, &release, &retain, &rc) == NO)
     {
       /* Not a tracked instance ... release without logging.
        */
@@ -623,13 +627,12 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
     }
   else
     {
-      unsigned		rc;
-
-      rc = (unsigned)[self retainCount];
-      fprintf(stderr, "Tracking ownership -[%p release] %u->%u at %s.\n",
-        self, rc, rc-1, stackTrace(2));
+      fprintf(stderr,
+	"Tracking ownership -[%p release] %u->%u thread %p at %s.\n",
+        self, rc, rc-1, GSCurrentThread(), stackTrace(2));
       (*release)(self, _cmd);
     }
+  GS_MUTEX_UNLOCK(trackLock);
 }
 - (id) _replacementRetain
 {
@@ -637,8 +640,10 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
   IMP	retain = 0;
   IMP	release = 0;
   id	result;
+  unsigned rc;
 
-  if (findMethods(self, &dealloc, &release, &retain) == NO)
+  GS_MUTEX_LOCK(trackLock);
+  if (findMethods(self, &dealloc, &release, &retain, &rc) == NO)
     {
       /* Not a tracked instance ... retain without logging.
        */
@@ -646,13 +651,12 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
     }
   else
     {
-      unsigned		rc;
-
-      rc = (unsigned)[self retainCount];
       result = (*retain)(self, _cmd);
-      fprintf(stderr, "Tracking ownership -[%p retain] %u->%u at %s.\n",
-        self, rc, (unsigned)[self retainCount], stackTrace(2));
+      fprintf(stderr,
+	"Tracking ownership -[%p retain] %u->%u thread %p at %s.\n",
+        self, rc, rc + 1, GSCurrentThread(), stackTrace(2));
     }
+  GS_MUTEX_UNLOCK(trackLock);
   return result;
 }
 
@@ -746,6 +750,13 @@ makeLinkForClass(Class c)
   NSAssert(class_isMetaClass(object_getClass(c)),
     NSInternalInconsistencyException);
 
+  GS_MUTEX_LOCK(trackInit);
+  if (NO == trackLive)
+    {
+      GS_MUTEX_INIT_RECURSIVE(trackLock);
+      trackLive = YES;
+    }
+  GS_MUTEX_UNLOCK(trackInit);
   GS_MUTEX_LOCK(trackLock);
   if ((l = find((id)c)) != 0)
     {
@@ -760,9 +771,9 @@ makeLinkForClass(Class c)
   l->global = YES;
   l->next = tracked;
   tracked = l;
+  fprintf(stderr, "Tracking ownership started for class %p thread %p at %s.\n",
+    self, GSCurrentThread(), stackTrace(1));
   GS_MUTEX_UNLOCK(trackLock);
-  fprintf(stderr, "Tracking ownership started for class %p at %s.\n",
-    self, stackTrace(1));
 }
 
 - (void) trackOwnership
@@ -784,6 +795,14 @@ makeLinkForClass(Class c)
       enable();
       GS_MUTEX_UNLOCK(exitLock);
     }
+
+  GS_MUTEX_LOCK(trackInit);
+  if (NO == trackLive)
+    {
+      GS_MUTEX_INIT_RECURSIVE(trackLock);
+      trackLive = YES;
+    }
+  GS_MUTEX_UNLOCK(trackInit);
 
   GS_MUTEX_LOCK(trackLock);
   if (find(self) != 0)
@@ -828,9 +847,10 @@ makeLinkForClass(Class c)
   li->retain = lc->retain;
   li->next = tracked;
   tracked = li;
+  fprintf(stderr,
+    "Tracking ownership started for instance %p thread %p at %s.\n",
+    self, GSCurrentThread(), stackTrace(1));
   GS_MUTEX_UNLOCK(trackLock);
-  fprintf(stderr, "Tracking ownership started for instance %p at %s.\n",
-    self, stackTrace(1));
 }
 
 @end
