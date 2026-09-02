@@ -173,34 +173,32 @@ static int    signalValue = 0;
 
 #if     defined(SA_SIGINFO)
 
-static RETSIGTYPE (*oldHandler)(int) = SIG_IGN;
-static RETSIGTYPE (*oldSigaction)(int, siginfo_t*, void*) = SIG_IGN;
-static RETSIGTYPE
+#define	hProto	void (*)(int)
+#define	aProto	void (*)(int, siginfo_t*, void*)
+static void (*oldHandler)(int) = (hProto)SIG_IGN;
+static void (*oldAction)(int, siginfo_t*, void*) = (aProto)SIG_IGN;
+static void
 handleThreadSignal(int sig, siginfo_t *inf, void *extra)
 {
   GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(nil);
 
   info->sig = YES;      // Note that this thread has been signalled.
-  if (oldHandler != SIG_IGN)
+  if (oldHandler != (hProto)SIG_IGN)
     {
       (*oldHandler)(sig);
     }
-  else if (oldSigaction != SIG_IGN)
+  else if (oldAction != (aProto)SIG_IGN)
     {
-      (*oldSigaction)(sig, inf, extra);
+      (*oldAction)(sig, inf, extra);
     }
-  signal([info threadSignal], handleThreadSignal);
-#if     RETSIGTYPE != void
-  return 0;
-#else
+  signal([info threadSignal], (hProto)handleThreadSignal);
   return;
-#endif
 }
 
 #else   /* SA_SIGINFO */
 
-static RETSIGTYPE (*oldHandler)(int) = SIG_IGN;
-static RETSIGTYPE
+static void (*oldHandler)(int) = SIG_IGN;
+static void
 handleThreadSignal(int sig)
 {
   GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(nil);
@@ -211,11 +209,7 @@ handleThreadSignal(int sig)
       (*oldHandler)(sig);
     }
   signal([info threadSignal], handleThreadSignal);
-#if     RETSIGTYPE != void
-  return 0;
-#else
   return;
-#endif
 }
 
 #endif  /* SA_SIGINFO */
@@ -935,14 +929,16 @@ gnustep_base_thread_callback(void)
 #if     defined(SA_SIGINFO)
           if (old.sa_flags & SA_SIGINFO)
             {
-              if (old.sa_sigaction != SIG_DFL && old.sa_sigaction != SIG_IGN)
+              if (old.sa_sigaction != (aProto)SIG_DFL
+		&& old.sa_sigaction != (aProto)SIG_IGN)
                 {
-                  oldHandler = old.sa_sigaction;
+                  oldHandler = (hProto)old.sa_sigaction;
                 }
             }
           else
             {
-              if (old.sa_handler != SIG_DFL && old.sa_handler != SIG_IGN)
+              if (old.sa_handler != (hProto)SIG_DFL
+		&& old.sa_handler != (hProto)SIG_IGN)
                 {
                   oldHandler = old.sa_handler;
                 }
