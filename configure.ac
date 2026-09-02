@@ -4033,6 +4033,7 @@ AC_SUBST(USE_GMP)
 AC_CHECK_HEADERS(sys/eventfd.h)
 
 #--------------------------------------------------------------------
+
 # Can we avoid using a pipe to wake the runloop of a thread?
 #--------------------------------------------------------------------
 if test "$ac_cv_func_ppoll" = "yes" \
@@ -4063,7 +4064,7 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Check for 'dot', needed for graphs in autogsdoc output.
+# Check dor 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
 

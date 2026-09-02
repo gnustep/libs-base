@@ -2122,7 +2122,7 @@ lockInfoErr(NSString *str)
 
 - (void) addPerformer: (id)performer
 {
-  BOOL  signalled = NO;
+  BOOL  signalled;
 
   [lock lock];
 
@@ -2198,6 +2198,7 @@ lockInfoErr(NSString *str)
 #endif
     }
 #endif
+
   if (YES == signalled)
     {
       [performers addObject: performer];
@@ -2354,6 +2355,16 @@ lockInfoErr(NSString *str)
         {
           NSLog(@"Reset event failed - %@", [NSError _last]);
         }
+    }
+#elif   defined(HAVE_SYS_EVENTFD_H)
+  if (inputFd >= 0)
+    {
+      uint64_t  val;
+
+      /* This resets the eventfd to zero nothing to read until a write
+       * has been done.
+       */
+      read(inputFd, &val, 8);
     }
 #else
   sig = NO;	// Clear the signal

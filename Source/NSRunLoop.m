@@ -400,7 +400,7 @@ extern void _dispatch_main_queue_callback_4CF(void *);
 #  include <sys/eventfd.h>
 #elif defined(__linux__)
 extern int eventfd_read(int, uint64_t*);
-#endif	// HAVE_SYS_EVENTFD_H
+#endif  // HAVE_SYS_EVENTFD_H
 #endif
 
 @implementation GSMainQueueDrainer

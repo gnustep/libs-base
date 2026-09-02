@@ -16121,6 +16121,7 @@ fi
 
 
 #--------------------------------------------------------------------
+
 # Can we avoid using a pipe to wake the runloop of a thread?
 #--------------------------------------------------------------------
 if test "$ac_cv_func_ppoll" = "yes" \
@@ -16156,7 +16157,7 @@ printf '%s\n' "$as_me: WARNING: This operating system does not support using POS
 fi
 
 #--------------------------------------------------------------------
-# Check for 'dot', needed for graphs in autogsdoc output.
+# Check dor 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 
 

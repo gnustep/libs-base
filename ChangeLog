@@ -1,11 +1,6 @@
 2026-09-02 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* configure.ac: Add test for eventfd presence on linux and use it
-	rather than a pipe for inter-thread signalling.  This reduces the
-	per-thread resource overhead from two file descriptors (a pipe) to
-	a single one, as well as being more efficient than an pipe.
-	This code should be reliable and is enabeld unconditionally.
-	Experimental alternative:
+	* configure.ac: Experimental thread communication mechanism.
 	Add tests for ppoll and pthread_kill to determine if it is possible
 	to have an option to use signals to wake the run loop for inter-thread
 	messaging rather than using file descriptor(s).  This avoids the
@@ -26,6 +21,18 @@
 	and getting an interrupt as a posix signal.
 	* Tests/base/NSRunLoop/thread.m: add option to test a large number
 	of inter-thread messages.
+
+2026-09-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Add test for eventfd presence on linux and use it
+        rather than a pipe for inter-thread signalling.  This reduces the
+        per-thread resource overhead from two file descriptors (a pipe) to
+        a single one, as well as being more efficient than a pipe.
+        * configure: Regenerate
+        * Headers/GNUstepBase/config.h.in: Regenerate
+        * Source/NSThread.m: Implement optional inter-thread messaging using
+        eventfd (where available) rather than a pipe.
+        * Source/NSRunLoop.m: Use eventfd header if available
 
 2026-08-20  Artyom Shalkhakov  <artyom.shalkhakov@gmail.com>
 
