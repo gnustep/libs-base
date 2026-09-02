@@ -916,7 +916,11 @@ testInvalidateAndCancel(NSURL *baseURL)
 
   for (i = 0; i < 5; i++)
     {
-      [[session dataTaskWithURL: contentOKURL] resume];
+      NSURLSessionTask	*t;
+
+      t = [session dataTaskWithURL: contentOKURL];
+      [t trackOwnership];
+      [t resume];
     }
 
   [session invalidateAndCancel];
@@ -931,6 +935,9 @@ testInvalidateAndCancel(NSURL *baseURL)
        "%s didBecomeInvalidWithError: was sent once after invalidateAndCancel",
        prefix);
 
+  /* Empty the manager to break retain cycles.
+   */
+  [mgr empty];
   [mgr release];
 }
 
