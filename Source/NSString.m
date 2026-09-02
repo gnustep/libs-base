@@ -3772,8 +3772,10 @@ register_printf_atsign ()
 	      if (gotRangeImps == NO)
 		{
 		  gotRangeImps = YES;
-		  srImp=(NSRange (*)())[self methodForSelector: ranSel];
-		  orImp=(NSRange (*)())[aString methodForSelector: ranSel];
+		  srImp=(NSRange (*)(NSString*, SEL, NSUInteger))
+		    [self methodForSelector: ranSel];
+		  orImp=(NSRange (*)(NSString*, SEL, NSUInteger))
+		    [aString methodForSelector: ranSel];
 		}
 	      sRange = (*srImp)(self, ranSel, sIndex);
 	      oRange = (*orImp)(aString, ranSel, oIndex);
@@ -3788,8 +3790,10 @@ register_printf_atsign ()
 		  if (gotFetchImps == NO)
 		    {
 		      gotFetchImps = YES;
-		      sgImp=(void (*)())[self methodForSelector: gcrSel];
-		      ogImp=(void (*)())[aString methodForSelector: gcrSel];
+		      sgImp=(void (*)(NSString*, SEL, unichar*, NSRange))
+			[self methodForSelector: gcrSel];
+		      ogImp=(void (*)(NSString*, SEL, unichar*, NSRange))
+			[aString methodForSelector: gcrSel];
 		    }
 		  (*sgImp)(self, gcrSel, sBuf, sRange);
 		  (*ogImp)(aString, gcrSel, oBuf, oRange);
@@ -3850,7 +3854,8 @@ register_printf_atsign ()
   len = [self length];
   GS_RANGE_CHECK(aRange, len);
 
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+    [self methodForSelector: caiSel];
   /* Place aRange.location at the beginning of a CR-LF sequence */
   if (aRange.location > 0 && aRange.location < len
     && (*caiImp)(self, caiSel, aRange.location - 1) == (unichar)'\r'
@@ -5905,7 +5910,8 @@ static NSFileManager *fm = nil;
   l = [s length];
   root = rootOf(s, l);
 
-  caiImp = (unichar (*)())[s methodForSelector: caiSel];
+  caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+    [s methodForSelector: caiSel];
 
   /* Remove any separators ('/') immediately after the trailing
    * separator in the root (if any).
@@ -6081,7 +6087,8 @@ static NSFileManager *fm = nil;
       BOOL	(*mImp)(id, SEL, unichar);
       unichar	letter;
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       mImp = (BOOL(*)(id,SEL,unichar)) [aSet methodForSelector: cMemberSel];
 
       while (end > 0)
@@ -6125,7 +6132,8 @@ static NSFileManager *fm = nil;
       unsigned int	count = 0;
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (count < len)
 	{
 	  if (!uni_isnonsp((*caiImp)(self, caiSel, count++)))
