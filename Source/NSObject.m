@@ -1025,14 +1025,16 @@ static id gs_weak_load(id obj)
 #endif
 
 #ifdef _WIN32
-      /* Start of sockets so we can get host name and other info */
-      WORD wVersionRequested = MAKEWORD(2, 2);
-      WSADATA wsaData;
-      int wsaResult = WSAStartup(wVersionRequested, &wsaData);
-      if (wsaResult != 0)
-        {
-          fprintf(stderr, "Error %d initializing Windows Sockets\n", wsaResult);
-        }
+      {
+        /* Start of sockets so we can get host name and other info */
+        WORD wVersionRequested = MAKEWORD(2, 2);
+        WSADATA wsaData;
+        int wsaResult = WSAStartup(wVersionRequested, &wsaData);
+        if (wsaResult != 0)
+          {
+            fprintf(stderr, "Error %d initializing Windows Sockets\n", wsaResult);
+          }
+      }
 #else /* _WIN32 */
 
 #ifdef	SIGPIPE
