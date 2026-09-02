@@ -164,7 +164,24 @@ setTreeDoc(xmlNodePtr node, xmlDocPtr doc)
       node->content
 	= (xmlChar *)adoptString(node->content, oldDoc, doc, adoptStr);
     }
-  
+
+  if (node->type == XML_ATTRIBUTE_NODE)
+    {
+      node->name = adoptString(node->name, oldDoc, doc, adoptStr);
+    }
+
+  if (node->type == XML_COMMENT_NODE
+    || node->type == XML_CDATA_SECTION_NODE
+    || node->type == XML_PI_NODE)
+    {
+      node->content
+        = (xmlChar *)adoptString(node->content, oldDoc, doc, adoptStr);
+      if (node->type == XML_PI_NODE)
+        {
+          node->name = adoptString(node->name, oldDoc, doc, adoptStr);
+        }
+    }
+
   if (node->type == XML_ELEMENT_NODE)
     {
       xmlAttrPtr attr;
