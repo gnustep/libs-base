@@ -1,8 +1,8 @@
 /** NSArray - Array object to hold other objects.
    Copyright (C) 1995-2015 Free Software Foundation, Inc.
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Andrew Kachites McCallum 
+   From skeleton by:  Adam Fedor <fedor@gnu.org>
    Created: March 1995
 
    Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -23,8 +23,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSArray class reference</title>
    $Date$ $Revision$
@@ -51,7 +50,6 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
@@ -106,8 +104,35 @@ static SEL	rlSel;
 
 + (void) atExit
 {
-  DESTROY(defaultPlaceholderArray);
-  DESTROY(placeholderMap);
+  if ([NSObject shouldCleanUp])
+    {
+      id	o;
+
+      /* The default placeholder array overrides -dealloc so we must get rid of
+       * it directly.
+       */
+      o = defaultPlaceholderArray;
+      defaultPlaceholderArray = nil;
+      NSDeallocateObject(o);
+
+      /* Deallocate all the placeholders in the map before destroying it.
+       */
+      GS_MUTEX_LOCK(placeholderLock);
+      if (placeholderMap)
+	{
+	  NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
+	  Class             c;
+	  id                o;
+
+	  while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+	    {
+	      NSDeallocateObject(o);
+	    }
+	  NSEndMapTableEnumeration(&mEnum);
+	  DESTROY(placeholderMap);
+	}
+      GS_MUTEX_UNLOCK(placeholderLock);
+    }
 }
 
 + (void) initialize
@@ -141,6 +166,11 @@ static SEL	rlSel;
     }
 }
 
++ (BOOL) supportsSecureCoding
+{
+  return YES;
+}
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSArrayClass)
@@ -169,7 +199,7 @@ static SEL	rlSel;
 	   */
 	  GS_MUTEX_LOCK(placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
-	  if (obj == nil)
+	  if (obj == nil && NO == [NSObject isExiting])
 	    {
 	      /*
 	       * There is no placeholder object for this zone, so we
@@ -1789,7 +1819,7 @@ compare(id elem1, id elem2, void* context)
 
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
@@ -1804,7 +1834,7 @@ compare(id elem1, id elem2, void* context)
         {
           break;
         }
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   }
 }
@@ -1839,7 +1869,7 @@ compare(id elem1, id elem2, void* context)
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -1869,7 +1899,7 @@ compare(id elem1, id elem2, void* context)
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(setLock);
@@ -1936,7 +1966,7 @@ compare(id elem1, id elem2, void* context)
     }
   {
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-    FOR_IN (id, obj, enumerator)
+    GS_FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
       if (enumQueue != NULL)
         {
@@ -1947,8 +1977,9 @@ compare(id elem1, id elem2, void* context)
             }
             if (predicate(obj, count, &shouldStop))
             {
-              // FIXME: atomic operation on the shouldStop variable would be nicer,
-              // but we don't expose the GSAtomic* primitives anywhere.
+              /* FIXME: atomic operation on the shouldStop variable would be
+               * nice but we don't expose the GSAtomic* primitives anywhere.
+	       */
               [indexLock lock];
               index =  count;
               // Cancel all other predicate evaluations:
@@ -1969,7 +2000,7 @@ compare(id elem1, id elem2, void* context)
           break;
         }
       count++;
-    END_FOR_IN(enumerator)
+    GS_END_FOR(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
   }
   RELEASE(indexLock);
@@ -2187,16 +2218,14 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes the last object in the array.  Raises an exception if the array
- * is already empty.
+ * Removes the last object in the array if one exists (otherwise it just returns).
  */
 - (void) removeLastObject
 {
   NSUInteger	count = [self count];
 
   if (count == 0)
-    [NSException raise: NSRangeException
-		 format: @"Trying to remove from an empty array."];
+    return;
   [self removeObjectAtIndex: count-1];
 }
 

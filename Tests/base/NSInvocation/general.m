@@ -78,8 +78,8 @@ int main()
   pClass = NSClassFromString(@"InvokeProxy");
    
   
-  tar = [tClass new];
-  pxy = [[pClass alloc] initWithTarget:tar]; 
+  tar = AUTORELEASE([tClass new]);
+  pxy = AUTORELEASE([[pClass alloc] initWithTarget:tar]); 
   TEST_INVOKE(@selector(retChar));
   [inv getReturnValue:&cret];
   PASS(cret == 99 &&
@@ -207,6 +207,8 @@ int main()
   PASS(NSEqualRects(rret, rarg) && NSEqualRects(rprx, rarg),
        "Can send/return NSRect");
   
+  free(cparg);
+  free(cparg2);
   [arp release]; arp = nil;
   return 0;
 }

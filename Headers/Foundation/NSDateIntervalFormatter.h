@@ -19,14 +19,13 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef _NSDateIntervalFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSDateIntervalFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFormatter.h>
+#import <Foundation/NSFormatter.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -48,26 +47,26 @@ typedef NSUInteger NSDateIntervalFormatterStyle;
 GS_EXPORT_CLASS
 @interface NSDateIntervalFormatter : NSFormatter
 {
-    NSLocale *_locale;
-    NSCalendar *_calendar;
-    NSTimeZone *_timeZone;
-    NSString *_dateTemplate;
-    NSDateIntervalFormatterStyle _dateStyle;
-    NSDateIntervalFormatterStyle _timeStyle;
+  NSLocale 			*_locale;
+  NSCalendar 			*_calendar;
+  NSTimeZone 			*_timeZone;
+  NSString 			*_dateTemplate;
+  NSDateIntervalFormatterStyle	_dateStyle;
+  NSDateIntervalFormatterStyle 	_timeStyle;
 }
 
 // Properties
-- (NSLocale *) locale;
-- (void) setLocale: (NSLocale *)locale;
+- (NSLocale*) locale;
+- (void) setLocale: (NSLocale*)locale;
 
-- (NSCalendar *) calendar;
-- (void) setCalendar: (NSCalendar *)calendar;
+- (NSCalendar*) calendar;
+- (void) setCalendar: (NSCalendar*)calendar;
 
-- (NSTimeZone *) timeZone;
-- (void) setTimeZone: (NSTimeZone *)timeZone;
+- (NSTimeZone*) timeZone;
+- (void) setTimeZone: (NSTimeZone*)timeZone;
 
-- (NSString *) dateTemplate;
-- (void) setDateTemplate: (NSString *)dateTemplate;
+- (NSString*) dateTemplate;
+- (void) setDateTemplate: (NSString*)dateTemplate;
 
 - (NSDateIntervalFormatterStyle) dateStyle;
 - (void) setDateStyle: (NSDateIntervalFormatterStyle)dateStyle;
@@ -76,9 +75,9 @@ GS_EXPORT_CLASS
 - (void) setTimeStyle: (NSDateIntervalFormatterStyle)timeStyle;
 
 // Create strings
-- (NSString *)stringFromDate:(NSDate *)fromDate toDate:(NSDate *)toDate;
+- (NSString*) stringFromDate: (NSDate*)fromDate toDate: (NSDate*)toDate;
 
-- (NSString *)stringFromDateInterval:(NSDateInterval *)dateInterval;
+- (NSString*) stringFromDateInterval: (NSDateInterval*)dateInterval;
 
 @end
 

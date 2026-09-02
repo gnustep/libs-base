@@ -15,8 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
   */
 
 #ifndef __NSDate_h_GNUSTEP_BASE_INCLUDE
@@ -57,7 +56,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 @class NSTimeZoneDetail;
 
 GS_EXPORT_CLASS
-@interface NSDate : NSObject <NSCoding,NSCopying>
+@interface NSDate : NSObject <NSCoding, NSSecureCoding, NSCopying>
 {
 }
 
@@ -163,6 +162,13 @@ GS_EXPORT_CLASS
  */
 + (instancetype) distantFuture;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/** Returns an autoreleased instance with the date/time set to
+ *  the time of access.
+ */
++ (instancetype) now;
+#endif
+
 /** Returns the time interval between the reference date and the current
  * time.
  */
@@ -247,7 +253,7 @@ GS_EXPORT_CLASS
 - (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 /** Returns NO if other is not a date, otherwise returns the result of
- * calling the -isEqualtoDate: method.
+ * calling the -isEqualToDate: method.
  */
 - (BOOL) isEqual: (id)other;
 

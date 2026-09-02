@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 
@@ -46,6 +45,15 @@ extern "C" {
  * Failure of the underlying random data generation.
  */
 + (id) dataWithRandomBytesOfLength: (NSUInteger)length;
+
+/** Populates a buffer with pseudo-random bytes of the specified length.<br />
+ * Returns YES on succes, NO on failure.  Failure may be due to:<br />
+ * A NULL buffer pointer.<br />
+ * A zero length or unreasonably large length argument or,<br />
+ * Failure to allocate memory to hold the random data or,<br />
+ * Failure of the underlying random data generation.
+ */
++ (BOOL) randomBytes: (uint8_t*)buffer ofLength: (NSUInteger)length;
 
 /** Returns an NSString object containing a backslash escaped representation
  * of the receiver.

@@ -1,5 +1,4 @@
-
-/* Definition of class NSRegularExpression
+/**Definition of class NSRegularExpression
    Copyright (C) 2011 Free Software Foundation, Inc.
 
    This file is part of the GNUstep Library.
@@ -16,8 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef _NSRegularExpression_h_GNUSTEP_BASE_INCLUDE
@@ -66,13 +64,23 @@ static const NSMatchingOptions NSMatchingAnchored               = 1<<2;
 static const NSMatchingOptions NSMatchingWithTransparentBounds  = 1<<3;
 static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
+@class	NSRegularExpression;
 
-DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
+#if     GS_API_VERSION( 13100, GS_API_LATEST)
+/** Enumeration with a C function callback uses this prototype
+ */
+typedef void (*GSRegexEnumerationCallback)(
+  void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop);
+#endif
+
+DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,\
   NSMatchingFlags, BOOL*);
 
 #ifndef GSREGEXTYPE
 #  define GSREGEXTYPE void
 #endif
+
 /**
  * NSRegularExpression is used to inspect and manipulate strings using regular
  * expressions. The interface is thread safe: The same NSRegularExpression
@@ -110,17 +118,46 @@ GS_EXPORT_CLASS
 #if GS_USE_ICU || GS_UNSAFE_REGEX
 + (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
   options: (NSRegularExpressionOptions)opts
-  error: (NSError**)e;
+  error: (NSError *_Nullable *_Nullable)e;
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
-		 error: (NSError**)e;
+		 error: (NSError *_Nullable *_Nullable)e;
 + (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
   options: (NSRegularExpressionOptions)opts
-  error: (NSError**)e;
+  error: (NSError *_Nullable *_Nullable)e;
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
-		 error: (NSError**)e;
-- (NSString*) pattern;
+		 error: (NSError *_Nullable *_Nullable)e;
+- (NSString*) pattern; 
+#if     GS_API_VERSION( 13100, GS_API_LATEST)
+/** In the GNUstep implementation this method is the fundametal primitive
+ * (unlike OSX which depends on blocks) upon which other methods are based.
+ * Its behavior is like that of the
+ * -enumerateMatchesInString:options:range:usingBlock: method, except that
+ * it uses a callback rather than a block, and the callback is supplied with
+ * the context value specified as an argument to this method.
+ * <br />
+ * The operation of the method is basically to call the supplied callback
+ * function for each match of the expression in the string.
+ * The callback may set the flag pointed to by stop to YES to cancel the
+ * enumeration at that point.
+ * <br />
+ * Setting the NSMatchingReportProgress option asks the underlying ICU code
+ * to call the callback at additional points during long operations (passing
+ * nil for the match information and NSMatchingProgress for the flags) so
+ * that the callback can terminate the enumeration earlier.
+ * <br />
+ * Setting the NSMatchingReportCompletion option causes the callback to be
+ * called once after the last match (with nil match information and the
+ * NSMatchingCompleted matching flag as well as any additional flags from
+ * NSMatchingHitEnd, NSMatchingRequiredEnd, or NSMatchingInternalError).
+ */
+- (void) enumerateMatchesInString: (NSString*)string
+                          options: (NSMatchingOptions)options
+                            range: (NSRange)range
+                         callback: (GSRegexEnumerationCallback)handler
+			  context: (void*)context;
+#endif
 - (void) enumerateMatchesInString: (NSString*)string
                           options: (NSMatchingOptions)options
                             range: (NSRange)range
@@ -150,6 +187,9 @@ GS_EXPORT_CLASS
                                 inString: (NSString*)string
                                   offset: (NSInteger)offset
                                 template: (NSString*)templat;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
++ (NSString *) escapedPatternForString: (NSString *)string;
+#endif
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly) NSRegularExpressionOptions options;
 @property (readonly) NSUInteger numberOfCaptureGroups;

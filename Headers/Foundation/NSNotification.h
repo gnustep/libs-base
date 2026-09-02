@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
   AutogsdocSource: NSNotification.m
   AutogsdocSource: NSNotificationCenter.m
@@ -49,16 +48,20 @@ GS_EXPORT_CLASS
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 
 /* Creating a Notification Object */
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object;
 
-+ (NSNotification*) notificationWithName: (NSString*)name
++ (NSNotification*) notificationWithName: (NSNotificationName)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info;
 
+- (instancetype) initWithName: (NSNotificationName)name
+		       object: (id)object
+		     userInfo: (NSDictionary*)userInfo;
+
 /* Querying a Notification Object */
 
-- (NSString*) name;
+- (NSNotificationName) name;
 - (id) object;
 - (NSDictionary*) userInfo;
 
@@ -74,7 +77,7 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSNotificationCenter)
 @private
-  void	*_table;
+  void	         *_table;
 #endif
 }
 

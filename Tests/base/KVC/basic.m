@@ -37,6 +37,14 @@ typedef struct {
 
 @implementation TestClass
 
+- (void) dealloc
+{
+  DESTROY(name);
+  DESTROY(date);
+  DESTROY(child);
+  DEALLOC
+}
+
 - (id) init
 {
   s.i = 1;

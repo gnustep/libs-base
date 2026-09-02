@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -332,16 +331,36 @@ static NSDictionary *makeReference(unsigned ref)
 	}
       else
 	{
-	  c = NSClassFromString(classname);
+	  Class	named = NSClassFromString(classname);
+
+	  /* The name may be one for which there is no class here, in which
+	   * case the class we already have is the one to describe.
+	   */
+	  if (named != 0)
+	    {
+	      c = named;
+	    }
 	}
 
       /*
        * At last, get the object to encode itself.  Save and restore the
-       * current object scope of course.
+       * current object scope of course.  The scope is borrowed from the
+       * array of objects, so it has to be given back even where the object
+       * refuses to encode itself, or it would be released twice.
        */
       _enc = m;
       _keyNum = 0;
-      [anObject encodeWithCoder: self];
+      NS_DURING
+	{
+	  [anObject encodeWithCoder: self];
+	}
+      NS_HANDLER
+	{
+	  _keyNum = savedKeyNum;
+	  _enc = savedEnc;
+	  [localException raise];
+	}
+      NS_ENDHANDLER
       _keyNum = savedKeyNum;
       _enc = savedEnc;
 
@@ -486,8 +505,6 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
-
   if (globalClassMap == 0)
     {
       globalClassMap =

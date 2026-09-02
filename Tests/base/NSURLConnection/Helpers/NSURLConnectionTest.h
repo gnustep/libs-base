@@ -1,6 +1,6 @@
 /** -*- objc -*-
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  * 
  *  The class is intended to test the class NSURLConnection. It is designed to start
  *  a TestWebServer instance and make NSURLConnection to it getting TestWebServerDelegate's
@@ -146,9 +146,9 @@
   /* tha auxilliary TestWebServer instance needed in tests on redirecting */
   TestWebServer *_auxServer;
   /* the custom request (made by the instance or supplied externally) */
-  NSURLRequest *_request;
+  NSMutableURLRequest *_request;
   /* the redirect request (made by the instance) */
-  NSURLRequest *_redirectRequest;
+  NSMutableURLRequest *_redirectRequest;
   /* the data accumulator for the received response's content */
   NSMutableData *_received;
   /* the expected status code */

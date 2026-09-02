@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __NSTimer_h_GNUSTEP_BASE_INCLUDE
@@ -35,10 +34,8 @@ DEFINE_BLOCK_TYPE(GSTimerBlock, void, NSTimer*);
 extern "C" {
 #endif
 
-/*
- *	NB. NSRunLoop is optimised using a hack that knows about the
- *	class layout for the fire date and invialidation flag in NSTimer.
- *	These MUST remain the first two items in the class.
+/*	NB. NSRunLoop is optimised using a hack that knows about the
+ *	class layout for relevant information in NSTimer.
  *	Other classes must not attempt to use instance variables as
  *	they are subject to change.
  */
@@ -47,23 +44,16 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSTimer)
 @public
-  NSDate 	 *_date;	/* Must be 1st - for NSRunLoop optimisation */
-  BOOL		 _invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
-  BOOL		 _repeats;
-  NSTimeInterval _interval;
-  id		 _target;
-  SEL		 _selector;
-  id		 _info;
-  GSTimerBlock   _block;
-#endif
-#if     GS_NONFRAGILE
-#else
-  /* Pointer to private additional data used to avoid breaking ABI
-   * when we don't have the non-fragile ABI available.
-   * Use this mechanism rather than changing the instance variable
-   * layout (see Source/GSInternal.h for details).
-   */
-  @private id _internal GS_UNUSED_IVAR;
+  NSDate 		*_date;		/* Must match NSRunLoop.m */
+  const void		*_loop;		/* Must match NSRunLoop.m */
+  uint64_t		_modeMask;	/* Must match NSRunLoop.m */
+  BOOL		 	_invalidated;	/* Must match NSRunLoop.m */
+  BOOL		 	_repeats;
+  NSTimeInterval 	_interval;
+  id		 	_target;
+  SEL		 	_selector;
+  id		 	_info;
+  GSTimerBlock   	_block;
 #endif
 }
 
@@ -81,8 +71,9 @@ GS_EXPORT_CLASS
   
 + (NSTimer *) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
                                      repeats: (BOOL)f
-                                       block: (GSTimerBlock)block;
-  
+                                       block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: instead);
+
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f;
@@ -95,7 +86,8 @@ GS_EXPORT_CLASS
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 			   repeats: (BOOL)f
-			     block: (GSTimerBlock)block;
+			     block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use timerWithTimeInterval:target:selector:userInfo:repeats: instead);
 
 - (void) fire;
 - (NSDate*) fireDate;
@@ -121,7 +113,8 @@ GS_EXPORT_CLASS
 - (instancetype) initWithFireDate: (NSDate *)date 
                          interval: (NSTimeInterval)interval 
                           repeats: (BOOL)repeats 
-                            block: (GSTimerBlock)block;
+                            block: (GSTimerBlock)block
+  GS_NON_PORTABLE(use initWithFireDate:interval:target:selector:userInfo:repeats: instead);
 #endif
   
 @end

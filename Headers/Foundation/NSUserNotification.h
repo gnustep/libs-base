@@ -1,4 +1,4 @@
-/* Interface for NSUserNotification for GNUstep
+/**Interface for NSUserNotification for GNUstep
    Copyright (C) 2014 Free Software Foundation, Inc.
 
    Written by:  Marcus Mueller <znek@mulle-kybernetik.com>
@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __NSUserNotification_h_INCLUDE

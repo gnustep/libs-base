@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -184,7 +183,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   self = [self initWithKind: NSXMLDocumentKind options: 0];
   if (self != nil)
     {
-      [self setRootElement: (NSXMLNode*)element];
+      NS_DURING
+        [self setRootElement: (NSXMLNode*)element];
+      NS_HANDLER
+	RELEASE(self);
+	[localException raise];
+      NS_ENDHANDLER
     }
   return self;
 }
@@ -280,6 +284,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   // FIXME: Should we use addChild: here? 
   xmlDocSetRootElement(internal->node.doc, [root _node]);
+  if (GSIVar(root, detached))
+    {
+      xmlFreeDoc(GSIVar(root, detached));
+      GSIVar(root, detached) = 0;
+    }
 
   // Do our subNode housekeeping...
   [self _addSubNode: root];
@@ -461,11 +470,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   resultDoc = xsltApplyStylesheet(stylesheet, internal->node.doc,
                                   (const char **)params);
   
-  // Cleanup...
+  // Cleanup...  xsltParseStylesheetDoc() took ownership of stylesheetDoc, so
+  // xsltFreeStylesheet() frees it too; freeing it again here was a double free.
+  // xsltCleanupGlobals()/xmlCleanupParser() tear down process-global library
+  // state and must not be called from a library while documents are still live.
   xsltFreeStylesheet(stylesheet);
-  xmlFreeDoc(stylesheetDoc);
-  xsltCleanupGlobals();
-  xmlCleanupParser();
   NSZoneFree([self zone], params);
 
   return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];
@@ -541,7 +550,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) characterEncoding
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
@@ -551,7 +560,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLDTD*) DTD
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) init
@@ -597,109 +606,123 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) MIMEType
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSXMLElement*) rootElement
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)theContentKind
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setMIMEType: (NSString*)theMIMEType
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setRootElement: (NSXMLNode*)root
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setURI: (NSString*)URI
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSString*) URI
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setVersion: (NSString*)version
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSString*) version
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setChildren: (NSArray*)children
 {
+  [self notImplemented: _cmd];
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
+  [self notImplemented: _cmd];
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSData*) XMLData
 { 
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSData *) XMLDataWithOptions: (NSUInteger)theOptions
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
                        arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
@@ -709,7 +732,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (BOOL) isEqual: (id)other

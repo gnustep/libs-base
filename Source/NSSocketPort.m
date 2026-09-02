@@ -18,14 +18,12 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
 #define	EXPOSE_NSPort_IVARS	1
 #define	EXPOSE_NSSocketPort_IVARS	1
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSTLS.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSNotification.h"
@@ -66,10 +64,10 @@
 
 #include <ctype.h>		/* for strchr() */
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #ifdef HAVE_SYS_TIME_H
@@ -138,11 +136,6 @@ static int socketError()
   return errno;
 }
 #endif /* !_WIN32 */
-
-/*
- * Largest chunk of data possible in DO
- */
-static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 /* Options for TLS encryption of connections
  */
@@ -692,7 +685,9 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr,
     GSPrivateSockaddrLength(&sockAddr)) == SOCKET_ERROR)
     {
-      if (!GSWOULDBLOCK)
+      long	eno = GSNETERROR;
+
+      if (!GSWOULDBLOCK(eno))
 	{
 	  NSLog(@"unable to make connection to %@ - %@",
 	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);
@@ -883,15 +878,19 @@ static Class	runLoopClass;
   else
     {
       want = [rData length];
-      if (want < rWant)
+      if (want < MAX(rWant, NETBLOCK))
         {
-          want = rWant;
-          [rData setLength: want];
-        }
-      if (want < NETBLOCK)
-        {
-          want = NETBLOCK;
-          [rData setLength: want];
+          want = MAX(rWant, NETBLOCK);
+	  NS_DURING
+	    {
+	      [rData setLength: want];
+	    }
+	  NS_HANDLER
+	    {
+	      [self invalidate];
+	      [localException raise];
+	    }
+	  NS_ENDHANDLER
         }
     }
 
@@ -1013,13 +1012,6 @@ static Class	runLoopClass;
 		    }
 		  else
 		    {
-		      if (l > maxDataLength)
-		        {
-		          NSLog(@"%@ - unreasonable length (%u) for data",
-		        	self, l);
-		          [self invalidate];
-		          return;
-		        }
 		      /*
 		       * If not a port or zero length data,
 		       * we discard the data read so far and fill the
@@ -1035,13 +1027,6 @@ static Class	runLoopClass;
 		}
 	      else if (rType == GSP_HEAD)
 		{
-		  if (l > maxDataLength)
-		    {
-		      NSLog(@"%@ - unreasonable length (%u) for data",
-		        self, l);
-		      [self invalidate];
-		      return;
-		    }
 		  /*
 		   * If not a port or zero length data,
 		   * we discard the data read so far and fill the
@@ -1262,22 +1247,25 @@ static Class	runLoopClass;
                * first thing to do is send out port information (after setting
                * up a TLS session if necessary).
                */
-	      ASSIGN(cData, newDataWithEncodedPort(p));
+	      RELEASE(cData);
+	      cData = newDataWithEncodedPort(p);
 	      cLength = 0;
 
 #if	defined(HAVE_GNUTLS)
-	      NSDictionary	*opts = [p clientOptionsForTLS];
-	      DESTROY(session);
-	      if (opts)
-		{
-		  session = [[GSTLSSession alloc] initWithOptions: opts
-			  direction: YES	// as client
-			  transport: self
-			       push: GSTLSHandlePush
-			       pull: GSTLSHandlePull];
-		  NSDebugMLLog(@"GSTcpHandle",
-		    @"%@ is connecting using %@", self, session);
-		}
+              {
+                NSDictionary	*opts = [p clientOptionsForTLS];
+                DESTROY(session);
+                if (opts)
+                  {
+                    session = [[GSTLSSession alloc] initWithOptions: opts
+                                                          direction: YES	// as client
+                                                          transport: self
+                                                               push: GSTLSHandlePush
+                                                               pull: GSTLSHandlePull];
+                    NSDebugMLLog(@"GSTcpHandle",
+                                 @"%@ is connecting using %@", self, session);
+                  }
+              }
 #endif
             }
         }
@@ -1864,6 +1852,23 @@ static Class		tcpPortClass;
 	    {
 #if	defined(_WIN32)
               int rc;
+
+#else
+              int e;
+              if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+                {
+                  e |= NBLK_OPT;
+                  if (fcntl(desc, F_SETFL, e) < 0)
+                    {
+                      NSLog(@"unable to set non-blocking mode on %d - %@",
+                        desc, [NSError _last]);
+                    }
+                }
+              else
+                {
+                  NSLog(@"unable to get/set non-blocking mode on %d - %@",
+                    desc, [NSError _last]);
+                }
 #endif
 	      /*
 	       * Set up the listening descriptor and the actual TCP port
@@ -2408,18 +2413,20 @@ static Class		tcpPortClass;
 	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	  [handle setState: GS_H_ACCEPT];
 #if	defined(HAVE_GNUTLS)
-	  NSDictionary	*o;
-	  if ((o = [self serverOptionsForTLS]) != nil)
-	    {
-	      handle->session = [[GSTLSSession alloc]
-		initWithOptions: o
-		      direction: NO	// as server
-		      transport: handle
-			   push: GSTLSHandlePush
-			   pull: GSTLSHandlePull];
-              NSDebugMLLog(@"GSTcpHandle",
-                @"%@ is accepting using %@", handle, handle->session);
-	    }
+	  {
+	    NSDictionary	*o;
+	    if ((o = [self serverOptionsForTLS]) != nil)
+	      {
+	        handle->session = [[GSTLSSession alloc]
+		  initWithOptions: o
+		        direction: NO	// as server
+		        transport: handle
+			     push: GSTLSHandlePush
+			     pull: GSTLSHandlePull];
+                NSDebugMLLog(@"GSTcpHandle",
+                  @"%@ is accepting using %@", handle, handle->session);
+	      }
+	  }
 #endif
 	  [self addHandle: handle forSend: NO];
 	}
@@ -2458,7 +2465,7 @@ static Class		tcpPortClass;
 - (oneway void) release
 {
   M_LOCK(tcpPortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSMapTable	*thePorts;
 
@@ -2467,13 +2474,9 @@ static Class		tcpPortClass;
 	{
 	  NSMapRemove(thePorts, host);
 	}
-      M_UNLOCK(tcpPortLock);
-      [self dealloc];
     }
-  else
-    {
-      M_UNLOCK(tcpPortLock);
-    }
+  M_UNLOCK(tcpPortLock);
+  [super release];
 }
 
 
@@ -2725,10 +2728,25 @@ static Class		tcpPortClass;
 }
 
 /** Sets the TLS options for network connections created by this port
- * acting as a network client.
+ * acting as a network client.<br />
+ * If options is nil, TLS is not used for the network connections.<br />
+ * When options in not nil, if GSTLSVerify is missing a value of NO is set
+ * so that connections to server with self-signed certificates will work
+ * by default.  To require the server to have a trusted certificate
+ * the options must contain GSTLSVerify set to YES.
  */
 - (void) setClientOptionsForTLS: (NSDictionary*)options
 {
+  if (options)
+    {
+      NSMutableDictionary	*m = AUTORELEASE([options mutableCopy]);
+
+      if (nil == [options objectForKey: GSTLSVerify])
+	{
+          [m setObject: @"NO" forKey: GSTLSVerify];
+	}
+      options = m;
+    }
   M_LOCK(myLock);
   ASSIGNCOPY(tlscopts, options);
   M_UNLOCK(myLock);

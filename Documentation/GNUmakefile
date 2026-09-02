@@ -18,8 +18,7 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
@@ -86,21 +85,24 @@ ANNOUNCE_TEXI_FILES = version.texi
 ANNOUNCE_TEXT_MAIN = announce.texi
 ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base/
+Base_AGSDOC_LOCAL_DIR = ../Documentation/Base
+Base_AGSDOC_INSTALL_BUNDLE = Reference
+Base_DOC_INSTALL_DIR = Developer/Base
+
+ReleaseNotes_AGSDOC_LOCAL_DIR = ReleaseNotes
+ReleaseNotes_AGSDOC_INSTALL_BUNDLE = ReleaseNotes
+ReleaseNotes_DOC_INSTALL_DIR =  Developer/Base
 
 ReleaseNotes_AGSDOC_FILES = \
-ReleaseNotes.gsdoc
+	ReleaseNotes.gsdoc
 
-#
-# Hack ... using the -DocumentationDirectory flag overrides the value
-# used by the make package, and puts our output in the documentation
-# directory.
-#
-#ReleaseNotes_AGSDOC_FLAGS = -DocumentationDirectory .
-ReleaseNotes_AGSDOC_FLAGS = -DTDs ../Tools
+ReleaseNotes_AGSDOC_FLAGS = \
+        -MakeFrames NO \
+	-DTDs ../Tools \
+
 
 # Use local version of autogsdoc in case it is not installed
-LD_LIBRARY_PATH := $(dir $(CURDIR))/Source/$(GNUSTEP_OBJ_DIR_NAME):$(LD_LIBRARY_PATH)
+LD_LIBRARY_PATH := $(dir $(CURDIR))/../Source/$(GNUSTEP_OBJ_DIR_NAME):$(LD_LIBRARY_PATH)
 AUTOGSDOC=../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
 BASE_MAKE_LOADED=yes
 

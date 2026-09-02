@@ -1,5 +1,7 @@
-/* GSVersionMacros.h - macros for managing API versioning and visibility
-   Copyright (C) 2006-2014 Free Software Foundation, Inc.
+/** GSVersionMacros.h - macros for managing API versioning,
+   visibility and other OSX compatibility issues.
+
+   Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Oct, October 2006
@@ -18,12 +20,13 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
+
+#include	"GNUstepBase/GSConfig.h"
 
 /* By default we defined NO_GNUSTEP to 0 so that we will include extensions.
  */
@@ -61,11 +64,17 @@
 #define	MAC_OS_X_VERSION_10_7	1070
 #define	MAC_OS_X_VERSION_10_8	1080
 #define	MAC_OS_X_VERSION_10_9	1090
-#define MAC_OS_X_VERSION_10_10	1100
-#define MAC_OS_X_VERSION_10_11	1110
-#define MAC_OS_X_VERSION_10_12	1120
-#define MAC_OS_X_VERSION_10_13	1130
-#define MAC_OS_X_VERSION_10_14	1140
+#define	MAC_OS_X_VERSION_10_10	101000
+#define	MAC_OS_X_VERSION_10_11	101100
+#define	MAC_OS_X_VERSION_10_12	101200
+#define	MAC_OS_X_VERSION_10_13	101300
+#define	MAC_OS_X_VERSION_10_14	101400
+#define	MAC_OS_X_VERSION_10_15	101500
+#define	MAC_OS_X_VERSION_10_16	101600
+#define	MAC_OS_VERSION_11_0	110000
+#define	MAC_OS_VERSION_12_0	120000
+#define	MAC_OS_VERSION_13_0	130000
+#define	MAC_OS_VERSION_14_0	140000
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 /* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
@@ -143,18 +152,6 @@
  * four digit values (two digits for the major version, one for the minor,
  * and one for the subminor). 
  * </p>
- * <p>The Apple compatibility version macros are currently:
- * <ref type="macro" id="MAC_OS_X_VERSION_10_0">MAC_OS_X_VERSION_10_0</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_1">MAC_OS_X_VERSION_10_1</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_2">MAC_OS_X_VERSION_10_2</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_3">MAC_OS_X_VERSION_10_3</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_4">MAC_OS_X_VERSION_10_4</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_5">MAC_OS_X_VERSION_10_5</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
- * <ref type="macro" id="MAC_OS_X_VERSION_10_9">MAC_OS_X_VERSION_10_9</ref>
- * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
   (!defined(GS_OPENSTEP_V) \
@@ -224,7 +221,7 @@
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-
+#if !defined(GS_GCC_MINREQ)
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
 #  define GS_GCC_MINREQ(maj, min) \
   ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -238,6 +235,7 @@
 #else
 #  define GS_CLANG_MINREQ(maj, min) 0
 #endif
+#endif /* GS_GCC_MINREQ */
 
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.
@@ -248,10 +246,43 @@
  * depending on where the attribute can be applied.
  */
 
+/* This macro is placed immediately before the name of a method or function
+ * to mark it as deprecated (ie it should not be used and is likely to be
+ * removed in a later release).
+ * Please do not use the older GS_DEPRECATED_FUNC macro, it's deprecated ;-)
+ */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
+#  define GS_DEPRECATED __attribute__((deprecated))
 #else
-#  define GS_DEPRECATED_FUNC
+#  define GS_DEPRECATED
+#endif
+#define GS_DEPRECATED_FUNC
+
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as unimplemented, though likley to become available in a later
+ * release.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_UNIMPLEMENTED __attribute__((deprecated("*** not implemented - please contribute an implementation before using this feature ***")))
+#else
+#  define GS_UNIMPLEMENTED
+#endif
+
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as non-portable... a feature which does not work on all platforms
+ * and should not be used unless you are specifically intending to write
+ * non portable code which will only ever be used on a platform known to
+ * support the feature.<br />
+ * The macro uses the compiler feature to mark a method as deprecated, but in
+ * this case the deprecation does not imply imminant removal of APIs which
+ * exist for compatibility with MacOS-X, but is intended to let developers
+ * know (via the text in the macro) what other API they should use.<br />
+ * Generally the argument X should be of the form 'use ... instead'.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_NON_PORTABLE(X) __attribute__((deprecated("***  not portable - please do not use this feature, " #X " ***")))
+#else
+#  define GS_NON_PORTABLE(X)
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))
@@ -287,11 +318,13 @@
 #  if	!GS_NONFRAGILE
 #    if	defined(GNUSTEP_BASE_INTERNAL)
 #      error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #    endif
 #  endif
 #else
 #  if	GS_NONFRAGILE
 #    error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
+#      error "Most likely you changed your build environment by reconfiguring gnustep-make and forgot to follow that by reconfiguring gnustep-base: if so, doing 'make distclean' and then running the configure script for gnustep-base should fix things."
 #  endif
 #endif
 
@@ -337,6 +370,16 @@
 #  endif
 #endif
 
+#ifndef NS_REPLACES_RECEIVER
+#  if __has_feature(attribute_ns_consumes_self) \
+     && __has_feature(attribute_ns_returns_retained)
+#    define NS_REPLACES_RECEIVER __attribute__((ns_consumes_self)) \
+       __attribute__((ns_returns_retained))
+#  else
+#    define NS_REPLACES_RECEIVER
+#  endif
+#endif
+
 #if defined(__clang__) && defined(__OBJC__)
 static inline void gs_consumed(id NS_CONSUMED o) GS_UNUSED_FUNC;
 static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
@@ -353,7 +396,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
-#    if defined(__APPLE__)
+#    if __has_include(<Block.h>)
 #      include <Block.h>
 #    else
 #      include <objc/blocks_runtime.h>
@@ -379,10 +422,10 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #if	defined(GNUSTEP_WITH_DLL)
 
 #if BUILD_libgnustep_base_DLL
-#
-# if defined(__MINGW__)
-  /* On Mingw, the compiler will export all symbols automatically, so
-   * __declspec(dllexport) is not needed.
+# if defined(__MINGW__) && !defined(__clang__)
+  /* On Mingw, the GCC compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.  Clang uses the more standard behavior,
+   * requiring you to add add a dllimport/dllexport attribute.
    */
 #  define GS_EXPORT_CLASS
 #  define GS_EXPORT  extern
@@ -395,8 +438,8 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define GS_DECLARE __declspec(dllexport)
 # endif
 #else
-# if defined(__MINGW__)
-   /* MinGW does not need dllimport on ObjC classes and produces warnings. */
+# if defined(__MINGW__) && !defined(__clang__)
+   /* On MinGW, the GCC compiler does not need dllimport on ObjC classes and produces warnings. */
 #  define GS_EXPORT_CLASS
 # else
 #  define GS_EXPORT_CLASS  __declspec(dllimport)
@@ -463,6 +506,39 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define GS_HAS_DECLARED_PROPERTIES 1
 #else
 #  define GS_HAS_DECLARED_PROPERTIES 0
+#endif
+
+
+/* Other constants/types commonplace in OSX applications but otherwise unused.
+ */
+
+#if !defined(__APPLE__)
+// noErr                   OSErr: function performed properly - no error
+enum {
+  noErr                         = 0
+};
+
+// kNilOptions             OptionBits: all flags false
+enum {
+  kNilOptions                   = 0
+};
+
+#define kInvalidID   0
+
+// kVariableLengthArray    array bounds: variable length array
+enum {
+  kVariableLengthArray  
+#ifdef __has_extension
+   #if __has_extension(enumerator_attributes)
+		__attribute__((deprecated))  
+	#endif
+#endif
+  = 1
+};
+
+enum {
+  kUnknownType                  = 0x3F3F3F3F /* "????" QuickTime 3.0: default unknown ResType or OSType */
+};
 #endif
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

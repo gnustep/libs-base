@@ -3,7 +3,7 @@
 
    Implementation of string class with attributes
 
-   Copyright (C) 1997,1999 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: November 1997
@@ -27,8 +27,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSAttributedString class reference</title>
    $Date$ $Revision$
@@ -66,7 +65,7 @@
 @class	GSMutableDictionary;
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end
-static Class	dictionaryClass = 0;
+static Class	dictionaryClass = Nil;
 
 static SEL	eqSel;
 static SEL	setSel;
@@ -267,20 +266,26 @@ appendUIntData(NSMutableData *d, NSUInteger i)
               NSRange r;
 
 	      len = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  len += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      len += *p++ << shift;
+	      if (p < end)
+		{
+		  len += *p++ << shift;
+		}
 
 	      idx = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  idx += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      idx += *p++ << shift;
+	      if (p < end)
+		{
+		  idx += *p++ << shift;
+		}
 
               r = NSMakeRange(pos, len);
 	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
@@ -392,9 +397,15 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  */
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes
 {
-  //This is the designated initializer
-  [self subclassResponsibility: _cmd];/* Primitive method! */
-  return nil;
+  Class	c = [self class];
+
+  if (NSAttributedStringClass == c || NSMutableAttributedStringClass == c)
+    {
+      // This is the designated initializer
+      [self subclassResponsibility: _cmd];/* Primitive method! */
+      return nil;
+    }
+  return [super init];	// Call NSObect initialiser for subclass instance
 }
 
 - (NSString*) description
@@ -445,6 +456,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
+  *aRange = NSMakeRange(NSNotFound, 0);
   return nil;
 }
 
@@ -770,20 +782,26 @@ appendUIntData(NSMutableData *d, NSUInteger i)
               NSRange r;
 
 	      len = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  len += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      len += *p++ << shift;
+	      if (p < end)
+		{
+		  len += *p++ << shift;
+		}
 
 	      idx = shift = 0;
-	      while (*p & 0x80)
+	      while (p < end && (*p & 0x80))
 		{
 		  idx += (*p++ - 128) << shift;
 		  shift += 7;
 		}
-	      idx += *p++ << shift;
+	      if (p < end)
+		{
+		  idx += *p++ << shift;
+		}
 
               r = NSMakeRange(pos, len);
 	      [self setAttributes: [attributes objectAtIndex: idx] range: r];

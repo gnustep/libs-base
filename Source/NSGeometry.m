@@ -1,7 +1,7 @@
 /** NSGeometry.m - geometry functions
  * Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
  *
- * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+ * Written by:  Adam Fedor <fedor@gnu.org>
  * Date: Mar 1995
  *
  * This file is part of the GNUstep Base Library.
@@ -18,8 +18,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA.
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSGeometry class reference</title>
    $Date$ $Revision$
@@ -37,6 +36,7 @@
 #import "common.h"
 #include <math.h>
 #import "Foundation/NSGeometry.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSNotification.h"
 #import "GSPrivate.h"
@@ -100,6 +100,116 @@ NSIntegralRect(NSRect aRect)
   rect.size.height = ceil(NSMaxY(aRect)) - rect.origin.y;
   return rect;
 }
+
+enum
+{
+  GSAlignUnset = 0,
+  GSAlignFloor,
+  GSAlignCeil,
+  GSAlignNearest
+};
+
+static CGFloat
+gsAlignValue(CGFloat value, int mode, BOOL tieDown)
+{
+  switch (mode)
+    {
+      case GSAlignFloor:
+        return floor(value);
+      case GSAlignCeil:
+        return ceil(value);
+      case GSAlignNearest:
+        /* Round to the nearest integer; a tie goes towards positive infinity,
+           or towards negative infinity for a flipped edge. */
+        return tieDown ? ceil(value - 0.5) : floor(value + 0.5);
+    }
+  return value;
+}
+
+static BOOL
+gsAlignAxis(CGFloat origin, CGFloat length,
+            int minMode, int maxMode, int sizeMode, BOOL tieDown,
+            CGFloat *outOrigin, CGFloat *outLength)
+{
+  int count = (minMode != GSAlignUnset)
+    + (maxMode != GSAlignUnset)
+    + (sizeMode != GSAlignUnset);
+
+  if (count != 2)
+    {
+      return NO;
+    }
+
+  if (minMode != GSAlignUnset && maxMode != GSAlignUnset)
+    {
+      CGFloat lo = gsAlignValue(origin, minMode, tieDown);
+      CGFloat hi = gsAlignValue(origin + length, maxMode, tieDown);
+
+      *outOrigin = lo;
+      *outLength = hi - lo;
+    }
+  else if (minMode != GSAlignUnset)
+    {
+      *outOrigin = gsAlignValue(origin, minMode, tieDown);
+      *outLength = gsAlignValue(length, sizeMode, NO);
+    }
+  else
+    {
+      CGFloat hi = gsAlignValue(origin + length, maxMode, tieDown);
+      CGFloat size = gsAlignValue(length, sizeMode, NO);
+
+      *outOrigin = hi - size;
+      *outLength = size;
+    }
+  return YES;
+}
+
+NSRect
+NSIntegralRectWithOptions(NSRect aRect, NSAlignmentOptions options)
+{
+  BOOL flipped = (options & NSAlignRectFlipped) ? YES : NO;
+  int minXMode, maxXMode, widthMode;
+  int minYMode, maxYMode, heightMode;
+  CGFloat ox, oy, ow, oh;
+
+  minXMode = (options & NSAlignMinXInward) ? GSAlignCeil
+    : (options & NSAlignMinXOutward) ? GSAlignFloor
+    : (options & NSAlignMinXNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  maxXMode = (options & NSAlignMaxXInward) ? GSAlignFloor
+    : (options & NSAlignMaxXOutward) ? GSAlignCeil
+    : (options & NSAlignMaxXNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  widthMode = (options & NSAlignWidthInward) ? GSAlignFloor
+    : (options & NSAlignWidthOutward) ? GSAlignCeil
+    : (options & NSAlignWidthNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  minYMode = (options & NSAlignMinYInward) ? GSAlignCeil
+    : (options & NSAlignMinYOutward) ? GSAlignFloor
+    : (options & NSAlignMinYNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  maxYMode = (options & NSAlignMaxYInward) ? GSAlignFloor
+    : (options & NSAlignMaxYOutward) ? GSAlignCeil
+    : (options & NSAlignMaxYNearest) ? GSAlignNearest
+    : GSAlignUnset;
+  heightMode = (options & NSAlignHeightInward) ? GSAlignFloor
+    : (options & NSAlignHeightOutward) ? GSAlignCeil
+    : (options & NSAlignHeightNearest) ? GSAlignNearest
+    : GSAlignUnset;
+
+  if (!gsAlignAxis(NSMinX(aRect), NSWidth(aRect),
+                   minXMode, maxXMode, widthMode, NO, &ox, &ow)
+    || !gsAlignAxis(NSMinY(aRect), NSHeight(aRect),
+                    minYMode, maxYMode, heightMode, flipped, &oy, &oh))
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSIntegralRectWithOptions: each axis needs exactly"
+                  @" two of its minimum edge, maximum edge and size"];
+    }
+
+  return NSMakeRect(ox, oy, ow, oh);
+}
+
 
 void 	
 NSDivideRect(NSRect aRect,
@@ -509,4 +619,3 @@ NSEdgeInsetsEqual(NSEdgeInsets e1, NSEdgeInsets e2)
     && almostEqual(e1.right, e2.right)
   );
 }
-

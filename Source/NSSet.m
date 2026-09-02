@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSSet class reference</title>
    $Date$ $Revision$
@@ -38,7 +37,6 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 
 @class	GSSet;
@@ -80,6 +78,11 @@ static Class NSMutableSet_concrete_class;
       NSSet_concrete_class = [GSSet class];
       [NSMutableSet class];
     }
+}
+
++ (BOOL) supportsSecureCoding
+{
+  return YES;
 }
 
 /**
@@ -450,7 +453,7 @@ static Class NSMutableSet_concrete_class;
     {
       k[i] = [e nextObject];
     }
-  return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
+  result = AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
     initWithObjects: k count: c]);
   GS_ENDIDBUF();
   return result;
@@ -905,7 +908,7 @@ static Class NSMutableSet_concrete_class;
   id<NSFastEnumeration> enumerator = self;
 
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
   {
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup,enumQueue, if (shouldStop == NO) {, }, aBlock, obj, &shouldStop);
     if (shouldStop)
@@ -913,7 +916,7 @@ static Class NSMutableSet_concrete_class;
 	break;
       }
   }
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
@@ -931,7 +934,7 @@ static Class NSMutableSet_concrete_class;
 
   resultSet = [NSMutableSet setWithCapacity: [self count]];
     
-  FOR_IN (id, obj, enumerator)
+  GS_FOR_IN (id, obj, enumerator)
     {
       BOOL include = CALL_NON_NULL_BLOCK(aBlock, obj, &shouldStop);
 
@@ -944,7 +947,7 @@ static Class NSMutableSet_concrete_class;
           break;
         }
     }
-  END_FOR_IN(enumerator)
+  GS_END_FOR(enumerator)
     
   return GS_IMMUTABLE(resultSet);
 }

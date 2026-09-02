@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 #if	!defined(LLONG_MAX)
 #  if	defined(__LONG_LONG_MAX__)
 #    define LLONG_MAX __LONG_LONG_MAX__
@@ -21,6 +25,17 @@ int main()
 {
   START_SET("NSNumber")
     NSNumber	*n;
+
+    START_SET("simple-number checks")
+      NSNumber	*nn = [NSNumber numberWithFloat: 42.0];
+
+      n = [NSNumber numberWithFloat: M_PI];
+      PASS([nn compare: n] == NSOrderedDescending, "42 is greater than pi")
+      PASS([n compare: nn] == NSOrderedAscending, "pi is smaller than 42")
+      PASS([n compare: n] == NSOrderedSame, "pi is pi")
+      PASS([nn compare: nn] == NSOrderedSame, "42 is 42")
+
+    END_SET("simple-number checks")
 
     START_SET("not-a-number checks")
 

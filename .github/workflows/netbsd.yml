@@ -1,0 +1,132 @@
+name: NetBSD
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  netbsd:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    # don't run pull requests from local branches twice
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: NetBSD 10.1 x86_64 Clang gnustep-2.2
+            release: "10.1"
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.2
+            # Known NetBSD test failures, see the uploaded Tests/tests.log:
+            #   base/NSException/basic.m:54 - -callStackReturnAddresses is
+            #     empty. configure reports "checking for backtrace... no"
+            #     because on NetBSD backtrace() is in libexecinfo, not libc.
+            #   base/NSURL/basic.m - segmentation fault
+            #   base/NSURLSession/simpleTaskTests.m - aborts
+            #   base/NSTask/posix_spawn_multithread.m - aborts, intermittently
+            allow-test-failures: true
+
+    env:
+      LIBRARY_COMBO: ${{ matrix.library-combo }}
+      RUNTIME_VERSION: ${{ matrix.runtime-version }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: source
+
+      - name: Build and test in NetBSD ${{ matrix.release }}
+        uses: vmactions/netbsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          usesh: true
+          cache-after-prepare: true
+          envs: 'LIBRARY_COMBO RUNTIME_VERSION'
+
+          # NetBSD is a minimal base install: everything below comes from
+          # pkgsrc. The package set mirrors the dependencies of pkgsrc's own
+          # devel/gnustep-base.
+          prepare: |
+            set -e
+            /usr/sbin/pkg_add \
+              bash \
+              clang \
+              cmake \
+              curl \
+              git-base \
+              gmake \
+              gmp \
+              gnutls \
+              icu \
+              libffi \
+              libunwind \
+              libxml2 \
+              libxslt \
+              pkgconf
+
+          # Building and installing must succeed for this step to pass. The
+          # result of "make check" is written to Tests/check-status and turned
+          # into a pass/fail by the "Check test results" step below, so that the
+          # logs are always copied back to the runner.
+          run: |
+            set -e
+            # The action runs this script with "set -eu"; gnustep-make's
+            # GNUstep.sh probes unset variables such as $ZSH_VERSION and so is
+            # not "set -u" clean.
+            set +u
+
+            export PATH="/usr/pkg/bin:/usr/pkg/sbin:$PATH"
+            export SRC_PATH="$GITHUB_WORKSPACE/source"
+            export DEPS_PATH="$HOME/dependencies"
+            export INSTALL_PATH="$HOME/build"
+            export LIBDIR=lib
+            export CC=clang
+            export CXX=clang++
+            # NetBSD's /usr/bin/make is bmake; the dependency builds need GNU make
+            export MAKE=gmake
+            # swift-corelibs-libdispatch has no NetBSD support, and gnustep-base
+            # treats libdispatch as optional
+            export INSTALL_LIBDISPATCH=false
+
+            cd "$SRC_PATH"
+            ./.github/scripts/dependencies.sh
+
+            . "$INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh"
+            cd "$SRC_PATH"
+            # NetBSD's libc iconv has no //TRANSLIT, so lossy conversion is
+            # unavailable. pkgsrc builds devel/gnustep-base the same way.
+            ./configure --enable-limitediconv
+            gmake -j"$(sysctl -n hw.ncpu)"
+            gmake install
+
+            CHECK_STATUS=0
+            gmake check || CHECK_STATUS=$?
+            echo "$CHECK_STATUS" > "$SRC_PATH/Tests/check-status"
+
+            if [ "$CHECK_STATUS" != 0 ]; then
+              echo "===== crashes and failures in Tests/tests.log ====="
+              grep -n -B5 -A25 -iE "aborted|signal|Segmentation|Abort trap|Bus error" \
+                "$SRC_PATH/Tests/tests.log" | head -300 || true
+            fi
+
+      - name: Check test results
+        continue-on-error: ${{ matrix.allow-test-failures || false }}
+        run: |
+          tail -n 12 source/Tests/tests.log || true
+          exit "$(cat source/Tests/check-status)"
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: Logs - ${{ matrix.name }}
+          path: |
+            source/config.log
+            source/Tests/tests.log

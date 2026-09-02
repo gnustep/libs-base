@@ -1,7 +1,7 @@
-/* Implementation of class NSDateComponentsFormatter
+/**Implementation of class NSDateComponentsFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: Gregory Casamento <greg.casamento@gmail.com>
+   Author: Gregory Casamento <greg.casamento@gmail.com>
    Date: Wed Nov  6 00:24:02 EST 2019
 
    This file is part of the GNUstep Library.
@@ -18,16 +18,17 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
-#include <Foundation/NSDateComponentsFormatter.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSNumberFormatter.h>
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSDateComponentsFormatter.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSNumberFormatter.h"
 
 @implementation NSDateComponentsFormatter
 
@@ -61,7 +62,32 @@
   self = [super initWithCoder: coder];
   if (self != nil)
     {
-      // TODO: Implement coding...
+      if ([coder allowsKeyedCoding])
+        {
+          ASSIGN(_calendar, [coder decodeObjectForKey: @"NS.calendar"]);
+          ASSIGN(_referenceDate, [coder decodeObjectForKey: @"NS.referenceDate"]);
+          _allowsFractionalUnits = [coder decodeBoolForKey: @"NS.allowsFractionalUnits"];
+          _collapsesLargestUnit = [coder decodeBoolForKey: @"NS.collapsesLargestUnit"];
+          _includesApproximationPhrase = [coder decodeBoolForKey: @"NS.includesApproximationPhrase"];
+          _formattingContext = [coder decodeIntegerForKey: @"NS.formattingContext"];
+          _maximumUnitCount = [coder decodeIntegerForKey: @"NS.maximumUnitCount"];
+          _zeroFormattingBehavior = [coder decodeIntegerForKey: @"NS.zeroFormattingBehavior"];
+          _allowedUnits = [coder decodeIntegerForKey: @"NS.allowedUnits"];
+          _unitsStyle = [coder decodeIntegerForKey: @"NS.unitsStyle"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(id) at: &_calendar];
+          [coder decodeValueOfObjCType: @encode(id) at: &_referenceDate];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFractionalUnits];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_collapsesLargestUnit];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_includesApproximationPhrase];
+          [coder decodeValueOfObjCType: @encode(NSFormattingContext) at: &_formattingContext];
+          [coder decodeValueOfObjCType: @encode(NSInteger) at: &_maximumUnitCount];
+          [coder decodeValueOfObjCType: @encode(NSDateComponentsFormatterZeroFormattingBehavior) at: &_zeroFormattingBehavior];
+          [coder decodeValueOfObjCType: @encode(NSCalendarUnit) at: &_allowedUnits];
+          [coder decodeValueOfObjCType: @encode(NSDateComponentsFormatterUnitsStyle) at: &_unitsStyle];
+        }
     }
   return self;
 }
@@ -69,7 +95,32 @@
 - (void) encodeWithCoder: (NSCoder *)coder
 {
   [super encodeWithCoder: coder];
-  // TODO: Implement coding...
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _calendar forKey: @"NS.calendar"];
+      [coder encodeObject: _referenceDate forKey: @"NS.referenceDate"];
+      [coder encodeBool: _allowsFractionalUnits forKey: @"NS.allowsFractionalUnits"];
+      [coder encodeBool: _collapsesLargestUnit forKey: @"NS.collapsesLargestUnit"];
+      [coder encodeBool: _includesApproximationPhrase forKey: @"NS.includesApproximationPhrase"];
+      [coder encodeInteger: _formattingContext forKey: @"NS.formattingContext"];
+      [coder encodeInteger: _maximumUnitCount forKey: @"NS.maximumUnitCount"];
+      [coder encodeInteger: _zeroFormattingBehavior forKey: @"NS.zeroFormattingBehavior"];
+      [coder encodeInteger: _allowedUnits forKey: @"NS.allowedUnits"];
+      [coder encodeInteger: _unitsStyle forKey: @"NS.unitsStyle"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(id) at: &_calendar];
+      [coder encodeValueOfObjCType: @encode(id) at: &_referenceDate];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_allowsFractionalUnits];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_collapsesLargestUnit];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_includesApproximationPhrase];
+      [coder encodeValueOfObjCType: @encode(NSFormattingContext) at: &_formattingContext];
+      [coder encodeValueOfObjCType: @encode(NSInteger) at: &_maximumUnitCount];
+      [coder encodeValueOfObjCType: @encode(NSDateComponentsFormatterZeroFormattingBehavior) at: &_zeroFormattingBehavior];
+      [coder encodeValueOfObjCType: @encode(NSCalendarUnit) at: &_allowedUnits];
+      [coder encodeValueOfObjCType: @encode(NSDateComponentsFormatterUnitsStyle) at: &_unitsStyle];
+    }
 }
 
 - (void) dealloc
@@ -83,7 +134,11 @@
 {
   NSString *result = nil;
   
-  if ([obj isKindOfClass: [NSDateComponents class]])
+  if (obj == nil)
+    {
+      result = @"";
+    }
+  else if ([obj isKindOfClass: [NSDateComponents class]])
     {
       result = [self stringFromDateComponents: obj];
     }
@@ -91,6 +146,10 @@
     {
       NSTimeInterval ti = [obj longLongValue];
       result = [self stringFromTimeInterval: ti];
+    }
+  else
+    {
+      result = @"";
     }
     
   return result;
@@ -456,7 +515,7 @@
   return _zeroFormattingBehavior;
 }
 
-- (void) setZeroFormattingBehavior: (NSDateComponentsFormatterZeroFormattingBehavior)behavior;
+- (void) setZeroFormattingBehavior: (NSDateComponentsFormatterZeroFormattingBehavior)behavior
 {
   _zeroFormattingBehavior = behavior;
 }
@@ -466,7 +525,7 @@
   return _calendar;
 }
 
-- (void) setCalender: (NSCalendar *)calendar
+- (void) setCalendar: (NSCalendar *)calendar
 {
   ASSIGNCOPY(_calendar, calendar);
 }

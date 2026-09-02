@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource:	NSZone.m
     AutogsdocSource:	NSPage.m
@@ -30,28 +29,6 @@
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 #import	"GNUstepBase/GSVersionMacros.h"
 
-/**
- * Primary structure representing an <code>NSZone</code>.  Technically it
- * consists of a set of function pointers for zone upkeep functions plus some
- * other things-
-<example>
-{
-  // Functions for zone.
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-
-  // Zone statistics (not always maintained).
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran;    // Zone granularity (passed in on initialization)
-  NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;   // Pointer used for internal management of multiple zones.
-}</example>
- */
 typedef struct _NSZone NSZone;
 
 #import	<Foundation/NSObjCRuntime.h>
@@ -62,84 +39,50 @@ typedef struct _NSZone NSZone;
 extern "C" {
 #endif
 
-struct _NSZone
-{
-  /* Functions for zone. */
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran; // Zone granularity
-  __unsafe_unretained NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;
-};
-
 /**
  * Creates a new zone of start bytes, which will grow and shrink by
  * granularity bytes.  If canFree is 0, memory in zone is allocated but
  * never freed, meaning allocation will be very fast.  The whole zone can
  * still be freed with NSRecycleZone(), and you should still call NSZoneFree
  * on memory in the zone that is no longer needed, since a count of allocated
- * pointers is kept and must reach zero before freeing the zone.<br />
- * If Garbage Collection is enabled, this function does nothing other than
- * log a warning and return the same value as the NSDefaultMallocZone()
- * function.
+ * pointers is kept and must reach zero before freeing the zone.
  */
 GS_EXPORT NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree);
 
 /** Returns the default zone for memory allocation.  Memory created in this
- * zone is the same as memory allocates using the system malloc() function.
+ * zone is the same as memory allocates using the system malloc function.
  */
 GS_EXPORT NSZone*
 NSDefaultMallocZone (void);
 
-/**
- * Searches and finds the zone ptr was allocated from.  The speed depends
- * upon the number of zones and their size.<br />
- * If Garbage Collection is enabled, this function always returns the
- * same as the NSDefaultMallocZone() function.
+/** Searches and finds the zone ptr was allocated from.  The speed depends
+ * upon the number of zones and their size.
  */
 GS_EXPORT NSZone*
 NSZoneFromPointer (void *ptr);
 
-/**
- * Allocates and returns memory for elems items of size bytes, in the
- * given zone.  Returns NULL if allocation of size 0 requested.  Raises
- * <code>NSMallocException</code> if not enough free memory in zone to
- * allocate and no more can be obtained from system, unless using the
- * default zone, in which case NULL is returned.<br />
- * If Garbage Collection is enabled, this function always allocates
- * non-scanned, non-collectable memory in the NSDefaultMallocZone() and
- * the zone argument is ignored.
+/** Allocates and returns memory for elems items of size bytes, in the
+ * given zone.  Returns NULL if allocation of size 0 requested or if
+ * not enough free memory in zone to allocate and no more can be obtained
+ * from system.
  */
 GS_EXPORT void*
 NSZoneMalloc (NSZone *zone, NSUInteger size);
 
-/**
- * Allocates and returns cleared memory for elems items of size bytes, in the
- * given zone.  Returns NULL if allocation of size 0 requested.  Raises
- * <code>NSMallocException</code> if not enough free memory in zone to
- * allocate and no more can be obtained from system, unless using the
- * default zone, in which case NULL is returned.<br />
- * If Garbage Collection is enabled, this function always allocates
- * non-scanned, non-collectable memory in the NSDefaultMallocZone() and
- * the zone argument is ignored.
+/** Allocates and returns cleared memory for elems items of size bytes, in the
+ * given zone.  Returns NULL if allocation of size 0 requested or if not
+ * enough free memory in zone to allocate and no more can be obtained from
+ * the system.
  */
 GS_EXPORT void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes);
 
-/**
- * Reallocates the chunk of memory in zone pointed to by ptr to a new one of
- * size bytes.  Existing contents in ptr are copied over.  Raises an
- * <code>NSMallocException</code> if insufficient memory is available in the
- * zone and no more memory can be obtained from the system, unless using the
- * default zone, in which case NULL is returned.<br />
- * If Garbage Collection is enabled, the zone argument is ignored.
+/** Reallocates the chunk of memory in zone pointed to by ptr to a new one of
+ * size bytes.  Existing contents in ptr are copied over.  Frees ptr and returns
+ * NULL if allocation of size 0 is requested.  Returns NULL leaving ptr unchanged
+ * if insufficient memory is available in the zone and no more memory can be
+ * obtained from the system.
  */
 GS_EXPORT void*
 NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size);
@@ -149,8 +92,7 @@ NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size);
  * unless all memory in the zone has been explicitly freed (by calls to
  * NSZoneFree()).  For "non-freeable" zones, the number of NSZoneFree() calls
  * must simply equal the number of allocation calls.  The default zone, on the
- * other hand, cannot be recycled.<br />
- * If Garbage Collection is enabled, this function has not effect.
+ * other hand, cannot be recycled.
  */
 GS_EXPORT void
 NSRecycleZone (NSZone *zone);
@@ -159,9 +101,7 @@ NSRecycleZone (NSZone *zone);
  * Frees memory pointed to by ptr (which should have been allocated by a
  * previous call to NSZoneMalloc(), NSZoneCalloc(), or NSZoneRealloc()) and
  * returns it to zone.  Note, if this is a nonfreeable zone, the memory is
- * not actually freed, but the count of number of free()s is updated.<br />
- * If Garbage Collection is enabled, the zone argument is ignored and this
- * function causes ptr to be deallocated immediately.
+ * not actually freed, but the count of number of free()s is updated.
  */
 GS_EXPORT void
 NSZoneFree (NSZone *zone, void *ptr);
@@ -231,40 +171,6 @@ NSZoneStats (NSZone *zone);
 void*
 GSOutOfMemory(NSUInteger size, BOOL retry);
 
-/**
- * Called during +initialize to tell the class that instances created
- * in future should have the specified instance variable as a weak
- * pointer for garbage collection.<br />
- * NB. making a pointer weak does not mean that it is automatically
- * zeroed when the object it points to is garbage collected. To get that
- * behavior you must asign values to the pointer using the
- * GSAssignZeroingWeakPointer() function.<br />
- * This function has no effect if the system is
- * not built for garbage collection.
- */
-GS_EXPORT void
-GSMakeWeakPointer(Class theClass, const char *iVarName);
-
-/**
- * This function must be used to assign a value to a zeroing weak pointer.<br />
- * A zeroing weak pointer is one where, when the garbage collector collects
- * the object pointed to, it also clears the weak pointer.<br />
- * Assigning zero (nil) will always succeed and has the effect of telling the
- * garbage collector that it no longer needs to track the previously assigned
- * object.  Apart from that case, a source needs to be garbage collectable for
- * this function to work, and using a non-garbage collectable value will
- * cause the function to return NO.<br />
- * If the destination object (the weak pointer watching the source object)
- * belongs to a chunk of memory which may be collected before the source
- * object is collected, it is important that it is finalised and the
- * finalisation code assigns zero to the pointer.<br />
- * If garbage collection is not in use, this function performs a simple
- * assignment returning YES, unless destination is null in which case it
- * returns NO.
- */
-GS_EXPORT BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source);
-
 #endif
 
 GS_EXPORT NSUInteger
@@ -298,14 +204,8 @@ enum {
   NSCollectorDisabledOption = (1<<1)
 };
 
-/** Allocate memory.  If garbage collection is not enabled this uses the
- * default malloc zone and the options are ignored.<br />
- * If garbage collection is enabled, the allocate memory is normally not
- * scanned for pointers but is itsself garbage collectable.  The options
- * argument is a bitmask in which NSScannedOption sets the memory to be
- * scanned for pointers by the garbage collector, and
- * NSCollectorDisabledOption causes the memory to be excempt from being
- * garbage collected itsself.<br />
+/** Allocate memory.  Since garbage collection is not available this uses
+ * the default malloc zone and the options are ignored.<br />
  * In any case the memory returned is zero'ed.
  */
 GS_EXPORT void *
@@ -319,14 +219,6 @@ GS_EXPORT void *
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options);
 
 #endif
-
-static inline id NSMakeCollectable(const void *cf) {
-#if __has_feature(objc_arc)
-    return nil;
-#else
-    return (id)cf; // Unimplemented; garbage collection is deprecated.
-#endif
-}
 
 #if	defined(__cplusplus)
 }

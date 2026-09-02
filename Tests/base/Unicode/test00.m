@@ -21,6 +21,7 @@ int main()
   cstr = [[NSString alloc] initWithData: adat encoding: NSUTF8StringEncoding];
   PASS((cstr != nil && [cstr isKindOfClass: [NSString class]]),
        "We can convert to UTF8 Encoding");
+  RELEASE(cstr);
 
   [arp release]; arp = nil;
   return 0;

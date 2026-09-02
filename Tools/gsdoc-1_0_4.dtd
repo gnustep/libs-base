@@ -18,8 +18,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free
-  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-  Boston, MA 02111 USA.
+  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 -->
 
@@ -578,10 +577,16 @@
 <!-- The version of the document. -->
 <!ELEMENT version (%text;)*>
 
-<!-- The date the document was written. -->
+<!-- The date the document was written.
+     If the text content is empty, output produced from the document
+     should describe the date/time at which that output was generated.
+     -->
 <!ELEMENT date (%text;)*>
 
-<!-- An author. -->
+<!-- An author.
+     If the name attribute is empty, output produced from the document
+     should describe the user account which generated the output.
+     -->
 <!ELEMENT author (email?, url?, desc?)>
 <!ATTLIST author
   name CDATA #REQUIRED

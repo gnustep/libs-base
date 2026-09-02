@@ -22,11 +22,9 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"
@@ -49,6 +47,7 @@
 
 #import "../GSPrivate.h"
 #import "../GSPThread.h"
+#import "../typeEncodingHelper.h"
 
 #include <objc/Protocol.h>
 
@@ -1000,8 +999,8 @@ GSObjCAddClassOverride(Class receiver, Class override)
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
  * If type is null and can't be determined from the selector, the
- * [NSObject-handleQueryWithUnboundKey:] method is called to try
- * to get a value.
+ * "-handleQueryWithUnboundKey:" method is called (if the object responds to
+ * that message) to try to get a value.
  */
 id
 GSObjCGetVal(NSObject *self, const char *key, SEL sel,
@@ -1318,7 +1317,8 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (GSSelectorTypesMatch(@encode(NSPoint), type))
+		  {
+            if (IS_CGPOINT_ENCODING(type))
               {
                 NSPoint	v;
 
@@ -1335,7 +1335,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRange), type))
+            else if (IS_NSRANGE_ENCODING(type))
               {
                 NSRange	v;
 
@@ -1352,7 +1352,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRect), type))
+            else if (IS_CGRECT_ENCODING(type))
               {
                 NSRect	v;
 
@@ -1369,7 +1369,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSSize), type))
+            else if (IS_CGSIZE_ENCODING(type))
               {
                 NSSize	v;
 
@@ -1411,6 +1411,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
               }
             break;
+		  }
 
 	  default:
 #ifdef __GNUSTEP_RUNTIME__
@@ -1454,8 +1455,8 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
  * If type is null and can't be determined from the selector, the
- * [NSObject-handleTakeValue:forUnboundKey:] method is called to try
- * to set a value.
+ * "-handleTakeValue:forUnboundKey:" method is called (if the object
+ * responds to that message) to try to set a value.
  */
 void
 GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
@@ -1981,7 +1982,7 @@ GSAutoreleasedBuffer(unsigned size)
   static Class	buffer_class = 0;
   static Class	autorelease_class;
   static SEL	autorelease_sel;
-  static id	(*autorelease_imp)(Class, SEL, id);
+  static void	(*autorelease_imp)(Class, SEL, id);
   static int	instance_size;
   static int	offset;
   NSObject	*o;
@@ -1993,7 +1994,7 @@ GSAutoreleasedBuffer(unsigned size)
       offset = instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
-      autorelease_imp = (id (*)(Class, SEL, id))
+      autorelease_imp = (void (*)(Class, SEL, id))
         [autorelease_class methodForSelector: autorelease_sel];
     }
   o = (NSObject*)NSAllocateObject(buffer_class,
@@ -2056,14 +2057,8 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 }
 
 #if     defined(GNUSTEP_BASE_LIBRARY)
-
-# ifndef	NDEBUG
-#   define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#   define	AREM(c, o) GSDebugAllocationRemove(c, o)
-# else
-#   define	AADD(c, o) 
-#   define	AREM(c, o) 
-# endif
+# define	AADD(c, o) GSDebugAllocationAdd(c, o)
+# define	AREM(c, o) GSDebugAllocationRemove(c, o)
 #else
 # define	AADD(c, o) 
 # define	AREM(c, o) 
@@ -2338,4 +2333,3 @@ GSObjCPrint(void *base, void *item)
       fprintf(fptr, "}\n");
     }
 }
-

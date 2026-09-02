@@ -9,6 +9,8 @@
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSValue.h>
+#import <Foundation/NSError.h>
+#import <Foundation/FoundationErrors.h>
 
 @interface DegeneratePatternTest : NSObject
 {
@@ -67,15 +69,12 @@ int main()
     [dflts setVolatileDomain: domain
                      forName: @"GSTestDomain"];
 # endif
-  id testObj = [[NSRegularExpression alloc] initWithPattern: @"^a"
-                                                    options: 0
-                                                      error: NULL];
+  id testObj = AUTORELEASE([[NSRegularExpression alloc]
+    initWithPattern: @"^a" options: 0 error: NULL]);
 
   test_NSObject(@"NSRegularExpression",
-                [NSArray arrayWithObject:
-                  [[NSRegularExpression alloc] initWithPattern: @"^a"
-                                                       options: 0
-                                                         error: NULL]]);
+    [NSArray arrayWithObject: AUTORELEASE([[NSRegularExpression
+      alloc] initWithPattern: @"^a" options: 0 error: NULL])]);
   test_NSCopying(@"NSRegularExpression",@"NSRegularExpression",
                  [NSArray arrayWithObject:testObj],NO,NO);
 
@@ -102,7 +101,7 @@ int main()
                                              withTemplate: @"c"];
   PASS_EQUAL(replacement, @"cb", "Replacement correct");
 
-  NSString *replMut = [NSMutableString stringWithString: @"ab"];
+  NSMutableString *replMut = [NSMutableString stringWithString: @"ab"];
   [testObj replaceMatchesInString: replMut
                           options: 0
                             range: NSMakeRange(0,2)
@@ -120,7 +119,7 @@ int main()
   NSTextCheckingResult *r = [testObj firstMatchInString: @"ab"
                                                 options: 0
                                                   range: NSMakeRange(0,2)];
-  PASS(r, "Found NSTextCheckingResult");
+  PASS(r != nil, "Found NSTextCheckingResult");
   replacement = @"should be unset on return";
   replacement = [testObj replacementStringForResult: r
                                            inString: @"ab"
@@ -136,10 +135,8 @@ int main()
   PASS_EQUAL(replacement, @"c",
              "Custom replacement: Returns correct replacement");
 
-  NSRegularExpression *testObj2 =
-    [[NSRegularExpression alloc] initWithPattern: @"bc"
-					 options: 0
-					   error: NULL];
+  NSRegularExpression *testObj2 = AUTORELEASE([[NSRegularExpression alloc]
+    initWithPattern: @"bc" options: 0 error: NULL]);
   r = [testObj2 firstMatchInString: @"abcdeabcde"
 			   options: 0
 			     range: NSMakeRange(5, 5)];
@@ -169,6 +166,38 @@ int main()
        beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
     }
   PASS(NO == [thread isExecuting], "Faulty regular expression terminated");
+
+  /* Testing the error handling when an invalid pattern is passed
+   * The error should look like this:
+   *
+   * Error Domain=NSCocoaErrorDomain Code=2048 "The value “(abc” is
+   * invalid." UserInfo={NSInvalidValue=(abc}
+   */
+
+  NSError *error = nil;
+  NSRegularExpression *testObj3 =
+    [[NSRegularExpression alloc] initWithPattern: @"(abc"
+           options: 0
+             error: &error];
+  PASS(testObj3 == nil, "Invalid pattern: returns nil");
+  PASS(error != nil, "Invalid pattern: error is set");
+  PASS_EQUAL([error domain], NSCocoaErrorDomain,
+             "Invalid pattern: error domain is NSCocoaErrorDomain");
+  PASS_EQUAL([error code], NSFormattingError, 
+             "Invalid pattern: error code is NSFormattingError");
+  PASS_EQUAL([[error userInfo] objectForKey: @"NSInvalidValue"],
+             @"(abc", "Invalid pattern: error message is correct");
+  PASS_EQUAL([[error userInfo] objectForKey: NSLocalizedDescriptionKey],
+             @"The value “(abc” is invalid.",
+             "Invalid pattern: localized description is correct");
+
+  /* Testing exception handling when nil is passed as pattern */
+  PASS_EXCEPTION([NSRegularExpression regularExpressionWithPattern: nil
+                                                           options: 0
+                                                             error: NULL],
+                 NSInvalidArgumentException,
+                 "nil pattern: throws NSInvalidArgumentException");
+
 #endif
 
   END_SET("NSRegularExpression")

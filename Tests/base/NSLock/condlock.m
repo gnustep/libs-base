@@ -65,18 +65,20 @@ NSMutableArray *received;
 
 int main(void)
 {
-  [NSAutoreleasePool new];
+  ENTER_POOL
   {
-    Queue *q = [Queue new];
-    NSMutableArray *sent = [NSMutableArray new];
-    received = [NSMutableArray new];
-    unsigned int i;
+    Queue 		*q = AUTORELEASE([Queue new]);
+    NSMutableArray 	*sent = [NSMutableArray array];
+    unsigned int 	i;
+
+    received = [NSMutableArray array];
     [NSThread detachNewThreadSelector: @selector(consumeFromQueue:)
-                 toTarget: [Consumer new]
-                 withObject: q];
+			     toTarget: [Consumer new]
+			   withObject: q];
     for (i = 0; i < 10000; i++)
       {
         id obj = [NSNumber numberWithUnsignedInt: i];
+
         [sent addObject: obj];
         if (i % 10 == 0)
           {
@@ -91,5 +93,6 @@ int main(void)
     [NSThread sleepForTimeInterval: 2.0];
     PASS([sent isEqual: received], "Condition lock");
   }
+  LEAVE_POOL
   return 0;
 }

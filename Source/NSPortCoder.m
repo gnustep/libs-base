@@ -26,8 +26,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSPortCoder class reference</title>
    $Date$ $Revision$
@@ -660,17 +659,16 @@ scalarSize(char type)
 		  rep = [obj initWithCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)rep, xref);
 		    }
+	          obj = rep;
 
 		  rep = [obj awakeAfterUsingCoder: self];
 		  if (rep != obj)
 		    {
-		      obj = rep;
-		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
+		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)rep, xref);
 		    }
-		  GS_CONSUMED(rep)
+	          obj = rep;
 		}
 	    }
 	  *(id*)address = obj;
@@ -1924,6 +1922,10 @@ scalarSize(char type)
 						   sendPort: send]);
   if (_comp == nil)
     {
+      if (nil == (self = [super init]))
+	{
+	  return nil;
+	}
       firstTime = YES;
       _version = [super systemVersion];
       _zone = NSDefaultMallocZone();

@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA
 #
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -65,7 +64,7 @@ check::
 	GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES="$(TOP_DIR)/base.make";\
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers -I$(TOP_DIR)/Source/$(GNUSTEP_TARGET_DIR)";\
 	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
-	if [ "$(GNUSTEP_TARGET_OS)" != "windows" ]; then \
+	if [ "$(GNUSTEP_TARGET_OS)" != "windows" -a "$(GNUSTEP_TARGET_OS)" != "mingw32" ]; then \
 		PATH="$(TOP_DIR)/Tools/$(GNUSTEP_OBJ_DIR):${PATH}";\
 		ADDITIONAL_LDFLAGS="-Wl,-rpath,$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
 		LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
@@ -77,9 +76,9 @@ check::
 	export ADDITIONAL_INCLUDE_DIRS;\
 	export ADDITIONAL_LIB_DIRS;\
 	if [ "$(debug)" = "yes" ]; then \
-	  gnustep-tests --debug 'base/$(testobj)';\
+	  gnustep-tests --debug --timeout 300 'base/$(testobj)';\
         else \
-	  gnustep-tests 'base/$(testobj)';\
+	  gnustep-tests --timeout 300 'base/$(testobj)';\
         fi; \
 	)
 

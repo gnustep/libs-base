@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSNumberFormatter class reference</title>
    $Date$ $Revision$
@@ -60,6 +59,7 @@
 #import "Foundation/NSCharacterSet.h"
 
 #import "GNUstepBase/GSLocale.h"
+#import "GSPrivate.h"
 
 @class NSDoubleNumber;
 
@@ -560,7 +560,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
-  if (internal != 0)
+  if (GS_EXISTS_INTERNAL)
     {
       int idx;
 
@@ -723,43 +723,45 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (id) init
 {
-  id	o;
-  int idx;
-  
-  GS_CREATE_INTERNAL(NSNumberFormatter)
-  
-  _allowsFloats = YES;
-  _decimalSeparator = '.';
-  _thousandSeparator = ',';
-  _hasThousandSeparators = YES;
-  o = [[NSAttributedString alloc] initWithString: @""];
-  [self setAttributedStringForNil: o];
-  RELEASE(o);
-  o = [[NSAttributedString alloc] initWithString: @"NaN"];
-  [self setAttributedStringForNotANumber: o];
-  RELEASE(o);
-  
-  internal->_behavior = _defaultBehavior;
-  internal->_locale = RETAIN([NSLocale currentLocale]);
-  internal->_style = NSNumberFormatterNoStyle;
-
-  /* Set all attributes to -1 before resetting the formatter.  When
-   * resetting them only values < 0 will be skipped.
-   */
-  for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
-    internal->_attributes[idx] = -1;
-  
-  [self _resetUNumberFormat];
-#if GS_USE_ICU == 1
-  if (internal->_formatter == NULL)
+  if (nil != (self = [super init]))
     {
-      RELEASE(self);
-      return nil;
-    }
+      id	o;
+      int 	idx;
+      
+      GS_CREATE_INTERNAL(NSNumberFormatter)
+      
+      _allowsFloats = YES;
+      _decimalSeparator = '.';
+      _thousandSeparator = ',';
+      _hasThousandSeparators = YES;
+      o = [[NSAttributedString alloc] initWithString: @""];
+      [self setAttributedStringForNil: o];
+      RELEASE(o);
+      o = [[NSAttributedString alloc] initWithString: @"NaN"];
+      [self setAttributedStringForNotANumber: o];
+      RELEASE(o);
+      
+      internal->_behavior = _defaultBehavior;
+      internal->_locale = RETAIN([NSLocale currentLocale]);
+      internal->_style = NSNumberFormatterNoStyle;
+
+      /* Set all attributes to -1 before resetting the formatter.  When
+       * resetting them only values < 0 will be skipped.
+       */
+      for (idx = 0; idx < MAX_ATTRIBUTES; ++idx)
+	internal->_attributes[idx] = -1;
+      
+      [self _resetUNumberFormat];
+#if GS_USE_ICU == 1
+      if (internal->_formatter == NULL)
+	{
+	  RELEASE(self);
+	  return nil;
+	}
 #endif
-  
-  [self setMaximumFractionDigits: 0];
-  
+      
+      [self setMaximumFractionDigits: 0];
+    }  
   return self;
 }
 
@@ -900,12 +902,12 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   return _localizesFormat;
 }
 
-- (NSDecimalNumber*) maximum
+- (NSNumber*) maximum
 {
   return _maximum;
 }
 
-- (NSDecimalNumber*) minimum
+- (NSNumber*) minimum
 {
   return _minimum;
 }
@@ -1002,13 +1004,13 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   _localizesFormat = flag;
 }
 
-- (void) setMaximum: (NSDecimalNumber*)aMaximum
+- (void) setMaximum: (NSNumber*)aMaximum
 {
   // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_maximum, aMaximum);
 }
 
-- (void) setMinimum: (NSDecimalNumber*)aMinimum
+- (void) setMinimum: (NSNumber*)aMinimum
 {
   // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_minimum, aMinimum);
@@ -1051,6 +1053,56 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
+  NSDecimalNumber *zeroNumber;
+  NSDecimalNumber *nanNumber;
+  NSAttributedString *attrStr;
+  
+  // Handle nil objects
+  if (nil == anObject)
+    {
+      attrStr = [self attributedStringForNil];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle non-NSNumber objects
+  if (![anObject isKindOfClass: [NSNumber class]])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle NaN
+  nanNumber = [NSDecimalNumber notANumber];
+  if ([anObject isEqual: nanNumber])
+    {
+      attrStr = [self attributedStringForNotANumber];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      return @"";
+    }
+  
+  // Handle zero
+  zeroNumber = [NSDecimalNumber zero];
+  if ([anObject isEqual: zeroNumber])
+    {
+      attrStr = [self attributedStringForZero];
+      if (attrStr != nil)
+        {
+          return [attrStr string];
+        }
+      // Fall through to normal formatting if no special zero string is set
+    }
+  
   if (MYBEHAVIOR == NSNumberFormatterBehaviorDefault
     || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
     {
@@ -1086,10 +1138,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
        * falling through to the double case for this, which will lose us some
        * precision, but hopefully not matter too much...
        */
-      if (nil == anObject)
-        return [self nilSymbol];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [self notANumberSymbol];
       switch ([anObject objCType][0])
         {
           case _C_LNG_LNG:
@@ -1177,16 +1225,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
         characterSetWithCharactersInString: @"0123456789#.,_"];
       placeHolders = [NSCharacterSet 
         characterSetWithCharactersInString: @"0123456789#_"];
-
-      if (nil == anObject)
-        return [[self attributedStringForNil] string];
-      if (![anObject isKindOfClass: [NSNumber class]])
-        return [[self attributedStringForNotANumber] string];
-      if ([anObject isEqual: [NSDecimalNumber notANumber]])
-        return [[self attributedStringForNotANumber] string];
-      if (_attributedStringForZero
-          && [anObject isEqual: [NSDecimalNumber zero]])
-        return [[self attributedStringForZero] string];
       
       useFormat = _positiveFormat;
       if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
@@ -1408,55 +1446,57 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (NSNumber *) numberFromString: (NSString *)string
 {
+  NSNumber	*result = nil;
 // This is a 10.4 and above method and should not work with earlier version.
 #if GS_USE_ICU == 1
-  NSNumber *result;
-  NSUInteger length;
-  NSRange range;
-  UErrorCode err = U_ZERO_ERROR;
-  unichar *ustring;
-  int64_t intNum;
-  double doubleNum;
-  
-  if (string == nil)
-    return nil;
-  
-  length = [string length];
-  ustring = NSZoneMalloc ([self zone], sizeof(unichar) * length);
-  if (ustring == NULL)
-    return nil;
-  
-  [string getCharacters: ustring range: NSMakeRange(0, length)];
-  
-  // FIXME: Not sure if this is correct....
-  range = [string rangeOfString: @"."];
-  if (range.location == NSNotFound)
+  NSUInteger 	length = [string length];
+
+  if (length > 0)
     {
-      intNum = unum_parseInt64(internal->_formatter,
-        ustring, length, NULL, &err);
-      if (U_FAILURE(err))
-        return nil;
-      if (intNum == 0 || intNum == 1)
-        result = [NSNumber numberWithBool: (BOOL) intNum];
-      else if (intNum < INT_MAX && intNum > INT_MIN)
-        result = [NSNumber numberWithInt: (int32_t)intNum];
+      NSRange 		range;
+      UErrorCode 	err = U_ZERO_ERROR;
+      int64_t 		intNum;
+      double 		doubleNum;
+      GS_BEGINITEMBUF(ustring, length, unichar)
+  
+      [string getCharacters: ustring range: NSMakeRange(0, length)];
+  
+      // FIXME: Not sure if this is correct....
+      range = [string rangeOfString: @"."];
+      if (range.location == NSNotFound)
+	{
+	  intNum = unum_parseInt64(internal->_formatter,
+	    ustring, length, NULL, &err);
+	  if (!U_FAILURE(err))
+	    {
+	      if (intNum == 0 || intNum == 1)
+		{
+		  result = [NSNumber numberWithBool: (BOOL) intNum];
+		}
+	      else if (intNum < INT_MAX && intNum > INT_MIN)
+		{
+		  result = [NSNumber numberWithInt: (int32_t)intNum];
+		}
+	      else
+		{
+		  result = [NSNumber numberWithLongLong: intNum];
+		}
+	    }
+	}
       else
-        result = [NSNumber numberWithLongLong: intNum];
+	{
+	  doubleNum = unum_parseDouble(internal->_formatter,
+	    ustring, length, NULL, &err);
+	  if (!U_FAILURE(err))
+	    {
+	      result = [NSNumber numberWithDouble: doubleNum];
+	    }
+	}
+      
+      GS_ENDITEMBUF()
     }
-  else
-    {
-      doubleNum = unum_parseDouble(internal->_formatter,
-        ustring, length, NULL, &err);
-      if (U_FAILURE(err))
-        return nil;
-      result = [NSNumber numberWithDouble: doubleNum];
-    }
-  
-  NSZoneFree ([self zone], ustring);
-  return result;
-#else
-  return nil;
 #endif
+  return result;
 }
 
 

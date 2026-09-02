@@ -4,12 +4,14 @@ dnl  Copying and distribution of this file, with or without modification,
 dnl  are permitted in any medium without royalty provided the copyright
 dnl  notice and this notice are preserved.
 dnl AM_PATH_XML([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AC_DEFUN(AM_PATH_XML,[
+AC_DEFUN([AM_PATH_XML],[
 AC_ARG_WITH(xml-prefix,
-            [  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)],
+            AS_HELP_STRING([--with-xml-prefix=PFX],
+	    [Prefix where libxml is installed (optional)]),
             xml_config_prefix="$withval", xml_config_prefix="")
 AC_ARG_ENABLE(xmltest,
-              [  --disable-xmltest		Do not try to compile and run a test XML program],,
+              [AS_HELP_STRING([--disable-xmltest],
+	      [Do not try to compile and run a test XML program])],,
               enable_xmltest=yes)
 
   if test x$xml_config_prefix != x ; then
@@ -43,7 +45,8 @@ dnl
 dnl Now check if the installed libxml is sufficiently new.
 dnl
     rm -f conf.xmltest
-    AC_TRY_RUN([
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
 #include <libxml/xmlversion.h>
@@ -95,7 +98,10 @@ main()
     }
   return 1;
 }
-],, no_xml=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+]])],
+	,
+	[no_xml=yes],
+	[echo $ac_n "cross compiling; assumed OK... $ac_c"])
 
     CFLAGS="$ac_save_CFLAGS"
     LIBS="$ac_save_LIBS"
@@ -118,7 +124,8 @@ dnl
 dnl Now check if the installed libxml is sufficiently new.
 dnl
       rm -f conf.xmltest
-      AC_TRY_RUN([
+      AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
 #include <libxml/xmlversion.h>
@@ -189,7 +196,10 @@ main()
     }
   return 1;
 }
-],, no_xml=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+]])],
+	,
+	[no_xml=yes],
+	[echo $ac_n "cross compiling; assumed OK... $ac_c"])
 
       CFLAGS="$ac_save_CFLAGS"
       LIBS="$ac_save_LIBS"

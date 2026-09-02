@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #import "GSAvahiRunLoopIntegration.h"
@@ -398,16 +397,16 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
     }
   lock = [[NSLock alloc] init];
   [lock setName: @"GSAvahiRunLoopContextLock"];
-  poll = malloc(sizeof(AvahiPoll));
-  NSAssert(poll, @"Could not allocate avahi polling structure.");
-  poll->userdata = (void*)self; //userInfo
-  poll->watch_new = GSAvahiWatchNew; //create a new GSAvahiWatcher
-  poll->watch_update = GSAvahiWatchUpdate; //update the watcher
-  poll->watch_get_events = GSAvahiWatchGetEvents; //retrieve events
-  poll->watch_free = GSAvahiWatchFree; //remove watcher from context
-  poll->timeout_new = GSAvahiTimeoutNew; //create a new GSAvahiTimer
-  poll->timeout_update = GSAvahiTimeoutUpdate; //update the timer
-  poll->timeout_free = GSAvahiTimeoutFree; //remove the timer from context
+  ap = malloc(sizeof(AvahiPoll));
+  NSAssert(ap, @"Could not allocate avahi polling structure.");
+  ap->userdata = (void*)self; //userInfo
+  ap->watch_new = GSAvahiWatchNew; //create a new GSAvahiWatcher
+  ap->watch_update = GSAvahiWatchUpdate; //update the watcher
+  ap->watch_get_events = GSAvahiWatchGetEvents; //retrieve events
+  ap->watch_free = GSAvahiWatchFree; //remove watcher from context
+  ap->timeout_new = GSAvahiTimeoutNew; //create a new GSAvahiTimer
+  ap->timeout_update = GSAvahiTimeoutUpdate; //update the timer
+  ap->timeout_free = GSAvahiTimeoutFree; //remove the timer from context
   //Runloops don't need to be retained;
   runLoop = rl;
   ASSIGNCOPY(mode,aMode);
@@ -434,7 +433,7 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
 
 - (const AvahiPoll*) avahiPoll
 {
-  return (const AvahiPoll*)poll;
+  return (const AvahiPoll*)ap;
 }
 
 - (GSAvahiTimer*) avahiTimerWithCallback: (AvahiTimeoutCallback)callback
@@ -503,11 +502,11 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   [lock lock];
   if ((rl == runLoop) && [mode isEqualToString: m])
     {
-      FOR_IN(GSAvahiWatcher*, child, children)
+      GS_FOR_IN(GSAvahiWatcher*, child, children)
         {
           [child unschedule];
         }
-      END_FOR_IN(children)
+      GS_END_FOR(children)
       runLoop = nil;
       [mode release];
       mode = nil;
@@ -524,11 +523,11 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
     {
       runLoop = rl;
       ASSIGNCOPY(mode,m);
-      FOR_IN(GSAvahiWatcher*, child, children)
+      GS_FOR_IN(GSAvahiWatcher*, child, children)
         {
           [child reschedule];
         }
-      END_FOR_IN(children)
+      GS_END_FOR(children)
     }
   [lock unlock];
 }
@@ -539,16 +538,16 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
    * try to create additional watchers and timers on the runloop, so we should
    * clean it up properly:
    */
-  poll->userdata = (void*)NULL;
+  ap->userdata = (void*)NULL;
   [self removeFromRunLoop: runLoop
                   forMode: mode];
-  FOR_IN(GSAvahiWatcher*, child, children)
+  GS_FOR_IN(GSAvahiWatcher*, child, children)
     {
       [child setContext: nil];
     }
-  END_FOR_IN(children)
-  free(poll);
-  poll = NULL;
+  GS_END_FOR(children)
+  free(ap);
+  ap = NULL;
   [children release];
   [mode release];
   [lock release];

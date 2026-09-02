@@ -18,16 +18,16 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE
 #define __GSInvocation_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSInvocation.h>
+#import "Foundation/NSInvocation.h"
 
 @class	NSMutableData;
+@class	NSPointerArray;
 
 typedef struct	{
   int		offset;
@@ -40,12 +40,16 @@ typedef struct	{
 } NSArgumentInfo;
 
 
-@interface GSFFIInvocation : NSInvocation
+@interface 	GSFFIInvocation : NSInvocation
 {
 @public
-  uint8_t	_retbuf[32];	// Store return values of up to 32 bytes here.
-  NSMutableData	*_frame;
+  uint8_t		_retbuf[32];	// Return values of up to 32 bytes here.
+  NSMutableData		*_frame;	// Frame information for invoking.
+  NSPointerArray	*_extra;	// Extra FFI data to be released.
 }
+@end
+@interface	GSFFIInvocation (FFI)
+- (void) setupFrameFFI: (NSMethodSignature*)sig;
 @end
 
 @interface GSFFCallInvocation : NSInvocation
@@ -63,6 +67,11 @@ typedef struct	{
 @end
 
 @interface NSMethodSignature (GNUstep)
+/* Answers a signature which is not put in the cache and is deallocated like
+ * any other object.  For types which came from outside the process, so that
+ * a peer or an archive cannot fill the cache.
+ */
++ (NSMethodSignature*) _uncachedSignatureWithObjCTypes: (const char*)t;
 - (const char*) methodType;
 - (NSArgumentInfo*) methodInfo;
 @end

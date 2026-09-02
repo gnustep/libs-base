@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource: NSObjCRuntime.m
     AutogsdocSource: NSLog.m
@@ -101,19 +100,6 @@ typedef	uintptr_t	NSUInteger;
 #	define NSUIntegerMax UINTPTR_MAX
 #endif /* !defined(NSINTEGER_DEFINED) */
 
-#if     !defined(CGFLOAT_DEFINED)
-#if     GS_SIZEOF_VOIDP == 8
-#define CGFLOAT_IS_DBL  1
-typedef double          CGFloat;
-#define CGFLOAT_MIN	DBL_MIN
-#define CGFLOAT_MAX	DBL_MAX
-#else
-typedef float           CGFloat;
-#define CGFLOAT_MIN	FLT_MIN
-#define CGFLOAT_MAX	FLT_MAX
-#endif
-#endif /* !defined(CGFLOAT_DEFINED) */
-
 #define NSINTEGER_DEFINED 1
 #define CGFLOAT_DEFINED 1
 #ifndef NS_AUTOMATED_REFCOUNT_UNAVAILABLE
@@ -160,8 +146,14 @@ extern "C" {
  * non-null sections.
  */
 #if __has_feature(nullability)
+#if defined(GNUSTEP_ASSUME_NONULL)
 #  define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
 #  define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#else
+#  define NS_ASSUME_NONNULL_BEGIN
+#  define NS_ASSUME_NONNULL_END
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#endif
 #else
 #  define NS_ASSUME_NONNULL_BEGIN
 #  define NS_ASSUME_NONNULL_END
@@ -196,6 +188,16 @@ extern "C" {
 #  define NS_SWIFT_NOTHROW __attribute__((swift_error(none)))
 #else
 #  define NS_SWIFT_NOTHROW
+#endif
+
+/*
+ * Import a declaration with a specific Swift name when the compiler
+ * supports the attribute.
+ */
+#if __has_attribute(swift_name)
+#  define NS_SWIFT_NAME(_name) __attribute__((swift_name(#_name)))
+#else
+#  define NS_SWIFT_NAME(_name)
 #endif
 
 /*
@@ -257,17 +259,21 @@ typedef NS_OPTIONS(NSUInteger, NSSortOptions)
 
 #import <GNUstepBase/GSObjCRuntime.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
-GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
-GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
+GS_EXPORT NSString	*_Nullable NSStringFromProtocol(Protocol *_Nullable aProtocol);
+GS_EXPORT Protocol	*_Nullable NSProtocolFromString(NSString *aProtocolName);
 #endif
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
-GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
+GS_EXPORT NSString	*_Nullable NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
-GS_EXPORT Class		NSClassFromString(NSString *aClassName);
-GS_EXPORT NSString	*NSStringFromClass(Class aClass);
+GS_EXPORT Class		_Nullable NSClassFromString(NSString *aClassName);
+GS_EXPORT NSString	*_Nullable NSStringFromClass(Class _Nullable aClass);
 GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
-  NSUInteger *sizep, NSUInteger *alignp);
+  NSUInteger *_Nullable sizep, NSUInteger *_Nullable alignp);
+
+NS_ASSUME_NONNULL_END
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /* Logging */
@@ -306,7 +312,13 @@ typedef NS_ENUM(NSInteger, NSComparisonResult)
   NSOrderedAscending = (NSInteger)-1, NSOrderedSame, NSOrderedDescending
 };
 
-enum {NSNotFound = NSIntegerMax};
+// check for older versions of GCC and try to ignore clang pretending to know GNUC dialects
+// in order to work around error "initializer element is not constant" in older GCC versions
+#if defined(__GNUC__) && !defined(__clang__) && GCC_VERSION < 80000
+#define NSNotFound NSIntegerMax
+#else
+static const NSInteger NSNotFound = NSIntegerMax;
+#endif
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 

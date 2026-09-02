@@ -21,8 +21,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSCalendarDate class reference</title>
    $Date$ $Revision$
@@ -57,9 +56,6 @@
 @end
 @class	GSAbsTimeZone;
 @interface	GSAbsTimeZone : NSObject	// Help the compiler
-@end
-@class	NSGDate;
-@interface	NSGDate : NSObject	// Help the compiler
 @end
 
 
@@ -322,17 +318,26 @@ GSPrivateTimeNow(void)
  * system time to make sure we don't have a temporary glitch.
  */
 {
+  /* One value shared by every thread that asks for the time.  It is read
+   * before it is written, and written only when the second it holds has
+   * changed, so the line it sits in stays clean between one second and the
+   * next.
+   */
   static int	old = 0;
+  int		prev = __atomic_load_n(&old, __ATOMIC_RELAXED);
 
-  if (old == 0)
+  if (prev == 0)
     {
-      old = tp.tv_sec;
+      __atomic_store_n(&old, (int)tp.tv_sec, __ATOMIC_RELAXED);
     }
   else
     {
-      int	diff = tp.tv_sec - old;
+      int	diff = tp.tv_sec - prev;
 
-      old = tp.tv_sec;
+      if (prev != (int)tp.tv_sec)
+	{
+	  __atomic_store_n(&old, (int)tp.tv_sec, __ATOMIC_RELAXED);
+	}
       if (diff < -1 || diff > 3000)
 	{
 	  time_t	now = (time_t)tp.tv_sec;
@@ -396,7 +401,6 @@ GSPrivateTimeNow(void)
       absAbrIMP = (NSString* (*)(id,SEL,id))
 	[absClass instanceMethodForSelector: abrSEL];
 
-      GSObjCAddClassBehavior(self, [NSGDate class]);
       [pool release];
     }
 }
@@ -461,6 +465,11 @@ GSPrivateTimeNow(void)
 					  second: second
 					timeZone: aTimeZone];
   return AUTORELEASE(d);
+}
+
+- (NSTimeInterval) timeIntervalSinceReferenceDate
+{
+  return _seconds_since_ref;
 }
 
 /**
@@ -864,7 +873,6 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     {
       fmt = [NSString stringWithCharacters: format length: formatLen];
     }
-  ASSIGN(_calendar_format, fmt);
 
   //
   // WARNING:
@@ -1471,6 +1479,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       if (self != nil)
 	{
 	  _seconds_since_ref += ((NSTimeInterval)milliseconds) / 1000.0;
+	  ASSIGN(_calendar_format, fmt);
 	}
     }
 
@@ -1543,6 +1552,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   NSTimeInterval	oldOffset;
   NSTimeInterval	newOffset;
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   if (month < 1 || month > 12)
     {
       NSWarnMLog(@"invalid month given - %"PRIuPTR, month);
@@ -1884,20 +1897,25 @@ static void Grow(DescriptionInfo *info, unsigned size)
 {
   if (info->offset + size >= info->length)
     {
+      /* Grow by at least 'size' so a single field larger than the fixed
+       * increment (e.g. a long locale-supplied month or weekday name) does
+       * not leave the buffer too small for the caller's write. */
+      unsigned	want = info->length + (size > 512 ? size : 512);
+
       if (info->t == info->base)
 	{
 	  unichar	*old = info->t;
 
 	  info->t = NSZoneMalloc(NSDefaultMallocZone(),
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	  memcpy(info->t, old, info->length*sizeof(unichar));
 	}
       else
 	{
 	  info->t = NSZoneRealloc(NSDefaultMallocZone(), info->t,
-	    (info->length + 512) * sizeof(unichar));
+	    want * sizeof(unichar));
 	}
-      info->length += 512;
+      info->length = want;
     }
 }
 

@@ -8,6 +8,14 @@ typedef struct {
 } aStruct;
 
 @interface Observer : NSObject
+{
+  NSMutableSet *_keysChanged;
+}
+
+- (void) reset;
+
+- (NSSet *) keysChanged;
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -15,6 +23,32 @@ typedef struct {
 @end
 
 @implementation Observer
+- (instancetype) init
+{
+  self = [super init];
+  if (self)
+    {
+      _keysChanged = [[NSMutableSet alloc] init];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_keysChanged);
+  [super dealloc];
+}
+
+- (void) reset;
+{
+  [_keysChanged removeAllObjects];
+}
+
+- (NSSet *) keysChanged
+{
+  return _keysChanged;
+}
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -22,15 +56,18 @@ typedef struct {
 {
   NSLog(@"observeValueForKeyPath: %@\nofObject:%@\nchange:%@\ncontext:%p",
     keyPath, object, change, context);
+
+  [_keysChanged addObject: keyPath];
 }
 @end
 
 @interface Lists : NSObject
 {
-  NSMutableArray * cities;
-  NSMutableArray * numbers;
-  NSMutableArray * third;
-  NSString *string;
+  NSMutableArray	*cities;
+  NSMutableArray	*numbers;
+  NSMutableArray	*third;
+  NSString 		*string;
+  NSString 		*string2;
   aStruct x;
 }
 
@@ -57,6 +94,16 @@ typedef struct {
   return x.c;
 }
 
+- (void) dealloc
+{
+  DESTROY(cities);
+  DESTROY(numbers);
+  DESTROY(third);
+  DESTROY(string);
+  DESTROY(string2);
+  DEALLOC
+}
+
 - (id) init
 {
   cities = [[NSMutableArray alloc] initWithObjects:
@@ -80,7 +127,7 @@ typedef struct {
 
 - (void) insertObject: (id)obj inNumbersAtIndex: (NSUInteger)index
 {
-  if (![obj isEqualToString:@"NaN"])
+  if (![obj isEqualToString: @"NaN"])
     {
       [numbers addObject:obj];
     }
@@ -88,7 +135,7 @@ typedef struct {
 
 - (void) removeObjectFromNumbersAtIndex: (NSUInteger)index
 {
-  if (![[numbers objectAtIndex:index] isEqualToString:@"One"])
+  if (![[numbers objectAtIndex:index] isEqualToString: @"One"])
     [numbers removeObjectAtIndex:index];
 }
 
@@ -115,6 +162,16 @@ typedef struct {
   x = s;
 }
 
+- (void) setString2: (NSString *)s
+{
+  string2 = s;
+}
+
+- (NSString *) string2
+{
+  return string2;
+}
+
 - (void) willChangeValueForKey: (NSString*)k
 {
   [super willChangeValueForKey: k];
@@ -124,15 +181,23 @@ typedef struct {
 
 @interface Sets : NSObject
 {
-  NSMutableSet * one;
-  NSMutableSet * two;
-  NSMutableSet * three;
+  NSMutableSet	*one;
+  NSMutableSet	*two;
+  NSMutableSet	*three;
 }
 @end
 
 @implementation Sets
 
-- (id)init
+- (void) dealloc
+{
+  DESTROY(one);
+  DESTROY(two);
+  DESTROY(three);
+  DEALLOC
+}
+
+- (id) init
 {
   [super init];
 
@@ -141,21 +206,21 @@ typedef struct {
     @"two",
     @"eight",
     nil];
-  two = [[NSMutableSet alloc] initWithSet:one];
-  three = [[NSMutableSet alloc] initWithSet:one];
+  two = [[NSMutableSet alloc] initWithSet: one];
+  three = [[NSMutableSet alloc] initWithSet: one];
 
   return self;
 }
 
 - (void) addOneObject: (id)anObject
 {
-  if (![anObject isEqualToString:@"ten"])
+  if (![anObject isEqualToString: @"ten"])
     [one addObject:anObject];
 }
 
 - (void) removeOneObject: (id)anObject
 {
-  if (![anObject isEqualToString:@"one"])
+  if (![anObject isEqualToString: @"one"])
     {
       [one removeObject:anObject];
     }
@@ -172,20 +237,26 @@ int main(void)
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
-  Lists *list = [[[Lists alloc] init] autorelease];
-  Observer *observer = [Observer new];
-  aStruct s = {1, 2, "3" };
-  id o;
-  NSMutableArray * proxy;
-  NSDictionary * temp;
+  Lists		*list = AUTORELEASE([[Lists alloc] init]);
+  Observer	*observer = AUTORELEASE([Observer new]);
+  aStruct 	s = {1, 2, "3" };
+  id 		o;
+  NSMutableArray *proxy;
+  NSDictionary	*temp;
 
+  [observer reset];
   [list addObserver: observer forKeyPath: @"numbers" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"string" options: 15 context: 0];
+  [list addObserver: observer forKeyPath: @"string2" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"x" options: 15 context: 0];
 
   [list setValue: @"x" forKey: @"string"];
+  [list setString2: @"Hello"];
 
-  proxy = [list mutableArrayValueForKey:@"numbers"];
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 did change properly");
+
+  proxy = [list mutableArrayValueForKey: @"numbers"];
   PASS([proxy isKindOfClass:[NSMutableArray class]],
       "proxy is a kind of NSMutableArray")
   [proxy removeLastObject];
@@ -231,8 +302,8 @@ int main(void)
        "mutableArrayValueForKey: works")
   
 
-  Sets * set = [[[Sets alloc] init] autorelease];
-  NSMutableSet * setProxy;
+  Sets 		*set = [[[Sets alloc] init] autorelease];
+  NSMutableSet	*setProxy;
 
   setProxy = [set mutableSetValueForKey: @"one"];
   PASS([setProxy isKindOfClass: [NSMutableSet class]],
@@ -277,8 +348,46 @@ int main(void)
 
   [list removeObserver: observer forKeyPath: @"numbers"];
   [list removeObserver: observer forKeyPath: @"string"];
-  [list removeObserver: observer forKeyPath: @"x"];
+  [list removeObserver: observer forKeyPath: @"x"];  
+  [list removeObserver: observer forKeyPath: @"string2" context: 0];
 
+  // Test if we see the change on string2 after the observer is removed with
+  // the removeObjserver:forKeyPath:context: method.
+  [observer reset];
+  [list setString2: @"Test"];
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+
+  // Create an array and add an object, add an observer to that object... test
+  // it and then remove it and verify the remove.
+  Lists *obj = [[[Lists alloc] init] autorelease];
+  NSArray *array = [NSArray arrayWithObject: obj];
+  NSIndexSet *idxs = [NSIndexSet indexSetWithIndex: 0];
+
+  // Add the observer then remove it...
+  [observer reset];
+  [array addObserver: observer
+	 toObjectsAtIndexes: idxs
+	  forKeyPath: @"string2"
+	     options: 15
+	     context: 0];
+  
+  [obj setString2: @"Hello again"];
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 has been observed");
+  
+  [observer reset];
+  [array removeObserver: observer
+	 fromObjectsAtIndexes: idxs
+	     forKeyPath: @"string2"
+		context: 0];
+
+  // Determine if it still responds..
+  [obj setString2: @"Test"];
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+  
+  
   [arp release]; arp = nil;
   return 0;
 }

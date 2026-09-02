@@ -14,9 +14,13 @@ handler(NSException *e)
 + (void) testAbc;
 @end
 @implementation MyClass
-+ (void) testAbc
++ (void) simulateProblem
 {
   [NSException raise: NSGenericException format: @"In MyClass"];
+}
++ (void) testAbc
+{
+  [self simulateProblem];
 }
 @end
 
@@ -44,18 +48,30 @@ int main()
     {
       NSArray   *addresses = [localException callStackReturnAddresses];
       NSArray   *a = [localException callStackSymbols];
-      NSEnumerator *e = [a objectEnumerator];
       NSString  *s = nil;
+      BOOL	ok = YES;
 
       PASS([addresses count] > 0, "call stack addresses is not empty");
       PASS([addresses count] == [a count], "addresses and symbols match");
 
 NSLog(@"Got %@", a);
-      while ((s = [e nextObject]) != nil)
-        if ([s rangeOfString: @"testAbc"].length > 0)
-          break;
       testHopeful = YES;
-      PASS(s != nil, "working callStackSymbols ... if this has failed it is probably due to a lack of support for objective-c method names (local symbols) in the backtrace_symbols() function of your libc. If so, you might lobby your operating system provider for a fix.");
+      PASS([a count] > 0
+	&& [(s = [a objectAtIndex: 0]) rangeOfString: @"NSException"].length > 0
+	&& [s rangeOfString: @"raise"].length > 0,
+	"Exception raised at start of stack")
+      PASS([a count] > 1
+	&& [(s = [a objectAtIndex: 1]) rangeOfString: @"MyClass"].length > 0
+	&& [s rangeOfString: @"simulateProblem"].length > 0,
+	"simulateProblem is where exception was raised")
+      if (NO == testPassed) ok = NO;
+      PASS([a count] > 2
+	&& [(s = [a objectAtIndex: 2]) rangeOfString: @"MyClass"].length > 0
+	&& [s rangeOfString: @"testAbc"].length > 0,
+	"testAbc called simulateProblem to raise exception")
+      if (NO == testPassed) ok = NO;
+
+      PASS(ok, "working callStackSymbols ... if this has failed it is probably due to a lack of support for objective-c method names (local symbols) in the backtrace_symbols() function of your libc. If so, you might lobby your operating system provider for a fix.");
       testHopeful = NO;
     }
   NS_ENDHANDLER

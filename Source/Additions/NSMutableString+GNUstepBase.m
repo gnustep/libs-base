@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
@@ -279,7 +278,6 @@
 	    withString: (NSString*)by
 {
   NSRange       range;
-  unsigned int  count = 0;
   unsigned int	newEnd;
   NSRange	searchRange;
 
@@ -303,7 +301,6 @@
 
       do
         {
-          count++;
           [self replaceCharactersInRange: range
                               withString: by];
 
@@ -332,7 +329,8 @@
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;
@@ -357,7 +355,8 @@
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (end > 0 && space((*caiImp)(self, caiSel, end - 1)))
 	{
 	  end--;

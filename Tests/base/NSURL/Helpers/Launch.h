@@ -26,6 +26,12 @@
 }
 @end
 
+@interface NSTask (TestHelper)
++ (NSTask*) launchedHelperWithLaunchPath: (NSString*)_path
+			       arguments: (NSArray*)_args
+				 timeout: (NSTimeInterval)_wait;
+@end
+
 @implementation NSTask (TestHelper)
 + (NSTask*) launchedHelperWithLaunchPath: (NSString*)_path
 			       arguments: (NSArray*)_args

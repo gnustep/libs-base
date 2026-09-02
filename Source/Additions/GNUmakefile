@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 #
 
 PACKAGE_NAME = gnustep-base
@@ -39,11 +38,13 @@ Additions_OBJC_FILES =\
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \
-	GSLock.m \
-	GSMime.m \
-	GSXML.m \
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
+	GSMime.m \
+	GSMinHeap.m \
+	GSStandaloneXMLParser.m \
+	GSURITemplate.m \
+	GSXML.m \
 	NSArray+GNUstepBase.m \
 	NSAttributedString+GNUstepBase.m \
 	NSBundle+GNUstepBase.m \
@@ -53,7 +54,6 @@ Additions_OBJC_FILES =\
 	NSError+GNUstepBase.m \
 	NSHashTable+GNUstepBase.m \
 	NSFileHandle+GNUstepBase.m \
-	NSLock+GNUstepBase.m \
 	NSMutableString+GNUstepBase.m \
 	NSNumber+GNUstepBase.m \
 	NSObject+GNUstepBase.m \

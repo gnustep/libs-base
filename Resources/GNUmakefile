@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
@@ -51,7 +50,7 @@ libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 RESOURCE_SET_NAME = base-resources
 
 ifeq ($(base-resources_INSTALL_DIR),)
-base-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
+base-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(MAJOR_VERSION).$(MINOR_VERSION)/Resources
 endif
 
 base-resources_LANGUAGES = English German French Italian TraditionalChinese SimplifiedChinese \

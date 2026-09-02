@@ -1,5 +1,9 @@
 
-SUBPROJECTS = ../NSURLConnection/Helpers
+include $(GNUSTEP_MAKEFILES)/common.make
+
+# The tests load the server from this bundle, so it is needed wherever they
+# run.  It was built only for ng-gnu-gnu while NSURLSession was built only
+# there; the tests abort loading it otherwise.
+SUBPROJECTS = Helpers
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
-

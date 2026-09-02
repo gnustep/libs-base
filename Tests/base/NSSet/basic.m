@@ -6,9 +6,9 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSSet *testObj;
-  NSMutableArray *testObjs = [NSMutableArray new];
+  NSMutableArray *testObjs = [NSMutableArray array];
 
-  testObj = [NSSet new];
+  testObj = [NSSet set];
   [testObjs addObject:testObj];
   PASS(testObj != nil && [testObj count] == 0,
        "can create an empty set");

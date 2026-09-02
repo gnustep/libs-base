@@ -16,20 +16,18 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
 #import "common.h"
 
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSUserDefaults.h"
+#import "Foundation/Foundation.h"
 #import "AGSHtml.h"
+#import "AGSOutput.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "GNUstepBase/GSXML.h"
 
 /*
  * Define constants for use if we are built with apple Foundation
@@ -42,6 +40,15 @@
 #endif
 #ifndef	GS_API_MACOSX
 #define	GS_API_MACOSX	100000
+#endif
+
+
+#if defined(HAVE_DOT)
+#define expandstringify(X) stringify(X)
+#define stringify(X) #X
+static NSString	*graphviz = @ expandstringify(HAVE_DOT);
+#else
+static NSString	*graphviz = nil;
 #endif
 
 static int      XML_ELEMENT_NODE;
@@ -61,11 +68,126 @@ static GSXMLNode	*firstElement(GSXMLNode *nodes)
   return [nodes nextElement];
 }
 
+static NSString *
+filter(NSString *input, BOOL verbose)
+{
+  NSString	*result = nil;
+  ENTER_POOL
+  NSTask	*task = AUTORELEASE([[NSTask alloc] init]);
+  BOOL          didLaunch = NO;
+  BOOL          didWrite = NO;
+  NSData 	*readData;
+  NSPipe 	*readPipe = [NSPipe pipe];
+  NSFileHandle 	*readHandle = [readPipe fileHandleForReading];
+  NSData 	*writeData;
+  NSPipe 	*writePipe = [NSPipe pipe];
+  NSFileHandle 	*writeHandle = [writePipe fileHandleForWriting];
+  NSMutableData *output;
+
+  writeData = [input dataUsingEncoding: NSUTF8StringEncoding];
+  [task setLaunchPath: graphviz];
+  [task setArguments: [NSArray arrayWithObjects:
+    @"-Tsvg", nil]];
+
+  [task setStandardInput: writePipe];
+  [task setStandardOutput: readPipe];
+
+  if (verbose)
+    {
+      NSLog(@"Graph source:\n%@", input);
+    }
+  else
+    {
+      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
+    }
+
+  NS_DURING
+    {
+      [task launch];
+      didLaunch = YES;
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Failed to launch '%@': %@", graphviz, localException);
+      task = nil;       // No need to terminate
+    }
+  NS_ENDHANDLER
+
+  if (YES == didLaunch)
+    {
+      NS_DURING
+        {
+          if (nil != input)
+            {
+              [writeHandle writeData: writeData];
+            }
+          didWrite = YES;
+        }
+      NS_HANDLER
+        {
+          NSLog(@"Failed to write to '%@': %@", graphviz, localException);
+        }
+      NS_ENDHANDLER
+    }
+  [writeHandle closeFile];
+
+  if (YES == didWrite)
+    {
+      output = [NSMutableData dataWithCapacity: [input length] * 5];
+      while ((readData = [readHandle availableData]) && [readData length] > 0)
+        {
+          [output appendData: readData];
+        }
+    }
+  [readHandle closeFile];
+  [task terminate];
+  [task waitUntilExit];
+  if ([task terminationStatus] != 0)
+    {
+      NSLog(@"Graphing termination status %d", [task terminationStatus]);
+    }
+  if (output)
+    {
+      unsigned		l = [output length];
+      const uint8_t	*s = [output bytes];
+      const uint8_t	*e = s + l - 5;
+      const uint8_t	*p = s;
+
+      while (p < e)
+	{
+	  p = memchr(p, '<', e-p);
+	  if (NULL == p)
+	    {
+	      p = e;
+	      break;	// Reached end 
+	    }
+	  if (memcmp(p, "<svg ", 5) == 0)
+	    {
+	      break;	// Found start of svg
+	    }
+	  p++;		// Step past the '<'
+	}
+      if (p >= s && p < e)
+	{
+	  NSRange	r;
+
+	  r.location = p - s;
+	  r.length = l - r.location;
+	  result = [[NSString alloc] initWithData: [output subdataWithRange: r]
+					 encoding: NSUTF8StringEncoding];
+	}
+    }
+  if (verbose)
+    {
+      NSLog(@"Graph result:\n%@", result);
+    }
+  LEAVE_POOL
+  return AUTORELEASE(result);
+}
+
 @implementation	AGSHtml
 
 static NSMutableSet	*textNodes = nil;
-static NSString		*tocFont = nil;
-static NSString		*mainFont = nil;
 
 + (void) initialize
 {
@@ -94,20 +216,18 @@ static NSString		*mainFont = nil;
       [textNodes addObject: @"url"];
       [textNodes addObject: @"var"];
       [textNodes addObject: @"footnote"];
-
-      // default fonts
-      tocFont = @"sans";
-      mainFont = @"serif";
     }
 }
 
 - (void) dealloc
 {
   RELEASE(project);
+  RELEASE(version);
   RELEASE(globalRefs);
   RELEASE(localRefs);
   RELEASE(projectRefs);
   RELEASE(indent);
+  RELEASE(fileName);
   DEALLOC
 }
 
@@ -128,9 +248,17 @@ static NSString		*mainFont = nil;
 
 - (id) init
 {
-  indent = [[NSMutableString alloc] initWithCapacity: 64];
-  project = RETAIN([[NSUserDefaults standardUserDefaults]
-    stringForKey: @"Project"]);
+  if (nil != (self = [super init]))
+    {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+
+      indent = [[NSMutableString alloc] initWithCapacity: 64];
+      project = RETAIN([defs stringForKey: @"Project"]);
+      version = RETAIN([defs stringForKey: @"Version"]);
+      verbose = [defs boolForKey: @"Verbose"];
+      warn = [defs boolForKey: @"Warn"];
+      cssNavigation = [defs boolForKey: @"MakeFrames"] ? NO : YES;
+    }
   return self;
 }
 
@@ -180,18 +308,32 @@ static NSString		*mainFont = nil;
 {
   NSString	*s;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
+
+  s = [self makeURL: r ofType: t isRef: f];
+  if (s)
+    {
+      s = [NSString stringWithFormat: @"<a %@=\"%@\">", kind, s];
+    }
+  return s;
+}
+
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+		isRef: (BOOL)f
+{
+  NSString	*s;
   NSString	*hash = (f == YES) ? @"#" : @"";
 
-  if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
+  if (NO == f || [localRefs globalRef: r type: t] != nil)
     {
-      s = [NSString stringWithFormat: @"<a %@=\"%@%@$%@\">",
-	kind, hash, t, r];
+      s = [NSString stringWithFormat: @"%@%@$%@",
+	hash, t, r];
     }
   else if ((s = [globalRefs globalRef: r type: t]) != nil)
     {
       s = [s stringByAppendingPathExtension: @"html"];
-      s = [NSString stringWithFormat: @"<a %@=\"%@%@%@$%@\">",
-	kind, s, hash, t, r];
+      s = [NSString stringWithFormat: @"%@%@%@$%@",
+	 s, hash, t, r];
     }
   return [s stringByReplacingString: @":" withString: @"$"];
 }
@@ -281,10 +423,11 @@ static NSString		*mainFont = nil;
   return [s stringByReplacingString: @":" withString: @"$"];
 }
 
-- (NSString*) outputDocument: (GSXMLNode*)node
+- (NSString*) outputDocument: (GSXMLNode*)node name: (NSString*)file
 {
   NSMutableString	*buf;
 
+  ASSIGN(fileName, file);
   if (localRefs == nil)
     {
       localRefs = [AGSIndex new];
@@ -293,19 +436,46 @@ static NSString		*mainFont = nil;
   buf = [NSMutableString stringWithCapacity: 4096];
 
   /* Declaration */
-  [buf appendString: @"<!DOCTYPE html PUBLIC "];
-  [buf appendString: @"\"-//W3C//DTD XHTML 1.0 Strict//EN\"\n"];
-  [buf appendString: @"\"http://www.w3.org/TR/xhtml1/DTD/"];
-  [buf appendString: @"xhtml1-strict.dtd\">\n"];
-  [buf appendString: @"<html xmlns=\"http://www.w3.org/1999/xhtml\" "];
-  [buf appendString: @"xml:lang=\"en\" lang=\"en\">\n"];
+  [buf appendString: @"<!DOCTYPE html>\n"];
+  [buf appendString: @"<html lang=\"en\">\n"];
  
   [self incIndent];
   [self outputNodeList: node to: buf];
   [self decIndent];
   [buf appendString: @"</html>\n"];
 
+  DESTROY(fileName);
   return buf;
+}
+
+/** Output all the nodes containing xml elements from this one onwards.
+ * Text and entity ref nodes are ignored (to remove whitespace etc 
+ * between elements).
+ */
+- (void) outputElemList: (GSXMLNode*)node to: (NSMutableString*)buf
+{
+  while (node != nil)
+    {
+      GSXMLNode	*next = [node nextElement];
+
+      if ([node type] == XML_ELEMENT_NODE)
+	{
+	  [self outputNode: node to: buf];
+	}
+      node = next;
+    }
+}
+
+- (BOOL) needsNavSection: (NSString*)type
+{
+  NSDictionary	*refs = [projectRefs refs];
+  NSDictionary	*dict = [refs objectForKey: type];
+
+  if ([dict count] > 0)
+    {
+      return YES;
+    }
+  return NO;
 }
 
 - (void) outputIndex: (NSString*)type
@@ -320,7 +490,16 @@ static NSString		*mainFont = nil;
   NSArray	*a;
   unsigned	c;
   unsigned	i;
-  BOOL		isBareStyle = [@"bare" isEqualToString: style];
+  BOOL          isBareStyle = NO;
+
+  if ([@"bare" isEqualToString: style])
+    {
+      isBareStyle = YES;
+    }
+  else if ([@"cssNavigation" isEqualToString: style])
+    {
+      isBareStyle = YES;
+    }
 
   if (globalRefs != nil && [scope isEqual: @"global"] == YES)
     {
@@ -354,14 +533,23 @@ static NSString		*mainFont = nil;
       dict = [refs objectForKey: type];
     }
 
-  if ([type isEqual: @"title"] == YES)
+  /* Put the index in a div with a class identifying its scope and type
+   * so that CSS can be used to style it.
+   */
+  [buf appendString: indent];
+  [buf appendFormat: @"<p class=\"%@_%@_index\">\n", scope, type];
+  [self incIndent];
+
+  if ([type isEqual: @"title"])
     {
       if ([dict count] > 1)
         {
           if (!isBareStyle)
             {
               [buf appendString: indent];
-              [buf appendFormat: @"<b>%@ Index</b>\n", title];
+              [buf appendFormat:
+		@"<h3 class=\"index-section-header\">%@ Index</h3>\n",
+		title];
               [buf appendString: indent];
               [buf appendString: @"<ul>\n"];
               [self incIndent];
@@ -412,7 +600,7 @@ static NSString		*mainFont = nil;
                 }
               else
                 {
-                  [buf appendString: @"<br/>"];
+                  [buf appendString: @"<br />"];
                 }
               [buf appendString: @"\n"];
             }
@@ -492,7 +680,8 @@ static NSString		*mainFont = nil;
       [buf appendString: indent];
       if (!isBareStyle)
         {
-          [buf appendFormat: @"<b>%@</b>\n", title];
+	  [buf appendFormat:
+	    @"<h3 class=\"index-section-header\">%@</h3>\n", title];
         }
       [buf appendString: indent];
       if (!isBareStyle)
@@ -575,7 +764,7 @@ static NSString		*mainFont = nil;
             }
           else
             {
-              [buf appendString: @"<br/>"];
+              [buf appendString: @"<br />"];
             }
           [buf appendString: @"\n"];
 
@@ -589,6 +778,10 @@ static NSString		*mainFont = nil;
 	}
       [buf appendString: @"\n"];
     }
+
+  [self decIndent];
+  [buf appendString: indent];
+  [buf appendString: @"</p>\n"];
 }
 
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
@@ -638,11 +831,23 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [self decIndent];
+
+	  if (cssNavigation)
+	    {
+	      [self decIndent];
+              [buf appendString: indent];
+	      [buf appendString: @"</div>\n"]; //content-pane-body
+	      [self decIndent];
+              [buf appendString: indent];
+	      [buf appendString: @"</div>\n"]; //content-pane
+	    }
+          if (isContentsDoc)
+	    {
+	      [self decIndent];
+              [buf appendString: indent];
+	      [buf appendString: @"</div>\n"];
+	    }
 	  [buf appendString: indent];
-
-          [buf appendString: indent];
-          [buf appendString: @"</font>\n"];
-
 	  [buf appendString: @"</body>\n"];
 	}
       else if ([name isEqual: @"br"] == YES)
@@ -685,19 +890,25 @@ static NSString		*mainFont = nil;
 	  classname = [prop objectForKey: @"name"];
 	  unit = classname;
 	  [buf appendString: indent];
-	  [buf appendString: @"<h2>"];
+	  [buf appendString: @"<h2 class=\"class\">"];
 	  [buf appendString:
 	    [self makeAnchor: classname ofType: @"class" name: classname]];
-	  if (sup != nil)
+	  if ([(sup = [sup stringByTrimmingSpaces]) length] == 0)
 	    {
-	      sup = [self typeRef: sup];
-	      if (sup != nil)
+	      sup = nil;
+	    }
+	  if (sup)
+	    {
+	      NSString	*supref = [self typeRef: sup];
+
+	      if (supref != nil)
 		{
 		  [buf appendString: @" : "];
-		  [buf appendString: sup];
+		  [buf appendString: supref];
 		}
 	    }
 	  [buf appendString: @"</h2>\n"];
+
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	  classname = nil;
@@ -761,7 +972,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"contents"] == YES)
         {
@@ -775,7 +986,7 @@ static NSString		*mainFont = nil;
 	      unsigned	l = 0;
 
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr class=\"section-separator\">\n"];
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>Contents -</h3>\n"];
 
@@ -852,7 +1063,7 @@ static NSString		*mainFont = nil;
 		  l--;
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr class=\"section-separator\">\n"];
 	    }
 	}
       else if ([name isEqual: @"declared"] == YES)
@@ -1074,7 +1285,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
@@ -1092,7 +1303,24 @@ static NSString		*mainFont = nil;
 	      prevFile = [prop objectForKey: @"prev"];
 	      prevFile = [prevFile stringByAppendingPathExtension: @"html"];
 	      upFile = [prop objectForKey: @"up"];
-	      upFile = [upFile stringByAppendingPathExtension: @"html"];
+	      if (upFile)
+		{
+		  NSString	*ext = [upFile pathExtension];
+
+		  if ([ext isEqual: @"html"])
+		    {
+		      upFile = [upFile stringByDeletingPathExtension];
+		    }
+			
+		  /* If we are in a template document the special name {Project}
+		   * lets us link to the main document of the current project
+		   */
+		  if ([upFile isEqual: @"{Project}"])
+		    {
+		      upFile = project;
+		    }
+		  upFile = [upFile stringByAppendingPathExtension: @"html"];
+		}
 
 	      // special formatting for table-of-contents frames; ultimately
 	      // this should be moved to stylesheet
@@ -1100,7 +1328,7 @@ static NSString		*mainFont = nil;
 		([stylesheetURL rangeOfString: @"gsdoc_contents"].length > 0))
 		? YES : NO;
 
-	      [self outputNodeList: children to: buf];
+	      [self outputElemList: children to: buf];
 	    }
 	}
       else if ([name isEqual: @"head"] == YES)
@@ -1110,6 +1338,11 @@ static NSString		*mainFont = nil;
 	  [buf appendString: indent];
 	  [buf appendString: @"<head>\n"];
 	  [self incIndent];
+
+	  /** charset/encoding should be in first 1024 bytes, so before title */
+	  [buf appendString: indent];
+	  [buf appendString: @"<meta charset=\"utf-8\">\n"];
+
 	  children = firstElement(children);
 	  [buf appendString: indent];
 	  [buf appendString: @"<title>"];
@@ -1117,10 +1350,14 @@ static NSString		*mainFont = nil;
 	  [self outputText: [children firstChild] to: buf];
 	  [self decIndent];
 	  [buf appendString: @"</title>\n"];
+
+          [buf appendString: @"<meta http-equiv=\"Content-Style-Type\""
+	    @" content=\"text/css\"/>\n"];
+          [buf appendFormat: @"<link rel=\"stylesheet\" type=\"text/css\""
+	    @" href=\"%@\" media=\"screen\" title=\"Normal\" />\n",
+	    [[NSUserDefaults standardUserDefaults] stringForKey:
+	    @"StylesheetURL"]];
 #if 0
-          /** Css : TODO print.css **/
-          [buf appendString:@"<meta http-equiv=\"Content-Style-Type\" content=\"text/css\"/>\n"];
-          [buf appendString:@"<link rel=\"stylesheet\" type=\"text/css\" href=\"screen.css\" media=\"screen\" title=\"Normal\" />\n"];
           /** Robots **/
           [buf appendString:@"<meta name=\"robots\" content=\"all\" />\n"];
 #endif
@@ -1131,18 +1368,222 @@ static NSString		*mainFont = nil;
 	  [buf appendString: @"<body>\n"];
 	  [self incIndent];
 
-          // special formatting for table-of-contents frames; ultimately
-          // this should be moved to stylesheet
+          // special formatting for table-of-contents frames
           if (isContentsDoc)
             {
               [buf appendString: indent];
-              [buf appendFormat: @"<font face=\"%@\" size=\"-1\">\n", tocFont];
+              [buf appendString: @"<div class=\"ToC\">\n"];
+	      [self incIndent];
             }
-          else
-            {
+
+	  if (cssNavigation)
+	    {
               [buf appendString: indent];
-              [buf appendFormat: @"<font face=\"%@\">\n", mainFont];
-            }
+              [buf appendString: @"<div class=\"content-bar\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-top\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-top-body\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+	      [buf appendString: @"<div class=\"content-bar-top-body-title\">"];
+	      if (upFile != nil)
+		{
+		  [buf appendFormat: @"<a href=\"%@\">%@</a>", upFile,
+		  [[upFile lastPathComponent] stringByDeletingPathExtension]];
+		}
+	      else
+		{
+		  [buf appendString: project];
+		}
+	      [buf appendString: @"</div><br />\n"];
+
+	      if ([self needsNavSection: @"class"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-classes\">Classes</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"protocol"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-protocols\">Protocols</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"constant"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-constants\">Constants</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"function"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-functions\">Functions</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"macro"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-macros\">Macros</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"type"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-types\">Types</a><br />\n"];
+		}
+	      if ([self needsNavSection: @"variable"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<a href=\"#nav-bar-variables\">Variables</a><br />\n"];
+		}
+
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar-top-body
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar-top
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-bottom\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-bottom-body\">\n"];
+	      [self incIndent];
+
+	      if ([self needsNavSection: @"class"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-classes\">Classes</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"class"
+			      scope: @"project"
+			      title: @"Project classes"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"protocol"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-protocols\">Protocols</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"protocol"
+			      scope: @"project"
+			      title: @"Project protocols"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"constant"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-constants\">Constants</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"constant"
+			      scope: @"project"
+			      title: @"Project constants"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"function"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-functions\">Functions</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"function"
+			      scope: @"project"
+			      title: @"Project functions"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"macro"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-macros\">Macros</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"macro"
+			      scope: @"project"
+			      title: @"Project macros"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"type"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-types\">Types</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"type"
+			      scope: @"project"
+			      title: @"Project types"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      if ([self needsNavSection: @"variable"])
+		{
+		  [buf appendString: indent];
+		  [buf appendString:
+		    @"<h3 class=\"content-bar-index-section-header\">"
+		    @"<a name=\"nav-bar-variables\">Variables</a>"
+		    @"</h3>\n"];
+		  [self outputIndex: @"variable"
+			      scope: @"project"
+			      title: @"Project variables"
+			      style: @"cssNavigation"
+			     target: nil
+				 to: buf];
+		}
+
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// bar-bottom-body
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// bar-bottom
+
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-pane\">\n"];
+	      [self incIndent];
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-pane-body\">\n"];
+	      [self incIndent];
+ 	    }
 
 	  if (prevFile != nil)
 	    {
@@ -1193,6 +1634,18 @@ static NSString		*mainFont = nil;
 		  GSXMLNode		*email = nil;
 		  GSXMLNode		*url = nil;
 		  GSXMLNode		*desc = nil;
+		  NSString		*auth;
+
+		  auth = [[author attributes] objectForKey: @"name"];
+		  auth = [auth stringByTrimmingSpaces];
+		  if ([auth length] == 0)
+		    {
+		      auth = [AGSOutput authorCredit];
+		    }
+		  else
+		    {
+		      auth = [auth stringByEscapingXML];
+		    }
 
 		  children = [children nextElement];
 
@@ -1216,8 +1669,7 @@ static NSString		*mainFont = nil;
 		  if (url == nil)
 		    {
 		      [buf appendString: @"<dt>"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: auth];
 		    }
 		  else
 		    {
@@ -1225,8 +1677,7 @@ static NSString		*mainFont = nil;
 		      [buf appendString: [[url attributes]
 			objectForKey: @"url"]];
 		      [buf appendString: @"\">"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: auth];
 		      [buf appendString: @"</a>"];
 		    }
 		  if (email != nil)
@@ -1259,17 +1710,42 @@ static NSString		*mainFont = nil;
 	    }
 	  if ([[children name] isEqual: @"version"] == YES)
 	    {
+	      NSMutableString	*ms = [NSMutableString string];
+
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Version:</b> "];
-	      [self outputText: [children firstChild] to: buf];
+	      [self outputText: [children firstChild] to: ms];
+	      [ms trimSpaces];
+	      if ([ms isEqual: @""] || [ms isEqual: @"$Revision$"])
+		{
+		  NSString	*v = version ? version : @"unspecified"; 
+		  [buf appendString: v];
+		}
+	      else
+		{
+		  [buf appendString: ms];
+		}
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
 	  if ([[children name] isEqual: @"date"] == YES)
 	    {
+	      GSXMLNode		*tmp = [children firstChild];
+	      NSMutableString	*ms = [NSMutableString string];
+
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Date:</b> "];
-	      [self outputText: [children firstChild] to: buf];
+	      [self outputText: tmp to: ms];
+	      [ms trimSpaces];
+	      if ([ms isEqual: @"$Date$"])
+		{
+		  [ms setString: @""];
+		}
+	      if ([ms isEqual: @""])
+		{
+		  [ms appendString: [AGSOutput generatedDate]];
+	        }
+	      [buf appendString: ms];
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
@@ -1325,8 +1801,12 @@ static NSString		*mainFont = nil;
 	  NSString	*title = [type capitalizedString];
 	  NSString	*style = [prop objectForKey: @"style"];
 
-	  [self outputIndex: type scope: scope title: title style: style
-                target: target to: buf ];
+	  [self outputIndex: type
+		      scope: scope
+		      title: title
+		      style: style
+                     target: target
+			 to: buf];
 	}
       else if ([name isEqual: @"ivar"] == YES)	// %phrase
 	{
@@ -1342,7 +1822,7 @@ static NSString		*mainFont = nil;
 	  NSString	*s;
 	  GSXMLNode	*tmp;
 
-	  tmp = children = firstElement(children);
+	  tmp = firstElement(children);
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>"];
 	  s = [self makeLink: n ofType: @"ivariable" inUnit: nil isRef: NO];
@@ -1363,13 +1843,6 @@ static NSString		*mainFont = nil;
 	    }
 	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
 
-/*
-	  if ([[children name] isEqual: @"desc"] == YES)
-	    {
-	      children = [children nextElement];
-	    }
-*/
-
 	  /*
 	   * List standards with which ivar complies
 	   */
@@ -1380,7 +1853,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	}
       else if ([name isEqual: @"label"] == YES)	// %anchor
 	{
@@ -1509,7 +1982,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"method"] == YES)
 	{
@@ -1675,7 +2148,7 @@ static NSString		*mainFont = nil;
 		  [self outputNode: node to: buf];
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr class=\"method-separator\">\n"];
 	    }
           [buf appendString:@"</div>\n"];
 	}
@@ -1719,15 +2192,24 @@ static NSString		*mainFont = nil;
 	    }
 	  if (s == nil)
 	    {
-	      if (c == nil)
+	      if (warn)
 		{
-		  NSLog(@"Location of %@ '%@' (referenced from %@) "
-		    @"not found or not unique.", type, r, base);
-		}
-	      else
-		{
-		  NSLog(@"Location of the %@ version of %@ '%@' (referenced "
-		    @"from %@) not found.", c, type, r, base);
+		  NSString	*ref;
+
+		  ref = [NSString stringWithFormat:
+		    @" (referenced from %@ in %@).",
+		    base, fileName];
+		  if (c == nil)
+		    {
+		      NSLog(@"Warning - location of %@ '%@'"
+			@" not found or not unique %@.",
+			type, r, ref);
+		    }
+		  else
+		    {
+		      NSLog(@"Warning - location of the %@ version of %@ '%@'"
+			@" not found %@.", c, type, r, ref);
+		    }
 		}
 	      if (tmp == nil)
 		{
@@ -1863,7 +2345,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"uref"] == YES)
 	{
@@ -1941,7 +2423,7 @@ static NSString		*mainFont = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else
 	{
@@ -1959,8 +2441,7 @@ static NSString		*mainFont = nil;
   LEAVE_POOL
 }
 
-/**
- * Output all the nodes from this one onwards ... try to output
+/** Output all the nodes from this one onwards ... try to output
  * as text first, if not possible, call the main method to output
  * each node.
  */
@@ -2290,10 +2771,132 @@ static NSString		*mainFont = nil;
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
-  NSArray	*a;
-  NSMutableString *ivarBuf = ivarsAtEnd ?
+  NSMutableDictionary	*protocols = nil;
+  NSArray		*a;
+  NSMutableString 	*ivarBuf = ivarsAtEnd ?
     (id)[NSMutableString stringWithCapacity: 1024] : nil;
-  NSDictionary	*prop = [node attributes];
+  NSDictionary		*prop = [node attributes];
+  GSXMLNode		*tmp;
+
+  /* First scan the top level children for protocols we conform to.
+   */
+  tmp = [node firstChildElement];
+  while ([[tmp name] isEqualToString: @"declared"])
+    {
+      tmp = [tmp nextElement];
+    }
+  while ([[tmp name] isEqualToString: @"conform"])
+    {
+      NSString	*p;
+
+      p = [[[tmp firstChild] escapedContent] stringByTrimmingSpaces];
+      if ([p length] > 0)
+	{
+	  NSString	*n;
+	  NSString	*u;
+
+	  n = [NSString stringWithFormat: @"(%@)", p];
+	  u = [self makeURL: n ofType: @"protocol" isRef: YES];
+	  if (u)
+	    {
+	      if (nil == protocols)
+		{
+		  protocols = [NSMutableDictionary dictionary];
+		}
+	      [protocols setObject: u forKey: p];
+	    }
+	}
+      tmp = [tmp nextElement];
+    }
+
+  if (graphviz && [[node name] isEqualToString: @"class"])
+    {
+      NSDictionary	*prop = [node attributes];
+      NSString		*cNam = [prop objectForKey: @"name"];
+      NSString		*sNam = [prop objectForKey: @"super"];
+      NSMutableString	*dot = [NSMutableString string];
+      NSString		*url = nil;
+      NSString		*svg;
+      NSEnumerator	*e;
+      NSString		*p;
+
+      cNam = [cNam stringByTrimmingSpaces];
+      sNam = [sNam stringByTrimmingSpaces];
+      url = [self makeURL: sNam ofType: @"class" isRef: YES];
+
+      /* Make sure a URL local to the HTML file includes the
+       * file name so it's not interpreted local to the SVG.
+       */
+/*
+      if ([url hasPrefix: @"#"])
+	{
+	  NSString	*file = [fileName lastPathComponent];
+	  NSString	*ext = [file pathExtension];
+
+	  if ([ext isEqual: @"gsdoc"])
+	    {
+	      file = [file stringByDeletingPathExtension];
+	    }
+	  if (NO == [ext isEqual: @"html"])
+	    {
+	      file = [file stringByAppendingPathExtension: @"html"];
+	    }
+	  url = [file stringByAppendingString: url];
+	}
+*/
+
+      [dot appendFormat: @"digraph class_%@ {\n", cNam];
+      [dot appendString: @" rankdir = \"TB\";\n"];
+      [dot appendString: @" {\n"];
+      [dot appendString: @"   node [margin=0 "
+	@" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
+      if (sNam)
+	{
+          [dot appendFormat: @"  %@ [class=figure_super", sNam];
+	  if (url)
+	    {
+	      [dot appendFormat: @" URL=\"%@\"", url];
+	    }
+          [dot appendString: @"]\n"];
+	  [dot appendFormat: @"  %@ [class=figure_class]\n",
+	    cNam];
+	}
+      else
+	{
+	  sNam = cNam;	// This is a root class ... 
+	  [dot appendFormat: @"  %@ [class=figure_root]\n",
+	    cNam];
+	}
+      if (protocols)
+	{
+	  e = [protocols keyEnumerator];
+	  while ((p = [e nextObject]) != nil)
+	    {
+	      [dot appendFormat: @"  p_%@ [class=figure_protocol"
+		@" label=\"%@\" URL=\"%@\" shape=hexagon]\n",
+		p, p, [protocols objectForKey: p]];
+	    }
+	}
+      [dot appendString: @" }\n"];
+      [dot appendFormat: @" %@ -> %@\n", sNam, cNam];
+      if (protocols)
+	{
+	  NSArray	*keys = [protocols allKeys];
+
+	  keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+	  e = [keys objectEnumerator];
+	  while ((p = [e nextObject]) != nil)
+	    {
+	      [dot appendFormat: @"  p_%@ -> %@\n", p, cNam];
+	    }
+	}  
+      [dot appendString: @"}"];
+
+      if ((svg = filter(dot, verbose)) != nil)
+	{
+	  [buf appendString: svg];
+	}
+    }
 
   node = [node firstChildElement];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -2302,8 +2905,19 @@ static NSString		*mainFont = nil;
       node = [node nextElement];
     }
 
-  if (node != nil && [[node name] isEqual: @"conform"] == YES)
+  while ([[node name] isEqual: @"conform"])
     {
+      node = [node nextElement];
+    }
+
+  if (protocols)
+    {
+      NSArray		*keys = [protocols allKeys];
+      NSEnumerator	*e;
+      NSString		*p;
+
+      keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+      e = [keys objectEnumerator];
       [buf appendString: indent];
       [buf appendString: @"<blockquote>\n"];
       [self incIndent];
@@ -2312,16 +2926,16 @@ static NSString		*mainFont = nil;
       [self incIndent];
       [buf appendString: indent];
       [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
-      while (node != nil && [[node name] isEqual: @"conform"] == YES)
+      while ((p = [e nextObject]) != nil)
 	{
-	  NSString	*text = [[node firstChild] escapedContent];
+	  NSString	*u = [protocols objectForKey: p];
 
-	  if (text == nil) text = @"";
 	  [buf appendString: indent];
-	  [buf appendString: @"<dd>"];
-	  [buf appendString: [self protocolRef: text]];
-	  [buf appendString: @"</dd>\n"];
-	  node = [node nextElement];
+	  [buf appendString: @"<dd><a rel=\"gsdoc\" href=\""];
+	  [buf appendString: u];
+	  [buf appendString: @"\">"];
+	  [buf appendString: p];
+	  [buf appendString: @"</a></dd>\n"];
 	}
       [self decIndent];
       [buf appendString: indent];
@@ -2346,6 +2960,7 @@ static NSString		*mainFont = nil;
   if (node != nil && [[node name] isEqual: @"ivariable"] == YES)
     {
       NSMutableString	*ibuf = buf;
+      unsigned		count = 0;
 
       /*
        * If want instance variables at end, throw it all into an alternate
@@ -2354,27 +2969,33 @@ static NSString		*mainFont = nil;
       if (ivarsAtEnd)
 	{
 	  ibuf = ivarBuf;
-	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-	  [buf appendString: indent];
-	  [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
-			     classname];
-	  [buf appendString: indent];
-	  [buf appendString: @"<br/><br/>\n"];
-	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" />\n"];
+      [ibuf appendString: @"<br /><hr class=\"section-separator\">\n"];
       [ibuf appendString: indent];
       [ibuf appendFormat: @"<h2>Instance Variables for %@ Class</h2>\n",
 	classname];
       while (node != nil && [[node name] isEqual: @"ivariable"] == YES)
 	{
+	  count++;
 	  [self outputNode: node to: ibuf];
 	  node = [node nextElement];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" /><br/>\n"];
+      [ibuf appendString: @"<br /><hr class=\"section-separator\"><br />\n"];
+
+      if (ivarsAtEnd && count)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr class=\"section-separator\">\n"];
+	  [buf appendString: indent];
+	  [buf appendFormat:
+	    @"<a href=\"#_%@_ivars\">%@ declares %u Instance Variables</a>\n",
+	    classname, classname, count];
+	  [buf appendString: indent];
+	  [buf appendString: @"<br /><br />\n"];
+	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
+	}
     }
 
   a = [localRefs methodsInUnit: unit];
@@ -2387,7 +3008,7 @@ static NSString		*mainFont = nil;
                  target: nil
 		     to: buf];
       [buf appendString: indent];
-      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+      [buf appendString: @"<hr class=\"section-separator\">\n"];
       while (node != nil)
 	{
 	  if ([[node name] isEqual: @"method"] == YES)
@@ -2590,10 +3211,10 @@ static NSString		*mainFont = nil;
  */
 - (NSString*) typeRef: (NSString*)t
 {
-  NSString	*str = [t stringByTrimmingSpaces];
-  NSString	*s;
-  unsigned	end = [str length];
-  unsigned	start;
+  NSString		*str = [t stringByTrimmingSpaces];
+  NSString		*s;
+  unsigned		end = [str length];
+  unsigned		start;
   NSMutableString	*ms = nil;
   NSRange		er;
   NSRange		sr;

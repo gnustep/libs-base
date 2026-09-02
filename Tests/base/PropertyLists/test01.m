@@ -358,13 +358,13 @@ int main()
 {
   NSData        	*d = [NSData dataWithContentsOfFile: @"cyclic.plist"];
   NSPropertyListFormat	format;
-  id			u = nil;
-  PASS_EXCEPTION(
-  u = [NSPropertyListSerialization propertyListFromData: d
+
+  PASS_EQUAL(
+    [NSPropertyListSerialization propertyListFromData: d
     mutabilityOption: NSPropertyListImmutable
     format: &format
-    errorDescription: 0];, NSGenericException, "Does not crash on binary plist with cyclic references." );
-  PASS(nil == u, "Rejects cyclic plist");
+    errorDescription: 0], nil,
+    "Does not crash on binary plist with cyclic references." )
 }
 #endif
 

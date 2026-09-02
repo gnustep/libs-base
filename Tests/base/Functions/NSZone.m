@@ -76,8 +76,8 @@ int main()
 	"NSZoneFromPointer() returns zone where memory came from");
      
       NS_DURING
-       [NSString allocWithZone:aZone];
-       NSRecycleZone(aZone);
+        NSZoneMalloc(aZone, 42);
+        NSRecycleZone(aZone);
 	PASS(1,"NSRecycleZone seems to operate");
       NS_HANDLER
 	PASS(0,"NSRecycleZone seems to operate");

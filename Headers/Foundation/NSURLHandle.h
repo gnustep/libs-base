@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __NSURLHandle_h_GNUSTEP_BASE_INCLUDE
@@ -114,6 +113,14 @@ GS_EXPORT NSString * const GSHTTPPropertyKeyFileKey;
  * specify the password for an SSL key file.
  */
 GS_EXPORT NSString * const GSHTTPPropertyPasswordKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s and [NSHTTPURLProtocol]'s 
+ * <code>propertyForKey..</code> methods. Specifying <code>YES</code> will 
+ * signal Digest Authentication logic to always omit the 'query' portion of the
+ * URI when generating the `Authorization` header.
+ */
+GS_EXPORT NSString * const GSHTTPPropertyDigestURIOmitsQuery;
 
 #endif
 

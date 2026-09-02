@@ -18,8 +18,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, see <http://www.gnu.org/licenses/> or write to the
-   Free Software Foundation, 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.
+   Free Software Foundation, 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #define	EXPOSE_NSLocale_IVARS	1
@@ -36,7 +35,7 @@
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
-#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 #if	defined(HAVE_UNICODE_ULOC_H)
 # include <unicode/uloc.h>
@@ -155,7 +154,7 @@ static NSRecursiveLock *classLock = nil;
 
   defs = [NSUserDefaults standardUserDefaults];
   name = [defs stringForKey: @"Locale"];
-  if ([name isEqual: autoupdatingLocale->_localeId] == NO)
+  if (name != nil && [name isEqual: autoupdatingLocale->_localeId] == NO)
     {
       [classLock lock];
       RELEASE(autoupdatingLocale->_localeId);
@@ -258,9 +257,8 @@ static NSRecursiveLock *classLock = nil;
      zh-Hant_TW as it's locale identifier (was zh_TW on 10.3.9 and below).
      Since ICU doesn't use "-" as a separator it will modify that identifier
      to zh_Hant_TW. */
-  NSString *result;
-  NSMutableString *mStr;
-  NSRange range;
+  NSString	*result;
+  NSRange	range;
   
   if (string == nil)
     return nil;
@@ -272,19 +270,29 @@ static NSRecursiveLock *classLock = nil;
   if (result == nil)
     result = string;
   
-  // Strip script info from locale
+  /* Strip script info (if present) from hyphenated form.
+   * eg. try to cope with zh-Hant_TW
+   */
   range = [result rangeOfString: @"-"];
-  if (range.location != NSNotFound)
+  if (range.length > 0)
     {
-      NSUInteger start = range.location;
-      NSUInteger length;
-      range = [result rangeOfString: @"_"];
-      length = range.location - start;
-      
-      mStr = [NSMutableString stringWithString: result];
-      [mStr deleteCharactersInRange: NSMakeRange (start, length)];
-      
-      result = [NSString stringWithString: mStr];
+      NSUInteger 	start = range.location;
+      NSUInteger	length = [result length];
+
+      range = [result rangeOfString: @"_"
+			    options: 0
+			      range: NSMakeRange(start, length - start)];
+      if (range.length > 0)
+	{
+	  NSMutableString	*mStr;
+
+	  /* Found -..._ sequence, so delete the script part.
+	   */
+	  mStr = [NSMutableString stringWithString: result];
+	  length = range.location - start;
+	  [mStr deleteCharactersInRange: NSMakeRange(start, length)];
+	  result = [NSString stringWithString: mStr];
+	}
     }
   
   return result;
@@ -738,9 +746,12 @@ static NSRecursiveLock *classLock = nil;
   newLocale = [allLocales objectForKey: localeId];
   if (nil == newLocale)
     {
-      _localeId = [localeId copy];
-      _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
-      [allLocales setObject: self forKey: localeId];
+      if (nil != (self = [super init]))
+	{
+	  _localeId = [localeId copy];
+	  _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
+	  [allLocales setObject: self forKey: localeId];
+	}
     }
   else
     {
@@ -825,7 +836,7 @@ static NSRecursiveLock *classLock = nil;
 
 - (NSString *) countryCode
 {
-  return [self objectForKey: NSLocaleLanguageCode];
+  return [self objectForKey: NSLocaleCountryCode];
 }
 
 - (NSString *) scriptCode

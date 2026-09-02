@@ -160,7 +160,7 @@ mutualinit(int sig)
    */
   testHopeful = YES;
   PASS(0, "+initialize mutually dependent methods work");
-  exit(0);
+  _exit(0);	// Use _exit() to avoid deadlocking in atexit()
 }
 
 static void
@@ -170,7 +170,7 @@ concurrency(int sig)
    */
   testHopeful = YES;
   PASS(0, "+initialize runs concurrently");
-  exit(0);
+  _exit(0);	// Use _exit() to avoid deadlocking in atexit()
 }
 
 /**

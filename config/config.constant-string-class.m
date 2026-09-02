@@ -12,7 +12,7 @@
    version 2 of the License, or (at your option) any later version.
 */
 
-/* must be compiled compile using -fconstant-string-class=NSConstantString
+/* must be compiled compile using -fconstant-string-class=FooConstantString
    as an option to gcc.  If it doesn't work, it means your gcc doesn't
    support this option. */
 
@@ -41,7 +41,7 @@ GS_OBJC_ROOT_CLASS @interface FooConstantString
    unsigned int len;
 #endif
 }
-- (char *) customString;
+- (const char *) customString;
 @end
 
 #ifdef NeXT_RUNTIME
@@ -51,40 +51,41 @@ struct objc_class _FooConstantStringClassReference;
 #endif
 
 @implementation FooConstantString
-- (char *) customString
+- (const char *) customString
 {
-    return c_string;
+  return c_string;
 }
 @end
 
 
 int main (int argc, char **argv)
 {
-   /* Create a test constant string */
-   FooConstantString *string = @"Antonio Valente";
+  /* Create a test constant string */
+  FooConstantString *string = (FooConstantString*)@"Antonio Valente";
 
 #ifdef NeXT_RUNTIME
-   /* This memcpy is needed here due to a bug in ObjC gcc when using
-      next runtime. It has to be done once per program and before
-      the first message is sent to a constant string. Can't be moved to
-      the constant string's +initialize since this is already a message.
-      See Apple Radar 2870817 */
-   memcpy(&_FooConstantStringClassReference,
-          objc_getClass("FooConstantString"),
-          sizeof(_FooConstantStringClassReference));
+  /* This memcpy is needed here due to a bug in ObjC gcc when using
+     next runtime. It has to be done once per program and before
+     the first message is sent to a constant string. Can't be moved to
+     the constant string's +initialize since this is already a message.
+     See Apple Radar 2870817 */
+  memcpy(&_FooConstantStringClassReference,
+    objc_getClass("FooConstantString"),
+    sizeof(_FooConstantStringClassReference));
 #endif
 
-   /* Check that it really works */
-   if (strcmp ([string customString], "Antonio Valente"))
-     {
-       abort ();
-     }
+  /* Check that it really works */
+  if (strcmp([string customString], "Antonio Valente"))
+    {
+      abort();
+    }
 
-   /* Do another, more direct test. */
-   if (strcmp ([@"JumpMustBeBigEnoughNotToBeATingString" customString], "JumpMustBeBigEnoughNotToBeATingString"))
-       {
-         abort ();
-       }
-   return 0;
+  /* Do another, more direct test. */
+  if (strcmp([@"JumpMustBeBigEnoughNotToBeATingString" customString],
+    "JumpMustBeBigEnoughNotToBeATingString"))
+    {
+      abort();
+    }
+  return 0;
 }
 

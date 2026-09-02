@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -206,19 +205,19 @@ static BOOL     initialized = NO;
          ascending: (BOOL) ascending
         comparator: (NSComparator) cmptr
 {
-  if ([self init])
+  if ((self = [self init]) != nil)
     {
       if (key == nil)
         {
           [NSException raise: NSInvalidArgumentException
-                      format: @"%@", _(@"Passed nil key when initializing "
-                                       @"an NSSortDescriptor.")];
+                      format: @"%@", _(@"Passed nil key when initializing"
+			      @" an NSSortDescriptor.")];
         }
       if (cmptr == NULL)
         {
           [NSException raise: NSInvalidArgumentException
-                      format: @"%@", _(@"Passed NULL comparator when initializing "
-                                       @"an NSSortDescriptor.")];
+                      format: @"%@", _(@"Passed NULL comparator when"
+			      @" initializing an NSSortDescriptor.")];
         }
 
       ASSIGN(_key, key);
@@ -237,7 +236,7 @@ static BOOL     initialized = NO;
          ascending: (BOOL) ascending
           selector: (SEL) selector
 {
-  if ([self init])
+  if ((self = [self init]) != nil)
     {
       if (key == nil)
         {

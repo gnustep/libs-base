@@ -23,15 +23,14 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */ 
 
 #ifndef __objc_load_h_INCLUDE
 #define __objc_load_h_INCLUDE
 
 #include <stdio.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSString.h"
 
 #ifdef HAVE_DLADDR
 #define LINKER_GETSYMBOL 1

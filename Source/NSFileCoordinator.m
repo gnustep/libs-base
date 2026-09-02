@@ -1,4 +1,4 @@
-/* Definition of class NSFileCoordinator
+/** Definition of class NSFileCoordinator
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Implemented by: 	Gregory Casamento <greg.casamento@gmail.com>
@@ -19,8 +19,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import <Foundation/NSFileCoordinator.h>
@@ -151,9 +150,8 @@ static NSMutableDictionary *__presenterIdDict = nil;
                          byAccessor: (GSAccessorCallbackHandler)accessor
 {
   NSEnumerator *en = [intents objectEnumerator];
-  id obj = nil;
   
-  while ((obj = [en nextObject]) != nil)
+  while ([en nextObject] != nil)
     {
       NSBlockOperation *op;
 

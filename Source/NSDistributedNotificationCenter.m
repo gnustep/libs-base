@@ -18,14 +18,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDistributedNotificationCenter class reference</title>
    $Date$ $Revision$
    */
 
 #import	"common.h"
+
 #define	EXPOSE_NSDistributedNotificationCenter_IVARS	1
 #import	"Foundation/NSConnection.h"
 #import	"Foundation/NSDistantObject.h"
@@ -44,6 +44,7 @@
 #import	"Foundation/NSPortNameServer.h"
 #import "Foundation/NSThread.h"
 #import	"../Tools/gdnc.h"
+#import "GSPThread.h"
 
 
 @interface	NSDistributedNotificationCenter (Private)
@@ -103,12 +104,24 @@
 static NSDistributedNotificationCenter	*locCenter = nil;
 static NSDistributedNotificationCenter	*pubCenter = nil;
 static NSDistributedNotificationCenter	*netCenter = nil;
+static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
+
 
 + (id) allocWithZone: (NSZone*)z
 {
   [NSException raise: NSInternalInconsistencyException
     format: @"Should not call +alloc for NSDistributedNotificationCenter"];
   return nil;
+}
+
++ (void) atExit
+{
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(locCenter);
+      DESTROY(pubCenter);
+      DESTROY(netCenter);
+    }
 }
 
 /**
@@ -120,6 +133,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 + (id) defaultCenter
 {
   return [self notificationCenterForType: NSLocalNotificationCenterType];
+}
+
++ (void) initialize
+{
+  [self registerAtExit];
 }
 
 /**
@@ -140,28 +158,27 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     {
       if (locCenter == nil)
 	{
-	  [gnustep_global_lock lock];
-	    if (locCenter == nil)
-	      {
-		NS_DURING
-		  {
-		    NSDistributedNotificationCenter	*tmp;
+	  GS_MUTEX_LOCK(classLock);
+	  if (locCenter == nil && NO == [NSObject isExiting])
+	    {
+	      NS_DURING
+		{
+		  NSDistributedNotificationCenter	*tmp;
 
-		    tmp = (NSDistributedNotificationCenter*)
-		      NSAllocateObject(self, 0, NSDefaultMallocZone());
-		    tmp->_centerLock = [NSRecursiveLock new];
-		    tmp->_type = RETAIN(NSLocalNotificationCenterType);
-		    locCenter = [NSObject leak: tmp];
-		    [tmp release];
-		  }
-		NS_HANDLER
-		  {
-		    [gnustep_global_lock unlock];
-		    [localException raise];
-		  }
-		NS_ENDHANDLER
-	      }
-	  [gnustep_global_lock unlock];
+		  tmp = (NSDistributedNotificationCenter*)
+		    NSAllocateObject(self, 0, NSDefaultMallocZone());
+		  tmp->_centerLock = [NSRecursiveLock new];
+		  tmp->_type = RETAIN(NSLocalNotificationCenterType);
+		  locCenter = tmp;
+		}
+	      NS_HANDLER
+		{
+		  GS_MUTEX_UNLOCK(classLock);
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
+	    }
+	  GS_MUTEX_UNLOCK(classLock);
 	}
       return locCenter;
     }
@@ -169,28 +186,27 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     {
       if (pubCenter == nil)
 	{
-	  [gnustep_global_lock lock];
-	    if (pubCenter == nil)
-	      {
-		NS_DURING
-		  {
-		    NSDistributedNotificationCenter	*tmp;
+	  GS_MUTEX_LOCK(classLock);
+	  if (pubCenter == nil && NO == [NSObject isExiting])
+	    {
+	      NS_DURING
+		{
+		  NSDistributedNotificationCenter	*tmp;
 
-		    tmp = (NSDistributedNotificationCenter*)
-		      NSAllocateObject(self, 0, NSDefaultMallocZone());
-		    tmp->_centerLock = [NSRecursiveLock new];
-		    tmp->_type = RETAIN(GSPublicNotificationCenterType);
-		    pubCenter = [NSObject leak: tmp];
-		    [tmp release];
-		  }
-		NS_HANDLER
-		  {
-		    [gnustep_global_lock unlock];
-		    [localException raise];
-		  }
-		NS_ENDHANDLER
-	      }
-	  [gnustep_global_lock unlock];
+		  tmp = (NSDistributedNotificationCenter*)
+		    NSAllocateObject(self, 0, NSDefaultMallocZone());
+		  tmp->_centerLock = [NSRecursiveLock new];
+		  tmp->_type = RETAIN(GSPublicNotificationCenterType);
+		  pubCenter = tmp;
+		}
+	      NS_HANDLER
+		{
+		  GS_MUTEX_UNLOCK(classLock);
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
+	    }
+	  GS_MUTEX_UNLOCK(classLock);
 	}
       return pubCenter;
     }
@@ -198,28 +214,27 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     {
       if (netCenter == nil)
 	{
-	  [gnustep_global_lock lock];
-	    if (netCenter == nil)
-	      {
-		NS_DURING
-		  {
-		    NSDistributedNotificationCenter	*tmp;
+	  GS_MUTEX_LOCK(classLock);
+	  if (netCenter == nil && NO == [NSObject isExiting])
+	    {
+	      NS_DURING
+		{
+		  NSDistributedNotificationCenter	*tmp;
 
-		    tmp = (NSDistributedNotificationCenter*)
-		      NSAllocateObject(self, 0, NSDefaultMallocZone());
-		    tmp->_centerLock = [NSRecursiveLock new];
-		    tmp->_type = RETAIN(GSNetworkNotificationCenterType);
-		    netCenter = [NSObject leak: tmp];
-		    [tmp release];
-		  }
-		NS_HANDLER
-		  {
-		    [gnustep_global_lock unlock];
-		    [localException raise];
-		  }
-		NS_ENDHANDLER
-	      }
-	  [gnustep_global_lock unlock];
+		  tmp = (NSDistributedNotificationCenter*)
+		    NSAllocateObject(self, 0, NSDefaultMallocZone());
+		  tmp->_centerLock = [NSRecursiveLock new];
+		  tmp->_type = RETAIN(GSNetworkNotificationCenterType);
+		  netCenter = tmp;
+		}
+	      NS_HANDLER
+		{
+		  GS_MUTEX_UNLOCK(classLock);
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
+	    }
+	  GS_MUTEX_UNLOCK(classLock);
 	}
       return netCenter;
     }
@@ -698,6 +713,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  NSDate	*limit;
 
 	  cmd = [NSTask launchPathForTool: @"gdnc"];
+	
+	  if (cmd == nil)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"Unable to find the gdnc tool.\n"];
+	    }
 	
 	  NSDebugMLLog(@"NSDistributedNotificationCenter",
 @"\nI couldn't contact the notification server for %@ -\n"

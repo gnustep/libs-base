@@ -18,14 +18,15 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "GNUstepBase/GSBlocks.h"
 
 #if HAVE_DISPATCH_H
 #include <dispatch.h>
+#elif HAVE_DISPATCH_RPRIVATE_H
+#include <dispatch/private.h>
 #elif HAVE_DISPATCH_DISPATCH_H
 #include <dispatch/dispatch.h>
 #endif
@@ -96,14 +97,14 @@
  * Convenience macro to create concurrent dispatch queues for the various
  * -enumerateUsingBlock: methods. Non-concurrent will be run in place.
  */
-#define GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts)\
+#define GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts) {\
   dispatch_queue_t queue = NULL;\
   dispatch_group_t queue ## Group = NULL;\
   if (opts & NSEnumerationConcurrent)\
-  {\
-    queue = GS_DISPATCH_GET_DEFAULT_CONCURRENT_QUEUE();\
-    queue ## Group = GS_DISPATCH_GROUP_CREATE();\
-  }
+    {\
+      queue = GS_DISPATCH_GET_DEFAULT_CONCURRENT_QUEUE();\
+      queue ## Group = GS_DISPATCH_GROUP_CREATE();\
+    }
 
 /**
  * Convenience macro to destroy concurrent dispatch queues for the various
@@ -114,10 +115,11 @@
     GS_DISPATCH_GROUP_FINISH(queue ## Group);\
     GS_DISPATCH_RELEASE(queue ## Group);\
     if (NO == (opts & NSEnumerationConcurrent))\
-    {\
-      GS_DISPATCH_RELEASE(queue);\
-    }\
-  }
+      {\
+        GS_DISPATCH_RELEASE(queue);\
+      }\
+  }\
+}
 
 
 #else

@@ -16,7 +16,7 @@ int main()
 
   theClass = [NSProxy class];
   PASS(theClass != Nil, "%s exists",prefix); 
-  obj0 = [NSProxy alloc];
+  obj0 = AUTORELEASE([NSProxy alloc]);
   PASS(obj0 != nil, "%s has working alloc",prefix);
   PASS_EXCEPTION([obj0 isKindOfClass:theClass];, NSInvalidArgumentException,
   		 "NSProxy -isKindOfClass raises exception");
@@ -25,7 +25,7 @@ int main()
                  NSInvalidArgumentException,
 		 "NSProxy -isKindOfClass raises exception");
   
-  obj1 = [NSProxy allocWithZone:testZone];
+  obj1 = AUTORELEASE([NSProxy allocWithZone:testZone]);
   PASS(obj1 != nil, "%s has working allocWithZone:",prefix);
 #ifndef OBJC_CAP_ARC
   PASS(NSZoneFromPointer(obj1) == testZone, "%s uses zone for alloc",prefix);

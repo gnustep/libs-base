@@ -54,6 +54,27 @@ int main()
   PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),
     "-hostName works"); 
   NSLog(@"hostName %@", obj);
+
+  if ([info respondsToSelector: @selector(setValue:inEnvironment:)])
+    {
+      NSString		*key = @"an-unusual-environment-key";
+
+      PASS_EQUAL([[info environment] objectForKey: key], nil,
+	"env key not initially set")
+
+      [info performSelector: @selector(setValue:inEnvironment:)
+		 withObject: @"hello"
+		 withObject: key];
+      PASS_EQUAL([[info environment] objectForKey: key], @"hello",
+	"env key was set")
+
+      [info performSelector: @selector(setValue:inEnvironment:)
+		 withObject: nil
+		 withObject: key];
+      PASS_EQUAL([[info environment] objectForKey: key], nil,
+	"env key was removed")
+    }
+
   [arp release]; arp = nil;
   return 0;
 }

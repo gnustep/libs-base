@@ -289,7 +289,7 @@ testParseData(NSData *xml, NSString *expect, BOOL strict)
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithData: xml];
   result = testParser(parser, expect);
-
+  RELEASE(parser);
   [arp release];
   return result;
 }
@@ -315,7 +315,7 @@ testParseStream(NSInputStream *stream, NSString *expect, BOOL strict)
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithStream: stream];
   result = testParser(parser, expect);
-
+  RELEASE(parser);
   [arp release];
   return result;
 }

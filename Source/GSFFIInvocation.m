@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -190,7 +189,7 @@ IMP gs_objc_msg_forward (SEL sel)
   return gs_objc_msg_forward2 (nil, sel);
 }
 #ifdef __GNUSTEP_RUNTIME__
-gs_thread_key_t thread_slot_key;
+static gs_thread_key_t thread_slot_key;
 static struct objc_slot *
 gs_objc_msg_forward3(id receiver, SEL op)
 {
@@ -296,8 +295,7 @@ exitedThread(void *slot)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _frame = cifframe_from_signature(_sig);
-  [_frame retain];
+  [self setupFrameFFI: _sig];
   _cframe = [_frame mutableBytes];
 
   /* Make sure we have somewhere to store the return value if needed.
@@ -437,21 +435,19 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
     }
   else
     {
-      GSMethod method;
-      method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (Class)object_getClass(_target)
-                            : (Class)_target),
-                           _selector,
-                           GSObjCIsInstance(_target),
-                           YES);
-      imp = method_getImplementation(method);
-      /*
-       * If fast lookup failed, we may be forwarding or something ...
+      /* The KVO implementation for libobjc2 (located in gnustep-base Source/NSKVO*)
+       * uses the non-portable `object_addMethod_np` API from libobjc2.
+       * `object_addMethod_np` creates or reuses a hidden subclass and adds the swizzled
+       * method to the hidden class.
+       *
+       * When retrieving the object's class with `object_getClass`, hidden classes are skipped
+       * and the original class is returned.
+       * This is also the case with `class_getInstanceMethod`, where the
+       * original class or (non-swizzled) method is returned instead.
+       * 
+       * The proper way to retrieve an IMP is with `objc_msg_lookup`.
        */
-      if (imp == 0)
-	{
-	  imp = objc_msg_lookup(_target, _selector);
-	}
+      imp = objc_msg_lookup(_target, _selector);
     }
 
   [self setTarget: old_target];

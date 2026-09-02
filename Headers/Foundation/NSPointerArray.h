@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -43,25 +42,25 @@ extern "C" {
  * or grow (adding nil/zero items).
  */
 GS_EXPORT_CLASS
-@interface NSPointerArray : NSObject <NSCopying, NSCoding>
+@interface NSPointerArray : NSObject <NSCoding, NSCopying, NSFastEnumeration>
 
 /** Allocate an instance, initialise using initWithOptions: and
  * return it autoreleased.
  */
-+ (id) pointerArrayWithOptions: (NSPointerFunctionsOptions)options;
++ (instancetype) pointerArrayWithOptions: (NSPointerFunctionsOptions)options;
 
 /** Allocate an instance, initialise using initWithPointerFunctions: and
  * return it autoreleased.
  */
-+ (id) pointerArrayWithPointerFunctions: (NSPointerFunctions *)functions;
++ (instancetype) pointerArrayWithPointerFunctions: (NSPointerFunctions *)functions;
 
 /** Returns a new pointer array for storing strong (retained) references to
  * objects.
  */
-+ (id) strongObjectsPointerArray;
-/** Returns a new pointer array for storing zeroing weak references to objects.
++ (instancetype) strongObjectsPointerArray;
+/** Returns a new pointer array for storing weak references to objects.
  */
-+ (id) weakObjectsPointerArray;
++ (instancetype) weakObjectsPointerArray;
 
 
 /** Removes all nil/zero items from the array.
@@ -122,16 +121,6 @@ GS_EXPORT_CLASS
 @end
 
 @interface NSPointerArray (NSArrayConveniences)  
-
-/** Creates an instance configured to hold objects and prevent them from
- * being garbage collected.
- */
-+ (id) pointerArrayWithStrongObjects;
-
-/** Creates an instance configured to hold objects, allowing them to be
- * garbage collected and replaced by nil if/when they are collected.
- */
-+ (id) pointerArrayWithWeakObjects;
 
 /** Returns an array containing all the non-nil objects from the receiver.
  */

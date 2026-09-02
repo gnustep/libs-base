@@ -11,15 +11,130 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-This is a bugfix release increasing the library version number to reflect ABI change that should have been included when the previous release was made.
+@section Noteworthy changes in version @samp{1.31.1}
+
+@itemize @bullet
+@item This is a bugfix release correcting a missing KVO method when using
+the ng runtime and an error in weak reference support when using the gnu
+runtimeR, along with a few other minor fixes and documentation improvements.
+@item The library version changes from 1.31.0 to 1.31.1
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.31.0}
+
+@itemize @bullet
+@item Library version changed from 1.30 to 1.31
+@item Implementation of weak references for the GNU runtime, so that
+	weak references are now supported/available in portable code, and
+	in conjunction with NSPointerFunction fixes we now support weak
+	references in NSMapTable, NSHashTable, and NSPointerArray as well
+	as supporting automatic deregestration of deallocated observers
+	in NSNotificationCenter.
+@item Autogsdoc updated to support modern CSS based HTML and provide
+	simple diagrams of inheritence in the reference documentation.
+@item New experimental implementation of NSURLSession ... we still
+	need work to replace non-portable (blocks dependent) code before
+	it can be a supported class.
+@item New KeyValueObserving code for Clang and GNUstep runtime.
+@item Other new methods/features
+@itemize @minus{}
+
+@item BSByteOrder fixes for NSSwappedFloat and NSSwappedDouble
+@item [NSDate] small object optimisation when using Clang
+@item -[NSFileManager URLsForDirectory:inDomains:]
+@item NSGeometry missing functions implemented
+@item [NSInvocation] missing typedefs implemented
+@item [NSOperation] threads are now named for  easy identification
+@item [NSPredicate] BETWEEN operator for more types
+@item -[NSString enumerateLinesUsingBlock:]
+@item [NSThread] priority support now working on Android
+@item [NSString] NSRegularExpressionSearch option
+@item [NSString] ICU collator cached for improved performance
+@item -[NSURLRequest assumesHTTP3Capable]
+@item -[NSURLRequest setAssumesHTTP3Capable:]
+@item [NSUserDefaults] use bundle identifier rather than program name
+@item [NSValue] edge insets added
+@item -[NSZombie logZombie:]
+@end itemize
+
+@item Support for being built with the '-asan yes' command line option
+	or the GNUSTEP_WITH_ASAN=1 environment variable setting.  The library
+	is also aware when it was not built with that option but is linked to
+	an executable which was (and a few features which confuse the leak
+	checker are turned off).  In addition NSObject+GNUstepBase.h declares
+	new methods for tracking the ownership of objects of a particular
+	class (or individual instances) to help in identifying the cause of
+	any leak found by the leak sanitizer.
+@item Many minor bugfixes and very, very many minor memory leaks fixed
+	in both the library and the automated testcases.
+@item Removed deprecated locking code and changed many classes to use
+	lightweight and more fine-grained locking for simple cases protecting
+	short regions.  We retain a global lock for more complex situations
+	where there is a significant chance of deadlock.
+@item Several symbols (variables and functions) which were accidentally
+	public have been made static or internal to the library.
+@item Updated to work with recent versions of autoconf.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{1.30.0}
+
+@itemize @bullet
+@item Library version changed from 1.29 to 1.30
+
+@item autogsdoc (and many source/header files) updated for ObjC-2 support
+@item gdnc gspath spelling error fixes
+@item GSFileHandle remove handle from run loop when -dealloc is called 
+@item GSHTTPURLHandle close socket if we end loading with I/O in progress.
+@item GSMimeDocimnet optimisations
+@item GSPrivateSymbolPath() portability improvements
+@item GSVersionMacros add GS_UNIMPLEMENTED to mark unimplemented methods
+@item HTMLLinker man page groff warning fixed
+@item Make GSTcpTune options available to streams as well as file handles and improve debug logging for stream operations.
+@item NSBundle improvements in librarym bundle lookup
+@item NSCache thread safety fix
+@item NSData caching data of file URLs and OSX consistency tweak to permissions when writing file atomically
+@item NSDate implements +now constructor.
+@item NSDecimalNumber fix possible coimparison bug for zero values
+@item NSError -description and -localizedDescription formats match OSX
+@item NSException portability improvments
+@item NSFileManager makeed safety fix and make enumerating a file URL return URLs rather than paths.
+@item NSIndexSet implements enumerateRangesInRange convenience methods.
+@item NSISO8601DateFormatter.m: bugfix for date/time string generation
+@item NSJSONSerialization fix memory leak, fix issue with unicode surrogate pairs.
+@item NSKeyValueObserving Add methods to remove observers
+@item NSLocale Fix -countryCode incorrectly returning language code, fix for hyphen and underscore in locale identifier
+@item NSMessagePort remove restriction on Distributed Objects message length
+@item NSNotificationCenter fix for memory leak, minor bugfixes (use before initialise)
+@item NSNull fix for -valueForUndefinedKey: to return singleton
+@item NSNumberFormatter make minimum/maximum properties NSNumbers
+@item NSObject optimise allocation with new runtime library
+@item NSOperation fix occasional scheduling bug
+@item NSOrderedSet Fix keyed encoding to match Apple platforms.
+@item NSPathUtilities fix intialisation order deadlock.
+@item NSPredicate fix for array access keywords
+@item NSProcessInfo android support
+@item NSString correct class used when loading empty string from file/URL, implements regular expression search methods.
+@item NSTask return an error if the path to launch in is bad, use _exit to terminate forked process if needed, use closefrom() to close descriptors in child process if possible 
+@item NSTimer wrap call to block in exception handler (bug #289)
+@item NSTimeZone improvements
+@item NSURL Fix NSURL path on Windows for UNC paths.
+@item NSURLRequest: Support deleting using setValue:forHTTPHeaderField: with nil value.
+@item NSURLSession many bugfixes and improvements 
+@item NSUserDefaults fix potential deadlock
+@item NSXMLElement bugfix to remove previous attributes when setting attributes.
+@item NSXMLNode returns NSError on failure to evaluate xpath expression.
+@item gnustep_global_lock and GSLazyLock deprecated for removal in next release.
+
+@end itemize
 
 @section Noteworthy changes in version @samp{1.29.0}
 
 @itemize @bullet
 @item Library version changed from 1.28 to 1.29
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.28.1}
 

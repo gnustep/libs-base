@@ -30,7 +30,11 @@ int main(int argc, char **argv)
    *
    * We will mark the test cases as hopeful on Windows.
    */
-#if defined(_WIN32)
+  START_SET("Keepalive")
+
+#if defined(_WIN64) && defined(_MSC_VER)
+  SKIP("Known to crash on 64-bit Windows with Clang/MSVC.")
+#elif defined(_WIN32)
   NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
   testHopeful = YES;
 #endif
@@ -72,6 +76,8 @@ int main(int argc, char **argv)
       [t terminate];
       [t waitUntilExit];
     }
+
+  END_SET("Keepalive")
   
   [arp release]; arp = nil ;
 

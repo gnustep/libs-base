@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 #
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -130,9 +129,10 @@ GSIArray.h \
 GSIMap.h \
 GSFunctions.h \
 GSLocale.h \
-GSLock.h \
 GSMime.h \
+GSMinHeap.h \
 GSTLS.h \
+GSURITemplate.h \
 GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
@@ -142,7 +142,6 @@ NSData+GNUstepBase.h \
 NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
 NSHashTable+GNUstepBase.h \
-NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
@@ -176,6 +175,7 @@ GSICUString.m \
 GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
+GSRunLoopCtxt.m \
 GSRunLoopWatcher.m \
 GSSet.m \
 GSShellSort.m \
@@ -257,7 +257,6 @@ NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
-NSKeyValueObserving.m \
 NSLengthFormatter.m \
 NSLinguisticTagger.m \
 NSLocale.m \
@@ -270,6 +269,7 @@ NSMeasurement.m \
 NSMetadata.m \
 NSMetadataAttributes.m \
 NSMethodSignature.m \
+NSNetServices.m \
 NSNotification.m \
 NSNotificationCenter.m \
 NSNotificationQueue.m \
@@ -360,6 +360,23 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
+# We have two implementations for Key Value Observing: the newer one
+# (NSKVOSupport.m/NSKVOSwizzling.m) and the original (NSKeyValueObserving.m).
+ifeq ($(GNUSTEP_BASE_HAVE_NEWKVO), 1)
+  BASE_MFILES += \
+  NSKVOSupport.m \
+  NSKVOSwizzling.m
+  ADDITIONAL_OBJCFLAGS += -DGNUSTEP_BASE_NEW_KVO=1
+else
+  BASE_MFILES += \
+  NSKeyValueObserving.m
+endif
+
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKeyValueCoding+Caching.m
+endif
+
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
     ifneq ($(GNUSTEP_TARGET_OS), windows)
@@ -371,28 +388,16 @@ ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   endif
 endif
 
-ifeq ($(HAVE_BLOCKS), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH), 1)
-ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
+ifeq ($(GNUSTEP_BASE_WITH_NSURLSESSION), 1)
   BASE_MFILES += \
-	GSEasyHandle.m \
-	GSHTTPURLProtocol.m \
-	GSMultiHandle.m \
-	GSNativeProtocol.m \
-	GSTaskRegistry.m \
-	GSTimeoutSource.m \
-	GSTransferState.m \
-	GSURLSessionTaskBody.m \
-	GSURLSessionTaskBodySource.m \
-	NSURLSession.m
-endif
-endif
+	NSURLSession.m \
+	NSURLSessionTask.m \
+	NSURLSessionConfiguration.m
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
   BASE_MFILES += \
-	GSMDNSNetServices.m \
-	NSNetServices.m
+	GSMDNSNetServices.m
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
@@ -400,8 +405,7 @@ ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
 	GSAvahiNetService.m \
 	GSAvahiNetServiceBrowser.m \
 	GSAvahiClient.m \
-	GSAvahiRunLoopIntegration.m \
-	NSNetServices.m
+	GSAvahiRunLoopIntegration.m
 endif
 
 ifeq ($(WITH_FFI),libffi)
@@ -423,6 +427,11 @@ simple-load.h \
 win32-load.h \
 NSCallBacks.h \
 tzfile.h
+
+# Definitions for toll-free bridging of known structures
+# such as NSRect, NSPoint, or NSSize.
+COREFOUNDATION_HEADERS = \
+CFCGTypes.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
@@ -596,7 +605,8 @@ NSZone.h
 HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
-	$(FOUNDATION_HEADERS)
+	$(FOUNDATION_HEADERS) \
+	$(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \
@@ -628,7 +638,7 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 RESOURCE_SET_NAME = libbase-resources
 
 # This is for gnustep-make >= 14-02-2007
-libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
+libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(MAJOR_VERSION).$(MINOR_VERSION)/Resources
 # This is kept temporarily for gnustep-make < 14-02-2007
 libbase-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
 
@@ -639,6 +649,7 @@ libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 
 libgnustep-base_NEEDS_GUI = NO
 libgnustep-baseadd_NEEDS_GUI = NO
+libgnustep-base_PKGCONFIG_FILES = "gnustep-base.pc"
 
 # Build the Additions subproject first.  It can then be used in by
 # both gnustep-base and gnustep-baseadd (otherwise, if we ever build

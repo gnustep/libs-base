@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "Foundation/NSArchiver.h"
@@ -62,22 +61,22 @@
 // Conversion
 - (BOOL) canBeConvertedToUnit: (NSUnit *)unit
 {
-  return ([unit isKindOfClass: [_unit class]] &&
-          [unit respondsToSelector: @selector(converter)]);
+  return ([unit isKindOfClass: [_unit class]]
+    && [unit respondsToSelector: @selector(converter)]);
 }
 
 - (NSMeasurement *) measurementByConvertingToUnit: (NSUnit *)unit
 {
   if ([self canBeConvertedToUnit: unit])
     {
-      NSMeasurement *result = nil;
-      double val = 0.0;
+      NSUnitConverter	*fromConv = [(NSDimension*)_unit converter];
+      NSUnitConverter	*toConv = [(NSDimension*)unit converter];
+      NSMeasurement 	*result;
+      double 		val;
 
       // Do conversion...
-      NSUnitConverter *c = [(NSDimension *)_unit converter];
-      val = [c baseUnitValueFromValue: _doubleValue];
-      c = [(NSDimension *)unit converter];
-      val = [c valueFromBaseUnitValue: val];
+      val = [fromConv baseUnitValueFromValue: _doubleValue];
+      val = [toConv valueFromBaseUnitValue: val];
       result = [[NSMeasurement alloc] initWithDoubleValue: val unit: unit];
       return AUTORELEASE(result);
     }

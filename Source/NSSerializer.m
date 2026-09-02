@@ -18,11 +18,9 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSSerializer class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"
@@ -446,8 +444,8 @@ typedef struct {
   unsigned	*cursor;
   BOOL		mutable;
   BOOL		didUnique;
-  void		(*debImp)();
-  unsigned int	(*deiImp)();
+  void		(*debImp)(id, SEL, void*, unsigned, unsigned*);
+  unsigned int	(*deiImp)(id, SEL, unsigned*);
   GSIArray_t	array;
 } _NSDeserializerInfo;
 
@@ -472,8 +470,10 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
   info->data = d;
   info->cursor = c;
   info->mutable = m;
-  info->debImp = (void (*)())[d methodForSelector: debSel];
-  info->deiImp = (unsigned int (*)())[d methodForSelector: deiSel];
+  info->debImp = (void (*)(id, SEL, void*, unsigned, unsigned*))
+    [d methodForSelector: debSel];
+  info->deiImp = (unsigned int (*)(id, SEL, unsigned*))
+    [d methodForSelector: deiSel];
   (*info->debImp)(d, debSel, &u, 1, c);
   if (u == 0 || u == 1)
     {
@@ -550,6 +550,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  char		*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+	  /* A serialised C string always stores its length as the byte count
+	   * including the nul terminator, so size is at least 1.  A zero here
+	   * means corrupt data; reject it rather than letting 'size - 1' below
+	   * underflow to a huge length. */
+	  if (size == 0)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"invalid (zero) C string length in"
+	      @" serialized property list"];
+	    }
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b

@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: NSSet.m
    AutogsdocSource: NSCountedSet.m
@@ -43,8 +42,10 @@ extern "C" {
 @class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
 @class NSString;
 
+NS_ASSUME_NONNULL_BEGIN
+
 GS_EXPORT_CLASS
-@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding,
+@interface GS_GENERIC_CLASS(NSSet, __covariant ElementT) : NSObject <NSCoding, NSSecureCoding,
                                                              NSCopying,
                                                              NSMutableCopying,
                                                              NSFastEnumeration>
@@ -54,22 +55,24 @@ GS_EXPORT_CLASS
 + (instancetype) setWithObject: (GS_GENERIC_TYPE(ElementT))anObject;
 + (instancetype) setWithObjects: (GS_GENERIC_TYPE(ElementT))firstObject, ...;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (instancetype) setWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
++ (instancetype) setWithObjects:
+  (const GS_GENERIC_TYPE(ElementT) _Nonnull [])objects
 		                  count: (NSUInteger)count;
 #endif
 + (instancetype) setWithSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) allObjects;
-- (GS_GENERIC_TYPE(ElementT)) anyObject;
+- (GS_GENERIC_TYPE(ElementT) _Nullable) anyObject;
 - (BOOL) containsObject: (GS_GENERIC_TYPE(ElementT))anObject;
 - (NSUInteger) count;
 - (NSString*) description;
-- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
 
 - (instancetype) init;
 - (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)other;
 - (instancetype) initWithObjects: (GS_GENERIC_TYPE(ElementT))firstObject, ...;
-- (instancetype) initWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
+- (instancetype) initWithObjects:
+  (const GS_GENERIC_TYPE(ElementT) _Nonnull [])objects
 		                   count: (NSUInteger)count;
 - (instancetype) initWithSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)other;
 - (instancetype) initWithSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)other
@@ -80,12 +83,14 @@ GS_EXPORT_CLASS
 - (BOOL) isSubsetOfSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)otherSet;
 
 - (void) makeObjectsPerform: (SEL)aSelector;
-- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: (id _Nullable)argument;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument;
+- (void) makeObjectsPerformSelector: (SEL)aSelector
+                         withObject: (id _Nullable)argument;
 #endif
-- (GS_GENERIC_TYPE(ElementT)) member: (GS_GENERIC_TYPE(ElementT))anObject;
+- (GS_GENERIC_TYPE(ElementT) _Nullable) member:
+  (GS_GENERIC_TYPE(ElementT))anObject;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -197,6 +202,8 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_TYPE(ElementT)) unique:
     (GS_GENERIC_TYPE(ElementT)) NS_CONSUMED anObject NS_RETURNS_RETAINED;
 @end
+
+NS_ASSUME_NONNULL_END
 
 /*
  * Functions for managing a global uniquing set.

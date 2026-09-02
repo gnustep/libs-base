@@ -19,22 +19,28 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA
 #
 
 MAKEFILE_NAME = DocMakefile
+
+include ../Version
 
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
-Base_DOC_INSTALL_DIR = Developer
-BaseAdditions_DOC_INSTALL_DIR = Developer
+Base_AGSDOC_LOCAL_DIR = ../Documentation/Base
+Base_AGSDOC_INSTALL_BUNDLE = Reference
+Base_DOC_INSTALL_DIR = Developer/Base
+BaseAdditions_AGSDOC_LOCAL_DIR = ../Documentation/BaseAdditions
+BaseAdditions_AGSDOC_INSTALL_BUNDLE = Reference
+BaseAdditions_DOC_INSTALL_DIR = Developer/BaseAdditions
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
+../GNUstepBase/GSVersionMacros.h \
 FoundationErrors.h \
 Foundation.h \
 FoundationLegacySwiftCompatibility.h \
@@ -214,10 +220,11 @@ GSUnion.h \
 GSIArray.h \
 GSIMap.h \
 GSLocale.h \
-GSLock.h \
 GSFunctions.h \
 GSMime.h \
+GSMinHeap.h \
 GSTLS.h \
+GSURITemplate.h \
 GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
@@ -226,7 +233,6 @@ NSCalendarDate+GNUstepBase.h \
 NSData+GNUstepBase.h \
 NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
-NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
@@ -245,8 +251,8 @@ GCObject.h \
 # directory.
 #
 Base_AGSDOC_FLAGS = \
-	-MakeFrames YES \
-	-DocumentationDirectory ../Documentation/Base \
+	-MakeFrames NO \
+	-IndexFile Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
@@ -257,16 +263,11 @@ Base_AGSDOC_FLAGS = \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	GS_EXPORT_CLASS="";\
-	GS_PRIVATE_INTERNAL="//";\
-	DEFINE_BLOCK_TYPE="//";\
-	WEAK_ATTRIBUTE="";\
-	WINAPI="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
-	-MakeFrames YES \
-	-DocumentationDirectory ../Documentation/BaseAdditions \
+	-MakeFrames NO \
+	-IndexFile BaseAdditions \
 	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
@@ -277,9 +278,6 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	GS_EXPORT_CLASS="";\
-	GS_PRIVATE_INTERNAL="//";\
-	WINAPI="";\
 	}' -Up BaseAdditions
 
 # Use local version of autogsdoc in case it is not installed

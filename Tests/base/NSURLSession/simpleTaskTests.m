@@ -1,0 +1,1114 @@
+#import <Foundation/Foundation.h>
+
+#if defined(__OBJC__) && defined(__clang__) && defined(_MSC_VER)
+id __work_around_clang_bug2 = @"__unused__";
+#endif
+
+/* Not run under MSVC: several of these transfers (redirect, cancelled
+ * redirect and folded header parsing) fail there independently of the
+ * event engine, as confirmed against the unmodified implementation.  That
+ * is a compiler portability issue tracked separately by #482. */
+#if GS_HAVE_NSURLSESSION && !defined(_MSC_VER)
+
+#import "Helpers/HTTPServer.h"
+#import "NSRunLoop+TimeOutAdditions.h"
+#import "URLManager.h"
+#import "Testing.h"
+
+/* Timeout in Seconds */
+static NSInteger      testTimeOut = 60;
+static NSTimeInterval expectedCountOfTasksToComplete = 0;
+
+/* Accessed in delegate on different thread.
+ */
+/* Updated under countLock. */
+static volatile NSInteger currentCountOfCompletedTasks = 0;
+static NSLock            *countLock;
+
+/* All sessions share this single serial delegate queue so that delegate and
+ * completion-handler callbacks are delivered one at a time on a single thread.
+ * The tests emit their PASS/PASS_EQUAL results from those callbacks; without a
+ * shared serial queue the callbacks from the several sessions run on separate
+ * threads at once and their interleaved output is misparsed by the test
+ * harness. */
+static NSOperationQueue *serialDelegateQueue;
+/* Used where a test previously used +[NSURLSession sharedSession]; a dedicated
+ * session lets those transfers use the shared serial delegate queue too. */
+static NSURLSession     *sharedTestSession;
+
+static NSDictionary *requestCookieProperties;
+
+/* Records that a transfer finished, for the teardown test, which only needs
+ * to know when to let the session go. */
+@interface TeardownDelegate : NSObject
+{
+@public
+  BOOL finished;
+}
+@end
+
+@implementation TeardownDelegate
+- (void)URLSession:(NSURLSession *)session
+                  task:(NSURLSessionTask *)task
+  didCompleteWithError:(NSError *)error
+{
+  finished = YES;
+}
+@end
+
+/* The cookie route is the only one whose answer depends on the request, so it
+ * is the only one needing a target rather than a fixed response. */
+@interface CookieRoute : NSObject
+- (NSData *)responseForRequest:(NSURLRequest *)req;
+@end
+
+@implementation CookieRoute
+- (NSData *)responseForRequest:(NSURLRequest *)req
+{
+  NSString *httpResponse;
+  NSString *cookie;
+
+  httpResponse = @"HTTP/1.1 200 OK\r\n"
+                  "Content-Type: text/html; charset=UTF-8\r\n"
+                  "Set-Cookie: sessionId=abc123; Expires=Wed, 09 Jun "
+                  "2100 10:18:14 GMT; Path=/\r\n"
+                  "Content-Length: 13\r\n"
+                  "\r\n"
+                  "Hello, world!";
+
+  cookie = [[req allHTTPHeaderFields] objectForKey:@"Cookie"];
+  PASS(cookie != nil, "Cookie field is not nil");
+  PASS([cookie containsString:@"RequestCookie=1234"],
+       "cookie contains request cookie");
+
+  return [httpResponse dataUsingEncoding:NSASCIIStringEncoding];
+}
+@end
+
+static CookieRoute *cookieRoute;
+
+static NSData *
+asciiData(NSString *s)
+{
+  return [s dataUsingEncoding:NSASCIIStringEncoding];
+}
+
+static NSArray *
+createRoutes(Class routeClass, NSURL *baseURL)
+{
+  Route *routeOKWithContent;
+  Route *routeTmpRedirectToOK;
+  Route *routeTmpRelativeRedirectToOK;
+  Route *routeSetCookiesOK;
+  Route *routeFoldedHeaders;
+  Route *routeIncorrectlyFoldedHeaders;
+  NSURL *routeOKWithContentURL;
+  NSURL *routeTmpRedirectToOKURL;
+  NSURL *routeTmpRelativeRedirectToOKURL;
+  NSURL *routeSetCookiesOKURL;
+  NSURL *routeFoldedHeadersURL;
+  NSURL *routeIncorrectlyFoldedHeadersURL;
+
+  routeOKWithContentURL = [NSURL URLWithString:@"/contentOK"];
+  routeTmpRedirectToOKURL = [NSURL URLWithString:@"/tmpRedirectToOK"];
+  routeTmpRelativeRedirectToOKURL =
+    [NSURL URLWithString:@"/tmpRelativeRedirectToOK"];
+  routeSetCookiesOKURL = [NSURL URLWithString:@"/setCookiesOK"];
+  routeFoldedHeadersURL = [NSURL URLWithString:@"/foldedHeaders"];
+  routeIncorrectlyFoldedHeadersURL =
+    [NSURL URLWithString:@"/incorrectFoldedHeaders"];
+
+  routeOKWithContent = [routeClass
+    routeWithURL:routeOKWithContentURL
+          method:@"GET"
+        response:asciiData(
+          @"HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!")];
+
+  routeTmpRedirectToOK = [routeClass
+    routeWithURL:routeTmpRedirectToOKURL
+          method:@"GET"
+        response:asciiData([NSString
+          stringWithFormat:@"HTTP/1.1 307 Temporary Redirect\r\nLocation: "
+                           @"%@\r\nContent-Length: 0\r\n\r\n",
+                           [baseURL URLByAppendingPathComponent:@"contentOK"]])];
+
+  routeTmpRelativeRedirectToOK = [routeClass
+    routeWithURL:routeTmpRelativeRedirectToOKURL
+          method:@"GET"
+        response:asciiData(
+          @"HTTP/1.1 307 Temporary Redirect\r\nLocation: "
+          @"contentOK\r\nContent-Length: 0\r\n\r\n")];
+
+  cookieRoute = [CookieRoute new];
+  routeSetCookiesOK = [routeClass
+    routeWithURL:routeSetCookiesOKURL
+          method:@"GET"
+          target:cookieRoute
+        selector:@selector(responseForRequest:)];
+
+  routeFoldedHeaders = [routeClass
+    routeWithURL:routeFoldedHeadersURL
+          method:@"GET"
+        response:asciiData(
+          @"HTTP/1.1 200 OK\r\nContent-Length: 12\r\nFolded-Header-SP: "
+          @"Test\r\n ing\r\nFolded-Header-TAB: Test\r\n\ting\r\n\r\nHello "
+          @"World!")];
+
+  routeIncorrectlyFoldedHeaders = [routeClass
+    routeWithURL:routeIncorrectlyFoldedHeadersURL
+          method:@"GET"
+        response:asciiData(
+          @"HTTP/1.1 200 OK\r\n"
+          @" ing\r\nFolded-Header-TAB: Test\r\n\ting\r\n\r\nHello "
+          @"World!")];
+
+  return [NSArray arrayWithObjects:
+    routeOKWithContent, routeTmpRedirectToOK, routeTmpRelativeRedirectToOK,
+    routeSetCookiesOK, routeFoldedHeaders, routeIncorrectlyFoldedHeaders, nil];
+}
+
+@interface URLManagerCheck : NSObject
+{
+@public
+  const char          *prefix;
+  NSURLSession        *session;
+  NSURLSessionTask    *task;
+  NSInteger            numberOfParallelTasks;
+  NSHTTPCookieStorage *cookies;
+  NSURL               *url;
+  NSHTTPCookie        *requestCookie;
+}
++ (instancetype) checkWithPrefix: (const char *)aPrefix
+                         session: (NSURLSession *)aSession
+                            task: (NSURLSessionTask *)aTask;
+@end
+
+@implementation URLManagerCheck
+
++ (instancetype) checkWithPrefix: (const char *)aPrefix
+                         session: (NSURLSession *)aSession
+                            task: (NSURLSessionTask *)aTask
+{
+  URLManagerCheck *c = AUTORELEASE([URLManagerCheck new]);
+
+  c->prefix = aPrefix;
+  c->session = aSession;
+  c->task = aTask;
+  return c;
+}
+
+- (void) checkCookies: (URLManager *)mgr
+{
+    NSData                  *data = mgr->accumulatedData;
+    NSURLResponse           *response = mgr->didReceiveResponse;
+    NSError                 *error = mgr->didCompleteError;
+    NSString                *string;
+    NSArray                 *cookieArray;
+    NSDate                  *date;
+    NSInteger                count = 0;
+
+    PASS(nil != data, "%s data in completion handler is not nil", prefix);
+    PASS(nil != response, "%s response is not nil", prefix);
+    PASS([response isKindOfClass:[NSHTTPURLResponse class]],
+         "%s response is an NSHTTPURLResponse", prefix);
+    PASS(nil == error, "%s error is nil", prefix);
+
+    string = [[NSString alloc] initWithData:data
+                                   encoding:NSASCIIStringEncoding];
+    PASS_EQUAL(string, @"Hello, world!", "%s received data is correct",
+               prefix);
+
+    cookieArray = [cookies cookiesForURL:url];
+
+    for (NSHTTPCookie *ck in cookieArray)
+      {
+        if ([[ck name] isEqualToString:@"RequestCookie"])
+          {
+            PASS_EQUAL(ck, requestCookie, "RequestCookie is correct");
+            count += 1;
+          }
+        else if ([[ck name] isEqualToString:@"sessionId"])
+          {
+            date = [NSDate dateWithString:@"2100-06-09 10:18:14 +0000"];
+            PASS_EQUAL([ck name], @"sessionId", "Cookie name is correct");
+            PASS_EQUAL([ck value], @"abc123", "Cookie value is correct");
+            PASS([ck version] == 0, "Correct cookie version");
+            PASS([date isEqual:[ck expiresDate]],
+                 "Cookie expiresDate is correct");
+            count += 1;
+          }
+      }
+    PASS(count == 2, "Found both cookies");
+
+    [string release];
+
+    [countLock lock];
+    currentCountOfCompletedTasks += 1;
+    [countLock unlock];
+}
+
+- (void) checkFoldedHeaders: (URLManager *)mgr
+{
+    NSData            *data = mgr->accumulatedData;
+    NSURLResponse     *response = mgr->didReceiveResponse;
+    NSError           *error = mgr->didCompleteError;
+    NSHTTPURLResponse *urlResponse = (NSHTTPURLResponse *) response;
+    NSString          *string;
+    NSDictionary      *headerDict;
+
+    headerDict = [urlResponse allHeaderFields];
+
+    PASS(nil != data, "%s data in completion handler is not nil", prefix);
+    PASS(nil != response, "%s response is not nil", prefix);
+    PASS([response isKindOfClass:[NSHTTPURLResponse class]],
+         "%s response is an NSHTTPURLResponse", prefix);
+    PASS(nil == error, "%s error is nil", prefix);
+
+    string = [[NSString alloc] initWithData:data
+                                   encoding:NSASCIIStringEncoding];
+    PASS_EQUAL(string, @"Hello World!", "%s received data is correct",
+               prefix);
+
+    /* RFC 7230 (3.2.4): a folded header is unfolded by replacing the fold
+     * with a single SP, so both the space- and tab-folded values become
+     * "Test ing".  This holds whether libcurl passes the raw folded lines
+     * (older libcurl) or unfolds them itself (newer libcurl). */
+    PASS_EQUAL([headerDict objectForKey:@"Folded-Header-SP"], @"Test ing",
+               "Folded header with continuation space is parsed correctly");
+    PASS_EQUAL([headerDict objectForKey:@"Folded-Header-TAB"], @"Test ing",
+               "Folded header with continuation tab is parsed correctly");
+
+    [string release];
+
+    [countLock lock];
+    currentCountOfCompletedTasks += 1;
+    [countLock unlock];
+}
+
+- (void) checkParallel: (URLManager *)mgr
+{
+    PASS_EQUAL(mgr->currentSession, session,
+               "%s URLManager Session is equal to session", prefix);
+
+    /* Check URLSession:didCreateTask: callback */
+    PASS(mgr->didCreateTaskCount == numberOfParallelTasks,
+         "%s didCreateTask: Count is correct", prefix);
+
+    /* Check URLSession:task:didCompleteWithError: */
+    PASS(nil == mgr->didCompleteError,
+         "%s didCompleteWithError: No error occurred", prefix)
+    PASS(mgr->didCompleteCount == numberOfParallelTasks,
+         "%s didCompleteWithError: Count is correct", prefix);
+
+    [countLock lock];
+    currentCountOfCompletedTasks += numberOfParallelTasks;
+    [countLock unlock];
+}
+
+- (void) checkDownload: (URLManager *)mgr
+{
+  NSURL         *location;
+  NSData        *data;
+  NSString      *string;
+  NSFileManager *fm;
+
+  location = mgr->didFinishDownloadingURL;
+  fm = [NSFileManager defaultManager];
+
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
+
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
+
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil == mgr->didCompleteError,
+       "%s didCompleteWithError: No error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
+
+  /* Check Progress Reporting */
+  PASS(mgr->didWriteDataCount == 1, "%s didWriteData: count is correct",
+       prefix);
+  PASS(mgr->downloadTotalBytesWritten
+	 == mgr->downloadTotalBytesExpectedToWrite,
+       "%s didWriteData: Downloaded all expected data", prefix);
+  PASS(nil != mgr->didFinishDownloadingURL,
+       "%s didWriteData: Download location is not nil", prefix);
+  PASS([location isFileURL], "%s location is a fileURL", prefix);
+
+  data = [NSData dataWithContentsOfURL:location];
+  PASS(nil != data, "%s dataWithContentsOfURL is not nil", prefix)
+
+  string = [[NSString alloc] initWithData:data
+				 encoding:NSASCIIStringEncoding];
+  PASS(nil != string, "%s string from data is not nil", prefix);
+  PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
+
+  [string release];
+
+  /* Remove Downloaded Item */
+  if (location)
+    {
+      [fm removeItemAtURL:location error:NULL];
+    }
+
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
+}
+
+- (void) checkData: (URLManager *)mgr
+{
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
+
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
+
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil == mgr->didCompleteError,
+       "%s didCompleteWithError: No error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
+
+  NSData *data = mgr->accumulatedData;
+  PASS(mgr->didReceiveDataCount == 1, "%s didReceiveData: Count is correct",
+       prefix);
+  PASS(nil != data, "%s data in didReceiveData is not nil", prefix);
+
+  NSString *string = [[NSString alloc] initWithData:data
+					   encoding:NSASCIIStringEncoding];
+  PASS(nil != string, "%s string from data is not nil", prefix);
+  PASS_EQUAL(string, @"Hello World!", "%s data is correct", prefix);
+
+  [string release];
+
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
+}
+
+- (void) checkFailedRequest: (URLManager *)mgr
+{
+  PASS_EQUAL(mgr->currentSession, session,
+	     "%s URLManager Session is equal to session", prefix);
+
+  /* Check URLSession:didCreateTask: callback */
+  PASS(mgr->didCreateTaskCount == 1, "%s didCreateTask: Count is correct",
+       prefix);
+  PASS_EQUAL(mgr->didCreateTask, task,
+	     "%s didCreateTask: task is equal to returned task", prefix);
+
+  /* Check URLSession:task:didCompleteWithError: */
+  PASS(nil != mgr->didCompleteError,
+       "%s didCompleteWithError: An error occurred", prefix)
+  PASS(mgr->didCompleteCount == 1,
+       "%s didCompleteWithError: Count is correct", prefix);
+  PASS_EQUAL(mgr->didCompleteTask, task,
+	     "%s didCompleteWithError: task is equal to returned task",
+	     prefix);
+
+  /* Check didReceiveResponse if not a canceled redirect */
+  if (!mgr->cancelRedirect)
+    {
+      PASS(mgr->didReceiveResponseCount == 1,
+	   "%s didReceiveResponse: Count is correct", prefix);
+      PASS(nil != mgr->didReceiveResponse, "%s didReceiveResponse is not nil",
+	   prefix);
+      PASS_EQUAL(mgr->didReceiveResponseTask, task,
+		 "%s didReceiveResponse: task is equal to returned task",
+		 prefix);
+    }
+  else
+    {
+      PASS_EQUAL([mgr->didCompleteError code], NSURLErrorCancelled,
+		 "%s didCompleteError is NSURLErrorCancelled", prefix);
+    }
+
+  [countLock lock];
+  currentCountOfCompletedTasks += 1;
+  [countLock unlock];
+}
+
+@end
+
+
+
+/* Creates a downloadTaskWithURL: with the /contentOK route.
+ *
+ * Delegate callbacks are checked via the URLManager checkBlock.
+ */
+static URLManager *
+testSimpleDownloadTransfer(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  NSURLSessionDownloadTask  *task;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  const char                *prefix = "<DownloadTransfer>";
+
+  NSURL *contentOKURL;
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  expectedCountOfTasksToComplete += 1;
+
+  /* URL Setup */
+  contentOKURL = [baseURL URLByAppendingPathComponent:@"contentOK"];
+
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  session = [NSURLSession sessionWithConfiguration:configuration
+                                          delegate:mgr
+                                     delegateQueue:serialDelegateQueue];
+
+  task = [session downloadTaskWithURL:contentOKURL];
+  PASS(nil != task, "%s Session created a valid download task", prefix);
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix:prefix
+                                   session:session
+                                      task:task];
+  [mgr setCheckTarget:check selector:@selector(checkDownload:)];
+
+  [task resume];
+
+  return mgr;
+}
+
+static URLManager *
+testDownloadTransferWithRedirect(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  NSURLSessionDownloadTask  *task;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  const char                *prefix = "<DownloadTransferWithRedirect>";
+
+  NSURL *contentOKURL;
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  expectedCountOfTasksToComplete += 1;
+
+  /* URL Setup */
+  contentOKURL = [baseURL URLByAppendingPathComponent:@"tmpRedirectToOK"];
+
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  session = [NSURLSession sessionWithConfiguration:configuration
+                                          delegate:mgr
+                                     delegateQueue:serialDelegateQueue];
+
+  task = [session downloadTaskWithURL:contentOKURL];
+  PASS(nil != task, "%s Session created a valid download task", prefix);
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix:prefix
+                                   session:session
+                                      task:task];
+  [mgr setCheckTarget:check selector:@selector(checkDownload:)];
+
+  [task resume];
+
+  return mgr;
+}
+
+/* Tests the completion handler API, so it needs a compiler with
+ * blocks.  The same transfer is covered without one above. */
+#if __has_feature(blocks)
+/* This should use the build in redirection system from libcurl */
+static void
+testDataTransferWithRedirectAndBlock(NSURL *baseURL)
+{
+  NSURLSession         *session;
+  NSURLSessionDataTask *task;
+  NSURL                *url;
+
+  expectedCountOfTasksToComplete += 1;
+
+  session = sharedTestSession;
+  url = [baseURL URLByAppendingPathComponent:@"tmpRedirectToOK"];
+  task = [session
+      dataTaskWithURL:url
+    completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+      NSString   *string;
+      const char *prefix = "<DataTransferWithRedirectAndBlock>";
+
+      PASS(nil != data, "%s data in completion handler is not nil", prefix);
+      PASS(nil != response, "%s response is not nil", prefix);
+      PASS([response isKindOfClass:[NSHTTPURLResponse class]],
+           "%s response is an NSHTTPURLResponse", prefix);
+      PASS(nil == error, "%s error is nil", prefix);
+
+      string = [[NSString alloc] initWithData:data
+                                     encoding:NSASCIIStringEncoding];
+      PASS_EQUAL(string, @"Hello World!", "%s received data is correct",
+                 prefix);
+
+      [string release];
+
+      [countLock lock];
+      currentCountOfCompletedTasks += 1;
+      [countLock unlock];
+    }];
+
+  [task resume];
+}
+#endif
+
+static void
+testDataTransferWithCanceledRedirect(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  NSURLSessionDataTask      *task;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  const char                *prefix = "<DataTransferWithCanceledRedirect>";
+
+  NSURL *contentOKURL;
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  mgr->cancelRedirect = YES;
+  expectedCountOfTasksToComplete += 1;
+
+  /* URL Setup */
+  contentOKURL = [baseURL URLByAppendingPathComponent:@"tmpRedirectToOK"];
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  session = [NSURLSession sessionWithConfiguration:configuration
+                                          delegate:mgr
+                                     delegateQueue:serialDelegateQueue];
+
+  task = [session dataTaskWithURL:contentOKURL];
+  PASS(nil != task, "%s Session created a valid download task", prefix);
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix:prefix
+                                   session:session
+                                      task:task];
+  [mgr setCheckTarget:check selector:@selector(checkFailedRequest:)];
+
+  [task resume];
+}
+
+static void
+testDataTransferWithRelativeRedirect(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  NSURLSessionDataTask      *task;
+  NSURL                     *url;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  const char                *prefix = "<DataTransferWithRelativeRedirect>";
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  expectedCountOfTasksToComplete += 1;
+
+  session = sharedTestSession;
+  url = [baseURL URLByAppendingPathComponent:@"tmpRelativeRedirectToOK"];
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  session = [NSURLSession sessionWithConfiguration:configuration
+                                          delegate:mgr
+                                     delegateQueue:serialDelegateQueue];
+
+  task = [session dataTaskWithURL:url];
+  PASS(nil != task, "%s Session created a valid download task", prefix);
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix:prefix
+                                   session:session
+                                      task:task];
+  [mgr setCheckTarget:check selector:@selector(checkData:)];
+
+  [task resume];
+}
+
+/* Tests the completion handler API, so it needs a compiler with
+ * blocks.  The same transfer is covered without one above. */
+#if __has_feature(blocks)
+static void
+testDownloadTransferWithBlock(NSURL *baseURL)
+{
+  NSURLSession             *session;
+  NSURLSessionDownloadTask *task;
+  NSURL                    *url;
+
+  expectedCountOfTasksToComplete += 1;
+
+  session = sharedTestSession;
+  url = [baseURL URLByAppendingPathComponent:@"contentOK"];
+  task = [session
+    downloadTaskWithURL:url
+      completionHandler:^(NSURL *location, NSURLResponse *response,
+                          NSError *error) {
+        NSFileManager *fm;
+        NSData        *data;
+        NSString      *string;
+
+        const char *prefix;
+
+        prefix = "<DownloadTransferWithBlock>";
+        fm = [NSFileManager defaultManager];
+
+        PASS(nil != location, "%s location is not nil", prefix);
+        PASS(nil != response, "%s response is not nil", prefix);
+        PASS(nil == error, "%s error is nil", prefix);
+
+        data = [NSData dataWithContentsOfURL:location];
+        PASS(nil != data, "%s data is not nil", prefix);
+
+        string = [[NSString alloc] initWithData:data
+                                       encoding:NSASCIIStringEncoding];
+        PASS_EQUAL(string, @"Hello World!", "%s content is correct", prefix);
+
+        [fm removeItemAtURL:location error:NULL];
+
+        [countLock lock];
+        currentCountOfCompletedTasks += 1;
+        [countLock unlock];
+
+        [string release];
+      }];
+
+  [task resume];
+}
+#endif
+
+static URLManager *
+testParallelDataTransfer(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  NSURL                     *url;
+  const char                *prefix = "<DataTransfer>";
+
+  NSInteger numberOfParallelTasks = 10;
+  NSInteger i;
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = numberOfParallelTasks;
+  expectedCountOfTasksToComplete += numberOfParallelTasks;
+
+  url = [baseURL URLByAppendingPathComponent:@"tmpRedirectToOK"];
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  [configuration setHTTPMaximumConnectionsPerHost:0]; // Unlimited
+  session = [NSURLSession sessionWithConfiguration:configuration
+                                          delegate:mgr
+                                     delegateQueue:serialDelegateQueue];
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix:prefix session:session task:nil];
+  check->numberOfParallelTasks = numberOfParallelTasks;
+  [mgr setCheckTarget:check selector:@selector(checkParallel:)];
+
+  for (i = 0; i < numberOfParallelTasks; i++)
+    {
+      NSURLSessionDataTask *task;
+
+      task = [session dataTaskWithURL:url];
+      [task resume];
+    }
+
+  return mgr;
+}
+
+/* Tests the completion handler API, so it needs a compiler with
+ * blocks.  The same transfer is covered without one above. */
+#if __has_feature(blocks)
+static void
+testDataTaskWithBlock(NSURL *baseURL)
+{
+  NSURLSession         *session;
+  NSURLSessionDataTask *task;
+  NSURL                *url;
+
+  expectedCountOfTasksToComplete += 1;
+
+  url = [baseURL URLByAppendingPathComponent:@"contentOK"];
+  session = sharedTestSession;
+  task = [session
+      dataTaskWithURL:url
+    completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+      NSString   *string;
+      const char *prefix = "<DataTaskWithBlock>";
+
+      PASS(nil != data, "%s data in completion handler is not nil", prefix);
+      PASS(nil != response, "%s response is not nil", prefix);
+      PASS([response isKindOfClass:[NSHTTPURLResponse class]],
+           "%s response is an NSHTTPURLResponse", prefix);
+      PASS(nil == error, "%s error is nil", prefix);
+
+      string = [[NSString alloc] initWithData:data
+                                     encoding:NSASCIIStringEncoding];
+      PASS_EQUAL(string, @"Hello World!", "%s received data is correct",
+                 prefix);
+
+      [string release];
+
+      [countLock lock];
+      currentCountOfCompletedTasks += 1;
+      [countLock unlock];
+    }];
+
+  [task resume];
+}
+#endif
+
+static void
+testDataTaskWithCookies(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *config;
+  NSURLSessionDataTask      *task;
+  NSURL                     *url;
+  NSHTTPCookieStorage       *cookies;
+  NSHTTPCookie              *requestCookie;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+
+  expectedCountOfTasksToComplete += 1;
+
+  url = [baseURL URLByAppendingPathComponent: @"setCookiesOK"];
+  requestCookie = [NSHTTPCookie cookieWithProperties: requestCookieProperties];
+
+  cookies = AUTORELEASE([NSHTTPCookieStorage new]);
+  [cookies setCookie: requestCookie];
+
+  config = AUTORELEASE([NSURLSessionConfiguration new]);
+  [config setHTTPCookieAcceptPolicy: NSHTTPCookieAcceptPolicyAlways];
+  [config setHTTPCookieStorage: cookies];
+  [config setHTTPShouldSetCookies: YES];
+
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  session = [NSURLSession sessionWithConfiguration: config
+                                          delegate: mgr
+                                     delegateQueue: serialDelegateQueue];
+  task = [session dataTaskWithURL: url];
+
+  check = [URLManagerCheck checkWithPrefix: "<DataTaskWithCookies>"
+                                   session: session
+                                      task: task];
+  check->cookies = cookies;
+  check->url = url;
+  check->requestCookie = requestCookie;
+  [mgr setCheckTarget: check selector: @selector(checkCookies:)];
+
+  [task resume];
+}
+
+/* Check if NSURLSessionTask correctly unfolds folded header lines */
+static void
+foldedHeaderDataTaskTest(NSURL *baseURL)
+{
+  NSURLSession         *session;
+  NSURLSessionDataTask *task;
+  NSURL                *url;
+  URLManager           *mgr;
+  URLManagerCheck      *check;
+
+  expectedCountOfTasksToComplete += 1;
+
+  url = [baseURL URLByAppendingPathComponent: @"foldedHeaders"];
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  session = [NSURLSession
+    sessionWithConfiguration: [NSURLSessionConfiguration
+      defaultSessionConfiguration]
+                    delegate: mgr
+               delegateQueue: serialDelegateQueue];
+  task = [session dataTaskWithURL: url];
+
+  check = [URLManagerCheck checkWithPrefix: "<DataTaskWithFoldedHeaders>"
+                                   session: session
+                                      task: task];
+  [mgr setCheckTarget: check selector: @selector(checkFoldedHeaders:)];
+
+  [task resume];
+}
+
+/* The disposition handler triggers transfer cancelation */
+static void
+testAbortAfterDidReceiveResponse(NSURL *baseURL)
+{
+  NSURLSession              *session;
+  NSURLSessionConfiguration *configuration;
+  NSURLSessionDataTask      *task;
+  URLManager                *mgr;
+  URLManagerCheck           *check;
+  const char                *prefix = "<AbortAfterDidReceiveResponseTest>";
+
+  NSURL *contentOKURL;
+
+  /* URL Delegate Setup */
+  mgr = AUTORELEASE([URLManager new]);
+  mgr->numberOfExpectedTasksBeforeCheck = 1;
+  mgr->responseAnswer = NSURLSessionResponseCancel;
+  expectedCountOfTasksToComplete += 1;
+
+  /* URL Setup */
+  contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
+
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  session = [NSURLSession sessionWithConfiguration: configuration
+                                          delegate: mgr
+                                     delegateQueue: serialDelegateQueue];
+
+  task = [session dataTaskWithURL: contentOKURL];
+  PASS(nil != task, "%s Session created a valid download task", prefix);
+
+  /* Setup Check */
+  check = [URLManagerCheck checkWithPrefix: prefix
+                                   session: session
+                                      task: task];
+  [mgr setCheckTarget: check selector: @selector(checkFailedRequest:)];
+
+  [task resume];
+}
+
+/* Start several tasks, then invalidateAndCancel the session.  The session
+ * should cancel the tasks and, once none remain, send
+ * URLSession:didBecomeInvalidWithError: to the delegate exactly once. */
+static void
+testInvalidateAndCancel(NSURL *baseURL)
+{
+  NSURLSessionConfiguration *configuration;
+  NSURLSession              *session;
+  URLManager                *mgr;
+  NSURL                     *contentOKURL;
+  NSInteger                  i;
+  const char                *prefix = "<InvalidateAndCancel>";
+  NSDate                    *deadline;
+
+  mgr = [URLManager new];
+  contentOKURL = [baseURL URLByAppendingPathComponent: @"contentOK"];
+
+  configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+  /* Lifecycle test: own delegate queue (no test output emitted from the
+   * callback, and it waits on its own run loop). */
+  session = [NSURLSession sessionWithConfiguration: configuration
+                                          delegate: mgr
+                                     delegateQueue: nil];
+
+  for (i = 0; i < 5; i++)
+    {
+      NSURLSessionTask	*t;
+
+      t = [session dataTaskWithURL: contentOKURL];
+      [t trackOwnership];
+      [t resume];
+    }
+
+  [session invalidateAndCancel];
+
+  /* Wait until the delegate is told the session became invalid. */
+  deadline = [NSDate dateWithTimeIntervalSinceNow:testTimeOut];
+  while (mgr->didBecomeInvalidCount == 0
+    && [[NSRunLoop currentRunLoop] runSliceUntil: deadline])
+    ;
+
+  PASS(mgr->didBecomeInvalidCount == 1,
+       "%s didBecomeInvalidWithError: was sent once after invalidateAndCancel",
+       prefix);
+
+  /* Empty the manager to break retain cycles.
+   */
+  [mgr empty];
+  [mgr release];
+}
+
+/* Create sessions, run a task to completion, and let each session be
+ * deallocated without invalidating it.  This exercises the work thread
+ * being stopped and joined from -dealloc; it must not hang or crash. */
+static void
+testSessionTeardownWithoutInvalidate(NSURL *baseURL)
+{
+  NSURL      *contentOKURL;
+  NSDate     *deadline;
+  NSInteger   i;
+  const char *prefix = "<TeardownWithoutInvalidate>";
+
+  contentOKURL = [baseURL URLByAppendingPathComponent:@"contentOK"];
+
+  for (i = 0; i < 5; i++)
+    {
+      {
+  CREATE_AUTORELEASE_POOL(arp);
+        NSURLSessionConfiguration *configuration;
+        NSURLSession              *session;
+        TeardownDelegate          *delegate;
+
+        delegate = AUTORELEASE([TeardownDelegate new]);
+        configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        /* Lifecycle tests use their own delegate queue: they wait on their own
+         * run loop and do not emit test output from the callback, so they need
+         * not share the serial output queue (and must not block on it). */
+        session = [NSURLSession sessionWithConfiguration:configuration
+                                                delegate:delegate
+                                           delegateQueue:nil];
+
+        [[session dataTaskWithURL:contentOKURL] resume];
+
+        deadline = [NSDate dateWithTimeIntervalSinceNow:testTimeOut];
+        while (delegate->finished == NO
+          && [[NSRunLoop currentRunLoop] runSliceUntil:deadline])
+          ;
+        /* Draining the pool releases the session; its -dealloc stops and
+         * joins the work thread. */
+  DESTROY(arp);
+}
+    }
+
+  PASS(YES, "%s sessions torn down without invalidate did not hang or crash",
+       prefix);
+}
+
+int
+main(int argc, char *argv[])
+{
+  ENTER_POOL
+    NSBundle      *bundle;
+    NSString      *helperPath;
+    NSURL         *baseURL;
+    NSFileManager *fm;
+    HTTPServer    *server;
+    NSDate        *deadline;
+    URLManager		*downloadManager;
+
+    Class httpServerClass;
+    Class routeClass;
+
+    requestCookieProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+      @"RequestCookie", NSHTTPCookieName,
+      @"1234", NSHTTPCookieValue,
+      @"127.0.0.1", NSHTTPCookieDomain,
+      @"/", NSHTTPCookiePath,
+      [NSDate dateWithString:@"2100-06-09 12:18:14 +0000"],
+        NSHTTPCookieExpires,
+      [NSNumber numberWithBool:NO], NSHTTPCookieSecure,
+      nil];
+
+    fm = [NSFileManager defaultManager];
+    helperPath = [[fm currentDirectoryPath]
+      stringByAppendingString:@"/Helpers/HTTPServer.bundle"];
+    countLock = [[NSLock alloc] init];
+
+    serialDelegateQueue = [[NSOperationQueue alloc] init];
+    [serialDelegateQueue setMaxConcurrentOperationCount: 1];
+
+    sharedTestSession = [NSURLSession
+      sessionWithConfiguration: [NSURLSessionConfiguration
+                                  defaultSessionConfiguration]
+                      delegate: nil
+                 delegateQueue: serialDelegateQueue];
+
+    bundle = [NSBundle bundleWithPath:helperPath];
+    if (![bundle load])
+      {
+        [NSException raise:NSInternalInconsistencyException
+                    format:@"failed to load HTTPServer.bundle"];
+      }
+
+    httpServerClass = [bundle principalClass];
+    routeClass = [bundle classNamed:@"Route"];
+
+    /* Bind to dynamic port. Set routes after initialisation. */
+    server = [[httpServerClass alloc] initWithPort:0 routes:nil];
+    if (!server)
+      {
+        [NSException raise:NSInternalInconsistencyException
+                    format:@"failed to initialise HTTPServer"];
+      }
+
+    baseURL =
+      [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%ld",
+                                                      [server port]]];
+
+    NSLog(@"Test Server: baseURL=%@", baseURL);
+
+    [server setRoutes:createRoutes(routeClass, baseURL)];
+    [server resume];
+
+    // Call Test Functions here
+    downloadManager = testSimpleDownloadTransfer(baseURL);
+#if __has_feature(blocks)
+    testDownloadTransferWithBlock(baseURL);
+#endif
+
+    testParallelDataTransfer(baseURL);
+
+#if __has_feature(blocks)
+    testDataTaskWithBlock(baseURL);
+#endif
+    testDataTaskWithCookies(baseURL);
+
+    // Testing Header Line Unfolding
+    foldedHeaderDataTaskTest(baseURL);
+
+    // Redirects
+    testDownloadTransferWithRedirect(baseURL);
+#if __has_feature(blocks)
+    testDataTransferWithRedirectAndBlock(baseURL);
+#endif
+    testDataTransferWithCanceledRedirect(baseURL);
+    testDataTransferWithRelativeRedirect(baseURL);
+
+    /* Abort in Delegate */
+    testAbortAfterDidReceiveResponse(baseURL);
+
+    /* Session lifecycle */
+    testInvalidateAndCancel(baseURL);
+    testSessionTeardownWithoutInvalidate(baseURL);
+
+    deadline = [NSDate dateWithTimeIntervalSinceNow:testTimeOut];
+    while (expectedCountOfTasksToComplete != currentCountOfCompletedTasks
+      && [[NSRunLoop currentRunLoop] runSliceUntil:deadline])
+      ;
+
+    [downloadManager invalidate];
+    [sharedTestSession invalidateAndCancel];
+
+    [server suspend];
+    PASS(expectedCountOfTasksToComplete == currentCountOfCompletedTasks,
+         "All transfers were completed before a timeout occurred");
+
+    [server release];
+    [countLock release];
+  LEAVE_POOL
+
+  return 0;
+}
+
+#else
+
+int
+main(int argc, char *argv[])
+{
+  return 0;
+}
+
+#endif /* GS_HAVE_NSURLSESSION */

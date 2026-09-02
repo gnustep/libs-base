@@ -27,8 +27,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
@@ -45,7 +44,6 @@
  */
 
 #import "common.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSException.h"
@@ -494,15 +492,20 @@ _attributesAtIndexEffectiveRange(
 
   if (nil == aString)
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] is nil"];
     }
   if (![aString respondsToSelector: @selector(length)])
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] does not respond to -length"];
     }
-
+  if (nil == (self = [super initWithString: aString attributes: attributes]))
+    {
+      return nil;
+    }
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
@@ -605,13 +608,19 @@ _attributesAtIndexEffectiveRange(
 
   if (nil == aString)
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] is nil"];
     }
   if (![aString respondsToSelector: @selector(length)])
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"aString object passed to -[GSAttributedString initWithString:attributes:] does not respond to -length"];
+    }
+  if (nil == (self = [super initWithString: aString attributes: attributes]))
+    {
+      return nil;
     }
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
@@ -720,10 +729,6 @@ SANITY();
           if (effectiveRange.location < beginRangeLoc)
             {
               beginRangeLoc = effectiveRange.location;
-            }
-          if (NSMaxRange(effectiveRange) > afterRangeLoc)
-            {
-              afterRangeLoc = NSMaxRange(effectiveRange);
             }
         }
       else if (effectiveRange.location > beginRangeLoc)

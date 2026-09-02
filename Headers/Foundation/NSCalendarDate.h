@@ -15,8 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
   */
 
 #ifndef __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE
@@ -43,34 +42,34 @@ GS_EXPORT_CLASS
 }
 
 // Getting an NSCalendar Date
-+ (id) calendarDate;
-+ (id) dateWithString: (NSString*)description
-       calendarFormat: (NSString*)format;
-+ (id) dateWithString: (NSString*)description
-       calendarFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary;
-+ (id) dateWithYear: (NSInteger)year
-	      month: (NSUInteger)month
-	        day: (NSUInteger)day
-	       hour: (NSUInteger)hour
-	     minute: (NSUInteger)minute
-	     second: (NSUInteger)second
-	   timeZone: (NSTimeZone*)aTimeZone;
++ (instancetype) calendarDate;
++ (instancetype) dateWithString: (NSString*)description
+                 calendarFormat: (NSString*)format;
++ (instancetype) dateWithString: (NSString*)description
+                 calendarFormat: (NSString*)format
+                         locale: (NSDictionary*)dictionary;
++ (instancetype) dateWithYear: (NSInteger)year
+                        month: (NSUInteger)month
+                          day: (NSUInteger)day
+                         hour: (NSUInteger)hour
+                       minute: (NSUInteger)minute
+                       second: (NSUInteger)second
+                     timeZone: (NSTimeZone*)aTimeZone;
 
 // Initializing an NSCalendar Date
-- (id) initWithString: (NSString*)description;
-- (id) initWithString: (NSString*)description
-       calendarFormat: (NSString*)format;
-- (id) initWithString: (NSString*)description
-       calendarFormat: (NSString*)fmt
-	       locale: (NSDictionary*)locale;
-- (id) initWithYear: (NSInteger)year
-	      month: (NSUInteger)month
-	        day: (NSUInteger)day
-	       hour: (NSUInteger)hour
-	     minute: (NSUInteger)minute
-	     second: (NSUInteger)second
-	   timeZone: (NSTimeZone*)aTimeZone;
+- (instancetype) initWithString: (NSString*)description;
+- (instancetype) initWithString: (NSString*)description
+                 calendarFormat: (NSString*)format;
+- (instancetype) initWithString: (NSString*)description
+                 calendarFormat: (NSString*)fmt
+                         locale: (NSDictionary*)locale;
+- (instancetype) initWithYear: (NSInteger)year
+                        month: (NSUInteger)month
+                          day: (NSUInteger)day
+                         hour: (NSUInteger)hour
+                       minute: (NSUInteger)minute
+                       second: (NSUInteger)second
+                     timeZone: (NSTimeZone*)aTimeZone;
 
 // Retrieving Date Elements
 - (NSInteger) dayOfCommonEra;

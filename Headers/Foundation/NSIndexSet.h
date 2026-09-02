@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: NSIndexSet.m
 
@@ -111,6 +110,19 @@ DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
 - (void) enumerateIndexesWithOptions: (NSEnumerationOptions)opts
 		          usingBlock: (GSIndexSetEnumerationBlock)aBlock;
 
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSIndexSetRangeEnumerationBlock, void, NSRange, BOOL*);
+
+- (void) enumerateRangesInRange: (NSRange)range 
+                        options: (NSEnumerationOptions)opts 
+                     usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
+
+- (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
+
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+                         usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
 #endif
 
 /**

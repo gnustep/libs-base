@@ -4,6 +4,10 @@
 #include "objc-common.g"
 #include <stdio.h>
 
+#if !defined(_MSC_VER)
+#include <unistd.h>
+#endif
+
 #if defined(_WIN32)
 
 #include <process.h>
@@ -66,7 +70,12 @@ static volatile BOOL		may_proceed = NO;
 
 @end
 
-static void *
+static
+#if defined(_WIN32)
+unsigned int __stdcall
+#else
+void *
+#endif
 test(void *arg)
 {
   [MyClass class];

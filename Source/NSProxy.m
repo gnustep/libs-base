@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSProxy class reference</title>
    $Date$ $Revision$
@@ -34,6 +33,7 @@
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSPortCoder.h"
+#include <objc/message.h>
 
 // Get objc_delete_weak_refs(), if it is present in the runtime.
 #ifdef __GNUSTEP_RUNTIME__
@@ -59,6 +59,46 @@
  * but is not a subclass of NSObject.</p>
  */
 @implementation NSProxy
+
+static SEL	fastFwd = NULL;
+
+static BOOL
+forwardCheck(id self, SEL _cmd, id arg)
+{
+  id    ff;
+  BOOL	ret;
+
+  if (class_respondsToSelector(object_getClass(self), fastFwd)
+    && (ff = [self forwardingTargetForSelector: _cmd]) != nil
+    && ff != self)
+    {
+      /* Fast forwarding is available ... use it.
+       */
+      IMP msg = objc_msg_lookup(ff, _cmd);
+
+      if (!msg)
+	{
+	  [NSException raise: NSGenericException
+		      format: @"invalid selector passed to %s",
+	    sel_getName(_cmd)];
+	  return NO;
+	}
+      ret = (*msg)(ff, _cmd, arg) ? YES : NO;
+    }
+  else
+    {
+      NSMethodSignature	*sig;
+      NSInvocation	*inv;
+
+      sig = [self methodSignatureForSelector: _cmd];
+      inv = [NSInvocation invocationWithMethodSignature: sig];
+      [inv setSelector: _cmd];
+      [inv setArgument: &arg atIndex: 2];
+      [self forwardInvocation: inv];
+      [inv getReturnValue: &ret];
+    }
+  return ret;
+}
 
 /**
  * Allocates and returns an NSProxy instance in the default zone.
@@ -99,6 +139,11 @@
 + (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s>", GSClassNameFromObject(self)];
+}
+
++ (void) initialize
+{
+  fastFwd = @selector(forwardingTargetForSelector:);
 }
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector
@@ -245,17 +290,7 @@
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  NSMethodSignature	*sig;
-  NSInvocation		*inv;
-  BOOL			ret;
-
-  sig = [self methodSignatureForSelector: _cmd];
-  inv = [NSInvocation invocationWithMethodSignature: sig];
-  [inv setSelector: _cmd];
-  [inv setArgument: &aProtocol atIndex: 2];
-  [self forwardInvocation: inv];
-  [inv getReturnValue: &ret];
-  return ret;
+  return forwardCheck(self, _cmd, aProtocol);
 }
 
 /**
@@ -327,17 +362,7 @@
  */
 - (BOOL) isKindOfClass: (Class)aClass
 {
-  NSMethodSignature	*sig;
-  NSInvocation		*inv;
-  BOOL			ret;
-
-  sig = [self methodSignatureForSelector: _cmd];
-  inv = [NSInvocation invocationWithMethodSignature: sig];
-  [inv setSelector: _cmd];
-  [inv setArgument: &aClass atIndex: 2];
-  [self forwardInvocation: inv];
-  [inv getReturnValue: &ret];
-  return ret;
+  return forwardCheck(self, _cmd, aClass);
 }
 
 /**
@@ -348,17 +373,7 @@
  */
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-  NSMethodSignature	*sig;
-  NSInvocation		*inv;
-  BOOL			ret;
-
-  sig = [self methodSignatureForSelector: _cmd];
-  inv = [NSInvocation invocationWithMethodSignature: sig];
-  [inv setSelector: _cmd];
-  [inv setArgument: &aClass atIndex: 2];
-  [self forwardInvocation: inv];
-  [inv getReturnValue: &ret];
-  return ret;
+  return forwardCheck(self, _cmd, aClass);
 }
 
 /**

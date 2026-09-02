@@ -16,6 +16,12 @@
 @end
 
 @implementation Tester
+- (void) dealloc
+{
+  DESTROY(child);
+  DESTROY(dict);
+  DEALLOC
+}
 @end
 
 @interface CustomKVC : NSObject
@@ -65,6 +71,13 @@
 @end
 
 @implementation DeprecatedCustomKVC
+
+- (void) dealloc
+{
+  RELEASE(storage);
+  DEALLOC
+}
+
 - (id)init
 {
   self = [super init];

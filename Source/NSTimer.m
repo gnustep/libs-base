@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSTimer class reference</title>
    $Date$ $Revision$
@@ -35,9 +34,8 @@
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSInvocation.h"
 
-@class	NSGDate;
-@interface NSGDate : NSObject	// Help the compiler
-@end
+#import "NSDatePrivate.h"
+
 static Class	NSDate_class;
 
 /**
@@ -58,7 +56,7 @@ static Class	NSDate_class;
 {
   if (self == [NSTimer class])
     {
-      NSDate_class = [NSGDate class];
+      NSDate_class = [DATE_CONCRETE_CLASS_NAME class];
     }
 }
 
@@ -68,21 +66,32 @@ static Class	NSDate_class;
 
   if ([self isValid])
     {
-      if (_selector == 0)
+      if (nil == _target)
+	{
+          s = [NSString stringWithFormat: @"%@ at %@ calls %@",
+            s, [self fireDate], _block];
+	}
+      else if (_selector == 0)
         {
-          return [NSString stringWithFormat: @"%@ at %@ invokes %@",
+          s = [NSString stringWithFormat: @"%@ at %@ invokes %@",
             s, [self fireDate], _target];
         }
       else
         {
-          return [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
+          s = [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
             s, [self fireDate], NSStringFromSelector(_selector), _target];
         }
+      if (_modeMask)
+	{
+	  s = [s stringByAppendingFormat: @", scheduled in modes: 0x%0"PRIx64,
+	    _modeMask];
+	}
     }
   else
     {
-      return [NSString stringWithFormat: @"%@ (invalidated)", s];
+      s = [NSString stringWithFormat: @"%@ (invalidated)", s];
     }
+  return s;
 }
 
 /* For MacOS-X compatibility, this returns nil.
@@ -116,6 +125,10 @@ static Class	NSDate_class;
 	       userInfo: (id)info
 		repeats: (BOOL)f
 {
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
   if (ti <= 0.0)
     {
       ti = 0.0001;
@@ -150,13 +163,17 @@ static Class	NSDate_class;
                           repeats: (BOOL)repeats
                             block: (GSTimerBlock)block
 {
-  ASSIGN(_block, (id)block);
-  return [self initWithFireDate: date
+  self = [self initWithFireDate: date
                        interval: interval
                          target: nil
                        selector: NULL
                        userInfo: nil
                         repeats: repeats];
+  if (self)
+    {
+      ASSIGN(_block, (id)block);
+    }
+  return self;
 }
 
 /**
@@ -290,7 +307,17 @@ static Class	NSDate_class;
     {
       if ((id)_block != nil)
         {
-          CALL_NON_NULL_BLOCK(_block, self);
+          NS_DURING
+            {
+              CALL_NON_NULL_BLOCK(_block, self);
+            }
+          NS_HANDLER
+            {
+              NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+                @"raised during posting of timer with block",
+                [localException name], [localException reason]);
+            }
+          NS_ENDHANDLER
         }
       else
         {
@@ -362,6 +389,10 @@ static Class	NSDate_class;
   if (_info != nil)
     {
       DESTROY(_info);
+    }
+  if ((id)_block != nil)
+    {
+      DESTROY(_block);
     }
 }
 

@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     0x80, 0x1f, 0x3a, 0x01, 0x95, 0x7c, 0x45, 0x0f,
     0xaf, 0xf2, 0x1b, 0xe9, 0x59, 0xf5, 0x89, 0x54 };
 
-  TEST_FOR_CLASS(@"NSUUID", [NSUUID alloc],
+  TEST_FOR_CLASS(@"NSUUID", AUTORELEASE([NSUUID alloc]),
 		 "+[NSUUID alloc] returns a NSUUID");
   TEST_FOR_CLASS(@"NSUUID", [NSUUID UUID],
 		 "+[NSUUID UUID] returns a UUID");
@@ -22,9 +22,11 @@ int main(int argc, char **argv)
   uuid1 = [[NSUUID alloc] initWithUUIDString: nil];
   PASS(uuid1 == nil, "Don't create a UUID from a nil string");
 
+  DESTROY(uuid1);
   uuid1 = [[NSUUID alloc] initWithUUIDString: @"test"];
   PASS(uuid1 == nil, "Don't create a UUID from an invalid string");
 
+  DESTROY(uuid1);
   uuid1 = [[NSUUID alloc] initWithUUIDString: uuidString];
   PASS(uuid1 != nil, "Create a UUID from a valid string");
   PASS_EQUAL([uuid1 UUIDString], uuidString,
@@ -43,12 +45,12 @@ int main(int argc, char **argv)
 
   int comparison = memcmp(uuidBytes, otherBytes, 16);
   PASS(comparison == 0, "Get a stable value for the UUID bytes");
-  DESTROY(uuid2);
 
+  DESTROY(uuid2);
   uuid2 = [uuid1 copy];
   PASS_EQUAL(uuid1, uuid2, "-[NSUUID copy] returns an identical object");
+
   DESTROY(uuid2);
-  
   NSData *coded = [NSKeyedArchiver archivedDataWithRootObject: uuid1];
   uuid2 = [NSKeyedUnarchiver unarchiveObjectWithData: coded];
   PASS_EQUAL(uuid1, uuid2, "UUID survives a round-trip through archiver");

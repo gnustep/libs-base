@@ -3,6 +3,7 @@
 #import "ObjectTesting.h"
 
 #if     GNUSTEP
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 extern const char *GSPathHandling(const char *);
 #endif
 
@@ -13,6 +14,10 @@ int main()
   NSURL		*rel;
   NSData	*data;
   NSString	*str;
+#if	!defined(_WIN32)
+  NSString	*tmp;
+  const char	*ptr;
+#endif
   NSNumber      *num;
   unsigned      i;
   unichar       bad[] = {'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w',
@@ -20,13 +25,13 @@ int main()
   unichar	u = 163;
   unichar       buf[256];
   
-  TEST_FOR_CLASS(@"NSURL", [NSURL alloc],
+  TEST_FOR_CLASS(@"NSURL", AUTORELEASE([NSURL alloc]),
     "NSURL +alloc returns an NSURL");
   
   TEST_FOR_CLASS(@"NSURL", [NSURL fileURLWithPath: @"."],
     "NSURL +fileURLWithPath: returns an NSURL");
   
-  TEST_FOR_CLASS(@"NSURL", [NSURL URLWithString: @"http://httpbin.org/"],
+  TEST_FOR_CLASS(@"NSURL", [NSURL URLWithString: @"http://example.com/"],
     "NSURL +URLWithString: returns an NSURL");
   
   url = [NSURL URLWithString: nil];
@@ -45,55 +50,86 @@ int main()
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
 
-  url = [NSURL URLWithString: @"http://httpbin.org/"];
+#if     GNUSTEP
+  url = [[NSURL alloc]
+    initWithScheme: @"http"
+	      user: @"testing@free.fr"
+	  password: @"password"
+	      host: @"127.0.0.1"
+	      port: nil
+	  fullPath: @"dav.php/short/"
+   parameterString: nil
+	     query: nil
+	  fragment: nil];
+  PASS_EQUAL([url absoluteString],
+    @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/",
+    "Full -initWithScheme... works")
+  PASS_EQUAL([url description],
+    @"http://testing%40free.fr:HIDDEN-PASSWORD@127.0.0.1/dav.php/short/",
+    "-description hides the password")
+  DESTROY(url);
+#endif
+
+  // Test depends on network connection
+  testHopeful = YES;
+  url = [NSURL URLWithString: @"http://example.com/"];
   data = [url resourceDataUsingCache: NO];
   PASS(data != nil,
-    "Can load a page from httpbin.org");
+    "Can load a page from example.com");
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
   PASS([num isKindOfClass: [NSNumber class]] && [num intValue] == 200,
-    "Status of load is 200 for httpbin.org");
+    "Status of load is 200 for example.com");
+  testHopeful = NO;
 
   url = [NSURL URLWithString:@"this isn't a URL"];
   PASS(url == nil, "URL with 'this isn't a URL' returns nil");
 
-  url = [NSURL URLWithString: @"http://httpbin.org/silly-file-name"];
+  // Test depends on network connection
+  testHopeful = YES;
+  url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for httpbin.org/silly-file-name");
+  testHopeful = NO;
+
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = YES;
+#endif
+
   str = [url scheme];
-  PASS([str isEqual: @"http"],
-       "Scheme of http://httpbin.org/silly-file-name is http");
+  PASS([str isEqual: @"https"],
+       "Scheme of https://httpbin.org/silly-file-name is https");
   str = [url host];
   PASS([str isEqual: @"httpbin.org"],
-    "Host of http://httpbin.org/silly-file-name is httpbin.org");
+    "Host of https://httpbin.org/silly-file-name is httpbin.org");
   str = [url path];
   PASS([str isEqual: @"/silly-file-name"],
-    "Path of http://httpbin.org/silly-file-name is /silly-file-name");
+    "Path of https://httpbin.org/silly-file-name is /silly-file-name");
   PASS([[url resourceSpecifier] isEqual: @"//httpbin.org/silly-file-name"],
-    "resourceSpecifier of http://httpbin.org/silly-file-name is //httpbin.org/silly-file-name");
+    "resourceSpecifier of https://httpbin.org/silly-file-name is //httpbin.org/silly-file-name");
 
 
-  url = [NSURL URLWithString: @"http://httpbin.org/silly-file-path/"];
+  url = [NSURL URLWithString: @"http://example.com/silly-file-path/"];
   PASS_EQUAL([url path], @"/silly-file-path",
-    "Path of http://httpbin.org/silly-file-path/ is /silly-file-path");
-  PASS_EQUAL([url resourceSpecifier], @"//httpbin.org/silly-file-path/",
-    "resourceSpecifier of http://httpbin.org/silly-file-path/ is //httpbin.org/silly-file-path/");
-  PASS_EQUAL([url absoluteString], @"http://httpbin.org/silly-file-path/",
-    "Abs of http://httpbin.org/silly-file-path/ is correct");
+    "Path of http://example.com/silly-file-path/ is /silly-file-path");
+  PASS_EQUAL([url resourceSpecifier], @"//example.com/silly-file-path/",
+    "resourceSpecifier of http://example.com/silly-file-path/ is //example.com/silly-file-path/");
+  PASS_EQUAL([url absoluteString], @"http://example.com/silly-file-path/",
+    "Abs of http://example.com/silly-file-path/ is correct");
 
-  url = [NSURL URLWithString: @"http://httpbin.org"];
+  url = [NSURL URLWithString: @"http://example.com"];
   PASS_EQUAL([url scheme], @"http",
-    "Scheme of http://httpbin.org is http");
-  PASS_EQUAL([url host], @"httpbin.org",
-    "Host of http://httpbin.org is httpbin.org");
+    "Scheme of http://example.com is http");
+  PASS_EQUAL([url host], @"example.com",
+    "Host of http://example.com is example.com");
   PASS_EQUAL([url path], @"",
-    "Path of http://httpbin.org is empty");
-  PASS_EQUAL([url resourceSpecifier], @"//httpbin.org",
-    "resourceSpecifier of http://httpbin.org is //httpbin.org");
+    "Path of http://example.com is empty");
+  PASS_EQUAL([url resourceSpecifier], @"//example.com",
+    "resourceSpecifier of http://example.com is //example.com");
 
   url = [url URLByAppendingPathComponent: @"example_path"];
-  PASS_EQUAL([url description], @"http://httpbin.org/example_path",
+  PASS_EQUAL([url description], @"http://example.com/example_path",
     "Append of component to pathless http URL works");
 
 #if	defined(_WIN32)
@@ -105,14 +141,28 @@ int main()
     "File URL C:\\WINDOWS is file:///C:%%5CWINDOWS/");
   PASS_EQUAL([url resourceSpecifier], @"/C:%5CWINDOWS/",
     "resourceSpecifier of C:\\WINDOWS is /C:%5CWINDOWS/");
-#else
-  url = [NSURL fileURLWithPath: @"/usr"];
+
+  // UNC path
+  url = [NSURL fileURLWithPath: @"\\\\SERVER\\SHARE\\"];
   str = [url path];
-  PASS_EQUAL(str, @"/usr", "Path of file URL /usr is /usr");
-  PASS_EQUAL([url description], @"file:///usr/",
-    "File URL /usr is file:///usr/");
-  PASS_EQUAL([url resourceSpecifier], @"/usr/",
-    "resourceSpecifier of /usr is /usr/");
+  PASS_EQUAL(str, @"\\\\SERVER\\SHARE\\",
+    "Path of file URL \\\\SERVER\\SHARE\\ is \\\\SERVER\\SHARE\\");
+  PASS_EQUAL([url description], @"file:///%5C%5CSERVER%5CSHARE%5C",
+    "File URL \\\\SERVER\\SHARE\\ is file:///%5C%5CSERVER%5CSHARE%5C");
+  PASS_EQUAL([url resourceSpecifier], @"/%5C%5CSERVER%5CSHARE%5C",
+    "resourceSpecifier of \\\\SERVER\\SHARE\\ is /%5C%5CSERVER%5CSHARE%5C");
+#else
+  tmp = NSTemporaryDirectory();
+  url = [NSURL fileURLWithPath: tmp];
+  str = [url path];
+  ptr = [tmp UTF8String];
+  PASS_EQUAL(str, tmp, "Path of file URL %s is %s", ptr, ptr);
+  str = [NSString stringWithFormat: @"file://%@/", tmp];
+  PASS_EQUAL([url description], str,
+    "File URL %s is file://%s/", ptr, ptr);
+  str = [NSString stringWithFormat: @"%@/", tmp];
+  PASS_EQUAL([url resourceSpecifier], str,
+    "resourceSpecifier of %s is %s/", ptr, ptr);
 #endif
 
   PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil isDirectory: YES],
@@ -145,6 +195,20 @@ int main()
 #if     GNUSTEP
   PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
     "Simple relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa/bbb/ccc/",
+    "Simple relative URL pathWithEscapes works");
+#endif
+  rel = [NSURL URLWithString: @"aaa%2fbbb%2fccc/" relativeToURL: url];
+  PASS_EQUAL([rel absoluteString],
+    @"http://here.and.there/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL absoluteString works");
+  PASS_EQUAL([rel path], @"/testing/aaa/bbb/ccc",
+    "Escaped relative URL path works");
+#if     GNUSTEP
+  PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
+    "Escaped relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL pathWithEscapes works");
 #endif
 
   url = [NSURL URLWithString: @"http://1.2.3.4/a?b;foo"];
@@ -339,22 +403,52 @@ GSPathHandling("right");
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
   PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
 
+  /* Test URLs with query but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value"];
+  PASS(url != nil, "URL with query but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value is key=value");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value", "absoluteString works for URL with query but no path");
+
+  /* Test URLs with fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com#section"];
+  PASS(url != nil, "URL with fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com#section is empty");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com#section", "absoluteString works for URL with fragment but no path");
+
+  /* Test URLs with query and fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value#section"];
+  PASS(url != nil, "URL with query and fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value#section is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value#section is key=value");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com?key=value#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value#section", "absoluteString works for URL with query and fragment but no path");
+
   ///NSURLQueryItem
   
   //OSX behavior is to return query item with an empty string name
   NSURLQueryItem* item = [[NSURLQueryItem alloc] init];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   //OSX behavior is to return query item with an empty string name
   item = [[NSURLQueryItem alloc] initWithName:nil value:nil];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
   PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
-
+  RELEASE(item);
     
   [arp release]; arp = nil;
   return 0;

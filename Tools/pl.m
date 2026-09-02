@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 
@@ -41,6 +41,9 @@ void create_output(id propertyList)
   NSArray *arguments = [processInfo arguments];
   NSUInteger outputIndex = 0;
 
+  if (propertyList == nil)
+    return;
+  
   // insert your code here
   outputIndex = [arguments indexOfObject: @"-output"];
   if (outputIndex == NSNotFound)
@@ -73,8 +76,15 @@ id process_plist(NSData *inputData)
   id propertyList = nil;
   NSString *string = nil;
 
+  // return if nil
+  if (nil == inputData)
+    {
+      return nil;
+    }
+  
   // Initialize a string with the contents of the file.
-  string = [NSString stringWithUTF8String: (char *)[inputData bytes]];
+  string = AUTORELEASE([[NSString alloc] initWithData: inputData
+					     encoding: NSUTF8StringEncoding]);
 
   // Convert the string into a property list.  If there is a parsing error
   // the property list interpreter will throw an exception.
@@ -102,6 +112,7 @@ NSData *read_input()
     {
       // setup the file handle.
       fileHandle = [NSFileHandle fileHandleWithStandardInput];
+
       // Read in the input from the file.
       inputData = [fileHandle readDataToEndOfFile];
     }

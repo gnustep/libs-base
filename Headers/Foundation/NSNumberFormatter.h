@@ -19,8 +19,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef _NSNumberFormatter_h_GNUSTEP_BASE_INCLUDE
@@ -129,8 +128,8 @@ GS_EXPORT_CLASS
   unichar _thousandSeparator;
   unichar _decimalSeparator;
   NSDecimalNumberHandler *_roundingBehavior;
-  NSDecimalNumber *_maximum;
-  NSDecimalNumber *_minimum;
+  NSNumber *_maximum;
+  NSNumber *_minimum;
   NSAttributedString *_attributedStringForNil;
   NSAttributedString *_attributedStringForNotANumber;
   NSAttributedString *_attributedStringForZero;
@@ -337,25 +336,25 @@ GS_NSNumberFormatter_IVARS;
  * Returns maximum value that will be accepted as valid in number parsing.
  * Default is none.
  */
-- (NSDecimalNumber*) maximum;
+- (NSNumber*) maximum;
 
 /**
  * Sets maximum value that will be accepted as valid in number parsing.
  * Default is none.
  */
-- (void) setMaximum: (NSDecimalNumber*)aMaximum;
+- (void) setMaximum: (NSNumber*)aMaximum;
 
 /**
  * Returns minimum value that will be accepted as valid in number parsing.
  * Default is none.
  */
-- (NSDecimalNumber*) minimum;
+- (NSNumber*) minimum;
 
 /**
  * Sets minimum value that will be accepted as valid in number parsing.
  * Default is none.
  */
-- (void) setMinimum: (NSDecimalNumber*)aMinimum;
+- (void) setMinimum: (NSNumber*)aMinimum;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 /** Sets the behavior of the formatter.<br />

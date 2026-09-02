@@ -3,8 +3,8 @@
 #include <Testing.h>
 int main()
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  NSMutableIndexSet *set = [[NSMutableIndexSet alloc] init];
+  ENTER_POOL
+  NSMutableIndexSet *set = AUTORELEASE([NSMutableIndexSet new]);
 
   [set addIndex:1];
   [set addIndex:2];
@@ -22,6 +22,6 @@ int main()
 
   PASS([set containsIndexesInRange:NSMakeRange(0,2)], "contains range");
 
-  [pool release];
+  LEAVE_POOL
   return 0;
 }

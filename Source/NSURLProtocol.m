@@ -19,8 +19,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #import "common.h"
@@ -30,6 +29,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 
 #if     GS_HAVE_NSURLSESSION
@@ -181,6 +181,13 @@ debugWrite(id handle, int len, const unsigned char *ptr)
 static NSMutableArray	*pairCache = nil;
 static NSLock		*pairLock = nil;
 
++ (void) atExit
+{
+  [[NSNotificationCenter defaultCenter] removeObserver: self];
+  DESTROY(pairLock);
+  DESTROY(pairCache);
+}
+
 + (void) initialize
 {
   if (pairCache == nil)
@@ -197,6 +204,7 @@ static NSLock		*pairLock = nil;
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(purge:)
 	name: @"GSHousekeeping" object: nil];
+      [self registerAtExit];
     }
 }
 
@@ -469,19 +477,35 @@ typedef struct {
   return o;
 }
 
++ (void) atExit
+{
+  if (placeholder)
+    {
+      id	o = placeholder;
+
+      placeholder = nil;
+      NSDeallocateObject(o);
+    }
+  DESTROY(registered);
+  DESTROY(regLock);
+}
+
 + (void) initialize
 {
-  if (registered == nil)
+  static BOOL beenHere = NO;
+
+  if (NO == beenHere)
     {
+      beenHere = YES;
       abstractClass = [NSURLProtocol class];
       placeholderClass = [NSURLProtocolPlaceholder class];
+
+      [self registerAtExit];
+
       placeholder = (NSURLProtocol*)NSAllocateObject(placeholderClass, 0,
 	NSDefaultMallocZone());
-      [[NSObject leakAt: &placeholder] release];
       registered = [NSMutableArray new];
-      [[NSObject leakAt: &registered] release];
       regLock = [NSLock new];
-      [[NSObject leakAt: &regLock] release];
       [self registerClass: [_NSHTTPURLProtocol class]];
       [self registerClass: [_NSHTTPSURLProtocol class]];
       [self registerClass: [_NSFTPURLProtocol class]];
@@ -548,9 +572,9 @@ typedef struct {
           [this->output close];
           DESTROY(this->input);
           DESTROY(this->output);
-          DESTROY(this->in);
-          DESTROY(this->out);
 	}
+      DESTROY(this->in);
+      DESTROY(this->out);
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
 #if     GS_HAVE_NSURLSESSION
@@ -721,6 +745,11 @@ typedef struct {
   return NO;
 }
 
++ (BOOL) canInitWithTask: (NSURLSessionTask*)task
+{
+  return NO;
+}
+
 + (NSURLRequest *) canonicalRequestForRequest: (NSURLRequest *)request
 {
   return request;
@@ -782,10 +811,11 @@ typedef struct {
 
 - (void) dealloc
 {
-  [_parser release];			// received headers
-  [_body release];			// for sending the body
-  [_response release];
-  [_credential release];
+  DESTROY(_parser);			// received headers
+  DESTROY(_body);			// for sending the body
+  DESTROY(_response);
+  DESTROY(_challenge);
+  DESTROY(_credential);
   DESTROY(_writeData);
   DESTROY(_masked);
   [super dealloc];
@@ -793,7 +823,7 @@ typedef struct {
 
 - (void) startLoading
 {
-  static NSDictionary *methods = nil;
+  static NSSet	*methods = nil;
 
   _debug = GSDebugSet(@"NSURLProtocol");
   if (YES == [this->request _debug])
@@ -807,21 +837,21 @@ typedef struct {
 
   if (methods == nil)
     {
-      methods = [[NSDictionary alloc] initWithObjectsAndKeys: 
-	self, @"HEAD",
-	self, @"GET",
-	self, @"POST",
-	self, @"PUT",
-	self, @"DELETE",
-	self, @"TRACE",
-	self, @"OPTIONS",
-	self, @"CONNECT",
+      methods = [[NSSet alloc] initWithObjects: 
+	@"HEAD",
+	@"GET",
+	@"POST",
+	@"PUT",
+	@"DELETE",
+	@"TRACE",
+	@"OPTIONS",
+	@"CONNECT",
 	nil];
       }
-  if ([methods objectForKey: [this->request HTTPMethod]] == nil)
+  if ([methods member: [this->request HTTPMethod]] == nil)
     {
       NSLog(@"Invalid HTTP Method: %@", this->request);
-      [self stopLoading];
+      [self stopLoading];		// breaks retain loops
       [this->client URLProtocol: self didFailWithError:
 	[NSError errorWithDomain: @"Invalid HTTP Method"
 			    code: 0
@@ -841,7 +871,7 @@ typedef struct {
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
    */
-  if ([[[this->request URL] fullPath] length] == 0)
+  if ([[[this->request URL] pathWithEscapes] length] == 0)
     {
       NSString		*s = [[this->request URL] absoluteString];
       NSURL		*url;
@@ -866,7 +896,7 @@ typedef struct {
 	  e = [NSError errorWithDomain: @"Invalid redirect request"
 				  code: 0
 			      userInfo: nil];
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self
 		   didFailWithError: e];
 	}
@@ -876,6 +906,7 @@ typedef struct {
 
 	  r = [[this->request mutableCopy] autorelease];
 	  [r setURL: url];
+	  AUTORELEASE(RETAIN(self));
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: r
 		   redirectResponse: nil];
@@ -917,6 +948,18 @@ typedef struct {
 	  port = [[url scheme] isEqualToString: @"https"] ? 443 : 80;
 	}
 
+      if (nil == host)
+	{
+	  [self stopLoading];
+	  [this->client URLProtocol: self didFailWithError:
+	    [NSError errorWithDomain: @"host not found" code: 0 userInfo: 
+	      [NSDictionary dictionaryWithObjectsAndKeys: 
+		url, @"NSErrorFailingURLKey",
+		host, @"NSErrorFailingURLStringKey",
+		@"can't find host", @"NSLocalizedDescription",
+		nil]]];
+	  return;
+	}
       [NSStream getStreamsToHost: host
 			    port: port
 		     inputStream: &this->input
@@ -928,7 +971,7 @@ typedef struct {
 	      NSLog(@"%@ did not create streams for %@:%@",
 		self, host, [url port]);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
 	      [NSDictionary dictionaryWithObjectsAndKeys: 
@@ -944,6 +987,8 @@ typedef struct {
         {
           static NSArray        *keys;
           NSUInteger            count;
+	  NSString		*key;
+	  NSString		*val;
 
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                             forKey: NSStreamSocketSecurityLevelKey];
@@ -966,21 +1011,11 @@ typedef struct {
                 GSTLSVerify,
                 nil];
             }
-          count = [keys count];
-          while (count-- > 0)
-            {
-              NSString      *key = [keys objectAtIndex: count];
-              NSString      *str = [this->request _propertyForKey: key];
-
-              if (nil != str)
-                {
-                  [this->output setProperty: str forKey: key];
-                }
-            }
           /* If there is no value set for the server name, and the host in the
            * URL is a domain name rather than an address, we use that.
            */
-          if (nil == [this->output propertyForKey: GSTLSServerName])
+	  key = GSTLSServerName;
+	  if (nil == (val = [this->request _propertyForKey: key]))
             {
               NSString  *host = [url host];
               unichar   c;
@@ -988,7 +1023,22 @@ typedef struct {
               c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
               if (c != 0 && c != ':' && !isdigit(c))
                 {
-                  [this->output setProperty: host forKey: GSTLSServerName];
+                  [this->output setProperty: host forKey: key];
+                }
+            }
+	  else
+	    {
+	      [this->output setProperty: val forKey: key];
+	    }
+          count = [keys count];
+          while (count-- > 0)
+            {
+              key = [keys objectAtIndex: count];
+              val = [this->request _propertyForKey: key];
+
+              if (nil != val)
+                {
+                  [this->output setProperty: val forKey: key];
                 }
             }
           if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
@@ -1013,6 +1063,8 @@ typedef struct {
   _isLoading = NO;
   DESTROY(_writeData);
   DESTROY(_masked);
+  DESTROY(_challenge);	// break loop where challenge retains us.
+  DESTROY(_credential);
   if (this->input != nil)
     {
       [this->input setDelegate: nil];
@@ -1052,7 +1104,7 @@ typedef struct {
 	    {
 	      NSLog(@"%@ receive error %@", self, e);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self didFailWithError: e];
 	}
       return;
@@ -1083,7 +1135,7 @@ typedef struct {
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
 			  userInfo: nil];
-      [self stopLoading];
+      [self stopLoading];		// breaks retain loops
       [this->client URLProtocol: self didFailWithError: e];
       return;
     }
@@ -1150,6 +1202,7 @@ typedef struct {
 	    {
 	      ct = nil;
 	    }
+	  DESTROY(_response);
 	  _response = [[NSHTTPURLResponse alloc]
 	    initWithURL: [this->request URL]
 	    MIMEType: ct
@@ -1192,7 +1245,7 @@ typedef struct {
 		  e = [NSError errorWithDomain: @"Invalid redirect request"
 					  code: 0
 				      userInfo: nil];
-		  [self stopLoading];
+		  [self stopLoading];		// breaks retain loops
 		  [this->client URLProtocol: self
 			   didFailWithError: e];
 		}
@@ -1354,7 +1407,7 @@ typedef struct {
 		  e = [NSError errorWithDomain: @"Authentication cancelled"
 					  code: 0
 				      userInfo: nil];
-		  [self stopLoading];
+		  [self stopLoading];		// breaks retain loops
 		  [this->client URLProtocol: self
 			   didFailWithError: e];
 		}
@@ -1365,6 +1418,7 @@ typedef struct {
 		  if (_credential != nil)
 		    {
 		      GSHTTPAuthentication	*authentication;
+		      NSString			*path;
 
 		      /* Get information about basic or
 		       * digest authentication.
@@ -1373,13 +1427,16 @@ typedef struct {
 			authenticationWithCredential: _credential
 			inProtectionSpace: space];
 
+		      path = [url _requestPath: [[this->request _propertyForKey:
+		        GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
+
 		      /* Generate authentication header value for the
 		       * authentication type in the challenge.
 		       */
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url fullPath]];
+			path: path];
 		    }
 
 		  if (auth == nil)
@@ -1429,7 +1486,7 @@ typedef struct {
 		      r = [this->request mutableCopy];
 		      [r setValue: auth
 			forHTTPHeaderField: @"Authorization"];
-		      [self stopLoading];
+		      [self stopLoading];		// breaks retain loops
 		      RELEASE(this->request);
 		      this->request = r;
 		      DESTROY(this->cachedResponse);
@@ -1477,7 +1534,7 @@ typedef struct {
 	       */
 	      if (_isLoading == YES)
 	        {
-		  _isLoading = NO;
+		  [self stopLoading];	// Breaks retain loops
 	          [this->client URLProtocolDidFinishLoading: self];
 		}
 	    }
@@ -1515,7 +1572,7 @@ typedef struct {
 	    {
 	      NSLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// Breaks retain loops
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"receive incomplete"
 				code: 0
@@ -1599,7 +1656,7 @@ typedef struct {
 		      NSLog(@"%@ error reading from HTTPBody stream %@",
 			self, [NSError _last]);
 		    }
-		  [self stopLoading];
+		  [self stopLoading];		// Breaks retain loops
 		  [this->client URLProtocol: self didFailWithError:
 		    [NSError errorWithDomain: @"can't read body"
 					code: 0
@@ -1732,6 +1789,7 @@ typedef struct {
 	      NSDictionary	*d;
 	      NSEnumerator	*e;
 	      NSString		*s;
+	      NSString		*method;
 	      NSURL		*u;
 	      int		l;		
 	      NSData		*bytes;
@@ -1740,18 +1798,18 @@ typedef struct {
 	        {
 	          NSLog(@"%@ HTTP output stream opened", self);
 	        }
-              this->in = [[NSString alloc]
-                initWithFormat: @"(%@:%@ <-- %@:%@)",
+              s = [NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
                 [stream propertyForKey: GSStreamLocalAddressKey],
                 [stream propertyForKey: GSStreamLocalPortKey],
                 [stream propertyForKey: GSStreamRemoteAddressKey],
                 [stream propertyForKey: GSStreamRemotePortKey]];
-              this->out = [[NSString alloc]
-                initWithFormat: @"(%@:%@ --> %@:%@)",
+              ASSIGN(this->in, s);
+              s = [NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
                 [stream propertyForKey: GSStreamLocalAddressKey],
                 [stream propertyForKey: GSStreamLocalPortKey],
                 [stream propertyForKey: GSStreamRemoteAddressKey],
                 [stream propertyForKey: GSStreamRemotePortKey]];
+              ASSIGN(this->out, s);
 	      DESTROY(_writeData);
 	      DESTROY(_masked);
 	      _writeOffset = 0;
@@ -1772,26 +1830,15 @@ typedef struct {
 	      m = [[NSMutableData alloc] initWithCapacity: 1024];
 
 	      /* The request line is of the form:
-	       * method /path?query HTTP/version
-	       * where the query part may be missing
+	       * method /path;params?query HTTP/version
+	       * where the params or query parts may be missing
 	       */
-	      [m appendData: [[this->request HTTPMethod]
-                dataUsingEncoding: NSASCIIStringEncoding]];
+	      method = [this->request HTTPMethod];
+	      [m appendData: [method dataUsingEncoding: NSASCIIStringEncoding]];
 	      [m appendBytes: " " length: 1];
 	      u = [this->request URL];
-	      s = [[u fullPath] stringByAddingPercentEscapesUsingEncoding:
-		NSUTF8StringEncoding];
-	      if ([s hasPrefix: @"/"] == NO)
-	        {
-		  [m appendBytes: "/" length: 1];
-		}
+	      s = [u _requestPath: 0];
 	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
-	      s = [u query];
-	      if ([s length] > 0)
-	        {
-		  [m appendBytes: "?" length: 1];
-		  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
-		}
 	      s = [NSString stringWithFormat: @" HTTP/%0.1f\r\n", _version];
 	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 
@@ -1820,7 +1867,7 @@ typedef struct {
 	       * we therefore won't end up adding a second header by
 	       * accident because the two header names differ in case.
 	       */
-	      if ([[this->request HTTPMethod] isEqual: @"POST"]
+	      if ([method isEqual: @"POST"]
 	        && [this->request valueForHTTPHeaderField:
 		  @"Content-Type"] == nil)
 		{
@@ -1868,8 +1915,16 @@ typedef struct {
 		      [mm appendData: bytes];
 		    }
 		}
-	      if (l >= 0 && [this->request
-	        valueForHTTPHeaderField: @"Content-Length"] == nil)
+
+	      /* When we have a non-empty body or a method which requires
+	       * a body, we must specify the content length.
+	       */
+	      s = [this->request valueForHTTPHeaderField: @"Content-Length"];
+	      if (nil == s
+		&& (l > 0
+		  || [method isEqualToString: @"POST"]
+		  || [method isEqualToString: @"PUT"]
+		  || [method isEqualToString: @"PATCH"]))
 		{
                   s = [NSString stringWithFormat: @"Content-Length: %d\r\n", l];
                   bytes = [s dataUsingEncoding: NSASCIIStringEncoding];
@@ -1906,7 +1961,7 @@ typedef struct {
     {
       NSError	*error = [[[stream streamError] retain] autorelease];
 
-      [self stopLoading];
+      [self stopLoading];		// Breaks retain loops
       [this->client URLProtocol: self didFailWithError: error];
     }
   else

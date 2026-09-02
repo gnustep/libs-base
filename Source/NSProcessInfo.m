@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSProcessInfo class reference</title>
    $Date$ $Revision$
@@ -62,20 +61,20 @@
 #  include <windows.h>
 #endif
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include	<sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
 #endif
 
 #if	defined(HAVE_SYS_FILE_H)
 #  include <sys/file.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #ifdef HAVE_SYS_UTSNAME_H
@@ -235,6 +234,31 @@ static NSMutableSet	*mySet = nil;
 static jobject _androidContext = NULL;
 static NSString *_androidFilesDir = nil;
 static NSString *_androidCacheDir = nil;
+
+
+/* The following macro assumes that the function's return type is bool.
+ */
+#define GS_JNI_CHECK(env, obj) \
+  if (unlikely(JNI_TRUE == (*env)->ExceptionCheck(env))) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p obj: %p Pending exception in JNI environment.\n", __FILE__, __LINE__, env, obj); \
+    (*env)->ExceptionDescribe(env); \
+    (*env)->ExceptionClear(env); \
+    abort(); \
+  } \
+  if (unlikely(obj == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI object.\n", __FILE__, __LINE__, env); \
+    abort(); \
+  }
+#define GS_JNI_CLS_CHECK(env, cls, name) \
+  if (unlikely(cls == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI class object for '%s'.\n", __FILE__, __LINE__, env, name); \
+    abort(); \
+  }
+#define GS_JNI_METH_CHECK(env, meth) \
+  if (unlikely(meth == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI method object.\n", __FILE__, __LINE__, env); \
+    abort(); \
+  }
 #endif
 
 /*************************************************************************
@@ -244,9 +268,9 @@ static NSString *_androidCacheDir = nil;
 static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString	*arg0 = nil;
-  int i;
+  int 		i;
 
   if (_gnu_arg_zero != 0)
     {
@@ -306,7 +330,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
 
   /* Getting the process name */
-  IF_NO_ARC(RELEASE(_gnu_processName);)
+  IF_NO_ARC([_gnu_processName release];)
   _gnu_processName = [arg0 lastPathComponent];
 #if	defined(_WIN32)
   /* On windows we remove any .exe extension for consistency with app names
@@ -349,9 +373,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	}
     }
     
-  IF_NO_ARC(RELEASE(_gnu_arguments);)
+  IF_NO_ARC([_gnu_arguments release];)
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  RELEASE(arg0);
 }
 #else
   if (argv)
@@ -376,11 +399,16 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    obj_argv[added++] = str;
 	}
 
-      IF_NO_ARC(RELEASE(_gnu_arguments);)
+      IF_NO_ARC([_gnu_arguments release];)
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      RELEASE(arg0);
+    }
+  else
+    {
+      IF_NO_ARC([_gnu_arguments release];)
+      _gnu_arguments = [[NSArray alloc] init];
     }
 #endif	
+  IF_NO_ARC([arg0 release];)
 	
   /* Copy the evironment list */
   {
@@ -389,7 +417,10 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
 #if defined(_WIN32)
-    if (fallbackInitialisation == NO)
+    /* Also used when the caller supplied no environment, so that a process
+     * initialised that way has the one it was started with.
+     */
+    if (fallbackInitialisation == NO || 0 == env)
       {
 	unichar	*base;
 
@@ -427,12 +458,25 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		val = [NSString stringWithCharacters: start
 					      length: wenvp - start];
 		wenvp++;	// Skip past variable terminator
-		[keys addObject: key];
-		[values addObject: val];
+		if (key != nil && val != nil)
+		  {
+		    [keys addObject: key];
+		    [values addObject: val];
+		  }
 	      }
 	    FreeEnvironmentStringsW(base);
 	    env = 0;	// Suppress standard code.
 	  }
+      }
+#else
+    if (0 == env)
+      {
+	/* No environment was supplied, so we use the one the process was
+	 * started with rather than recording that it has none.
+	 */
+	extern char	**environ;
+
+	env = environ;
       }
 #endif
     if (env != 0)
@@ -458,13 +502,13 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    i++;
 	  }
       }
-    IF_NO_ARC(RELEASE(_gnu_environment);)
+    IF_NO_ARC([_gnu_environment release];)
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values
 						     forKeys: keys];
-    IF_NO_ARC(RELEASE(keys);)
-    IF_NO_ARC(RELEASE(values);)
+    IF_NO_ARC([keys release];)
+    IF_NO_ARC([values release];)
   }
-  [arp drain];
+  LEAVE_POOL
 }
 
 #if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO) || defined(__APPLE__)) && (defined(HAVE_LOAD_METHOD)))
@@ -1009,21 +1053,23 @@ int main(int argc, char *argv[], char *env[])
 
   if (!_gnu_sharedProcessInfoObject)
     {
-      _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
       [procLock lock];
-      if (mySet != nil)
+      if (!_gnu_sharedProcessInfoObject)
 	{
-	  NSEnumerator	*e = [mySet objectEnumerator];
-	  NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
-	  id		o;
-
-	  while ((o = [e nextObject]) != nil)
+	  _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+	  if (mySet != nil)
 	    {
-              [s addObject: o];
+	      NSEnumerator	*e = [mySet objectEnumerator];
+	      NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
+	      id		o;
+
+	      while ((o = [e nextObject]) != nil)
+		{
+		  [s addObject: o];
+		}
+	      DESTROY(mySet);
 	    }
-	  [mySet release];
-	  mySet = nil;
-        }
+	}
       [procLock unlock];
     }
 
@@ -1059,7 +1105,12 @@ int main(int argc, char *argv[], char *env[])
 
 - (NSDictionary *) environment
 {
-  return _gnu_environment;
+  NSDictionary	*d;
+
+  [procLock lock];
+  d = RETAIN(_gnu_environment);
+  [procLock unlock];
+  return AUTORELEASE(d);
 }
 
 - (NSString *) globallyUniqueString
@@ -1553,23 +1604,36 @@ GSInitializeProcess(int argc, char **argv, char **envp)
 }
 
 #ifdef __ANDROID__
+static NSString *
+_NSStringFromJString(JNIEnv *env, jstring jstr)
+{
+  const jchar *unichars = (*env)->GetStringChars(env, jstr, NULL);
+  jsize len = (*env)->GetStringLength(env, jstr);
+  NSString *result = [NSString stringWithCharacters:unichars length:len];
+  (*env)->ReleaseStringChars(env, jstr, unichars);
+  return result;
+}
+
 void
 GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 {
-  [NSProcessInfo class];
-
-  // create global reference to to prevent garbage collection
-  _androidContext = (*env)->NewGlobalRef(env, context);
+  jclass contextCls = (*env)->GetObjectClass(env, context);
+  GS_JNI_CLS_CHECK(env, contextCls, "L/android/content/Context;");
 
   // get package code path (path to APK)
-  jclass cls = (*env)->GetObjectClass(env, context);
-  jmethodID packageCodePathMethod = (*env)->GetMethodID(env, cls, "getPackageCodePath", "()Ljava/lang/String;");
+  jmethodID packageCodePathMethod = (*env)->GetMethodID(env, contextCls, "getPackageCodePath", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, packageCodePathMethod);
   jstring packageCodePathJava = (*env)->CallObjectMethod(env, context, packageCodePathMethod);
+  GS_JNI_CHECK(env, packageCodePathJava);
+
   const char *packageCodePath = (*env)->GetStringUTFChars(env, packageCodePathJava, NULL);
 
   // get package name
-  jmethodID packageNameMethod = (*env)->GetMethodID(env, cls, "getPackageName", "()Ljava/lang/String;");
+  jmethodID packageNameMethod = (*env)->GetMethodID(env, contextCls, "getPackageName", "()Ljava/lang/String;");
+  GS_JNI_CHECK(env, packageNameMethod);
   jstring packageNameJava = (*env)->CallObjectMethod(env, context, packageNameMethod);
+  GS_JNI_CHECK(env, packageNameJava);
+
   const char *packageName = (*env)->GetStringUTFChars(env, packageNameJava, NULL);
 
   // create fake executable path consisting of package code path (without .apk)
@@ -1582,51 +1646,194 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
   char *arg0;
   asprintf(&arg0, "%.*s/%s", (int)(lastSlash - packageCodePath), packageCodePath, packageName);
 
+
+  // get current locale
+  jclass localeCls = (*env)->FindClass(env, "java/util/Locale");
+  GS_JNI_CLS_CHECK(env, localeCls, "Ljava/util/Locale;");
+
+  jmethodID localeDefaultMethod = (*env)->GetStaticMethodID(env, localeCls, "getDefault", "()Ljava/util/Locale;");
+  GS_JNI_METH_CHECK(env, localeDefaultMethod);
+  jmethodID localeIdMethod = (*env)->GetMethodID(env, localeCls, "toLanguageTag", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, localeIdMethod);
+
+  jobject localeObj = (*env)->CallStaticObjectMethod(env, localeCls, localeDefaultMethod);
+  GS_JNI_CHECK(env, localeObj);
+  jstring localeIdJava = (*env)->CallObjectMethod(env, localeObj, localeIdMethod);
+  GS_JNI_CHECK(env, localeIdJava);
+
+  const char *localeIdOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+
+  // Android uses dashes as delimiters (e.g "en-US"), but we expect underscores
+  char *localeId = strdup(localeIdOrig);
+  for (int i = 0; localeId[i]; i++) {
+    if (localeId[i] == '-') {
+      localeId[i] = '_';
+    }
+  }
+
+  char *localeList = NULL;
+  #if __ANDROID_API__ >= 24
+  // get locales ordered by user preference
+  jclass localeListCls = (*env)->FindClass(env, "android/os/LocaleList");
+  GS_JNI_CLS_CHECK(env, localeListCls, "L/android/os/LocaleList;");
+  jmethodID localeListGetDefaultMethod = (*env)->GetStaticMethodID(env, localeListCls, "getDefault", "()Landroid/os/LocaleList;");
+  GS_JNI_METH_CHECK(env, localeListGetDefaultMethod);
+
+  jobject localeListObj = (*env)->CallStaticObjectMethod(env, localeListCls, localeListGetDefaultMethod);
+  GS_JNI_CHECK(env, localeListObj);
+
+  // Retrieve string representation of the locale list
+  jmethodID localeListToLanguageTagsMethod = (*env)->GetMethodID(env, localeListCls, "toLanguageTags", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, localeListToLanguageTagsMethod);
+  jstring localeListJava = (*env)->CallObjectMethod(env, localeListObj, localeListToLanguageTagsMethod);
+  GS_JNI_CHECK(env, localeListJava);
+  
+  const char *localeListOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+
+  // Some devices return with it enclosed in []'s so check if both exists before
+  // removing to ensure it is formatted correctly
+  if (localeListOrig[0] == '[' && localeListOrig[strlen(localeListOrig) - 1] == ']') {
+    localeList = strdup(localeListOrig + 1);
+    localeList[strlen(localeList) - 1] = '\0';
+  } else {
+    localeList = strdup(localeListOrig);
+  }
+
+  // NOTE: This is an IETF BCP 47 language tag and may not correspond exactly tocorrespond ll-CC format
+  // e.g. gsw-u-sd-chzh is a valid BCP 47 language tag, but uses an ISO 639-3 subtag to classify the language.
+  // There is no easy fix to this, as we use ISO 639-2 subtags internally.
+  for (int i = 0; localeList[i]; i++) {
+    if (localeList[i] == '-') {
+      localeList[i] = '_';
+    }
+  }
+
+  (*env)->ReleaseStringUTFChars(env, localeListJava, localeListOrig);
+  #endif
+
+  
+  jclass timezoneCls = (*env)->FindClass(env, "java/util/TimeZone");
+  GS_JNI_CLS_CHECK(env, timezoneCls, "Ljava/util/TimeZone;");
+  jmethodID timezoneDefaultMethod = (*env)->GetStaticMethodID(env, timezoneCls, "getDefault", "()Ljava/util/TimeZone;");
+  GS_JNI_METH_CHECK(env, timezoneDefaultMethod);
+  jmethodID timezoneIdMethod = (*env)->GetMethodID(env, timezoneCls, "getID", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, timezoneIdMethod);
+
+  jobject timezoneObj = (*env)->CallStaticObjectMethod(env, timezoneCls, timezoneDefaultMethod);
+  GS_JNI_CHECK(env, timezoneObj);
+  jstring timezoneIdJava = (*env)->CallObjectMethod(env, timezoneObj, timezoneIdMethod);
+  GS_JNI_CHECK(env, timezoneIdJava);
+
+  const char *timezoneId = (*env)->GetStringUTFChars(env, timezoneIdJava, NULL);
+
+  char *localeListValue = "";
+  if (localeList) {
+    localeListValue = localeList;
+  }
+
+  // initialize process with these options
+  char *argv[] = {
+    arg0,
+    "-Locale", localeId,
+    "-Local Time Zone", (char *)timezoneId,
+    "-GSAndroidLocaleList", localeListValue,
+    "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
+  };
+
+  GSInitializeProcessAndroidWithArgs(env, context, sizeof(argv)/sizeof(char *), argv, NULL);
+
+  free(arg0);
+  free(localeId);
+  free(localeList);
   (*env)->ReleaseStringUTFChars(env, packageCodePathJava, packageCodePath);
   (*env)->ReleaseStringUTFChars(env, packageNameJava, packageName);
+  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeIdOrig);
+  (*env)->ReleaseStringUTFChars(env, timezoneIdJava, timezoneId);
+}
+
+void
+GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char **argv, char **envp)
+{
+  [NSProcessInfo class];
+
+  // create global reference to to prevent garbage collection
+  _androidContext = (*env)->NewGlobalRef(env, context);
 
   // initialize process
   [procLock lock];
   fallbackInitialisation = YES;
-  char *argv[] = {
-    arg0,
-    "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
-  };
-  _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
+  _gnu_process_args(argc, argv, envp);
   [procLock unlock];
 
-  free(arg0);
+  jclass contextCls = (*env)->GetObjectClass(env, context);
+  GS_JNI_CLS_CHECK(env, contextCls, "L/android/content/Context;");
 
   // get File class and path method
   jclass fileCls = (*env)->FindClass(env, "java/io/File");
+  GS_JNI_CLS_CHECK(env, fileCls, "Ljava/io/File;");
   jmethodID getAbsolutePathMethod = (*env)->GetMethodID(env, fileCls, "getAbsolutePath", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, getAbsolutePathMethod);
 
   // get Android files dir
-  jmethodID filesDirMethod = (*env)->GetMethodID(env, cls, "getFilesDir", "()Ljava/io/File;");
+  jmethodID filesDirMethod = (*env)->GetMethodID(env, contextCls, "getFilesDir", "()Ljava/io/File;");
+  GS_JNI_METH_CHECK(env, filesDirMethod);
   jobject filesDirObj = (*env)->CallObjectMethod(env, context, filesDirMethod);
+  GS_JNI_CHECK(env, filesDirObj);
   jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getAbsolutePathMethod);
-	const jchar *filesDirUnichars = (*env)->GetStringChars(env, filesDirJava, NULL);
-  jsize filesDirLength = (*env)->GetStringLength(env, filesDirJava);
-  _androidFilesDir = [NSString stringWithCharacters:filesDirUnichars length:filesDirLength];
-  (*env)->ReleaseStringChars(env, filesDirJava, filesDirUnichars);
+  GS_JNI_CHECK(env, filesDirJava);
+  _androidFilesDir = _NSStringFromJString(env, filesDirJava);
 
   // get Android cache dir
-  jmethodID cacheDirMethod = (*env)->GetMethodID(env, cls, "getCacheDir", "()Ljava/io/File;");
+  jmethodID cacheDirMethod = (*env)->GetMethodID(env, contextCls, "getCacheDir", "()Ljava/io/File;");
+  GS_JNI_METH_CHECK(env, cacheDirMethod);
   jobject cacheDirObj = (*env)->CallObjectMethod(env, context, cacheDirMethod);
+  GS_JNI_CHECK(env, cacheDirObj);
   jstring cacheDirJava = (*env)->CallObjectMethod(env, cacheDirObj, getAbsolutePathMethod);
-	const jchar *cacheDirUnichars = (*env)->GetStringChars(env, cacheDirJava, NULL);
-  jsize cacheDirLength = (*env)->GetStringLength(env, cacheDirJava);
-  _androidCacheDir = [NSString stringWithCharacters:cacheDirUnichars length:cacheDirLength];
-  (*env)->ReleaseStringChars(env, cacheDirJava, cacheDirUnichars);
+  GS_JNI_CHECK(env, cacheDirJava);
+  _androidCacheDir = _NSStringFromJString(env, cacheDirJava);
 
   // get asset manager and initialize NSBundle
-  jmethodID assetManagerMethod = (*env)->GetMethodID(env, cls, "getAssets", "()Landroid/content/res/AssetManager;");
+  jmethodID assetManagerMethod = (*env)->GetMethodID(env, contextCls, "getAssets", "()Landroid/content/res/AssetManager;");
+  GS_JNI_METH_CHECK(env, assetManagerMethod);
   jstring assetManagerJava = (*env)->CallObjectMethod(env, context, assetManagerMethod);
+  GS_JNI_CHECK(env, assetManagerJava);
   [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
+
+  // a process started with execve gets the platform's default linker search
+  // path, which does not include the directory the package's own libraries
+  // are in, so a tool started from here is given it
+  {
+    NSProcessInfo	*info = [NSProcessInfo processInfo];
+    NSString		*dir = GSPrivateAndroidToolsDirectory();
+    NSString		*existing;
+
+    existing = [[info environment] objectForKey: @"LD_LIBRARY_PATH"];
+    if ([dir length] > 0)
+      {
+	if ([existing length] > 0)
+	  {
+	    dir = [NSString stringWithFormat: @"%@:%@", dir, existing];
+	  }
+	[info setValue: dir inEnvironment: @"LD_LIBRARY_PATH"];
+      }
+  }
 
   // clean up our NSTemporaryDirectory() if it exists
   NSString *tempDirName = [_androidCacheDir stringByAppendingPathComponent: @"tmp"];
   [[NSFileManager defaultManager] removeItemAtPath:tempDirName error:NULL];
+
+  // a tool started from here has no context of its own, so it would take its
+  // temporary directory from the environment and use a different one; ports
+  // are named within that directory, so the two would never meet
+  {
+    NSProcessInfo	*info = [NSProcessInfo processInfo];
+    NSString		*tmp = NSTemporaryDirectory();
+
+    if ([tmp length] > 0)
+      {
+	[info setValue: tmp inEnvironment: @"TMPDIR"];
+      }
+  }
 }
 #endif
 
@@ -1660,6 +1867,76 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
       return YES;
     }
   return NO;
+}
+
+
+- (BOOL) setValue: (NSString*)value inEnvironment: (NSString*)key
+{
+  NSMutableDictionary	*m;
+  BOOL			reallyChanged = NO;
+
+  NSAssert([key isKindOfClass: [NSString class]], NSInvalidArgumentException);
+  NSAssert(nil == value || [value isKindOfClass: [NSString class]],
+    NSInvalidArgumentException);
+  [procLock lock];
+  m = [_gnu_environment mutableCopy];
+  DESTROY(_gnu_environment);
+  _gnu_environment = m;
+  if (nil == value)
+    {
+      [m removeObjectForKey: key];
+    }
+  else
+    {
+      [m setObject: value forKey: key];
+    }
+#if defined(_WIN32)
+  {
+    NSUInteger		kLength = [key length];
+    GSNativeChar  	kStr[kLength + 1];
+
+    [key getCharacters: kStr];
+    kStr[kLength] = L'\0';
+
+    if (value)
+      {
+	NSUInteger	vLength = [value length];
+	GSNativeChar  	vStr[vLength + 1];
+  
+	[value getCharacters: vStr];
+	vStr[vLength] = L'\0';
+    
+	if (SetEnvironmentVariableW(kStr, vStr) != 0)
+	  {
+	    reallyChanged = YES;
+	  }
+      }
+    else
+      {
+	if (SetEnvironmentVariableW(kStr, NULL) != 0)
+	  {
+	    reallyChanged = YES;
+	  }
+      }
+  }
+#else
+  if (nil == value)
+    {
+      if (0 == unsetenv([key cString]))
+	{
+	  reallyChanged = YES;
+	}
+    }
+  else
+    {
+      if (0 == setenv([key cString], [value cString], 1))
+	{
+	  reallyChanged = YES;
+	}
+    }
+#endif
+  [procLock unlock];
+  return reallyChanged;
 }
 
 #ifdef __ANDROID__

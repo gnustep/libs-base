@@ -34,8 +34,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #include "common.h"
@@ -86,10 +85,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #include <stdio.h>
@@ -833,6 +832,7 @@ NSDictionary *locale)
   /* Buffer intermediate results.  */
   unichar work_buffer[1000];
   unichar *workend;
+  unichar *workmalloc = 0;
   int workend_malloced = 0;
 
   /* State for restartable multibyte character handling functions.  */
@@ -884,10 +884,10 @@ NSDictionary *locale)
   /* Initialize local variables.  */
   done = 0;
   grouping = (const char *) -1;
-#ifdef __va_copy
+#ifdef va_copy
   /* This macro will be available soon in gcc's <stdarg.h>.  We need it
      since on some systems `va_list' is not an integral type.  */
-  __va_copy (ap_save, ap);
+  va_copy (ap_save, ap);
 #else
   ap_save = ap;
 #endif
@@ -1150,12 +1150,13 @@ NSDictionary *locale)
 
             if (want > 168384)
               {
-                workend = (unichar *)malloc(want);
+                workmalloc = (unichar *)malloc(want);
                 workend_malloced = 1;
+                workend = workmalloc + want / sizeof (unichar);
               }
             else
               {
-                workend = (unichar *)alloca(want);
+                workend = (unichar *)alloca(want) + want / sizeof (unichar);
               }
 	  }
 
@@ -1771,7 +1772,7 @@ NSDictionary *locale)
 
 	    if (-1 == prec)
               {
-                len = strlen(str);	// Number of bytes to convert.
+                len = strlen(str);      // Number of bytes to convert.
                 blen = len;		// Size of unichar output buffer.
               }
 	    else
@@ -1945,7 +1946,7 @@ NSDictionary *locale)
   }
 
 all_done:
-  if (workend_malloced) free(workend);
+  if (workend_malloced) free(workmalloc);
   /* Unlock the stream.  */
 #ifdef __va_copy
   va_end(ap_save);

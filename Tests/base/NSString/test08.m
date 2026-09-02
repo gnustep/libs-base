@@ -47,15 +47,15 @@ int main (int argc, const char * argv[])
   PASS([s1 compare: s2 options: NSNumericSearch] == NSOrderedDescending,
     "11 is greater than 2");
   
-  a1 = [[NSArray alloc] initWithObjects:
+  a1 = [NSArray arrayWithObjects:
     @"2", @"1", @"10", @"11", @"20", @"3", nil];
 
-  a = [[NSArray alloc] initWithObjects:
+  a = [NSArray arrayWithObjects:
     @"1", @"10", @"11", @"2", @"20", @"3", nil];
   a2 = [a1 sortedArrayUsingSelector: @selector(compare:)];
   PASS_EQUAL(a2, a, "text sort");
 
-  a = [[NSArray alloc] initWithObjects:
+  a = [NSArray arrayWithObjects:
     @"1", @"2", @"3", @"10", @"11", @"20", nil];
   a2 = [a1 sortedArrayUsingSelector: @selector(numericCompare:)];
   PASS_EQUAL(a2, a, "numeric sort");

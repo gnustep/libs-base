@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #import "common.h"
@@ -39,6 +38,7 @@ typedef struct {
   NSMutableDictionary		*headers;
   BOOL				shouldHandleCookies;
   BOOL                          debug;
+  BOOL        assumesHTTP3Capable;
   id<GSLogDelegate>             ioDelegate;
   NSURL				*URL;
   NSURL				*mainDocumentURL;
@@ -54,6 +54,9 @@ typedef struct {
 #define	inst	((Internal*)(((NSURLRequest*)o)->_NSURLRequestInternal))
 
 @interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
+
+@interface	_GSInsensitiveDictionary : NSMutableDictionary
 @end
 
 @implementation	NSURLRequest
@@ -116,6 +119,7 @@ typedef struct {
 	  ASSIGN(inst->bodyStream, this->bodyStream);
 	  ASSIGN(inst->method, this->method);
 	  inst->shouldHandleCookies = this->shouldHandleCookies;
+    inst->assumesHTTP3Capable = this->assumesHTTP3Capable;
 	  inst->debug = this->debug;
 	  inst->ioDelegate = this->ioDelegate;
 	  inst->headers = [this->headers mutableCopy];
@@ -142,8 +146,12 @@ typedef struct {
 
 - (NSString*) description
 {
+  /* NB. We use NSURL's -description method because we knok that hides
+   * any password in the URL (and passwords are sensitive information
+   * which shoudl not appear in debug logs).
+   */
   return [NSString stringWithFormat: @"<%@ %@>",
-    NSStringFromClass([self class]), [[self URL] absoluteString]];
+    NSStringFromClass([self class]), [[self URL] description]];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -375,6 +383,11 @@ typedef struct {
   return [this->headers objectForKey: field];
 }
 
+- (BOOL) assumesHTTP3Capable
+{
+  return this->assumesHTTP3Capable;
+}
+
 @end
 
 
@@ -403,8 +416,8 @@ typedef struct {
 
       if ([value isKindOfClass: [NSString class]] == YES)
         {
-	  [self setValue: (NSString*)value forHTTPHeaderField: field];
-	}
+          [self setValue: (NSString*)value forHTTPHeaderField: field];
+        }
     }
 }
 
@@ -444,7 +457,19 @@ typedef struct {
     {
       this->headers = [_GSMutableInsensitiveDictionary new];
     }
-  [this->headers setObject: value forKey: field];
+  if (value != nil)
+    {
+      [this->headers setObject: value forKey: field];
+    }
+  else
+    {
+      [this->headers removeObjectForKey: field];
+    }
+}
+
+- (void)setAssumesHTTP3Capable:(BOOL)capable
+{
+  this->assumesHTTP3Capable = capable;
 }
 
 @end
@@ -459,6 +484,11 @@ typedef struct {
 - (id<GSLogDelegate>) _debugLogDelegate
 {
   return this->ioDelegate;
+}
+
+- (NSDictionary *) _insensitiveHeaders
+{
+  return this->headers;
 }
 
 - (id) _propertyForKey: (NSString*)key

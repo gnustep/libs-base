@@ -18,11 +18,9 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSNull class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"
@@ -50,7 +48,6 @@ static NSNull	*null = 0;
   if (null == 0)
     {
       null = (NSNull*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      [[NSObject leakAt: &null] release];
     }
 }
 
@@ -86,6 +83,11 @@ static NSNull	*null = 0;
 - (NSString*) description
 {
   return @"<null>";
+}
+
+- (id) valueForUndefinedKey: (NSString*)aKey
+{
+  return null;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

@@ -17,8 +17,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA.
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  *
  * <title>NSHashTable class reference</title>
  * $Date$ $Revision$
@@ -72,8 +71,9 @@ static Class	concreteClass = 0;
 
 + (id) hashTableWithWeakObjects
 {
-  return [self hashTableWithOptions:
-    NSPointerFunctionsObjectPersonality | NSPointerFunctionsZeroingWeakMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakObjectsHashTable");
+  return [self weakObjectsHashTable];
 }
 
 + (id) weakObjectsHashTable

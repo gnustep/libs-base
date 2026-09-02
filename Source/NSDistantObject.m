@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDistantObject class reference</title>
    $Date$ $Revision$
@@ -126,17 +125,18 @@ enum proxyLocation
 
 
 
-/*
- *	The GSDistantObjectPlaceHolder class is simply used as a placeholder
- *	for an NSDistantObject so we can manage efficient allocation and
+/* The GSDistantObjectPlaceHolder class produces a singleton used as a
+ * placeholder	for an NSDistantObject so we can manage efficient allocation and
  *	initialisation - in most cases when we ask for an NSDistantObject
  *	instance, we will get a pre-existing one, so we don't want to go
  *	allocating the memory for a new instance unless absolutely necessary.
  */
 GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
-+ (id) initWithCoder: (NSCoder*)aCoder;
-+ (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
-+ (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
++ (id) initWithCoder: (NSCoder*)aCoder NS_RETURNS_RETAINED;
++ (id) initWithLocal: (id)anObject
+	  connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
++ (id) initWithTarget: (unsigned)target
+	   connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
 + (id) autorelease;
 + (void) release;
 + (id) retain;
@@ -764,9 +764,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	      const char	*types;
 
 	      types = [m methodType];
-	      /* Create a local method signature.
+	      /* Create a local method signature.  The types came from the
+	       * other end of the connection, so it is not cached.
 	       */
-	      m = [NSMethodSignature signatureWithObjCTypes: types];
+	      m = [NSMethodSignature _uncachedSignatureWithObjCTypes: types];
 	    }
 	  if (m != nil)
 	    {

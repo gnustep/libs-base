@@ -3,24 +3,24 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  BOOL ret;
-  id	lock;
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  BOOL 			ret;
+  id			lock = nil;
   
-  lock = [NSLock new];
+  lock = AUTORELEASE([NSLock new]);
   ret = [lock tryLock];
   if (ret)
     [lock unlock];
   PASS(ret, "NSLock with tryLock, then unlocking");
  
-  ASSIGN(lock,[NSLock new]);
+  lock =  AUTORELEASE([NSLock new]);
   [lock tryLock];
   ret = [lock tryLock];
   if (ret)
     [lock unlock];
   PASS(ret == NO, "Recursive try lock with NSLock should return NO"); 
   
-  ASSIGN(lock,[NSConditionLock new]);
+  lock =  AUTORELEASE([NSConditionLock new]);
   [lock lock];
   ret = [lock tryLock];
   if (ret)
@@ -38,34 +38,34 @@ int main()
     [lock unlock];
   PASS(ret == NO, "Recursive tryLockWhenCondition: with NSConditionLock (2) should return NO"); 
   
-  ASSIGN(lock,[NSRecursiveLock new]);
+  lock = AUTORELEASE([NSRecursiveLock new]);
   [lock tryLock];
   ret = [lock tryLock];
   if (ret)
     [lock unlock];
   PASS(ret == YES, "Recursive try lock with NSRecursiveLock should return YES"); 
   
-  ASSIGN(lock,[NSLock new]);
+  lock = AUTORELEASE([NSLock new]);
   ret = [lock lockBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
   if (ret)
     [lock unlock];
   PASS(ret, "NSLock lockBeforeDate: works");
   
-  ASSIGN(lock,[NSLock new]);
+  lock = AUTORELEASE([NSLock new]);
   [lock tryLock];
   ret = [lock lockBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
   if (ret)
     [lock unlock];
   PASS(ret == NO, "Recursive lockBeforeDate: with NSLock returns NO");
   
-  ASSIGN(lock,[NSConditionLock new]);
+  lock = AUTORELEASE([NSConditionLock new]);
   [lock tryLock];
   ret = [lock lockBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
   if (ret)
     [lock unlock];
   PASS(ret == NO, "Recursive lockBeforeDate: with NSConditionLock returns NO");
   
-  ASSIGN(lock,[NSRecursiveLock new]);
+  lock = AUTORELEASE([NSRecursiveLock new]);
   [lock tryLock];
   ret = [lock lockBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
   if (ret)

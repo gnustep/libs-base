@@ -18,13 +18,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
 #include <ctype.h>
+#import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
@@ -71,6 +72,75 @@
 }
 #endif
 
+- (NSString*) pathRelativeTo: (NSString*)aFolder
+{
+  NSString	*filePath = self;
+  NSString	*relative;
+  NSString	*common;
+  NSUInteger	length;
+  NSUInteger	count;
+
+  if ([aFolder length] == 0)
+    {
+      aFolder = [[NSFileManager defaultManager] currentDirectoryPath];
+    }
+  else if ([aFolder isAbsolutePath] == NO)
+    {
+      aFolder = [[[NSFileManager defaultManager] currentDirectoryPath]
+	stringByAppendingPathComponent: aFolder];
+    }
+  aFolder = [aFolder stringByStandardizingPath];
+  if ([aFolder hasSuffix: @"/"] == NO)
+    {
+      aFolder = [aFolder stringByAppendingString: @"/"];
+    }
+
+  if ([filePath length] == 0)
+    {
+      filePath = [[NSFileManager defaultManager] currentDirectoryPath];
+    }
+  else if ([filePath isAbsolutePath] == NO)
+    {
+      filePath = [[[NSFileManager defaultManager] currentDirectoryPath]
+	stringByAppendingPathComponent: filePath];
+    }
+  filePath = [filePath stringByStandardizingPath];
+
+  common = [filePath commonPrefixWithString: aFolder options: NSLiteralSearch];
+  length = [common length];
+  while (length > 0 && [common characterAtIndex: length - 1] != '/')
+    {
+      length--;
+    }
+  if (0 == length)
+    {
+      /* I guess this can happen on windows where paths are on different disks.
+       */
+      NSLog(@"Unable to make relative string because paths '%@' and '%@'"
+	@" share no common prefix.", filePath, aFolder);
+      return nil;
+    }
+
+  /* Get relative path from common root to our file.
+   */
+  relative = [filePath substringFromIndex: length];
+
+  /* Find number of path components to step up to get to common root,
+   * and prepend to relativew path.
+   */
+  count = [[[aFolder substringFromIndex: length]
+    componentsSeparatedByString: @"/"] count];
+  while (count-- > 1)
+    {
+      relative = [@"../" stringByAppendingString: relative];
+    }
+/*
+NSLog(@"Adjust path from '%@' to '%@' (common '%@') as '%@'",
+  aFolder, filePath, common, relative);
+*/
+  return relative;
+}
+
 /**
  * Returns a string formed by removing the prefix string from the
  * receiver.  Raises an exception if the prefix is not present.
@@ -107,7 +177,8 @@
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;
@@ -134,7 +205,8 @@
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (end > 0)
 	{
 	  if (!space((*caiImp)(self, caiSel, end - 1)))
@@ -166,7 +238,8 @@
       unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      caiImp = (unichar (*)(NSString*, SEL, NSUInteger))
+	[self methodForSelector: caiSel];
       while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;

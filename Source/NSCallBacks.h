@@ -21,16 +21,15 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA. */
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA. */
 
 #ifndef __NSCallBacks_h_OBJECTS_INCLUDE
 #define __NSCallBacks_h_OBJECTS_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSString.h"
 
 
 #if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )

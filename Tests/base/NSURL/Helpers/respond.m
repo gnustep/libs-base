@@ -77,7 +77,7 @@
 
   /* Tell main test program we are ready to handle a request
    */
-  [[NSFileHandle fileHandleWithStandardOutput] writeData:
+  [(NSFileHandle*)[NSFileHandle fileHandleWithStandardOutput] writeData:
     [@"Ready" dataUsingEncoding: NSASCIIStringEncoding]];
 
   /* Run for up to 5 minutes to allow slow/large tests to complete.

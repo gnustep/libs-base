@@ -23,8 +23,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-
+   Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    AutogsdocSource: Additions/Unicode.m
 
 */
@@ -268,7 +267,7 @@ GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
 GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1);
+  BOOL *isASCII, BOOL *isLatin1, BOOL *isBad);
 #endif
 
 

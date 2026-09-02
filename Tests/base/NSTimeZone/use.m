@@ -13,9 +13,13 @@ int main()
   NSLocale *locale;
   NSString *str;
   NSDate *date;
+  NSArray *zones;
   id current;
   id localh = [NSTimeZone defaultTimeZone];
   int offset = [localh secondsFromGMT];
+
+  zones = [NSTimeZone knownTimeZoneNames];
+  PASS(zones != nil, "+knownTimeZoneNames returns valid array");
 
   current = [NSTimeZone timeZoneForSecondsFromGMT: 900];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]]

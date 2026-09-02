@@ -19,10 +19,11 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import "Foundation/NSMassFormatter.h"
 #import "Foundation/NSMeasurement.h"
 #import "Foundation/NSMeasurementFormatter.h"
@@ -43,8 +44,21 @@
   return self;
 }
 
+- (void) dealloc
+{
+  RELEASE(_numberFormatter);
+  [super dealloc];
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
+  if (_numberFormatter == nil)
+    {
+      NSNumberFormatter *fmt = [[NSNumberFormatter alloc] init];
+      [fmt setNumberStyle: NSNumberFormatterDecimalStyle];
+      ASSIGN(_numberFormatter, fmt);
+      RELEASE(fmt);
+    }
   return _numberFormatter;
 }
 
@@ -58,22 +72,22 @@
   return _unitStyle;
 }
 
-- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style
 {
   _unitStyle = style;
 }
 
-- (BOOL) isForPersonMassUse;
+- (BOOL) isForPersonMassUse
 {
   return _isForPersonMassUse;
 }
 
-- (void) setForPersonMassUse: (BOOL)flag;
+- (void) setForPersonMassUse: (BOOL)flag
 {
   _isForPersonMassUse = flag;
 }
 
-- (NSString *) stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) stringFromValue: (double)value unit: (NSMassFormatterUnit)unit
 {
   NSUnit *u = nil;
   NSMeasurement *m = nil;
@@ -104,30 +118,87 @@
   mf = [[NSMeasurementFormatter alloc] init];
   AUTORELEASE(mf);
   [mf setUnitStyle: _unitStyle];
-  [mf setNumberFormatter: _numberFormatter];
+  [mf setNumberFormatter: [self numberFormatter]];
   
   return [mf stringFromMeasurement: m];
 }
 
-- (NSString *) stringFromKilograms: (double)numberInKilograms;
+- (NSString *) stringFromKilograms: (double)numberInKilograms
 {
   return [self stringFromValue: numberInKilograms unit: NSMassFormatterUnitKilogram];
 }
 
-- (NSString *) unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit
 {
   return [self stringFromValue: value unit: unit];
 }
 
 - (NSString *) unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unit
 {
-  *unit = NSMassFormatterUnitKilogram;
-  return [self stringFromValue: numberInKilograms unit: *unit];
+  NSMassFormatterUnit usedUnit = NSMassFormatterUnitKilogram;
+  if (unit != NULL)
+    {
+      *unit = usedUnit;
+    }
+  return [self stringFromValue: numberInKilograms unit: usedUnit];
+}
+
+- (NSString *) stringForObjectValue: (id)obj
+{
+  double kilograms = 0.0;
+
+  if ([obj respondsToSelector: @selector(doubleValue)])
+    {
+      kilograms = [obj doubleValue];
+    }
+
+  return [self stringFromKilograms: kilograms];
 }
 
 - (BOOL) getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
+  if (error != NULL)
+    {
+      *error = @"Parsing not implemented";
+    }
   return NO;
+}
+
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+        {
+          ASSIGN(_numberFormatter, [coder decodeObjectForKey: @"NS.numberFormatter"]);
+          _isForPersonMassUse = [coder decodeBoolForKey: @"NS.forPersonMassUse"];
+          _unitStyle = [coder decodeIntegerForKey: @"NS.unitOptions"];
+        }
+      else
+        {
+          [coder decodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+          [coder decodeValueOfObjCType: @encode(BOOL) at: &_isForPersonMassUse];
+          [coder decodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+        }
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _numberFormatter forKey: @"NS.numberFormatter"];
+      [coder encodeBool: _isForPersonMassUse forKey: @"NS.forPersonMassUse"];
+      [coder encodeInteger: _unitStyle forKey: @"NS.unitOptions"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(id) at: &_numberFormatter];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_isForPersonMassUse];
+      [coder encodeValueOfObjCType: @encode(NSFormattingUnitStyle) at: &_unitStyle];
+    }
 }
 
 @end
