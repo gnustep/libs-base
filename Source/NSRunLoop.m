@@ -396,9 +396,11 @@ extern void dispatch_main_queue_drain_np();
 #elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
 extern uintptr_t _dispatch_get_main_queue_handle_4CF();
 extern void _dispatch_main_queue_callback_4CF(void *);
-#if defined(__linux__)
+#if     defined(HAVE_SYS_EVENTFD_H)
+#  include <sys/eventfd.h>
+#elif defined(__linux__)
 extern int eventfd_read(int, uint64_t*);
-#endif
+#endif	// HAVE_SYS_EVENTFD_H
 #endif
 
 @implementation GSMainQueueDrainer
