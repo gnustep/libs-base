@@ -804,6 +804,10 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 
 	      if (nil == v)
 		{
+		  if (zeroed & GSI_MAP_ZEROED_KEY)
+		    {
+		      [(id)k.addr release];
+		    }
 		  GSIMapRemoveNodeFromMap(map, bucket, node);
 		  GSIMapFreeNode(map, node);
 		  node = tmp;
