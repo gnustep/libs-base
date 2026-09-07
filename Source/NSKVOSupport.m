@@ -1271,6 +1271,7 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
 
 /* One observer call, held until every lock has been dropped. */
 typedef struct {
+  _NSKVOKeyObserver     *keyObserver;
   _NSKVOKeypathObserver *keypathObserver;
   NSMutableDictionary   *change;
 } GSKVOPendingNotification;
@@ -1326,10 +1327,13 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
            * observed object would otherwise deadlock against a thread taking
            * the same two objects in the other order.  The delivery is counted
            * so that a willChange elsewhere does not refill the dictionary
-           * while it is being read.  Holding the key path observer holds the
-           * observer, the key path and the context with it.
+           * while it is being read.  The key observer is held as well so
+           * that a removal by an earlier delivery below can be detected:
+           * the key path observer does not retain its observer, which may
+           * be deallocated as soon as it has been removed.
            */
           [keypathObserver beginDelivery];
+          pending[count].keyObserver = [keyObserver retain];
           pending[count].keypathObserver = [keypathObserver retain];
           pending[count].change = [keypathObserver.pendingChange retain];
           count++;
@@ -1341,16 +1345,25 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
 
   for (index = 0; index < count; index++)
     {
+      _NSKVOKeyObserver     *keyObserver = pending[index].keyObserver;
       _NSKVOKeypathObserver *keypathObserver = pending[index].keypathObserver;
 
-      [keypathObserver.observer
-        observeValueForKeyPath: keypathObserver.keypath
-                      ofObject: keypathObserver.object
-                        change: pending[index].change
-                       context: keypathObserver.context];
+      /* An earlier delivery in this loop may have removed this observer,
+       * which the key path observer does not retain, so the observer may
+       * already be deallocated.  Removal also guarantees that no further
+       * notifications are delivered, so skip it either way. */
+      if (!keyObserver.isRemoved)
+        {
+          [keypathObserver.observer
+            observeValueForKeyPath: keypathObserver.keypath
+                          ofObject: keypathObserver.object
+                            change: pending[index].change
+                           context: keypathObserver.context];
+        }
       [keypathObserver endDelivery];
       [pending[index].change release];
       [keypathObserver release];
+      [keyObserver release];
     }
   if (pending != held)
     {
