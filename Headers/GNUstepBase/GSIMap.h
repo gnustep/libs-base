@@ -129,6 +129,9 @@ extern "C" {
  *              Define this macro to allocate nodes for the map using typed
  *              memory when working with garbage collection.
  *
+ *      GSI_MAP_ZEROED_KEY	defined to 1
+ *      GSI_MAP_ZEROED_VAL	defined to 2
+ *`
  *      GSI_MAP_ZEROED()
  *              Define this macro to check whether a map uses keys or values
  *		which may be zeroed weak pointers.  Should produce an integer
@@ -174,6 +177,12 @@ extern "C" {
 #ifndef GSI_MAP_NODES
 #define GSI_MAP_NODES(M, X) \
 (GSIMapNode)NSAllocateCollectable(X*sizeof(GSIMapNode_t), NSScannedOption)
+#endif
+#ifndef GSI_MAP_ZEROED_KEY
+#define GSI_MAP_ZEROED_KEY		1
+#endif
+#ifndef GSI_MAP_ZEROED_VAL
+#define GSI_MAP_ZEROED_VAL		2
 #endif
 #ifndef GSI_MAP_ZEROED
 #define GSI_MAP_ZEROED(M)		0
@@ -502,7 +511,7 @@ GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
 
-  if (GSI_MAP_ZEROED(map) & 1)
+  if (GSI_MAP_ZEROED(map) & GSI_MAP_ZEROED_KEY)
     {
       GSIMapKey	k;
 
@@ -563,7 +572,7 @@ GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
     {
       id	k = nil;
 
-      if (zeroed & 1)
+      if (zeroed & GSI_MAP_ZEROED_KEY)
 	{
 	  k = objc_loadWeakRetained((id*)&node->key.addr);
 	  if (nil == k)
@@ -580,7 +589,7 @@ GSIMapWeakIsEmpty(GSIMapTable map, GSIMapNode node, id *kPtr, id *vPtr)
 	    }
 	}
 #if	GSI_MAP_HAS_VALUE
-      if (zeroed & 2)
+      if (zeroed & GSI_MAP_ZEROED_VAL)
 	{
 	  id	v = objc_loadWeakRetained((id*)&node->value);
 
@@ -657,7 +666,7 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapKey	key;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  if (GSI_MAP_ZEROED(map) & 1)
+		  if (GSI_MAP_ZEROED(map) & GSI_MAP_ZEROED_KEY)
 		    {
 		      key.addr = (uintptr_t)k;
 		    }
@@ -772,7 +781,7 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 	  GSIMapKey	k;
 	  BOOL		found;
 
-	  if (zeroed & 1)
+	  if (zeroed & GSI_MAP_ZEROED_KEY)
 	    {
 	      k.addr = (uintptr_t)objc_loadWeakRetained((id*)&node->key.addr);
 	      if (0 == k.addr)
@@ -789,7 +798,7 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 	    }
 
 #if	GSI_MAP_HAS_VALUE
-	  if (zeroed & 2)
+	  if (zeroed & GSI_MAP_ZEROED_VAL)
 	    {
 	      id	v = objc_loadWeakRetained((id*)&node->value);
 
@@ -805,7 +814,7 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 #endif
 
 	  found = GSI_MAP_EQUAL(map, k, key);
-	  if (zeroed & 1)
+	  if (zeroed & GSI_MAP_ZEROED_KEY)
 	    {
 	      [(id)k.addr release];
 	    }

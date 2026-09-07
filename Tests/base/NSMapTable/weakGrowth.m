@@ -19,14 +19,12 @@ int main(void)
       {
         for (v = 0; v < 2; v++)
           {
-            NSAutoreleasePool *pool = [NSAutoreleasePool new];
-            NSAutoreleasePool *operations;
-            NSMapTable *table;
-            NSMutableArray *keys = [NSMutableArray new];
-            NSMutableArray *values = [NSMutableArray new];
-            NSUInteger i;
-            NSUInteger expected;
-            BOOL ok;
+            ENTER_POOL
+            NSMapTable 		*table;
+            NSMutableArray 	*keys = [NSMutableArray new];
+            NSMutableArray 	*values = [NSMutableArray new];
+            NSUInteger 		i;
+            BOOL 		ok;
 
             table = [[NSMapTable alloc] initWithKeyOptions: options[k]
                                              valueOptions: options[v]
@@ -34,7 +32,7 @@ int main(void)
             for (i = 0; i < 256; i++)
               {
                 NSString *key = [[NSString alloc] initWithFormat:
-                  @"group-%lu", (unsigned long)i];
+                  @"group-%u", (unsigned)i];
                 NSObject *value = [NSObject new];
 
                 [keys addObject: key];
@@ -44,7 +42,7 @@ int main(void)
                 [value release];
               }
 
-            operations = [NSAutoreleasePool new];
+            ENTER_POOL
             PASS([table count] == 256,
               "%s keys / %s values: growth preserves the count",
               names[k], names[v]);
@@ -75,14 +73,14 @@ int main(void)
             PASS(ok && [table count] == 256,
               "%s keys / %s values: replacing all values keeps the count",
               names[k], names[v]);
-            [operations release];
+            LEAVE_POOL
 
             if (v == 1)
               [values replaceObjectAtIndex: 0 withObject: [NSNull null]];
             if (k == 1)
               [keys replaceObjectAtIndex: 1 withObject: [NSNull null]];
 
-            operations = [NSAutoreleasePool new];
+            ENTER_POOL
             if (v == 1)
               PASS([table objectForKey: [keys objectAtIndex: 0]] == nil,
                 "%s keys / weak values: values remain weak after growth",
@@ -105,7 +103,6 @@ int main(void)
                 [value release];
               }
             ok = YES;
-            expected = 0;
             for (i = 0; i < 1024; i++)
               {
                 NSString *key = [keys objectAtIndex: i];
@@ -114,7 +111,6 @@ int main(void)
                 if ([key isKindOfClass: [NSNull class]]
                   || [value isKindOfClass: [NSNull class]])
                   continue;
-                expected++;
                 key = [key mutableCopy];
                 if ([table objectForKey: key] != value)
                   ok = NO;
@@ -137,12 +133,12 @@ int main(void)
             PASS([table count] == 0,
               "%s keys / %s values: removing all entries empties the table",
               names[k], names[v]);
-            [operations release];
+            LEAVE_POOL
 
             [table release];
             [keys release];
             [values release];
-            [pool release];
+            LEAVE_POOL
           }
       }
   END_SET("NSMapTable growth with weak references")
