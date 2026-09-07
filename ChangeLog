@@ -1,3 +1,13 @@
+2026-09-07 Rupert Daniel <rupert@cancelmonday.com>
+
+        * Headers/GNUstepBase/GSIMap.h: When rehashing a table with strong
+        keys and weak values, hash the stored key rather than the nil key
+        returned by GSIMapWeakIsEmpty(), so entries stay reachable after
+        the table resizes.
+        * Tests/base/NSMapTable/weakGrowth.m: New regression test for
+        lookup, replacement and removal after growth with each combination
+        of strong and weak keys and values.
+
 2026-09-02 Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac: Add test for eventfd presence on linux and use it

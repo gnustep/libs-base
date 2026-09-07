@@ -657,7 +657,14 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapKey	key;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  key.addr = (uintptr_t)k;
+		  if (GSI_MAP_ZEROED(map) & 1)
+		    {
+		      key.addr = (uintptr_t)k;
+		    }
+		  else
+		    {
+		      key = GSI_MAP_READ_KEY(map, &node->key);
+		    }
 		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, key),
 		      new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
