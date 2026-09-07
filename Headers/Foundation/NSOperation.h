@@ -45,6 +45,7 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSBlockOperationBlock, void);
 #endif  
 
+@class NSInvocation;
 @class NSMutableArray;
 
 enum {
@@ -206,6 +207,10 @@ GS_EXPORT_CLASS
 
 @end
 
+/** The NSBlockOperation class is inherently non-portable due to its
+ * dependency on a single compiler.  Any portable code with a use for
+ * similar functionality should use the NSInvocationBlock instead.
+ */
 GS_EXPORT_CLASS
 @interface NSBlockOperation : NSOperation
 {
@@ -214,11 +219,11 @@ GS_EXPORT_CLASS
     void *_reserved;
 }
 
-// Managing the blocks in the Operation
 /**
  * Creates and returns an NSBlockOperationObject and adds the block.
  */
-+ (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block;
++ (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block
+  GS_NON_PORTABLE(use the NSInvocationOperation class instead);
 
 /**
  * Adds the execution block to the NSOperationBlock.
@@ -288,7 +293,12 @@ GS_EXPORT_CLASS
   
 /** This method wraps a block in an operation and adds it to the queue.
  */
-- (void) addOperationWithBlock: (GSBlockOperationBlock)block;
+- (void) addOperationWithBlock: (GSBlockOperationBlock)block
+  GS_NON_PORTABLE(use the NSInvocationOperation class instead);
+
+/** This method wraps an invocation in an operation and adds it to the queue.
+ */
+- (void) addOperationWithInvocation: (NSInvocation*)inv;
 #endif
 
 /** Cancels all outstanding operations in the queue.

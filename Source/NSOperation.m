@@ -61,6 +61,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSInvocationOperation.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSValue.h"
@@ -943,8 +944,20 @@ dispatchQueueExecuteOperation(void *context)
 
 - (void) addOperationWithBlock: (GSBlockOperationBlock)block
 {
-  NSBlockOperation *bop = [NSBlockOperation blockOperationWithBlock: block];
-  [self addOperation: bop];
+  NSBlockOperation *op = [[NSBlockOperation alloc] init];
+  
+  [op addExecutionBlock: block];
+  [self addOperation: op];
+  RELEASE(op);
+}
+
+- (void) addOperationWithInvocation: (NSInvocation*)inv
+{
+  NSInvocationOperation	*op;
+
+  op = [[NSInvocationOperation alloc] initWithInvocation: inv];
+  [self addOperation: op];
+  RELEASE(op);
 }
 
 
