@@ -68,6 +68,7 @@
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSTask.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -141,6 +142,7 @@ static NSString *gnustepUserHome = nil;
 static NSString *gnustepUserID = nil;
 static NSString *gnustepUserName = nil;
 static NSString *gnustepUserDefaultsDir = nil;
+static NSSet	*gnustepLocalizedUserDirs = nil;
 
 static NSString *theUserName = nil;             /* The user's login name */
 static NSString *theFullUserName = nil;         /* The user's full login name */
@@ -465,6 +467,7 @@ ExtractValuesFromConfig(NSDictionary *config)
   NSMutableDictionary	*c = [config mutableCopy];
   BOOL			createLibraryPath;
   NSMutableDictionary	*xdg;
+  NSMutableSet		*loc;
   id		        extra;
 
   /*
@@ -622,26 +625,28 @@ ExtractValuesFromConfig(NSDictionary *config)
 
   /* Check for user subdirectories.  Ones from the GNUstep file are added
    * second, so they override the XDG ones.
+   * We record the names of these doirectories as they are localised already.
    */
   xdg = UserDirsParseXDG();
-  ASSIGN_IF_SET(gnustepUserDesktop, xdg, @"XDG_DESKTOP_DIR");
-  ASSIGN_IF_SET(gnustepUserDesktop, c, @"GNUSTEP_DESKTOP_DIR");
-  ASSIGN_IF_SET(gnustepUserDocuments, xdg, @"XDG_DOCUMENTS_DIR");
-  ASSIGN_IF_SET(gnustepUserDocuments, c, @"GNUSTEP_DOCUMENTS_DIR");
-  ASSIGN_IF_SET(gnustepUserDownloads, xdg, @"XDG_DOWNLOAD_DIR");
-  ASSIGN_IF_SET(gnustepUserDownloads, c, @"GNUSTEP_DOWNLOAD_DIR");
-  ASSIGN_IF_SET(gnustepUserMusic, xdg, @"XDG_MUSIC_DIR");
-  ASSIGN_IF_SET(gnustepUserMusic, c, @"GNUSTEP_MUSIC_DIR");
-  ASSIGN_IF_SET(gnustepUserPictures, xdg, @"XDG_PICTURES_DIR");
-  ASSIGN_IF_SET(gnustepUserPictures, c, @"GNUSTEP_PICTURES_DIR");
-  ASSIGN_IF_SET(gnustepUserProjects, xdg, @"XDG_PROJECTS_DIR");
-  ASSIGN_IF_SET(gnustepUserProjects, c, @"GNUSTEP_PROJECTS_DIR");
-  ASSIGN_IF_SET(gnustepUserPublicShare, xdg, @"XDG_PUBLICSHARE_DIR");
-  ASSIGN_IF_SET(gnustepUserPublicShare, c, @"GNUSTEP_PUBLICSHARE_DIR");
-  ASSIGN_IF_SET(gnustepUserTemplates, xdg, @"XDG_TEMPLATES_DIR");
-  ASSIGN_IF_SET(gnustepUserTemplates, c, @"GNUSTEP_TEMPLATES_DIR");
-  ASSIGN_IF_SET(gnustepUserVideos, xdg, @"XDG_VIDEOS_DIR");
-  ASSIGN_IF_SET(gnustepUserVideos, c, @"GNUSTEP_VIDEOS_DIR");
+  loc = [NSMutableSet set];
+
+#define SET_USER_DIR(var, key) ({\
+  ASSIGN_IF_SET(var, xdg, @"XDG_"#key); \
+  ASSIGN_IF_SET(var, c, @"GNUSTEP_"#key); \
+  if (var) [loc addObject: var]; \
+})
+
+  SET_USER_DIR(gnustepUserDesktop, DESKTOP_DIR);
+  SET_USER_DIR(gnustepUserDocuments, DOCUMENTS_DIR);
+  SET_USER_DIR(gnustepUserDownloads, DOWNLOAD_DIR);
+  SET_USER_DIR(gnustepUserMusic, MUSIC_DIR);
+  SET_USER_DIR(gnustepUserPictures, PICTURES_DIR);
+  SET_USER_DIR(gnustepUserProjects, PROJECTS_DIR);
+  SET_USER_DIR(gnustepUserPublicShare, PUBLICSHARE_DIR);
+  SET_USER_DIR(gnustepUserTemplates, TEMPLATES_DIR);
+  SET_USER_DIR(gnustepUserVideos, VIDEOS_DIR);
+
+  ASSIGNCOPY(gnustepLocalizedUserDirs, loc);
 
   /*
    * The GNUSTEP_EXTRA field may contain a list of extra keys which
@@ -1810,18 +1815,22 @@ UserDirsParseXDG()
   NSArray		*keys;
   NSString		*fileName;
   NSString		*userName;
+  NSString		*path;
   NSString		*home;
+
+  home = [env objectForKey: @"HOME"];
+  if (nil == home)
+    {
+      home = NSHomeDirectory();
+    }
 
   /* The XDG configuration lives in $XDG_CONFIG_HOME or $HOME/.config
    */
-  if (nil == (home = [env objectForKey: @"XDG_CONFIG_HOME"]))
+  if (nil == (path = [env objectForKey: @"XDG_CONFIG_HOME"]))
     {
-      if ((home = [env objectForKey: @"HOME"]) != nil)
-	{
-	  home = [home stringByAppendingPathComponent: @".config"];
-	}
+      path = [home stringByAppendingPathComponent: @".config"];
     }
-  fileName = [home stringByAppendingPathComponent: @"user-dirs.dirs"];
+  fileName = [path stringByAppendingPathComponent: @"user-dirs.dirs"];
 
 #if 0
   /* Every bit of documentation I've found says that the login process
@@ -2264,6 +2273,16 @@ GSDefaultsRootForUser(NSString *userName)
   return defaultsDir;
 }
 
+GS_DECLARE NSString *
+GSLocalizedUserDirs()
+{
+  NSSet	*s;
+  [GSPrivateGlobalLock() lock];
+  s = RETAIN(gnustepLocalizedUserDirs);
+  [GSPrivateGlobalLock() unlock];
+  return AUTORELEASE(s);
+}
+
 GS_DECLARE NSArray *
 NSStandardApplicationPaths(void)
 {
@@ -2623,7 +2642,7 @@ if (domainMask & mask) \
       case NSDesktopDirectory:
 	{
 	  if (nil == gnustepUserDesktop) gnustepUserDesktop
-	    = NSLocalizedString(@"Desktop", @"Desktop");
+	    = @"Desktop";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDesktop);
 	}
 	break;
@@ -2816,8 +2835,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	   * verified on Macintosh
 	   * despite the name it is Documents and not Document....
 	   */
-	  if (nil == gnustepUserDocuments) gnustepUserDocuments
-	    = NSLocalizedString(@"Documents", @"Documents");
+	  if (nil == gnustepUserDocuments) gnustepUserDocuments = @"Documents";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDocuments);
 	}
 	break;
@@ -2825,8 +2843,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSDownloadsDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  if (nil == gnustepUserVideos) gnustepUserVideos
-	    = NSLocalizedString(@"Videos", @"Videos");
+	  if (nil == gnustepUserVideos) gnustepUserVideos = @"Videos";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDownloads);
 	}
 	break;
@@ -2847,8 +2864,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSMusicDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  if (nil == gnustepUserMusic) gnustepUserMusic
-	    = NSLocalizedString(@"Music", @"Music");
+	  if (nil == gnustepUserMusic) gnustepUserMusic = @"Music";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserMusic);
 	}
 	break;
@@ -2856,8 +2872,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSPicturesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  if (nil == gnustepUserPictures) gnustepUserPictures
-	    = NSLocalizedString(@"Images", @"Images");
+	  if (nil == gnustepUserPictures) gnustepUserPictures = @"Images";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPictures);
 	}
 	break;
@@ -2870,8 +2885,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
       case NSSharedPublicDirectory:
 	{
-	  if (nil == gnustepUserPublicShare) gnustepUserPublicShare
-	    = NSLocalizedString(@"Public", @"Public");
+	  if (nil == gnustepUserPublicShare) gnustepUserPublicShare = @"Public";
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserPublicShare);
 	}
 	break;
@@ -3108,10 +3122,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	break;
 
 /* Values in XDG but not GNUstep yet
-	if (nil == gnustepUserProjects) gnustepUserProjects
-	  = NSLocalizedString(@"Projects", @"Projects");
-	if (nil == gnustepUserTemplates) gnustepUserTemplates
-	  = NSLocalizedString(@"Templates", @"Templates");
+	if (nil == gnustepUserProjects) gnustepUserProjects = @"Projects";
+	if (nil == gnustepUserTemplates) gnustepUserTemplates = @"Templates";
 */
     }
 

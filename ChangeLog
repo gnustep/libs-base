@@ -1,3 +1,13 @@
+2026-09-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPathUtilities.h:
+	* Source/NSPathUtilities.m:
+	Removed localization of user directories, reverting to OpenStep/OSX
+	behavior by default, but added GSLocalizedUserDirs() to allow an app
+	to list those user directories which are actually localized on disk
+	(ie the physical directory name has been mapped away from the default
+	one built in to the code, and should not be further mapped by UI).
+
 2026-09-07 Rupert Daniel <rupert@cancelmonday.com>
 
         * Headers/GNUstepBase/GSIMap.h: When rehashing a table with strong

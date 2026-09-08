@@ -83,14 +83,23 @@ GSSetUserName(NSString *aName);
 GS_EXPORT NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig);
 
-/**
- * Returns the location of the defaults database for the specified user.
+/** Returns the location of the defaults database for the specified user.
  * This uses the same information you get from GNUstepConfig() and
  * GNUstepUserConfig() and builds the path to the defaults database
- * fromm it.
+ * from it.
  */
 GS_EXPORT NSString*
 GSDefaultsRootForUser(NSString *userName);
+
+/** Returns the set of user directories which are defined in the GNUstep
+ * configuration file or by XDG.  These directory names are localized on
+ * disk and should not be localized a second time when presented in user
+ * interactions.<br />
+ * This uses the same information you get from GNUstepConfig() and
+ * GNUstepUserConfig(), with the addition of XDG user-dirs information.
+ */
+GS_EXPORT NSString *
+GSLocalizedUserDirs();
 
 /**
  * The config dictionary passed to this function should be a
