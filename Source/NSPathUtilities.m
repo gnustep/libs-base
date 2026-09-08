@@ -2825,8 +2825,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSDownloadsDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
-	  if (nil == gnustepUserVideos) gnustepUserVideos
-	    = NSLocalizedString(@"Videos", @"Videos");
+	  if (nil == gnustepUserVideos) gnustepUserDownloads
+	    = NSLocalizedString(@"Downloads", @"Downloads");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserDownloads);
 	}
 	break;
@@ -2840,6 +2840,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
       case NSMoviesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
+          if (nil == gnustepUserVideos) gnustepUserVideos
+            = NSLocalizedString(@"Videos", @"Videos");
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, gnustepUserVideos);
 	}
 	break;
