@@ -283,12 +283,11 @@
  * To suppress warnings about non portable code, define the
  * GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS preprocessor constant.
  */
-#if	!defined(GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS)
-#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#if (defined(__clang__) || GS_GCC_MINREQ(3,1)) \
+  && !defined(GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS)
 #  define GS_NON_PORTABLE(X) __attribute__((deprecated("***  not portable - please do not use this feature, " #X " ***")))
 #else
 #  define GS_NON_PORTABLE(X)
-#endif
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))
