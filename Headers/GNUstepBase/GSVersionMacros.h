@@ -268,21 +268,27 @@
 #  define GS_UNIMPLEMENTED
 #endif
 
-/** This macro is placed immediately before the name of a method or function
+/** <p>This macro is placed immediately before the name of a method or function
  * to mark it as non-portable... a feature which does not work on all platforms
  * and should not be used unless you are specifically intending to write
  * non portable code which will only ever be used on a platform known to
- * support the feature.<br />
- * The macro uses the compiler feature to mark a method as deprecated, but in
- * this case the deprecation does not imply imminant removal of APIs which
+ * support the feature.
+ * </p>
+ * <p>The macro uses the compiler feature to mark a method as deprecated, but
+ * in this case the deprecation does not imply imminant removal of APIs which
  * exist for compatibility with MacOS-X, but is intended to let developers
  * know (via the text in the macro) what other API they should use.<br />
  * Generally the argument X should be of the form 'use ... instead'.
+ * </p>
+ * To suppress warnings about non portable code, define the
+ * GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS preprocessor constant.
  */
+#if	!defined(GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS)
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
 #  define GS_NON_PORTABLE(X) __attribute__((deprecated("***  not portable - please do not use this feature, " #X " ***")))
 #else
 #  define GS_NON_PORTABLE(X)
+#endif
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))

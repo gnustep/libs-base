@@ -7,6 +7,8 @@
 	to list those user directories which are actually localized on disk
 	(ie the physical directory name has been mapped away from the default
 	one built in to the code, and should not be further mapped by UI).
+	* Headers/GNUstepBase/GSVersionMacros.h: Added support for define of
+	GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS to do just what it says.
 
 2026-09-07 Rupert Daniel <rupert@cancelmonday.com>
 
