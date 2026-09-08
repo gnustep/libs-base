@@ -2273,7 +2273,7 @@ GSDefaultsRootForUser(NSString *userName)
   return defaultsDir;
 }
 
-GS_DECLARE NSString *
+GS_DECLARE NSSet *
 GSLocalizedUserDirs()
 {
   NSSet	*s;

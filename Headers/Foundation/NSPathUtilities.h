@@ -34,6 +34,7 @@ extern "C" {
 
 @class	NSDictionary;
 @class	NSMutableDictionary;
+@class	NSSet;
 @class	NSString;
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
@@ -98,7 +99,7 @@ GSDefaultsRootForUser(NSString *userName);
  * This uses the same information you get from GNUstepConfig() and
  * GNUstepUserConfig(), with the addition of XDG user-dirs information.
  */
-GS_EXPORT NSString *
+GS_EXPORT NSSet *
 GSLocalizedUserDirs();
 
 /**
