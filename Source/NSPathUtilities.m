@@ -319,13 +319,16 @@ lval must be casted because Clang disallows ObjC literals comparison */
 
 /* The user domain paths are normally located within the user's home directory,
  * but if they are specified as absolute paths they can be anywhere you like.
- *
+ * User paths are standardised and exclude symbolic links.
  */
 #define ASSIGN_USER_PATH(var, val) ({\
   if (nil == var) \
     {\
-      ASSIGN(var, ([val isAbsolutePath] ? substUser(val) : \
-        [gnustepUserHome stringByAppendingPathComponent: substUser(val)]));\
+      NSString	*tmp = ([val isAbsolutePath] ? substUser(val) : \
+        [gnustepUserHome stringByAppendingPathComponent: substUser(val)]);\
+      tmp = [tmp stringByStandardizingPath]; \
+      tmp = [tmp stringByResolvingSymlinksInPath]; \
+      ASSIGN(var, tmp); \
     }\
   })
 
@@ -625,15 +628,29 @@ ExtractValuesFromConfig(NSDictionary *config)
 
   /* Check for user subdirectories.  Ones from the GNUstep file are added
    * second, so they override the XDG ones.
-   * We record the names of these doirectories as they are localised already.
+   * We record the names of these directories as they are localised already.
+   * User paths are standardised and exclude symbolic links.
    */
   xdg = UserDirsParseXDG();
   loc = [NSMutableSet set];
 
 #define SET_USER_DIR(var, key) ({\
-  ASSIGN_IF_SET(var, xdg, @"XDG_"#key); \
-  ASSIGN_IF_SET(var, c, @"GNUSTEP_"#key); \
-  if (var) [loc addObject: var]; \
+  NSString	*tmp; \
+  if ((tmp = [xdg objectForKey: @"XDG_"#key]) == nil) \
+    { \
+      if ((tmp = [c objectForKey: @"GNUSTEP_"#key]) != nil) \
+	{ \
+	  tmp = ([tmp isAbsolutePath] ? substUser(tmp) : \
+	    [gnustepUserHome stringByAppendingPathComponent: substUser(tmp)]); \
+	} \
+    } \
+  if (tmp) \
+    { \
+      tmp = [tmp stringByStandardizingPath]; \
+      tmp = [tmp stringByResolvingSymlinksInPath]; \
+      ASSIGN(var, tmp); \
+      [loc addObject: var]; \
+    } \
 })
 
   SET_USER_DIR(gnustepUserDesktop, DESKTOP_DIR);
