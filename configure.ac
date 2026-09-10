@@ -1170,6 +1170,36 @@ AH_BOTTOM([
 AC_SYS_LARGEFILE
 AC_TYPE_OFF_T
 
+AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
+PKG_PROG_PKG_CONFIG
+# If the modern mechanism fails we may have an older pkg-config
+# so try looking it up the old fashioned way.
+if test -z "$PKG_CONFIG"; then
+  AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
+fi
+
+
+#--------------------------------------------------------------------
+# specific target_os options
+#--------------------------------------------------------------------
+INCLUDE_FLAGS="$CPPFLAGS"
+LDIR_FLAGS="$LDFLAGS"
+# This is just for configuring. Later, in config.make, INCLUDE_FLAGS
+# goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
+case "$target_os" in
+  freebsd* | openbsd* )
+	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
+  netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
+		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
+  solaris*)
+                LDFLAGS="$LDFLAGS -lsocket -lnsl";;
+  linux-android* )
+		# link against libandroid for native application APIs
+		LIBS="$LIBS -landroid";;
+esac
+
+
 #--------------------------------------------------------------------
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
@@ -1244,35 +1274,6 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
     fi
   fi
 AC_LANG_POP(C)
-
-AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
-PKG_PROG_PKG_CONFIG
-# If the modern mechanism fails we may have an older pkg-config
-# so try looking it up the old fashioned way.
-if test -z "$PKG_CONFIG"; then
-  AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
-fi
-
-
-#--------------------------------------------------------------------
-# specific target_os options
-#--------------------------------------------------------------------
-INCLUDE_FLAGS="$CPPFLAGS"
-LDIR_FLAGS="$LDFLAGS"
-# This is just for configuring. Later, in config.make, INCLUDE_FLAGS
-# goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
-case "$target_os" in
-  freebsd* | openbsd* )
-	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
-  netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
-		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
-  solaris*)
-                LDFLAGS="$LDFLAGS -lsocket -lnsl";;
-  linux-android* )
-		# link against libandroid for native application APIs
-		LIBS="$LIBS -landroid";;
-esac
 
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests

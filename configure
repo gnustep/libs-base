@@ -6356,220 +6356,6 @@ esac
 fi
 
 
-#--------------------------------------------------------------------
-# Check how to enable builtins for atomic operations
-#--------------------------------------------------------------------
-
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for library containing __atomic_load_8" >&5
-printf %s "checking for library containing __atomic_load_8... " >&6; }
-if test ${ac_cv_search___atomic_load_8+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e) ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.
-   The 'extern "C"' is for builds by C++ compilers;
-   although this is not generally supported in C code supporting it here
-   has little cost and some practical benefit (sr 110532).  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char __atomic_load_8 (void);
-int
-main (void)
-{
-return __atomic_load_8 ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' atomic
-do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_search___atomic_load_8=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext
-  if test ${ac_cv_search___atomic_load_8+y}
-then :
-  break
-fi
-done
-if test ${ac_cv_search___atomic_load_8+y}
-then :
-
-else case e in #(
-  e) ac_cv_search___atomic_load_8=no ;;
-esac
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS ;;
-esac
-fi
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search___atomic_load_8" >&5
-printf '%s\n' "$ac_cv_search___atomic_load_8" >&6; }
-ac_res=$ac_cv_search___atomic_load_8
-if test "$ac_res" != no
-then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations available" >&5
-printf '%s\n' "$as_me: 64-bit atomic operations available" >&6;}
-else case e in #(
-  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations unavailable in libatomic" >&5
-printf '%s\n' "$as_me: 64-bit atomic operations unavailable in libatomic" >&6;} ;;
-esac
-fi
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports atomic operations" >&5
-printf %s "checking whether the compiler supports atomic operations... " >&6; };
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-typedef int atomic;
-int
-main (void)
-{
-atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  have_atomic=yes
-else case e in #(
-  e) have_atomic=no ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext;
-  if test "$have_atomic" = "yes"; then
-    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf '%s\n' "yes" >&6; };
-
-printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
-
-  else
-    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf '%s\n' "no" >&6; };
-    if test "$CC" = "gcc"; then
-      saved_CFLAGS="$CFLAGS";
-      ATOMIC_CFLAGS="";
-
-      # FIXME: Forcing -march=i568 for any i568 or later CPU is a
-      # stop gap measure to make the compiler emit native assembly
-      # for atomic operations on i586 or latter processors (GCC by
-      # default emits code compatible with the original i386 and
-      # requires library functions to emulate atomic operations).
-      # When gnustep-make takes care of this kind of target setting,
-      # the check can safely be removed.
-      case "$target_cpu" in
-        i586*|i686*|i786*)
-          ATOMIC_CFLAGS="-march=i586"
-          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
-          ;;
-        x86_64)
-          ATOMIC_CFLAGS="-march=x86-64"
-          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
-          ;;
-      esac
-      { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether CC supports atomic operations with -march" >&5
-printf %s "checking whether CC supports atomic operations with -march... " >&6; };
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-typedef int atomic;
-int
-main (void)
-{
-atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  need_march=yes
-else case e in #(
-  e) need_march=no ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext;
-
-      if test "$need_march" = "yes"; then
-        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf '%s\n' "yes" >&6; };
-	OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS";
-
-printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
-
-      else
-        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf '%s\n' "no" >&6; };
-        saved_LDFLAGS="$LDFLAGS";
-        LDFLAGS="$saved_LDFLAGS -lgcc";
-        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether CC supports atomic operations using libgcc" >&5
-printf %s "checking whether CC supports atomic operations using libgcc... " >&6; };
-          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-typedef int atomic;
-int
-main (void)
-{
-atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  atomic_in_libgcc=yes
-else case e in #(
-  e) atomic_in_libgcc=no ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext;
-        if test "$atomic_in_libgcc" = "yes"; then
-          { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf '%s\n' "yes" >&6; };
-          LIBS="$LIBS -lgcc";
-
-printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
-
-        else
-          LDFLAGS="$saved_LDFLAGS";
-          { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf '%s\n' "no" >&6; };
-        fi
-      fi
-    fi
-  fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
 # Extract the first word of "whoami", so it can be a program name with args.
 set dummy whoami; ac_word=$2
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -6821,6 +6607,221 @@ case "$target_os" in
 		# link against libandroid for native application APIs
 		LIBS="$LIBS -landroid";;
 esac
+
+
+#--------------------------------------------------------------------
+# Check how to enable builtins for atomic operations
+#--------------------------------------------------------------------
+
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for library containing __atomic_load_8" >&5
+printf %s "checking for library containing __atomic_load_8... " >&6; }
+if test ${ac_cv_search___atomic_load_8+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char __atomic_load_8 (void);
+int
+main (void)
+{
+return __atomic_load_8 ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' atomic
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_search___atomic_load_8=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search___atomic_load_8+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search___atomic_load_8+y}
+then :
+
+else case e in #(
+  e) ac_cv_search___atomic_load_8=no ;;
+esac
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS ;;
+esac
+fi
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search___atomic_load_8" >&5
+printf '%s\n' "$ac_cv_search___atomic_load_8" >&6; }
+ac_res=$ac_cv_search___atomic_load_8
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations available" >&5
+printf '%s\n' "$as_me: 64-bit atomic operations available" >&6;}
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: 64-bit atomic operations unavailable in libatomic" >&5
+printf '%s\n' "$as_me: 64-bit atomic operations unavailable in libatomic" >&6;} ;;
+esac
+fi
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports atomic operations" >&5
+printf %s "checking whether the compiler supports atomic operations... " >&6; };
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main (void)
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  have_atomic=yes
+else case e in #(
+  e) have_atomic=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext;
+  if test "$have_atomic" = "yes"; then
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; };
+
+printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
+
+  else
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; };
+    if test "$CC" = "gcc"; then
+      saved_CFLAGS="$CFLAGS";
+      ATOMIC_CFLAGS="";
+
+      # FIXME: Forcing -march=i568 for any i568 or later CPU is a
+      # stop gap measure to make the compiler emit native assembly
+      # for atomic operations on i586 or latter processors (GCC by
+      # default emits code compatible with the original i386 and
+      # requires library functions to emulate atomic operations).
+      # When gnustep-make takes care of this kind of target setting,
+      # the check can safely be removed.
+      case "$target_cpu" in
+        i586*|i686*|i786*)
+          ATOMIC_CFLAGS="-march=i586"
+          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
+          ;;
+        x86_64)
+          ATOMIC_CFLAGS="-march=x86-64"
+          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
+          ;;
+      esac
+      { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether CC supports atomic operations with -march" >&5
+printf %s "checking whether CC supports atomic operations with -march... " >&6; };
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main (void)
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  need_march=yes
+else case e in #(
+  e) need_march=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext;
+
+      if test "$need_march" = "yes"; then
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; };
+	OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS";
+
+printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
+
+      else
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; };
+        saved_LDFLAGS="$LDFLAGS";
+        LDFLAGS="$saved_LDFLAGS -lgcc";
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether CC supports atomic operations using libgcc" >&5
+printf %s "checking whether CC supports atomic operations using libgcc... " >&6; };
+          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main (void)
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  atomic_in_libgcc=yes
+else case e in #(
+  e) atomic_in_libgcc=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext;
+        if test "$atomic_in_libgcc" = "yes"; then
+          { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; };
+          LIBS="$LIBS -lgcc";
+
+printf '%s\n' "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
+
+        else
+          LDFLAGS="$saved_LDFLAGS";
+          { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; };
+        fi
+      fi
+    fi
+  fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
