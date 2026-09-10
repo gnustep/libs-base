@@ -319,7 +319,6 @@ lval must be casted because Clang disallows ObjC literals comparison */
 
 /* The user domain paths are normally located within the user's home directory,
  * but if they are specified as absolute paths they can be anywhere you like.
- * User paths are standardised and exclude symbolic links.
  */
 #define ASSIGN_USER_PATH(var, val) ({\
   if (nil == var) \
@@ -327,7 +326,6 @@ lval must be casted because Clang disallows ObjC literals comparison */
       NSString	*tmp = ([val isAbsolutePath] ? substUser(val) : \
         [gnustepUserHome stringByAppendingPathComponent: substUser(val)]);\
       tmp = [tmp stringByStandardizingPath]; \
-      tmp = [tmp stringByResolvingSymlinksInPath]; \
       ASSIGN(var, tmp); \
     }\
   })
@@ -629,7 +627,6 @@ ExtractValuesFromConfig(NSDictionary *config)
   /* Check for user subdirectories.  Ones from the GNUstep file are added
    * second, so they override the XDG ones.
    * We record the names of these directories as they are localised already.
-   * User paths are standardised and exclude symbolic links.
    */
   xdg = UserDirsParseXDG();
   loc = [NSMutableSet set];
@@ -647,7 +644,6 @@ ExtractValuesFromConfig(NSDictionary *config)
   if (tmp) \
     { \
       tmp = [tmp stringByStandardizingPath]; \
-      tmp = [tmp stringByResolvingSymlinksInPath]; \
       ASSIGN(var, tmp); \
       [loc addObject: var]; \
     } \
