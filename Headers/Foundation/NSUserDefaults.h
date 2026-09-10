@@ -78,9 +78,10 @@ GS_EXPORT NSString* const GSConfigDomain;
 
 /* Public notification */
 
-/**
- *  Notification posted when a defaults synchronize has been performed (see
- *  [NSUserDefaults-synchronize]) and changes have been loaded in from disk.
+/** Notification posted when a defaults synchronize has been performed (see
+ * [NSUserDefaults-synchronize]) and changes have been loaded in from disk
+ * or changes made locally have potentially altered default values that
+ * would be returned by the methods of this class.
  */
 GS_EXPORT NSString* const NSUserDefaultsDidChangeNotification;
 
@@ -283,7 +284,9 @@ GS_EXPORT_CLASS
 /**
  * Adds the domain names aName to the search list of the receiver.<br />
  * The domain is added after the application domain.<br />
- * Suites may be removed using the -removeSuiteNamed: method.
+ * Suites may be removed using the -removeSuiteNamed: method.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) addSuiteNamed: (NSString*)aName;
 #endif
@@ -367,7 +370,9 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Removes the named domain from the search list of the receiver.<br />
- * Suites may be added using the -addSuiteNamed: method.
+ * Suites may be added using the -addSuiteNamed: method.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) removeSuiteNamed: (NSString*)aName;
 #endif
@@ -415,9 +420,8 @@ GS_EXPORT_CLASS
  * The defaultName must be a non-empty string.<br />
  * The value to be copied into the domain must be an instance
  * of one of the [NSString-propertyList] classes.<br />
- * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
+ * <p>Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  * </p>
  * If value is nil, this is equivalent to the -removeObjectForKey: method.
  */
@@ -427,7 +431,9 @@ GS_EXPORT_CLASS
  * Sets the list of the domains searched in order to look up
  * a value in the defaults system.  The order of the names in the
  * array is the order in which the domains are searched.<br />
- * On lookup, the first match is used.
+ * On lookup, the first match is used.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) setSearchList: (NSArray*)newList;
 
@@ -457,8 +463,7 @@ GS_EXPORT_CLASS
  * Removes the persistent domain specified by domainName from the
  * user defaults.
  * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
+ * at the end of the next -synchronize.
  */
 - (void) removePersistentDomainForName: (NSString*)domainName;
 
@@ -468,8 +473,7 @@ GS_EXPORT_CLASS
  * <br />Raises an NSInvalidArgumentException if domainName already
  * exists as a volatile-domain.
  * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
+ * at the end of the next -synchronize.
  */
 - (void) setPersistentDomain: (NSDictionary*)domain 
 		     forName: (NSString*)domainName;
@@ -479,13 +483,16 @@ GS_EXPORT_CLASS
  * are in sync.  You may call this yourself, but probably don't need to
  * since it is invoked at intervals whenever a runloop is running.<br />
  * If any persistent domain is changed by reading new values from disk,
- * an NSUserDefaultsDidChangeNotification is posted.
+ * or if any local change altered the available values since the last
+ * -synchronize, an NSUserDefaultsDidChangeNotification is posted.
  */
 - (BOOL) synchronize;
 
 /**
  * Removes the volatile domain specified by domainName from the
- * user defaults.
+ * user defaults.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) removeVolatileDomainForName: (NSString*)domainName;
 
@@ -493,7 +500,9 @@ GS_EXPORT_CLASS
  * Sets the volatile-domain specified by domainName to
  * domain ... a dictionary containing keys and defaults values.<br />
  * Raises an NSInvalidArgumentException if domainName already
- * exists as either a volatile-domain or a persistent-domain.
+ * exists as either a volatile-domain or a persistent-domain.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) setVolatileDomain: (NSDictionary*)domain 
 		   forName: (NSString*)domainName;
@@ -520,7 +529,9 @@ GS_EXPORT_CLASS
  * domain.  Registration defaults may be added to or replaced using this
  * method, but may never be removed.  Thus, setting registration defaults
  * at any point in your program guarantees that the defaults will be
- * available thereafter.
+ * available thereafter.<br />
+ * Causes a NSUserDefaultsDidChangeNotification to be posted at the
+ * next -synchronize.
  */
 - (void) registerDefaults: (NSDictionary*)newVals;
 

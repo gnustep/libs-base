@@ -44,7 +44,7 @@
   NSLog(@"KVO: %@: old = %@, new = %@, kind = %ld, isPrior = %@",
         keyPath, old, new, kind, isPrior);
 
-  if ([keyPath isEqualToString:@"Test Suite Bool"])
+  if ([keyPath isEqualToString: @"Test Suite Bool"])
     {
       switch (kvoCount)
         {
@@ -58,7 +58,7 @@
                  "NSKeyValueChangeSetting (initial)");
             break;
           }
-          case 3: // Prior to [defs setBool:YES forKey:@"Test Suite Bool"];
+          case 3: // Prior to [defs setBool:YES forKey: @"Test Suite Bool"];
           {
             PASS_EQUAL(
               old, [NSNull null],
@@ -72,7 +72,7 @@
                        "KVO: notification for 'Test Suite Bool' is prior");
             break;
           }
-          case 4: // [defs setBool:YES forKey:@"Test Suite Bool"];
+          case 4: // [defs setBool:YES forKey: @"Test Suite Bool"];
           {
             PASS_EQUAL(
               old, [NSNull null],
@@ -86,7 +86,7 @@
                  "NSKeyValueChangeSetting");
             break;
           }
-          case 9: // Prior to [defs removeObjectForKey:@"Test Suite Bool"];
+          case 9: // Prior to [defs removeObjectForKey: @"Test Suite Bool"];
           {
             PASS([old isKindOfClass:[NSNumber class]],
                  "KVO: First setting of 'Test Suite Bool' has old NSNumber");
@@ -101,7 +101,7 @@
                        "KVO: notification for 'Test Suite Bool' is prior");
             break;
           }
-          case 10: // [defs removeObjectForKey:@"Test Suite Bool"];
+          case 10: // [defs removeObjectForKey: @"Test Suite Bool"];
           {
             PASS([old isKindOfClass:[NSNumber class]],
                  "KVO: First setting of 'Test Suite Bool' has old NSNumber");
@@ -121,7 +121,7 @@
           }
         }
     }
-  else if ([keyPath isEqualToString:@"Test Suite Int"])
+  else if ([keyPath isEqualToString: @"Test Suite Int"])
     {
       switch (kvoCount)
         {
@@ -135,7 +135,7 @@
                  "NSKeyValueChangeSetting (initial)");
             break;
           }
-          case 5: // Prior to [defs setInteger:34 forKey:@"Test
+          case 5: // Prior to [defs setInteger:34 forKey: @"Test
                   // Suite Int"];
           {
             PASS_EQUAL(old, [NSNull null],
@@ -147,7 +147,7 @@
                        "KVO: notification for 'Test Suite Int' is prior");
             break;
           }
-          case 6: // [defs setInteger:34 forKey:@"Test Suite Int"];
+          case 6: // [defs setInteger:34 forKey: @"Test Suite Int"];
           {
             PASS_EQUAL(
               old, [NSNull null],
@@ -161,8 +161,8 @@
                  "NSKeyValueChangeSetting");
             break;
           }
-          case 11: // Prior to [defs setObject:nil
-                   // forKey:@"Test Suite Int"];
+          case 11: // Prior to [defs setObject: nil
+                   // forKey: @"Test Suite Int"];
           {
             PASS([old isKindOfClass:[NSNumber class]],
                  "KVO: First setting of 'Test Suite Int' has old NSNumber");
@@ -177,7 +177,7 @@
                        "KVO: notification for 'Test Suite Int' is prior");
             break;
           }
-          case 12: // [defs setObject:nil forKey:@"Test Suite Int"];
+          case 12: // [defs setObject: nil forKey: @"Test Suite Int"];
           {
             PASS([old isKindOfClass:[NSNumber class]],
                  "KVO: First setting of 'Test Suite Int' has old NSNumber");
@@ -196,7 +196,7 @@
           }
         }
     }
-  else if ([keyPath isEqualToString:@"Test Suite Str"])
+  else if ([keyPath isEqualToString: @"Test Suite Str"])
     {
       switch (kvoCount)
         {
@@ -210,8 +210,8 @@
                  "NSKeyValueChangeSetting (initial)");
             break;
           }
-          case 7: // Prior to [defs setObject:@"SetString"
-                  // forKey:@"Test Suite Str"];
+          case 7: // Prior to [defs setObject: @"SetString"
+                  // forKey: @"Test Suite Str"];
           {
             PASS_EQUAL(old, [NSNull null],
                        "KVO: First setting of 'Test Suite Str' has old = null");
@@ -222,15 +222,15 @@
                        "KVO: notification for 'Test Suite Str' is prior");
             break;
           }
-          case 8: // [defs setObject:@"SetString"
-                  // forKey:@"Test Suite Str"];
+          case 8: // [defs setObject: @"SetString"
+                  // forKey: @"Test Suite Str"];
           {
             PASS_EQUAL(
               old, [NSNull null],
               "KVO: Second setting of 'Test Suite Str' has old = null");
             PASS([new isKindOfClass:[ NSString class ]],
                  "KVO: New value for 'Test Suite Str' has NSString");
-            PASS([new isEqual:@"SetString"],
+            PASS([new isEqual: @"SetString"],
                  "KVO: new value for 'Test Suite Str' is 'SetString'");
             PASS(kind == NSKeyValueChangeSetting,
                  "KVO: notification for 'Test Suite Str' is of kind "
@@ -250,7 +250,7 @@
 int
 main()
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   Observer          *obs = [[Observer new] autorelease];
   NSUserDefaults    *defs;
 
@@ -259,93 +259,99 @@ main()
        "NSUserDefaults understands +standardUserDefaults");
 
   /* Reset the defaults */
-  [defs removeObjectForKey:@"Test Suite Bool"];
-  [defs removeObjectForKey:@"Test Suite Int"];
-  [defs removeObjectForKey:@"Test Suite Str"];
+  [defs removeObjectForKey: @"Test Suite Bool"];
+  [defs removeObjectForKey: @"Test Suite Int"];
+  [defs removeObjectForKey: @"Test Suite Str"];
 
   [[NSNotificationCenter defaultCenter]
     addObserver:obs
-       selector:@selector(notified:)
+       selector: @selector(notified:)
            name:NSUserDefaultsDidChangeNotification
-         object:nil];
+         object: nil];
 
   [defs addObserver:obs
-         forKeyPath:@"Test Suite Bool"
+         forKeyPath: @"Test Suite Bool"
             options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
                     | NSKeyValueObservingOptionPrior
                     | NSKeyValueObservingOptionInitial
             context:NULL];
 
   [defs addObserver:obs
-         forKeyPath:@"Test Suite Int"
+         forKeyPath: @"Test Suite Int"
             options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
                     | NSKeyValueObservingOptionPrior
                     | NSKeyValueObservingOptionInitial
             context:NULL];
 
   [defs addObserver:obs
-         forKeyPath:@"Test Suite Str"
+         forKeyPath: @"Test Suite Str"
             options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
                     | NSKeyValueObservingOptionPrior
                     | NSKeyValueObservingOptionInitial
             context:NULL];
   PASS([obs kvoCount] == 3, "KVO: initial count is 3");
 
-  [defs setBool:YES forKey:@"Test Suite Bool"];
-  PASS([defs boolForKey:@"Test Suite Bool"],
+  [defs setBool:YES forKey: @"Test Suite Bool"];
+  PASS([defs boolForKey: @"Test Suite Bool"],
        "NSUserDefaults can set/get a BOOL");
-  PASS([[defs objectForKey:@"Test Suite Bool"] isKindOfClass:[NSNumber class]],
+  PASS([[defs objectForKey: @"Test Suite Bool"] isKindOfClass:[NSNumber class]],
        "NSUserDefaults returns NSNumber for a BOOL");
 
+  [defs synchronize];
   PASS([obs count] == 1, "setting a boolean causes notification");
   PASS([obs kvoCount] == 5, "KVO: setting boolean caused 2 notifications");
 
-  [defs setInteger:34 forKey:@"Test Suite Int"];
-  PASS([defs integerForKey:@"Test Suite Int"] == 34,
+  [defs setInteger:34 forKey: @"Test Suite Int"];
+  PASS([defs integerForKey: @"Test Suite Int"] == 34,
        "NSUserDefaults can set/get an int");
-  PASS([[defs objectForKey:@"Test Suite Int"] isKindOfClass:[NSNumber class]],
+  PASS([[defs objectForKey: @"Test Suite Int"] isKindOfClass:[NSNumber class]],
        "NSUserDefaults returns NSNumber for an int");
 
+  [defs synchronize];
   PASS([obs count] == 2, "setting an integer causes notification");
   PASS([obs kvoCount] == 7, "KVO: setting integer caused 2 notifications");
 
-  [defs setObject:@"SetString" forKey:@"Test Suite Str"];
-  PASS([[defs stringForKey:@"Test Suite Str"] isEqual:@"SetString"],
+  [defs setObject: @"SetString" forKey: @"Test Suite Str"];
+  PASS([[defs stringForKey: @"Test Suite Str"] isEqual: @"SetString"],
        "NSUserDefaults can set/get a string");
-  PASS([[defs objectForKey:@"Test Suite Str"] isKindOfClass:[NSString class]],
+  PASS([[defs objectForKey: @"Test Suite Str"] isKindOfClass:[NSString class]],
        "NSUserDefaults returns NSString for a string");
 
+  [defs synchronize];
   PASS([obs count] == 3, "setting a string causes notification");
   PASS([obs kvoCount] == 9, "KVO: setting integer caused 2 notifications");
 
-  [defs removeObjectForKey:@"Test Suite Bool"];
-  PASS(nil == [defs objectForKey:@"Test Suite Bool"],
+  [defs removeObjectForKey: @"Test Suite Bool"];
+  PASS(nil == [defs objectForKey: @"Test Suite Bool"],
        "NSUserDefaults can use -removeObjectForKey: to remove a bool");
 
+  [defs synchronize];
   PASS([obs count] == 4, "removing a key causes notification");
   PASS([obs kvoCount] == 11, "KVO: removing bool caused 2 notifications");
 
-  [defs setObject:nil forKey:@"Test Suite Int"];
-  PASS(nil == [defs objectForKey:@"Test Suite Int"],
+  [defs setObject: nil forKey: @"Test Suite Int"];
+  PASS(nil == [defs objectForKey: @"Test Suite Int"],
        "NSUserDefaults can use -setObject:forKey: to remove an int");
 
+  [defs synchronize];
   PASS([obs count] == 5, "setting nil object causes notification");
   PASS([obs kvoCount] == 13, "KVO: removing int caused 2 notifications");
 
-  [defs setObject:@"SetString" forKey:@"Test Suite Str"];
-  PASS([[defs objectForKey:@"Test Suite Str"] isKindOfClass:[NSString class]],
+  [defs setObject: @"SetString" forKey: @"Test Suite Str"];
+  PASS([[defs objectForKey: @"Test Suite Str"] isKindOfClass:[NSString class]],
        "NSUserDefaults returns NSString for an updated string");
 
+  [defs synchronize];
   PASS([obs count] == 6, "setting a string causes notification");
   
-  [defs setObject:nil forKey:@"Test Suite Int"];
+  [defs setObject: nil forKey: @"Test Suite Int"];
+  [defs synchronize];
   PASS([obs count] == 7, "setting nil object twice causes notification");
 
-  [defs removeObserver:obs forKeyPath:@"Test Suite Bool" context:NULL];
-  [defs removeObserver:obs forKeyPath:@"Test Suite Int" context:NULL];
-  [defs removeObserver:obs forKeyPath:@"Test Suite Str" context:NULL];
+  [defs removeObserver:obs forKeyPath: @"Test Suite Bool" context:NULL];
+  [defs removeObserver:obs forKeyPath: @"Test Suite Int" context:NULL];
+  [defs removeObserver:obs forKeyPath: @"Test Suite Str" context:NULL];
 
-  [arp release];
-  arp = nil;
+  LEAVE_POOL
   return 0;
 }

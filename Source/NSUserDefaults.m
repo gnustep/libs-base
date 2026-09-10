@@ -783,12 +783,9 @@ newLanguages(NSArray *oldNames)
            */
           [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
 
-          /* Ensure changes are written, and no changes left so we can't end up
-           * writing old changes to the new defaults.
+          /* Ensure changes are written, and no changes left.
            */
           [sharedDefaults synchronize];
-          DESTROY(sharedDefaults->_changedDomains);
-          DESTROY(sharedDefaults);
 	}
       hasSharedDefaults = NO;
       [classLock unlock];
@@ -1366,6 +1363,19 @@ newLanguages(NSArray *oldNames)
   return desc;
 }
 
+- (void) _didChange
+{
+  if (nil == _changedDomains)
+    {
+      [_lock lock];
+      if (nil == _changedDomains)
+	{
+	  _changedDomains = [[NSMutableArray alloc] initWithCapacity: 4];
+	}
+      [_lock unlock];
+    }
+}
+
 - (void) addSuiteNamed: (NSString*)aName
 {
   BOOL		haveChange = NO;
@@ -1400,9 +1410,7 @@ newLanguages(NSArray *oldNames)
   RELEASE(aName);
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -1559,10 +1567,7 @@ newLanguages(NSArray *oldNames)
 	      /* We always notify observers of a change, even if the value
 	       * itself is unchanged.
 	       */
-	      [[NSNotificationCenter defaultCenter]
-		postNotificationName: NSUserDefaultsDidChangeNotification
-		  object: self];
-
+	      [self _didChange];
 	    }
 	}
       [_lock unlock];
@@ -1718,9 +1723,7 @@ static BOOL isPlistObject(id o)
           /* We always notify observers of a change, even if the value
            * itself is unchanged.
 	   */
-          [[NSNotificationCenter defaultCenter]
-            postNotificationName: NSUserDefaultsDidChangeNotification
-			  object: self];
+	  [self _didChange];
         }
       [_lock unlock];
     }
@@ -1822,9 +1825,7 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -1990,16 +1991,23 @@ static BOOL isPlistObject(id o)
   _lastSync = [NSDate new];	// Record timestamp of this sync.
   NS_DURING
     {
+      /* When _changedDomains is not nil there has been some change which
+       * needs at least a notification to be sent.
+       */
+      if (_changedDomains)
+	{
+	  haveChange = YES;
+	}
       /* If we haven't changed anything, we only need to synchronise if
        * the on-disk database has been changed by someone else.
        */
-      if (_changedDomains != nil
+      if ([_changedDomains count]
         || YES == [self wantToReadDefaultsSince: saved])
 	{
           /* If we want to write but are currently read-only, try to
 	   * create the path to make things writable.
 	   */
-	  if (_changedDomains != nil && YES == [self _readOnly])
+	  if ([_changedDomains count] && YES == [self _readOnly])
 	    {
 	      NSString	*path = lockPath(_defaultsDatabase, NO);
 
@@ -2067,6 +2075,7 @@ static BOOL isPlistObject(id o)
 		}
 	    }
 	}
+      DESTROY(_changedDomains);
     }
   NS_HANDLER
     {
@@ -2147,9 +2156,7 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -2194,9 +2201,7 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -2328,9 +2333,7 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -2360,9 +2363,7 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 
@@ -2612,9 +2613,7 @@ NSDictionary *GSPrivateDefaultLocale()
   NS_ENDHANDLER
   if (haveChange)
     {
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      [self _didChange];
     }
 }
 

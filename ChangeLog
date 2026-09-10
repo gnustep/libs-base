@@ -1,3 +1,15 @@
+2026-09-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSUserDefaults.h:
+	* Source/NSUserDefaults.m:
+	Posting of NSUserDefaultsDidChangeNotification deferred until the
+	next -synchronize so that it's possible to manipulate defaults
+	locally without interruption by notifications.
+	* Tests/base/NSUserDefaults/general.m:
+	* Tests/base/NSUserDefaults/notifications.m:
+	Update notification tests by calling -synchronize to 'flush' the
+	notification.
+
 2026-09-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPathUtilities.h:
