@@ -72,6 +72,7 @@
 #endif
 
 #import "GSPrivate.h"
+#import "GSPThread.h"
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
@@ -115,6 +116,74 @@ static BOOL		hasSharedDefaults = NO;
  * information.
  */
 static int		flags[GSUserDefaultMaxFlag] = { 0 };
+
+/* Every change to what a lookup can see increments this counter while the
+ * lock of the defaults object making the change is held, and a thread keeps
+ * the answers it has already been given along with the value the counter had
+ * when it got them.  An answer from an earlier generation is never used, so a
+ * thread whose defaults have not changed since it last looked answers from
+ * its own table and does not take the lock.  A new defaults object increments
+ * the counter as it sets up its volatile domains, so an entry cannot survive
+ * into an unrelated object which happens to be allocated at the same address.
+ */
+#define	GS_DEFAULTS_MEMO_SIZE	16
+
+typedef struct {
+  NSUserDefaults	*owner;		// compared, never messaged
+  NSString		*key;		// retained
+  id			value;		// retained, nil is an answer
+  uint64_t		generation;	// zero while the entry is unused
+} GSDefaultsMemoEntry;
+
+static uint64_t		defaultsGeneration = 1;
+static gs_thread_key_t	defaultsMemoKey;
+static BOOL		defaultsMemoKeyReady = NO;
+
+static void
+defaultsMemoFree(void *memo)
+{
+  GSDefaultsMemoEntry	*entries = (GSDefaultsMemoEntry*)memo;
+  unsigned		i;
+
+  for (i = 0; i < GS_DEFAULTS_MEMO_SIZE; i++)
+    {
+      RELEASE(entries[i].key);
+      RELEASE(entries[i].value);
+    }
+  free(entries);
+}
+
+static inline void
+defaultsDidChange(void)
+{
+  __atomic_fetch_add(&defaultsGeneration, 1, __ATOMIC_RELEASE);
+}
+
+static GSDefaultsMemoEntry*
+defaultsMemo(void)
+{
+  GSDefaultsMemoEntry	*memo;
+
+  if (NO == __atomic_load_n(&defaultsMemoKeyReady, __ATOMIC_ACQUIRE))
+    {
+      return 0;
+    }
+  memo = GS_THREAD_KEY_GET(defaultsMemoKey);
+  if (0 == memo)
+    {
+      memo = calloc(GS_DEFAULTS_MEMO_SIZE, sizeof(GSDefaultsMemoEntry));
+      if (0 != memo)
+	{
+	  GS_THREAD_KEY_SET(defaultsMemoKey, memo);
+	  if (GS_THREAD_KEY_GET(defaultsMemoKey) != memo)
+	    {
+	      free(memo);
+	      memo = 0;
+	    }
+	}
+    }
+  return memo;
+}
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
  * a single persistent domain (represented as a property list file in
@@ -659,6 +728,10 @@ newLanguages(NSArray *oldNames)
 
       beenHere = YES;
       initializing = YES;
+      if (GS_THREAD_KEY_INIT(defaultsMemoKey, defaultsMemoFree))
+	{
+	  __atomic_store_n(&defaultsMemoKeyReady, YES, __ATOMIC_RELEASE);
+	}
       nextObjectSel = @selector(nextObject);
       objectForKeySel = @selector(objectForKey:);
       addSel = @selector(addEntriesFromDictionary:);
@@ -807,6 +880,7 @@ newLanguages(NSArray *oldNames)
 	{
 	  [defs->_lock lock];
 	  [defs->_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
+	  defaultsDidChange();
 	  [defs->_lock unlock];
 	}
     }
@@ -1028,6 +1102,7 @@ newLanguages(NSArray *oldNames)
       [defs persistentDomainForName: NSGlobalDomain];
       [defs->_searchList addObject: GSConfigDomain];
       [defs->_searchList addObject: NSRegistrationDomain];
+      defaultsDidChange();
 
       /* Load persistent data into the new instance.
        */
@@ -1049,6 +1124,7 @@ newLanguages(NSArray *oldNames)
           unsigned	index = [defs->_searchList count] - 1;
 
           [defs->_searchList insertObject: lang atIndex: index];
+          defaultsDidChange();
         }
 
       /* Set up language constants */
@@ -1294,6 +1370,7 @@ newLanguages(NSArray *oldNames)
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
   [_tempDomains setObject: GNUstepConfig(nil) forKey: GSConfigDomain];
+  defaultsDidChange();
 
   updateCache(self);
 
@@ -1380,6 +1457,7 @@ newLanguages(NSArray *oldNames)
   NS_DURING
     {
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       [_searchList removeObject: aName];
       index = [_searchList indexOfObject: bundleIdentifier];
       index = (index == NSNotFound) ? 0 : (index + 1);
@@ -1485,7 +1563,23 @@ newLanguages(NSArray *oldNames)
 
 - (id) objectForKey: (NSString*)defaultName
 {
-  id	object = nil;
+  id			object = nil;
+  GSDefaultsMemoEntry	*memo = defaultsMemo();
+  GSDefaultsMemoEntry	*entry = 0;
+  uint64_t		generation = 0;
+
+  if (0 != memo && nil != defaultName)
+    {
+      entry = memo + ([defaultName hash] % GS_DEFAULTS_MEMO_SIZE);
+      if (entry->owner == self
+	&& entry->generation
+	  == __atomic_load_n(&defaultsGeneration, __ATOMIC_ACQUIRE)
+	&& (entry->key == defaultName
+	  || [entry->key isEqual: defaultName]))
+	{
+	  return AUTORELEASE(RETAIN(entry->value));
+	}
+    }
 
   [_lock lock];
   NS_DURING
@@ -1513,6 +1607,7 @@ newLanguages(NSArray *oldNames)
 	    break;
         }
       RETAIN(object);
+      generation = __atomic_load_n(&defaultsGeneration, __ATOMIC_RELAXED);
       GS_ENDITEMBUF();
       [_lock unlock];
     }
@@ -1522,6 +1617,19 @@ newLanguages(NSArray *oldNames)
       [localException raise];
     }
   NS_ENDHANDLER
+
+  if (0 != entry)
+    {
+      NSString	*oldKey = entry->key;
+      id	oldValue = entry->value;
+
+      entry->owner = self;
+      entry->key = [defaultName copy];
+      entry->value = RETAIN(object);
+      entry->generation = generation;
+      RELEASE(oldKey);
+      RELEASE(oldValue);
+    }
   return AUTORELEASE(object);
 }
 
@@ -1800,6 +1908,7 @@ static BOOL isPlistObject(id o)
           NSString	*n;
 
           DESTROY(_dictionaryRep);
+          defaultsDidChange();
           RELEASE(_searchList);
           _searchList = [newList mutableCopy];
           /* Ensure that any domains we need are loaded.
@@ -2022,6 +2131,7 @@ static BOOL isPlistObject(id o)
 	      if (YES == haveChange)
 		{
 		  DESTROY(_dictionaryRep);
+		  defaultsDidChange();
 		}
 
 	      if (_changedDomains != nil)
@@ -2131,6 +2241,7 @@ static BOOL isPlistObject(id o)
   NS_DURING
     {
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       [_tempDomains removeObjectForKey: domainName];
       if ([_searchList containsObject: domainName])
         {
@@ -2176,6 +2287,7 @@ static BOOL isPlistObject(id o)
         }
 
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       domain = [domain mutableCopy];
       [_tempDomains setObject: domain forKey: domainName];
       RELEASE(domain);
@@ -2315,6 +2427,7 @@ static BOOL isPlistObject(id o)
           [_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
         }
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       [regDefs addEntriesFromDictionary: newVals];
       updateCache(self);
       haveChange = YES;
@@ -2347,6 +2460,7 @@ static BOOL isPlistObject(id o)
   NS_DURING
     {
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       [_searchList removeObject: aName];
       updateCache(self);
       haveChange = YES;
@@ -2588,6 +2702,7 @@ NSDictionary *GSPrivateDefaultLocale()
   NS_DURING
     {
       DESTROY(_dictionaryRep);
+      defaultsDidChange();
       if (_changedDomains == nil)
         {
           _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
@@ -2914,6 +3029,7 @@ static BOOL isLocked = NO;
           [removed addObject: aKey];
         }
       [contents removeObjectForKey: aKey];
+      defaultsDidChange();
       return YES;
     }
   else
@@ -2941,6 +3057,7 @@ static BOOL isLocked = NO;
             }
         }
       [contents setObject: anObject forKey: aKey];
+      defaultsDidChange();
       return YES;
     }
 }
@@ -3058,6 +3175,7 @@ setPermissions(NSString *file)
                 }
             }
           ASSIGN(contents, disk);
+          defaultsDidChange();
         }
       if (YES == hasLocalChanges)
         {
