@@ -1097,12 +1097,9 @@ static Class NSMutableSet_concrete_class;
  */
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  unsigned	i, c = [array count];
-
-  for (i = 0; i < c; i++)
-    {
-      [self addObject: [array objectAtIndex: i]];
-    }
+  GS_FOR_IN(id, o, array)
+  [self addObject: o];
+  GS_END_FOR(array)
 }
 
 /**

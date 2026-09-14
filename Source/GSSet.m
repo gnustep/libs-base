@@ -310,17 +310,14 @@ static Class	mutableSetClass;
     }
   else
     {
-      NSEnumerator	*e;
-      id		o;
-
-      e = [otherSet objectEnumerator];
-      while ((o = [e nextObject])) // 1. pick a member from otherSet.
+      GS_FOR_IN(id, o, otherSet)
 	{
 	  if (GSIMapNodeForKey(&map, (GSIMapKey)o) != 0)
 	    {
 	      return YES;
 	    }
 	}
+      GS_END_FOR(otherSet)
     }
   return NO;
 }
@@ -581,29 +578,18 @@ static Class	mutableSetClass;
 
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  NSUInteger	count = [array count];
-
-  while (count-- > 0)
+  GS_FOR_IN(id, anObject, array)
     {
-      id	anObject = [array objectAtIndex: count];
+      GSIMapNode node;
 
-      if (anObject == nil)
+      node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+      if (node == 0)
 	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Tried to add nil to set"];
-	}
-      else
-	{
-	  GSIMapNode node;
-
-	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	  if (node == 0)
-	    {
-	      GSIMapAddKey(&map, (GSIMapKey)anObject);
-	      _version++;
-	    }
+	  GSIMapAddKey(&map, (GSIMapKey)anObject);
+	  _version++;
 	}
     }
+  GS_END_FOR(array)
 }
 
 /* Override _version from GSSet */
@@ -747,14 +733,12 @@ static Class	mutableSetClass;
     }
   else
     {
-      NSEnumerator	*e = [other objectEnumerator];
-      id		anObject;
-
-      while ((anObject = [e nextObject]) != nil)
+      GS_FOR_IN(id, anObject, other)
 	{
 	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
 	  _version++;
 	}
+      GS_END_FOR(other)
     }
 }
 
@@ -778,26 +762,18 @@ static Class	mutableSetClass;
 {
   if (other != self)
     {
-      NSEnumerator	*e = [other objectEnumerator];
-
-      if (e != nil)
+      GS_FOR_IN(id, anObject, other)
 	{
-	  id	anObject;
-	  SEL	sel = @selector(nextObject);
-	  IMP	imp = [e methodForSelector: sel];
+	  GSIMapNode node;
 
-	  while ((anObject = (*imp)(e, sel)) != nil)
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	  if (node == 0)
 	    {
-	      GSIMapNode node;
-
-	      node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	      if (node == 0)
-		{
-		  GSIMapAddKey(&map, (GSIMapKey)anObject);
-		  _version++;
-		}
+	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	      _version++;
 	    }
 	}
+      GS_END_FOR(other)
     }
 }
 
