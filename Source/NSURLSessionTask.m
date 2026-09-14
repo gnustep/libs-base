@@ -856,18 +856,16 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (properties & GSURLSessionStoresDataInMemory)
     {
-      NSMutableData	*data;
+      NSMutableArray	*fragments;
 
-      data = [taskData objectForKey: taskTransferDataKey];
-      if (!data)
+      fragments = [taskData objectForKey: taskTransferDataKey];
+      if (!fragments)
         {
-          data = [[NSMutableData alloc] init];
-          /* Strong reference maintained by taskData */
-          [taskData setObject: data forKey: taskTransferDataKey];
-          [data release];
+          fragments = [[NSMutableArray alloc] initWithCapacity: 100];
+          [taskData setObject: fragments forKey: taskTransferDataKey];
+          [fragments release];
         }
-
-      [data appendData: dataFragment];
+      [fragments addObject: dataFragment];
     }
   else if (properties & GSURLSessionWritesDataToFile)
     {
@@ -1611,6 +1609,34 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return handle;
 } /* _createTemporaryFileHandleWithError */
 
+static NSData *
+combineFragments(NSArray *fragments)
+{
+  NSUInteger	count = [fragments count];
+  NSMutableData	*m;
+
+  if (0 == count)
+    {
+      return nil;
+    }
+  if (1 == count)
+    {
+      return [fragments lastObject];
+    }
+
+  count = 0;
+  for (NSData *d in fragments)
+    {
+      count += [d length];
+    }
+  m = [NSMutableData dataWithCapacity: count];
+  for (NSData *d in fragments)
+    {
+      [m appendData: d];
+    }
+  return m;
+}
+
 /* Called in _checkForCompletion */
 - (void) _transferFinishedWithCode: (CURLcode)code
 {
@@ -1684,17 +1710,19 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     && [self isKindOfClass: dataTaskClass])
     {
       NSURLSessionDataTask	*dataTask;
-      NSData 			*data;
+      NSMutableArray		*fragments;
+      NSData			*combined;
 
       NSInvocation	*inv;
       NSURLResponse	*response = internal->_response;
 
       dataTask = (NSURLSessionDataTask *)self;
-      data = [internal->_taskData objectForKey: taskTransferDataKey];
+      fragments = [internal->_taskData objectForKey: taskTransferDataKey];
+      combined = combineFragments(fragments);
 
       inv = GSURLSessionInvocation(dataTask,
 	@selector(_callDataCompletionHandlerWithData:response:error:));
-      [inv setArgument: &data atIndex: 2];
+      [inv setArgument: &combined atIndex: 2];
       [inv setArgument: &response atIndex: 3];
       [inv setArgument: &error atIndex: 4];
       [internal->_session _enqueueDelegateInvocation: inv];
