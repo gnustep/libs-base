@@ -172,8 +172,7 @@ typedef struct
 {
   NSURLSessionWebSocketMessage *message;
   NSData *payload;
-  // FIXME(hugo): make this portable
-  void (^completionHandler)(NSError *error);
+  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler;
   GSURLSessionWebSocketSendQueueEntryKind kind;
   NSURLSessionWebSocketMessageType dataType;
 } GSURLSessionWebSocketSendQueueEntry;
@@ -181,7 +180,7 @@ typedef struct
 static GSURLSessionWebSocketSendQueueEntry *
 GSURLSessionWebSocketDataSendQueueEntryCreate(
   NSURLSessionWebSocketMessage *message,
-  void (^completionHandler)(NSError *error))
+  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler)
 {
   GSURLSessionWebSocketSendQueueEntry *entry;
   NSData *payload;
@@ -212,7 +211,6 @@ GSURLSessionWebSocketDataSendQueueEntryCreate(
 
   entry->kind = GSURLSessionWebSocketSendQueueEntryKindData;
   entry->payload = RETAIN(payload);
-  // FIXME(hugo): make portable
   entry->completionHandler = _Block_copy(completionHandler);
   entry->dataType = type;
   return entry;
@@ -254,8 +252,6 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
 typedef void (^GSURLSessionWebSocketReceiveHandler)(
   NSURLSessionWebSocketMessage *message,
   NSError *error);
-
-typedef void (^GSURLSessionWebSocketPingHandler)(NSError *error);
 
 static NSString *GSURLSessionWebSocketExceptionKey = @"GSWebSocketException";
 
@@ -605,7 +601,7 @@ WSTaskNotifyReceiveCompletionHandler(
 static void
 WSTaskNotifyCompletionHandler(
   NSURLSessionWebSocketTask *task,
-  void (^completionHandler)(NSError *error),
+  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler,
   NSError *error)
 {
   if (completionHandler == NULL)
@@ -627,6 +623,7 @@ WSTaskResume(NSURLSessionWebSocketTask *task, int direction)
 static void
 WSTaskScheduleResume(NSURLSessionWebSocketTask *task, int direction)
 {
+  // FIXME(hugo): Convert to NSInvocation
   /*
   [[task _session] _performOnWorkThread: ^{
       WSTaskResume(task, direction);
@@ -640,8 +637,9 @@ WSTaskNotifyPingCompletionHandlers(
   NSArray *pingHandlers,
   NSError *error)
 {
-  GSURLSessionWebSocketPingHandler handler;
+  GSNSURLSessionWebSocketTaskCompletionHandler handler;
 
+  // FIXME(hugo): Fast iteration not supported in gcc
   for (handler in pingHandlers)
     {
       WSTaskNotifyCompletionHandler(task, handler, error);
@@ -682,6 +680,7 @@ WSTaskNotifyReceiveCompletionHandlers(
 {
   GSURLSessionWebSocketReceiveHandler handler;
 
+  // FIXME(hugo): Fast iteration not supported in GCC
   for (handler in receiveHandlers)
     {
       WSTaskNotifyReceiveCompletionHandler(task, handler, nil, error);
@@ -887,7 +886,7 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if ((controlFlags & CURLWS_PONG) != 0)
     {
-      GSURLSessionWebSocketPingHandler pingHandler;
+      GSNSURLSessionWebSocketTaskCompletionHandler pingHandler;
       BOOL shouldQueueNextPing;
 
       pingHandler = nil;
@@ -902,7 +901,7 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
         {
           if ([GSIVar(task, send).pingHandlers count] > 0)
             {
-              pingHandler = RETAIN((GSURLSessionWebSocketPingHandler)
+              pingHandler = RETAIN((GSNSURLSessionWebSocketTaskCompletionHandler)
                 [GSIVar(task, send).pingHandlers objectAtIndex: 0]);
               [GSIVar(task, send).pingHandlers removeObjectAtIndex: 0];
             }
