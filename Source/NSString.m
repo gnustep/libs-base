@@ -5198,6 +5198,11 @@ static NSFileManager *fm = nil;
   unsigned 	originalLength = l;
   unsigned	root;
 
+  if ([aString length] == 0)
+    {
+      return IMMUTABLE(self);
+    }
+
   if (l == 0)
     {
       NSLog(@"[%@-%@] cannot append extension '%@' to empty string",
