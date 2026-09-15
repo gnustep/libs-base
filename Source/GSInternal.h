@@ -74,6 +74,14 @@
  */
 #if	!GS_NONFRAGILE
 
+/* A subclass of a class using GSInternal may modify the variable name. This is
+ * because the Objective-C compiler does not allow duplicate private instance
+ * variable names.
+ */
+#if !defined(GS_INTERNAL_NAME)
+   #define GS_INTERNAL_NAME _internal
+#endif
+
 /* Code for when we don't have non-fragile instance variables
  */
 
@@ -92,12 +100,12 @@ GS_##name##_IVARS; \
 /* Create holder for internal ivars.
  */
 #define	GS_CREATE_INTERNAL(name) \
-if (nil == _internal) { _internal = [name ## Internal new]; }
+if (nil == GS_INTERNAL_NAME) { GS_INTERNAL_NAME = [name ## Internal new]; }
 
 /* Destroy holder for internal ivars.
  */
 #define	GS_DESTROY_INTERNAL(name) \
-if (nil != _internal) { [_internal release]; _internal = nil; }
+if (nil != GS_INTERNAL_NAME) { [GS_INTERNAL_NAME release]; GS_INTERNAL_NAME = nil; }
 
 /* Create a new copy of the current object's internal class and place
  * it in the destination instance.  This produces a bitwise copy, and you
@@ -105,18 +113,18 @@ if (nil != _internal) { [_internal release]; _internal = nil; }
  * macro.
  * Use this only where D is a new copy of the current instance.
  */
-#define	GS_COPY_INTERNAL(D,Z) (D)->_internal = NSCopyObject(_internal, 0, (Z));
+#define	GS_COPY_INTERNAL(D,Z) (D)->GS_INTERNAL_NAME = NSCopyObject(GS_INTERNAL_NAME, 0, (Z));
 
 /* Checks to see if internal instance variables exist ... use in -dealloc if
  * there is any chance that the instance is being deallocated before they
  * were created.
  */
-#define	GS_EXISTS_INTERNAL	(nil == _internal ? NO : YES)
+#define	GS_EXISTS_INTERNAL	(nil == GS_INTERNAL_NAME ? NO : YES)
 
 #undef	internal
-#define	internal	((GSInternal*)_internal)
+#define	internal	((GSInternal*)(GS_INTERNAL_NAME))
 #undef	GSIVar
-#define	GSIVar(X,Y)	(((GSInternal*)((X)->_internal))->Y)
+#define	GSIVar(X,Y)	(((GSInternal*)((X)->GS_INTERNAL_NAME))->Y)
 
 #else	/* GS_NONFRAGILE */
 
