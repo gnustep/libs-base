@@ -109,6 +109,7 @@ typedef struct
 #import "GSURLPrivate.h"
 #include <assert.h>
 
+#define GS_INTERNAL_NAME _internal2
 #define GSInternal NSURLSessionWebSocketTaskInternal
 #include "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSURLSessionWebSocketTask)
@@ -172,7 +173,7 @@ typedef struct
 {
   NSURLSessionWebSocketMessage *message;
   NSData *payload;
-  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler;
+  GSNSURLSessionWebSocketTaskHandler completionHandler;
   GSURLSessionWebSocketSendQueueEntryKind kind;
   NSURLSessionWebSocketMessageType dataType;
 } GSURLSessionWebSocketSendQueueEntry;
@@ -180,7 +181,7 @@ typedef struct
 static GSURLSessionWebSocketSendQueueEntry *
 GSURLSessionWebSocketDataSendQueueEntryCreate(
   NSURLSessionWebSocketMessage *message,
-  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler)
+  GSNSURLSessionWebSocketTaskHandler completionHandler)
 {
   GSURLSessionWebSocketSendQueueEntry *entry;
   NSData *payload;
@@ -248,10 +249,6 @@ GSURLSessionWebSocketSendQueueEntryDestroy(
   _Block_release(entry->completionHandler);
   free(entry);
 }
-
-typedef void (^GSURLSessionWebSocketReceiveHandler)(
-  NSURLSessionWebSocketMessage *message,
-  NSError *error);
 
 static NSString *GSURLSessionWebSocketExceptionKey = @"GSWebSocketException";
 
@@ -523,17 +520,17 @@ WSTaskCompleteClosingIfReadyLocked(NSURLSessionWebSocketTask *task)
   return NO;
 }
 
-static GSURLSessionWebSocketReceiveHandler
+static GSNSURLSessionWebSocketTaskReceiveHandler
 GSURLSessionWebSocketPopReceiveHandlerLocked(NSURLSessionWebSocketTask *task)
 {
-  GSURLSessionWebSocketReceiveHandler handler;
+  GSNSURLSessionWebSocketTaskReceiveHandler handler;
 
   if ([GSIVar(task, receive).handlers count] == 0)
     {
       return nil;
     }
 
-  handler = RETAIN((GSURLSessionWebSocketReceiveHandler)
+  handler = RETAIN((GSNSURLSessionWebSocketTaskReceiveHandler)
     [GSIVar(task, receive).handlers objectAtIndex: 0]);
   [GSIVar(task, receive).handlers removeObjectAtIndex: 0];
   return AUTORELEASE(handler);
@@ -584,7 +581,7 @@ GSURLSessionWebSocketDrainOutstandingWorkLocked(
 static void
 WSTaskNotifyReceiveCompletionHandler(
   NSURLSessionWebSocketTask *task,
-  GSURLSessionWebSocketReceiveHandler handler,
+  GSNSURLSessionWebSocketTaskReceiveHandler handler,
   NSURLSessionWebSocketMessage *message,
   NSError *error)
 {
@@ -601,7 +598,7 @@ WSTaskNotifyReceiveCompletionHandler(
 static void
 WSTaskNotifyCompletionHandler(
   NSURLSessionWebSocketTask *task,
-  GSNSURLSessionWebSocketTaskCompletionHandler completionHandler,
+  GSNSURLSessionWebSocketTaskHandler completionHandler,
   NSError *error)
 {
   if (completionHandler == NULL)
@@ -637,7 +634,7 @@ WSTaskNotifyPingCompletionHandlers(
   NSArray *pingHandlers,
   NSError *error)
 {
-  GSNSURLSessionWebSocketTaskCompletionHandler handler;
+  GSNSURLSessionWebSocketTaskHandler handler;
 
   // FIXME(hugo): Fast iteration not supported in gcc
   for (handler in pingHandlers)
@@ -678,7 +675,7 @@ WSTaskNotifyReceiveCompletionHandlers(
   NSURLSessionWebSocketTask *task,
   NSError *error)
 {
-  GSURLSessionWebSocketReceiveHandler handler;
+  GSNSURLSessionWebSocketTaskReceiveHandler handler;
 
   // FIXME(hugo): Fast iteration not supported in GCC
   for (handler in receiveHandlers)
@@ -776,7 +773,7 @@ static size_t
 ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   NSURLSessionWebSocketTask *task;
-  GSURLSessionWebSocketReceiveHandler handler;
+  GSNSURLSessionWebSocketTaskReceiveHandler handler;
   const struct curl_ws_frame *meta;
   NSURLSessionWebSocketMessage *message;
   GSURLSessionWebSocketReceivePhase messageState;
@@ -886,7 +883,7 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if ((controlFlags & CURLWS_PONG) != 0)
     {
-      GSNSURLSessionWebSocketTaskCompletionHandler pingHandler;
+      GSNSURLSessionWebSocketTaskHandler pingHandler;
       BOOL shouldQueueNextPing;
 
       pingHandler = nil;
@@ -901,7 +898,7 @@ ws_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
         {
           if ([GSIVar(task, send).pingHandlers count] > 0)
             {
-              pingHandler = RETAIN((GSNSURLSessionWebSocketTaskCompletionHandler)
+              pingHandler = RETAIN((GSNSURLSessionWebSocketTaskHandler)
                 [GSIVar(task, send).pingHandlers objectAtIndex: 0]);
               [GSIVar(task, send).pingHandlers removeObjectAtIndex: 0];
             }
