@@ -919,7 +919,6 @@ testInvalidateAndCancel(NSURL *baseURL)
       NSURLSessionTask	*t;
 
       t = [session dataTaskWithURL: contentOKURL];
-      [t trackOwnership];
       [t resume];
     }
 
