@@ -26,6 +26,7 @@
 #import "GSRunLoopScheduler.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSMapTable.h"
+#import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSZone.h"
 
