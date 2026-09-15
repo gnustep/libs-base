@@ -176,6 +176,7 @@ GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
 GSRunLoopCtxt.m \
+GSRunLoopScheduler.m \
 GSRunLoopWatcher.m \
 GSSet.m \
 GSShellSort.m \

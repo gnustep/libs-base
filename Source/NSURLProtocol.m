@@ -40,6 +40,7 @@
 
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
+#import "GSRunLoopScheduler.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
@@ -439,6 +440,8 @@ typedef struct {
   NSURLSessionTask  		*task;
   NSString                      *in;
   NSString                      *out;
+  GSRunLoopScheduler		*sched;
+  BOOL				loadingStarted;
 #if	USE_ZLIB
   z_stream			z;		// context for decompress
   BOOL				compressing;	// are we compressing?
@@ -564,15 +567,14 @@ typedef struct {
 	{
 	  [this->input setDelegate: nil];
 	  [this->output setDelegate: nil];
-	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-				 forMode: NSDefaultRunLoopMode];
-	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-				  forMode: NSDefaultRunLoopMode];
+	  [this->sched remove: this->input];
+	  [this->sched remove: this->output];
           [this->input close];
           [this->output close];
           DESTROY(this->input);
           DESTROY(this->output);
 	}
+      DESTROY(this->sched);
       DESTROY(this->in);
       DESTROY(this->out);
       DESTROY(this->cachedResponse);
@@ -598,7 +600,7 @@ typedef struct {
       _NSURLProtocolInternal = 0;
 #endif
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSString*) description
@@ -842,6 +844,7 @@ typedef struct {
 	@"GET",
 	@"POST",
 	@"PUT",
+	@"PATCH",
 	@"DELETE",
 	@"TRACE",
 	@"OPTIONS",
@@ -862,6 +865,24 @@ typedef struct {
     {
       NSLog(@"startLoading when load in progress");
       return;
+    }
+
+  if (nil == this->sched)
+    {
+      /* Get a copy of the run loop scheduling information from the connection
+       * if possible.  Otherwise use default values.
+       */
+      if ([this->client respondsToSelector: @selector(_scheduled)])
+	{
+	  this->sched = [(GSRunLoopScheduler*)
+	    [(NSURLConnection*)this->client _scheduled] copy];
+	}
+      if (nil == this->sched)
+	{
+	  this->sched = [GSRunLoopScheduler new];
+	  [this->sched scheduleInRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	}
     }
 
   _statusCode = 0;	/* No status returned yet.	*/
@@ -1045,10 +1066,9 @@ typedef struct {
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
-      [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			     forMode: NSDefaultRunLoopMode];
-      [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			      forMode: NSDefaultRunLoopMode];
+      [this->sched schedule: this->input];
+      [this->sched schedule: this->output];
+
       [this->input open];
       [this->output open];
     }
@@ -1069,10 +1089,8 @@ typedef struct {
     {
       [this->input setDelegate: nil];
       [this->output setDelegate: nil];
-      [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-			     forMode: NSDefaultRunLoopMode];
-      [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-			      forMode: NSDefaultRunLoopMode];
+      [this->sched remove: this->input];
+      [this->sched remove: this->output];
       [this->input close];
       [this->output close];
       DESTROY(this->input);
@@ -1496,10 +1514,8 @@ typedef struct {
 		}
 	    }
 
-	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-				 forMode: NSDefaultRunLoopMode];
-	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-				  forMode: NSDefaultRunLoopMode];
+	  [this->sched remove: this->input];
+	  [this->sched remove: this->output];
 	  if (_shouldClose == YES)
 	    {
 	      [this->input setDelegate: nil];
@@ -1508,6 +1524,7 @@ typedef struct {
 	      [this->output close];
 	      DESTROY(this->input);
 	      DESTROY(this->output);
+	      DESTROY(this->sched);
 	    }
 
 	  /*
@@ -1734,9 +1751,7 @@ typedef struct {
 	      NSLog(@"%@ request sent ... closing", self);
 	    }
 	  [this->output setDelegate: nil];
-	  [this->output removeFromRunLoop:
-	    [NSRunLoop currentRunLoop]
-	    forMode: NSDefaultRunLoopMode];
+	  [this->sched remove: this->output];
 	  [this->output close];
 	  DESTROY(this->output);
 	}
@@ -2039,10 +2054,21 @@ typedef struct {
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
-      [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			     forMode: NSDefaultRunLoopMode];
-      [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			      forMode: NSDefaultRunLoopMode];
+      if ([this->client respondsToSelector: @selector(_scheduled)])
+	{
+	  /* Get a copy of the run loop scheduling information from connection
+	   */
+	  this->sched = [(GSRunLoopScheduler*)
+	    [this->client performSelector: @selector(_scheduled)] copy];
+	}
+      else
+	{
+	  this->sched = [GSRunLoopScheduler new];
+	  [this->sched scheduleInRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	}
+      [this->sched schedule: this->input];
+      [this->sched schedule: this->output];
       // set socket options for ftps requests
       [this->input open];
       [this->output open];
@@ -2055,14 +2081,13 @@ typedef struct {
     {
       [this->input setDelegate: nil];
       [this->output setDelegate: nil];
-      [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-			     forMode: NSDefaultRunLoopMode];
-      [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-			      forMode: NSDefaultRunLoopMode];
+      [this->sched remove: this->input];
+      [this->sched remove: this->output];
       [this->input close];
       [this->output close];
       DESTROY(this->input);
       DESTROY(this->output);
+      DESTROY(this->sched);
     }
 }
 

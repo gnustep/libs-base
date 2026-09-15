@@ -1,3 +1,15 @@
+2026-09-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile:
+	* Source/GSRunLoopScheduler.h:
+	* Source/GSRunLoopScheduler.m:
+	Build new internal utility class for recording scheduling
+	of an object in multiple runloop/mode combinations.
+	* Source/NSURLConnection.m: Use GSRunLoopScheduler to record the
+	schedulign of the connection.
+	* Source/NSURLProtocol.m: Get the scheduling of the owning connection
+	and use it to schedule the streams performing the I/O.
+
 2026-09-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSUserDefaults.h:

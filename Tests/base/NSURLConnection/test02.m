@@ -9,10 +9,10 @@
 int main(int argc, char **argv, char **env)
 {
   START_SET("test02")
-  NSFileManager *fm;
-  NSBundle *bundle;
-  BOOL loaded;
-  NSString *helperPath;
+  NSFileManager	*fm;
+  NSBundle	*bundle;
+  BOOL		loaded;
+  NSString	*helperPath;
 
 #if defined(_WIN64) && defined(_MSC_VER)
 //  SKIP("NSURLConnection tests fail on 64-bit Windows with Clang/MSVC.")
@@ -22,7 +22,7 @@ int main(int argc, char **argv, char **env)
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
-		 stringByAppendingString: @"/Helpers/TestConnection.bundle"];
+    stringByAppendingString: @"/Helpers/TestConnection.bundle"];
   bundle = [NSBundle bundleWithPath: helperPath];
   loaded = [bundle load];
 
@@ -50,8 +50,8 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			nil];
+	server, @"Instance", // we use the shared TestWebServer instance
+	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess], "GET http://localhost/");
@@ -66,11 +66,11 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"400", @"Path",       // request the handler responding with 400
-			@"400", @"StatusCode", // the expected status code
-			@"You have issued a request with invalid data", @"Content", // the expected response's body
-			nil];
+	server, @"Instance",	// we use the shared TestWebServer instance
+	@"400", @"Path",      	// request the handler responding with 400
+	@"400", @"StatusCode",	// the expected status code
+	@"You have issued a request with invalid data", @"Content", // the expected response's body
+	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess], "response 400 .... GET http://localhost/400");
@@ -85,13 +85,13 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"400", @"Path",       // request the handler responding with 400
-			@"400", @"StatusCode", // the expected status code
-			@"You have issued a request with invalid data", @"Content", // the expected response's body
-			@"Some payload", @"Payload", // the custom payload
-			@"POST", @"Method",    // use POST
-			nil];
+	server, @"Instance", // we use the shared TestWebServer instance
+	@"400", @"Path",       // request the handler responding with 400
+	@"400", @"StatusCode", // the expected status code
+	@"You have issued a request with invalid data", @"Content", // the expected response's body
+	@"Some payload", @"Payload", // the custom payload
+	@"POST", @"Method",    // use POST
+	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess], "payload... response 400 .... POST http://localhost/400");
@@ -112,12 +112,12 @@ int main(int argc, char **argv, char **env)
 			    nil];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"/301", @"Path",      // request the handler responding with a redirect
-			@"/", @"RedirectPath", // the URL's path of redirecting
-			@"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
-			refs, @"ReferenceFlags", // the expected reference set difference
-			nil];      
+	server, @"Instance",	// we use the shared TestWebServer instance
+	@"/301", @"Path",	// request the handler responding with a redirect
+	@"/", @"RedirectPath",	// the URL's path of redirecting
+	@"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
+	refs, @"ReferenceFlags", // the expected reference set difference
+	nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
       PASS([testCase isSuccess], "redirecting... GET http://localhost/301");
