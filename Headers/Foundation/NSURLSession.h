@@ -518,31 +518,37 @@ GS_EXPORT_CLASS
 
 
 /* Used in -sendMessage:completionHandler: and -sendPingWithPongReceiveHandler: */
-DEFINE_BLOCK_TYPE(GSNSURLSessionWebSocketTaskCompletionHandler,
+DEFINE_BLOCK_TYPE(GSNSURLSessionWebSocketTaskHandler,
   void, NSError *_Nullable);
-DEFINE_BLOCK_TYPE(GSNSURLSessionWebSocketTaskReceiveCompletionHandler,
+DEFINE_BLOCK_TYPE(GSNSURLSessionWebSocketTaskReceiveHandler,
   void, NSURLSessionWebSocketMessage *_Nullable, NSError *_Nullable);
 
 GS_EXPORT_CLASS
 @interface NSURLSessionWebSocketTask : NSURLSessionTask
 {
-#if GS_NONFRAGILE
-# if defined(GS_NSURLSessionWebSocketTask_IVARS)
-@public GS_NSURLSessionWebSocketTask_IVARS
-# endif
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSURLSessionWebSocketTask_IVARS)
+@public
+GS_NSURLSessionWebSocketTask_IVARS;
+#  endif
 #else
-@private id _internal GS_UNUSED_IVAR;
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+@private id _internal2 GS_UNUSED_IVAR;
 #endif
 }
 
 - (void) cancelWithCloseCode: (NSURLSessionWebSocketCloseCode)closeCode
                       reason: (NSData * _Nullable)reason;
 - (void) sendMessage: (NSURLSessionWebSocketMessage *)message
-   completionHandler: (GSNSURLSessionWebSocketTaskCompletionHandler)completionHandler;
+   completionHandler: (GSNSURLSessionWebSocketTaskHandler)completionHandler;
 - (void) receiveMessageWithCompletionHandler:
-  (GSNSURLSessionWebSocketTaskReceiveCompletionHandler)completionHandler;
+  (GSNSURLSessionWebSocketTaskReceiveHandler)completionHandler;
 - (void) sendPingWithPongReceiveHandler:
-  (GSNSURLSessionWebSocketTaskCompletionHandler)pongReceiveHandler;
+  (GSNSURLSessionWebSocketTaskHandler)pongReceiveHandler;
 
 - (NSInteger) maximumMessageSize;
 - (void) setMaximumMessageSize: (NSInteger)maximumMessageSize;

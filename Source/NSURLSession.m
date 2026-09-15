@@ -904,7 +904,9 @@ static NSURLSession * sharedSession = nil;
   int 		action = 0;
 
 #if GS_HAVE_NSURLSESSION_WEBSOCKETS
-  for (NSURLSessionTask *task in _tasks)
+  NSEnumerator *enumerator = [internal->_tasks objectEnumerator];
+  NSURLSessionTask *task;
+  while ((task = [enumerator nextObject]))
     {
       if ([task isKindOfClass: [NSURLSessionWebSocketTask class]])
         {
