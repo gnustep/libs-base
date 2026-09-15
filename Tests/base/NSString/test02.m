@@ -81,6 +81,9 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   
   PASS([[@"/home/nicola." stringByAppendingPathExtension: @"jpg"] isEqual: @"/home/nicola..jpg"],
        "'/home/nicola.' stringByAppendingPathExtension:'jpg' == '/home/nicola..jpg'");
+
+  PASS([[@"/home/nicola" stringByAppendingPathExtension: @""] isEqual: @"/home/nicola"],
+       "'/home/nicola' stringByAppendingPathExtension:'' == '/home/nicola'");
   
   /* in the guile version of this test the description was different than the 
      test i've updated it for the description to be the same as the test not
