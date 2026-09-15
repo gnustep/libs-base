@@ -9,6 +9,7 @@
 	schedulign of the connection.
 	* Source/NSURLProtocol.m: Get the scheduling of the owning connection
 	and use it to schedule the streams performing the I/O.
+	* Source/NSUserDefaults.m: Fix memory leaks when resetting defaults
 
 2026-09-10 Richard Frith-Macdonald <rfm@gnu.org>
 

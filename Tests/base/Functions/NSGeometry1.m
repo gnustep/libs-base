@@ -159,11 +159,11 @@ geom_string()
 
 int main()
 { 
-  NSAutoreleasePool   *pool = [NSAutoreleasePool new];
+  ENTER_POOL
 
   geom_string();
   
-  [pool release]; pool = nil;
+  LEAVE_POOL
  
   return 0;
 }

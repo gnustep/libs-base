@@ -786,6 +786,7 @@ newLanguages(NSArray *oldNames)
           /* Ensure changes are written, and no changes left.
            */
           [sharedDefaults synchronize];
+	  DESTROY(sharedDefaults);
 	}
       hasSharedDefaults = NO;
       [classLock unlock];
@@ -2268,7 +2269,7 @@ static BOOL isPlistObject(id o)
           nImp = [enumerator methodForSelector: nextObjectSel];
 
           dictRep = [NSMutableDictionaryClass alloc];
-          dictRep = [dictRep initWithCapacity: 512];
+          dictRep = AUTORELEASE([dictRep initWithCapacity: 512]);
           addImp = [dictRep methodForSelector: addSel];
 
           while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
@@ -2289,7 +2290,7 @@ static BOOL isPlistObject(id o)
                   (*addImp)(dictRep, addSel, dict);
                 }
 	    }
-          _dictionaryRep = GS_IMMUTABLE(dictRep);
+          ASSIGN(_dictionaryRep, GS_IMMUTABLE(dictRep));
         }
       rep = AUTORELEASE(RETAIN(_dictionaryRep));
       [_lock unlock];
