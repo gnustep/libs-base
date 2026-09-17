@@ -82,6 +82,15 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   PASS([[@"/home/nicola." stringByAppendingPathExtension: @"jpg"] isEqual: @"/home/nicola..jpg"],
        "'/home/nicola.' stringByAppendingPathExtension:'jpg' == '/home/nicola..jpg'");
 
+  PASS([[@"/home/nicola/" stringByAppendingPathExtension: @"jpg"] isEqual: @"/home/nicola.jpg"],
+       "'/home/nicola/' stringByAppendingPathExtension:'jpg' == '/home/nicola.jpg'");
+
+  PASS([[@"/home/nicola." stringByAppendingPathExtension: @""] isEqual: @"/home/nicola."],
+       "'/home/nicola.' stringByAppendingPathExtension:'' == '/home/nicola.'");
+
+  PASS([[@"/home/nicola/" stringByAppendingPathExtension: @""] isEqual: @"/home/nicola/"],
+       "'/home/nicola/' stringByAppendingPathExtension:'' == '/home/nicola/'");
+
   PASS([[@"/home/nicola" stringByAppendingPathExtension: @""] isEqual: @"/home/nicola"],
        "'/home/nicola' stringByAppendingPathExtension:'' == '/home/nicola'");
   
