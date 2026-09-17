@@ -30,6 +30,8 @@
   __c11_atomic_load(object, order)
 #define	gs_atomic_store_explicit(object, desired, order) \
   __c11_atomic_store(object, desired, order)
+#define gs_atomic_exchange_explicit(object, desired, order) \
+  __c11_atomic_exchange_explicit(object, desired, order);
 
 #else
 
@@ -75,5 +77,7 @@ __extension__ ({ \
   gs_atomic_load_explicit(object, __ATOMIC_SEQ_CST)
 #define	gs_atomic_store(object, desired) \
   gs_atomic_store_explicit(object, desired, __ATOMIC_SEQ_CST)
+#define gs_atomic_exchange(object, desired) \
+  gs_atomic_exchange_explicit(object, desired, __ATOMIC_SEQ_CST)
 
 #endif // _GSAtomic_h_
