@@ -35,9 +35,22 @@
 @interface
   NSURLSessionTask(Private)
 
-- (instancetype)initWithSession: (NSURLSession *)session
- request: (NSURLRequest *)request
- taskIdentifier: (NSUInteger)identifier;
+/**
+ * Initialize an NSURLSessionTask object for HTTP transfers.
+ */
+- (instancetype) initWithSession: (NSURLSession *)session
+  request: (NSURLRequest *)request
+  taskIdentifier: (NSUInteger)identifier;
+
+/**
+ * Initialize an NSURLSessionTask object with an existing
+ * Curl easy handle. A transfer of ownership occurs, and
+ * the task object will cleanup the handle during deallocation.
+ */
+- (instancetype) initWithSession: (NSURLSession *)session
+  request: (NSURLRequest *)request
+  taskIdentifier: (NSUInteger)identifier
+  easyHandle: (CURL *) handle;
 
 -(CURL *)_easyHandle;
 
