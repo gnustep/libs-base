@@ -169,6 +169,7 @@ static NSString *taskWebSocketDidCloseKey = @"webSocketDidClose";
 }
 
 @end
+
 typedef struct
 {
   NSURLSessionWebSocketMessage *message;
@@ -1313,6 +1314,55 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 
 @implementation  NSURLSessionWebSocketTask
 
+- (instancetype) initWebSocketTask: (NSURLSession *)session
+                           request: (NSURLRequest *)request
+                    taskIdentifier: (NSUInteger)identifier
+{
+  // Setup a new easy handle
+  CURL *handle;
+
+  handle = curl_easy_init();
+  if (handle == NULL)
+  {
+    return nil;
+  }
+
+  self = [super initWithSession: session
+                         request: request
+                  taskIdentifier: identifier
+                      easyHandle: handle];
+  if (self != nil)
+    {
+      /* Configure the Curl easy handle
+       */
+      [self _initializeEasyHandleForRequest: request];
+      [self _configureTransferCallbacks];
+      [self _configureProtocolOptionsForRequest: request
+                                    configuration: [session configuration]];
+
+      /* Initialize all other ivars
+       */
+      GS_CREATE_INTERNAL(NSURLSessionWebSocketTask);
+      GS_MUTEX_INIT(internal->mutex);
+      internal->send.queue = [[NSMutableArray alloc] init];
+      internal->receive.handlers = [[NSMutableArray alloc] init];
+      internal->send.pingHandlers = [[NSMutableArray alloc] init];
+      internal->receive.buffer = [[NSMutableData alloc] init];
+      internal->receive.controlBuffer = [[NSMutableData alloc] init];
+      internal->receive.maximumMessageSize = 1024 * 1024;
+      GSURLSessionWebSocketClearActiveSendEntryLocked(self);
+      internal->lifecycle.phase = GSURLSessionWebSocketLifecycleStateOpen;
+      internal->receive.phase = GSURLSessionWebSocketReceiveStateIdle;
+      internal->send.nextPingIdentifier = 1;
+      internal->receive.frameOffset = 0;
+      internal->send.frameStartRetryPending = NO;
+      internal->lifecycle.closeFrameSent = NO;
+      internal->lifecycle.closeFrameReceived = NO;
+    }
+
+  return self;
+}
+
 - (void) _notifyDidOpenWithProtocol: (NSString *)protocol
 {
   id delegate;
@@ -1341,86 +1391,47 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     }
 }
 
-- (instancetype) initWebSocketTask: (NSURLSession *)session
-                           request: (NSURLRequest *)request
-                    taskIdentifier: (NSUInteger)identifier
-{
-  self = [super initWithSession: session
-                         request: request
-                  taskIdentifier: identifier];
-  if (self != nil)
-    {
-      // An easy-handle was created in the initializer of the superclass for
-      // HTTP transfers. Delete it to reinitialise the easy handle for
-      // WebSocket.
-      //
-      // TODO(hugo): This is quite ugly and should be refactored, as the
-      // NSURLSessionTask class was originally designed for HTTP transfers. With
-      // this, we rely on the implementation detail of the superclass.
-      curl_easy_cleanup([self _easyHandle]);
-      [self _setEasyHandle: NULL];
-      [self _initializeEasyhandleForRequest: request];
-      [self _configureTransferCallbacks];
-      [self _configureProtocolOptionsForRequest: request
-                                    configuration: [session configuration]];
-      GS_CREATE_INTERNAL(NSURLSessionWebSocketTask);
-      GS_MUTEX_INIT(internal->mutex);
-      internal->send.queue = [[NSMutableArray alloc] init];
-      internal->receive.handlers = [[NSMutableArray alloc] init];
-      internal->send.pingHandlers = [[NSMutableArray alloc] init];
-      internal->receive.buffer = [[NSMutableData alloc] init];
-      internal->receive.controlBuffer = [[NSMutableData alloc] init];
-      internal->receive.maximumMessageSize = 1024 * 1024;
-      GSURLSessionWebSocketClearActiveSendEntryLocked(self);
-      internal->lifecycle.phase = GSURLSessionWebSocketLifecycleStateOpen;
-      internal->receive.phase = GSURLSessionWebSocketReceiveStateIdle;
-      internal->send.nextPingIdentifier = 1;
-      internal->receive.frameOffset = 0;
-      internal->send.frameStartRetryPending = NO;
-      internal->lifecycle.closeFrameSent = NO;
-      internal->lifecycle.closeFrameReceived = NO;
-    }
-
-  return self;
-}
-
-- (void) _initializeEasyhandleForRequest: (NSURLRequest *)request
+- (void) _initializeEasyHandleForRequest: (NSURLRequest *)request
 {
   NSURL *url;
+  CURL *handle;
 
   url = [request URL];
-  [self _setEasyHandle: curl_easy_init()];
+  handle = [self _easyHandle];
 
   /* WebSocket tasks represent a single upgraded connection. */
-  curl_easy_setopt([self _easyHandle], CURLOPT_CUSTOMREQUEST, "GET");
-  curl_easy_setopt([self _easyHandle],
+  curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "GET");
+  curl_easy_setopt(handle,
                    CURLOPT_URL,
                    [[url absoluteString] UTF8String]);
-  curl_easy_setopt([self _easyHandle], CURLOPT_CONNECT_ONLY, 0L);
+  curl_easy_setopt(handle, CURLOPT_CONNECT_ONLY, 0L);
 
   /* WebSocket upgrade is a single GET request; do not follow redirects. */
-  curl_easy_setopt([self _easyHandle], CURLOPT_FOLLOWLOCATION, 0L);
+  curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 0L);
 
   /* Set timeout in connect phase */
-  curl_easy_setopt([self _easyHandle],
+  curl_easy_setopt(handle,
                    CURLOPT_CONNECTTIMEOUT,
                    (long)[request timeoutInterval]);
 }
 
 - (void) _configureTransferCallbacks
 {
+  CURL *handle;
+  handle = [self _easyHandle];
+
   /* The task is associated with the easy handle for completion/error lookup. */
-  curl_easy_setopt([self _easyHandle], CURLOPT_ERRORBUFFER, [self _errorBuffer]);
-  curl_easy_setopt([self _easyHandle], CURLOPT_PRIVATE, self);
+  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, [self _errorBuffer]);
+  curl_easy_setopt(handle, CURLOPT_PRIVATE, self);
 
-  curl_easy_setopt([self _easyHandle], CURLOPT_WRITEFUNCTION, ws_write_callback);
-  curl_easy_setopt([self _easyHandle], CURLOPT_WRITEDATA, self);
+  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, ws_write_callback);
+  curl_easy_setopt(handle, CURLOPT_WRITEDATA, self);
 
-  curl_easy_setopt([self _easyHandle], CURLOPT_READFUNCTION, ws_read_callback);
-  curl_easy_setopt([self _easyHandle], CURLOPT_READDATA, self);
+  curl_easy_setopt(handle, CURLOPT_READFUNCTION, ws_read_callback);
+  curl_easy_setopt(handle, CURLOPT_READDATA, self);
 
-  curl_easy_setopt([self _easyHandle], CURLOPT_UPLOAD, 1L);
-  curl_easy_setopt([self _easyHandle], CURLOPT_POSTFIELDSIZE, -1L);
+  curl_easy_setopt(handle, CURLOPT_UPLOAD, 1L);
+  curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, -1L);
 }
 
 - (void) _configureProtocolOptionsForRequest: (NSURLRequest *)request
@@ -1428,9 +1439,11 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   (NSURLSessionConfiguration *)configuration
 {
   NSData *certificateBlob;
+  CURL *handle;
 
+  handle = [self _easyHandle];
   /* Set overall timeout */
-  curl_easy_setopt([self _easyHandle],
+  curl_easy_setopt(handle,
                    CURLOPT_TIMEOUT,
                    (long)[configuration timeoutIntervalForResource]);
 
@@ -1444,9 +1457,9 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
       blob.len = [certificateBlob length];
       blob.flags = CURL_BLOB_NOCOPY;
 
-      curl_easy_setopt([self _easyHandle], CURLOPT_CAINFO_BLOB, &blob);
+      curl_easy_setopt(handle, CURLOPT_CAINFO_BLOB, &blob);
 #else
-      curl_easy_setopt([self _easyHandle],
+      curl_easy_setopt(handle,
                        CURLOPT_CAINFO,
                        [[self _session] _certificatePath]);
 #endif

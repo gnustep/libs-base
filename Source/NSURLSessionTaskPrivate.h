@@ -53,7 +53,6 @@
   easyHandle: (CURL *) handle;
 
 -(CURL *)_easyHandle;
--(void)_setEasyHandle: (CURL *)handle;
 -(char *)_errorBuffer;
 -(struct curl_slist *)_headerList;
 -(void)_setHeaderList: (struct curl_slist *)headerList;
