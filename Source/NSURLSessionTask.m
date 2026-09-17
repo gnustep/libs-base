@@ -941,6 +941,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return size * nmemb;
 } /* write_callback */
 
+@interface	NSURLSessionTask (Internal)
+- (void) _configureTaskForHTTP;
+@end
+
 @implementation NSURLSessionTask
 
 + (void) initialize
@@ -1048,227 +1052,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return self;
 }
 
-
-- (void) _configureTaskForHTTP {
-      ENTER_POOL
-
-      NSURLSessionConfiguration *configuration;
-      NSURLRequest *request;
-      NSString			*httpMethod;
-      NSData 			*certificateBlob;
-      NSURL 			*url;
-      NSDictionary 		*immConfigHeaders;
-      NSHTTPCookieStorage 	*storage;
-
-      _GSMutableInsensitiveDictionary	*requestHeaders = nil;
-      _GSMutableInsensitiveDictionary	*configHeaders = nil;
-
-      configuration = [internal->_session configuration];
-      request = internal->_currentRequest;
-      httpMethod = [[internal->_originalRequest HTTPMethod] lowercaseString];
-      url = [internal->_originalRequest URL];
-      requestHeaders
-	= AUTORELEASE([[internal->_originalRequest _insensitiveHeaders] mutableCopy]);
-
-
-      /* Easy Handle Configuration
-       */
-      internal->_easyHandle = curl_easy_init();
-
-      if ([@"head" isEqualToString: httpMethod])
-        {
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_NOBODY, 1L);
-        }
-
-      /* Setup upload data if a HTTPBody or HTTPBodyStream is present in the
-       * URLRequest
-       */
-      if (nil != [internal->_originalRequest HTTPBody])
-        {
-          NSData	*body = [internal->_originalRequest HTTPBody];
-
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
-          curl_easy_setopt(
-            internal->_easyHandle,
-            CURLOPT_POSTFIELDSIZE_LARGE,
-            (curl_off_t)[body length]);
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDS, [body bytes]);
-        }
-      else if (nil != [internal->_originalRequest HTTPBodyStream])
-        {
-          NSInputStream	*stream = [internal->_originalRequest HTTPBodyStream];
-
-          [internal->_taskData setObject: stream forKey: taskInputStreamKey];
-
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_READFUNCTION, read_callback);
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_READDATA, self);
-
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
-        }
-
-      /* Configure HTTP method and URL */
-      curl_easy_setopt(
-        internal->_easyHandle,
-        CURLOPT_CUSTOMREQUEST,
-        [[internal->_originalRequest HTTPMethod] UTF8String]);
-
-      curl_easy_setopt(
-        internal->_easyHandle,
-        CURLOPT_URL,
-        [[url absoluteString] UTF8String]);
-
-      /* This callback function gets called by libcurl as soon as there is data
-       * received that needs to be saved. For most transfers, this callback gets
-       * called many times and each invoke delivers another chunk of data.
-       *
-       * This is directly mapped to -[NSURLSessionDataDelegate
-       * URLSession:dataTask:didReceiveData:].
-       */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEFUNCTION, write_callback);
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEDATA, self);
-
-      /* Retrieve the header data
-       *
-       * If the delegate conforms to the NSURLSessionDataDelegate
-       * - URLSession:dataTask:didReceiveResponse:completionHandler:
-       * we can notify it about the header response.
-       */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERFUNCTION, header_callback);
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERDATA, self);
-
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_ERRORBUFFER, internal->_curlErrorBuffer);
-
-      /* The task is now associated with the easy handle and can be accessed
-       * using curl_easy_getinfo with CURLINFO_PRIVATE.
-       */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_PRIVATE, self);
-
-      /* Disable libcurl's build-in progress reporting */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_NOPROGRESS, 0L);
-      /* Specifiy our own progress function with the user pointer being the
-       * current object
-       */
-      curl_easy_setopt(
-        internal->_easyHandle,
-        CURLOPT_XFERINFOFUNCTION,
-        progress_callback);
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_XFERINFODATA, self);
-
-      /* Do not Follow redirects by default
-       *
-       * libcurl does not provide a direct interface
-       * for redirect notification. We have implemented our own redirection
-       * system in header_callback.
-       */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION, 0L);
-
-      /* Set timeout in connect phase */
-      curl_easy_setopt(
-        internal->_easyHandle,
-        CURLOPT_CONNECTTIMEOUT,
-        (NSInteger)[request timeoutInterval]);
-
-      /* Set overall timeout */
-      curl_easy_setopt(
-        internal->_easyHandle,
-        CURLOPT_TIMEOUT,
-        (curl_off_t)[configuration timeoutIntervalForResource]);
-
-      /* Set to HTTP/3 if requested */
-      if ([request assumesHTTP3Capable])
-        {
-#if CURL_AT_LEAST_VERSION(7, 66, 0)
-          curl_easy_setopt(
-            internal->_easyHandle,
-            CURLOPT_HTTP_VERSION,
-            CURL_HTTP_VERSION_3);
-#endif
-        }
-
-      /* Configure the custom CA certificate if available */
-      if (nil != (certificateBlob = [internal->_session _certificateBlob]))
-        {
-// CURLOPT_CAINFO_BLOB was added in 7.77.0
-#if LIBCURL_VERSION_NUM >= 0x074D00
-          struct curl_blob blob;
-
-          blob.data = (void *)[certificateBlob bytes];
-          blob.len = [certificateBlob length];
-          /* Session becomes a strong reference when task is resumed until the
-           * end of transfer. */
-          blob.flags = CURL_BLOB_NOCOPY;
-
-          curl_easy_setopt(internal->_easyHandle, CURLOPT_CAINFO_BLOB, &blob);
-#else
-          curl_easy_setopt(
-            internal->_easyHandle,
-            CURLOPT_CAINFO,
-            [internal->_session _certificatePath]);
-#endif
-        }
-
-      /* Process config headers */
-      immConfigHeaders = [configuration HTTPAdditionalHeaders];
-      if (nil != immConfigHeaders)
-        {
-          configHeaders = AUTORELEASE([[_GSMutableInsensitiveDictionary alloc]
-                           initWithDictionary: immConfigHeaders
-                                    copyItems: NO]);
-
-          /* Merge Headers.
-           *
-           * If the same header appears in both the configuration's
-           * HTTPAdditionalHeaders and the request object (where applicable),
-           * the request object’s value takes precedence.
-           */
-          [configHeaders
-           addEntriesFromDictionary: (NSDictionary *)requestHeaders];
-          requestHeaders = configHeaders;
-        }
-
-      /* Use stored cookies is instructed to do so
-       */
-      storage = [configuration HTTPCookieStorage];
-      if (nil != storage && [configuration HTTPShouldSetCookies])
-        {
-          NSDictionary			*cookieHeaders;
-          GS_GENERIC_CLASS(NSArray, NSHTTPCookie *)	*cookies;
-
-          /* No headers were set */
-          if (nil == requestHeaders)
-            {
-              requestHeaders = [_GSMutableInsensitiveDictionary dictionary];
-            }
-
-          cookies = [storage cookiesForURL: url];
-          if ([cookies count] > 0)
-            {
-              cookieHeaders =
-                [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
-              [requestHeaders addEntriesFromDictionary: cookieHeaders];
-            }
-        }
-
-      /* Append Headers to the libcurl header list
-       */
-      for (id key in requestHeaders)
-	      {
-          NSString	*headerLine;
-	        id 		object = [requestHeaders objectForKey: key];
-
-          headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
-
-          /* We have removed all reserved headers in NSURLRequest */
-          internal->_headerList = curl_slist_append(internal->_headerList, [headerLine UTF8String]);
-        }
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_HTTPHEADER, internal->_headerList);
-      LEAVE_POOL
-}
-
 - (void) _enableAutomaticRedirects: (BOOL)flag
 {
-  curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION, flag ? 1L : 0L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION,
+    flag ? 1L : 0L);
 }
 
 - (void) _enableUploadWithData: (NSData *)data
@@ -1298,11 +1085,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (size > 0)
     {
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE, size);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE_LARGE,
+	size);
     }
   else
     {
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE, (curl_off_t)-1);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE,
+	(curl_off_t)-1);
     }
 
   /* The method is overwritten by CURLOPT_UPLOAD. Change it back. */
@@ -1331,7 +1120,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _workSetVerbose: (NSNumber *)flag
 {
-  curl_easy_setopt(internal->_easyHandle, CURLOPT_VERBOSE, [flag boolValue] ? 1L : 0L);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_VERBOSE,
+    [flag boolValue] ? 1L : 0L);
 }
 
 - (void) _setBodyStream: (NSInputStream *)stream
@@ -1468,7 +1258,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       [self _setCurrentRequest: userRequest];
 
       /* Update URL in easy handle */
-      curl_easy_setopt(internal->_easyHandle, CURLOPT_URL, [newURLString UTF8String]);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_URL,
+	[newURLString UTF8String]);
       curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
       [internal->_session _addHandle: internal->_easyHandle];
@@ -1832,7 +1623,8 @@ combineFragments(NSArray *fragments)
 {
   /* Only resume a transfer if the task is not suspended and in suspended state
    */
-  if (internal->_suspendCount == 0 && [self state] == NSURLSessionTaskStateSuspended)
+  if (internal->_suspendCount == 0
+    && [self state] == NSURLSessionTaskStateSuspended)
     {
       /*
        * Properly retain the session to keep a reference
@@ -1897,13 +1689,17 @@ combineFragments(NSArray *fragments)
 
   if (copy)
     {
-      GSIVar(copy, _originalRequest) = [internal->_originalRequest copyWithZone: zone];
-      GSIVar(copy, _currentRequest) = [internal->_currentRequest copyWithZone: zone];
+      GSIVar(copy, _originalRequest)
+	= [internal->_originalRequest copyWithZone: zone];
+      GSIVar(copy, _currentRequest)
+	= [internal->_currentRequest copyWithZone: zone];
       GSIVar(copy, _response) = [internal->_response copyWithZone: zone];
       /* FIXME: Seems like copyWithZone: is not implemented for NSProgress */
       GSIVar(copy, _progress) = [internal->_progress copy];
-      GSIVar(copy, _earliestBeginDate) = [internal->_earliestBeginDate copyWithZone: zone];
-      GSIVar(copy, _taskDescription) = [internal->_taskDescription copyWithZone: zone];
+      GSIVar(copy, _earliestBeginDate)
+	= [internal->_earliestBeginDate copyWithZone: zone];
+      GSIVar(copy, _taskDescription)
+	= [internal->_taskDescription copyWithZone: zone];
       GSIVar(copy, _taskData) = [internal->_taskData copyWithZone: zone];
       GSIVar(copy, _easyHandle) = curl_easy_duphandle(internal->_easyHandle);
     }
@@ -2040,6 +1836,233 @@ combineFragments(NSArray *fragments)
 }
 
 @end /* NSURLSessionTask */
+
+@implementation	NSURLSessionTask (Internal)
+- (void) _configureTaskForHTTP
+{
+  ENTER_POOL
+
+  NSURLSessionConfiguration		*configuration;
+  NSURLRequest 				*request;
+  NSString				*httpMethod;
+  NSData 				*certificateBlob;
+  NSURL 				*url;
+  NSDictionary 				*immConfigHeaders;
+  NSHTTPCookieStorage 			*storage;
+
+  _GSMutableInsensitiveDictionary	*requestHeaders = nil;
+  _GSMutableInsensitiveDictionary	*configHeaders = nil;
+
+  configuration = [internal->_session configuration];
+  request = internal->_currentRequest;
+  httpMethod = [[internal->_originalRequest HTTPMethod] lowercaseString];
+  url = [internal->_originalRequest URL];
+  requestHeaders = AUTORELEASE(
+    [[internal->_originalRequest _insensitiveHeaders] mutableCopy]);
+
+
+  /* Easy Handle Configuration
+   */
+  internal->_easyHandle = curl_easy_init();
+
+  if ([@"head" isEqualToString: httpMethod])
+    {
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_NOBODY, 1L);
+    }
+
+  /* Setup upload data if a HTTPBody or HTTPBodyStream is present in the
+   * URLRequest
+   */
+  if (nil != [internal->_originalRequest HTTPBody])
+    {
+      NSData	*body = [internal->_originalRequest HTTPBody];
+
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
+      curl_easy_setopt(
+	internal->_easyHandle,
+	CURLOPT_POSTFIELDSIZE_LARGE,
+	(curl_off_t)[body length]);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDS, [body bytes]);
+    }
+  else if (nil != [internal->_originalRequest HTTPBodyStream])
+    {
+      NSInputStream	*stream = [internal->_originalRequest HTTPBodyStream];
+
+      [internal->_taskData setObject: stream forKey: taskInputStreamKey];
+
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_READFUNCTION,
+	read_callback);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_READDATA, self);
+
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_UPLOAD, 1L);
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_POSTFIELDSIZE,
+	(curl_off_t)-1);
+    }
+
+  /* Configure HTTP method and URL */
+  curl_easy_setopt(
+    internal->_easyHandle,
+    CURLOPT_CUSTOMREQUEST,
+    [[internal->_originalRequest HTTPMethod] UTF8String]);
+
+  curl_easy_setopt(
+    internal->_easyHandle,
+    CURLOPT_URL,
+    [[url absoluteString] UTF8String]);
+
+  /* This callback function gets called by libcurl as soon as there is data
+   * received that needs to be saved. For most transfers, this callback gets
+   * called many times and each invoke delivers another chunk of data.
+   *
+   * This is directly mapped to -[NSURLSessionDataDelegate
+   * URLSession:dataTask:didReceiveData:].
+   */
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEFUNCTION,
+    write_callback);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_WRITEDATA, self);
+
+  /* Retrieve the header data
+   *
+   * If the delegate conforms to the NSURLSessionDataDelegate
+   * - URLSession:dataTask:didReceiveResponse:completionHandler:
+   * we can notify it about the header response.
+   */
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERFUNCTION,
+    header_callback);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_HEADERDATA, self);
+
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_ERRORBUFFER,
+    internal->_curlErrorBuffer);
+
+  /* The task is now associated with the easy handle and can be accessed
+   * using curl_easy_getinfo with CURLINFO_PRIVATE.
+   */
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_PRIVATE, self);
+
+  /* Disable libcurl's build-in progress reporting */
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_NOPROGRESS, 0L);
+  /* Specifiy our own progress function with the user pointer being the
+   * current object
+   */
+  curl_easy_setopt(
+    internal->_easyHandle,
+    CURLOPT_XFERINFOFUNCTION,
+    progress_callback);
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_XFERINFODATA, self);
+
+  /* Do not Follow redirects by default
+   *
+   * libcurl does not provide a direct interface
+   * for redirect notification. We have implemented our own redirection
+   * system in header_callback.
+   */
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_FOLLOWLOCATION, 0L);
+
+  /* Set timeout in connect phase */
+  curl_easy_setopt(
+    internal->_easyHandle,
+    CURLOPT_CONNECTTIMEOUT,
+    (NSInteger)[request timeoutInterval]);
+
+  /* Set overall timeout */
+  curl_easy_setopt(
+    internal->_easyHandle,
+    CURLOPT_TIMEOUT,
+    (curl_off_t)[configuration timeoutIntervalForResource]);
+
+  /* Set to HTTP/3 if requested */
+  if ([request assumesHTTP3Capable])
+    {
+#if CURL_AT_LEAST_VERSION(7, 66, 0)
+      curl_easy_setopt(
+	internal->_easyHandle,
+	CURLOPT_HTTP_VERSION,
+	CURL_HTTP_VERSION_3);
+#endif
+    }
+
+  /* Configure the custom CA certificate if available */
+  if (nil != (certificateBlob = [internal->_session _certificateBlob]))
+    {
+// CURLOPT_CAINFO_BLOB was added in 7.77.0
+#if LIBCURL_VERSION_NUM >= 0x074D00
+      struct curl_blob blob;
+
+      blob.data = (void *)[certificateBlob bytes];
+      blob.len = [certificateBlob length];
+      /* Session becomes a strong reference when task is resumed until the
+       * end of transfer. */
+      blob.flags = CURL_BLOB_NOCOPY;
+
+      curl_easy_setopt(internal->_easyHandle, CURLOPT_CAINFO_BLOB, &blob);
+#else
+      curl_easy_setopt(
+	internal->_easyHandle,
+	CURLOPT_CAINFO,
+	[internal->_session _certificatePath]);
+#endif
+    }
+
+  /* Process config headers */
+  immConfigHeaders = [configuration HTTPAdditionalHeaders];
+  if (nil != immConfigHeaders)
+    {
+      configHeaders = AUTORELEASE([[_GSMutableInsensitiveDictionary alloc]
+		       initWithDictionary: immConfigHeaders
+				copyItems: NO]);
+
+      /* Merge Headers.
+       *
+       * If the same header appears in both the configuration's
+       * HTTPAdditionalHeaders and the request object (where applicable),
+       * the request object’s value takes precedence.
+       */
+      [configHeaders
+       addEntriesFromDictionary: (NSDictionary *)requestHeaders];
+      requestHeaders = configHeaders;
+    }
+
+  /* Use stored cookies is instructed to do so
+   */
+  storage = [configuration HTTPCookieStorage];
+  if (nil != storage && [configuration HTTPShouldSetCookies])
+    {
+      NSDictionary			*cookieHeaders;
+      GS_GENERIC_CLASS(NSArray, NSHTTPCookie *)	*cookies;
+
+      /* No headers were set */
+      if (nil == requestHeaders)
+	{
+	  requestHeaders = [_GSMutableInsensitiveDictionary dictionary];
+	}
+
+      cookies = [storage cookiesForURL: url];
+      if ([cookies count] > 0)
+	{
+	  cookieHeaders =
+	    [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
+	  [requestHeaders addEntriesFromDictionary: cookieHeaders];
+	}
+    }
+
+  /* Append Headers to the libcurl header list
+   */
+  for (id key in requestHeaders)
+	  {
+      NSString	*headerLine;
+	    id 		object = [requestHeaders objectForKey: key];
+
+      headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
+
+      /* We have removed all reserved headers in NSURLRequest */
+      internal->_headerList = curl_slist_append(internal->_headerList,
+	[headerLine UTF8String]);
+    }
+  curl_easy_setopt(internal->_easyHandle, CURLOPT_HTTPHEADER,
+    internal->_headerList);
+  LEAVE_POOL
+}
+@end
 
 @implementation NSURLSessionDataTask
 

@@ -46,6 +46,9 @@
 
 /* Set localisation macro for use within the base library itsself.
  */
+#ifdef	GS_LOCALISATION_BUNDLE
+#undef	GS_LOCALISATION_BUNDLE
+#endif
 #define GS_LOCALISATION_BUNDLE \
   [NSBundle bundleForLibrary: @"gnustep-base" version: \
   OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
