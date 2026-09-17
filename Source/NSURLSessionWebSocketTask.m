@@ -1657,6 +1657,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   NSArray *cancelledReceiveHandlers;
   NSArray *cancelledPingHandlers;
   NSError *cancelError;
+  NSURLSessionTaskState oldState;
   BOOL wasRunning;
   BOOL shouldResumeSend;
 
@@ -1667,10 +1668,9 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     @"WebSocket task was canceled before queued work completed");
   shouldResumeSend = NO;
 
-  wasRunning = ([self state] == NSURLSessionTaskStateRunning);
-  /* FIXME _state is not defined
-  _state = NSURLSessionTaskStateCanceling;
-  */
+  oldState = [self _compareAndExchangeState: NSURLSessionTaskStateCanceling];
+  wasRunning = (oldState == NSURLSessionTaskStateRunning);
+
   GS_MUTEX_LOCK(internal->mutex);
   if (internal->lifecycle.phase == GSURLSessionWebSocketLifecycleStateOpen)
     {
