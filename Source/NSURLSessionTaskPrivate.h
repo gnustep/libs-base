@@ -60,6 +60,8 @@
 /* Enable or disable libcurl verbose output. Disabled by default. */
 -(void)_setVerbose: (BOOL)flag;
 
+-(void) _setState: (NSURLSessionTaskState) state;
+
 /* This method is called by -[NSURLSession _checkForCompletion]
  *
  * We release the session (previously retained in -[NSURLSessionTask resume])
