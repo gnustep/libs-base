@@ -61,6 +61,7 @@
 -(void)_setVerbose: (BOOL)flag;
 
 -(void) _setState: (NSURLSessionTaskState) state;
+- (NSURLSessionTaskState) _compareAndExchangeState: (NSURLSessionTaskState) state;
 
 /* This method is called by -[NSURLSession _checkForCompletion]
  *

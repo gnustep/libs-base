@@ -30,6 +30,7 @@
  * types it names have to be known before that header is imported.
  */
 #include "Foundation/NSURLRequest.h"
+#include "Foundation/NSURLSession.h"
 #include "GNUstepBase/GNUstep.h"
 #import "common.h"
 #include <curl/curl.h>
@@ -1925,6 +1926,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 -(void) _setState: (NSURLSessionTaskState) state
 {
   gs_atomic_store(&internal->_state, state);
+}
+- (NSURLSessionTaskState) _compareAndExchangeState: (NSURLSessionTaskState) state
+{
+  return gs_atomic_exchange(&internal->_state, state);
 }
 
 - (NSProgress *) progress
