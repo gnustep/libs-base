@@ -48,7 +48,7 @@
   NSURLRequest *_originalRequest; \
  \
   id<NSURLSessionTaskDelegate> _delegate; \
-  NSURLSessionTaskState        _state; \
+  _Atomic(NSURLSessionTaskState)        _state; \
   NSURLRequest                *_currentRequest; \
   NSURLResponse               *_response; \
   NSProgress                  *_progress; \
@@ -1033,8 +1033,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        */
       internal->_session = session;
       internal->_suspendCount = 0;
-      internal->_state = NSURLSessionTaskStateSuspended;
       internal->_curlErrorBuffer[0] = '\0';
+      gs_atomic_store(&internal->_state, NSURLSessionTaskStateSuspended);
 
       /* Configure initial task data
        */
@@ -1643,7 +1643,7 @@ combineFragments(NSArray *fragments)
        */
       RETAIN(internal->_session);
 
-      internal->_state = NSURLSessionTaskStateRunning;
+      gs_atomic_store(&internal->_state, NSURLSessionTaskStateRunning);
       [internal->_session _resumeTask: self];
       return;
     }
@@ -1668,7 +1668,7 @@ combineFragments(NSArray *fragments)
   curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
   gs_atomic_store(&internal->_shouldStopTransfer, YES);
-  internal->_state = NSURLSessionTaskStateCanceling;
+  gs_atomic_store(&internal->_state, NSURLSessionTaskStateCanceling);
 
   /* If the task was awaiting a didReceiveResponse disposition its completion
    * was being held back; resolve that state so the cancellation is delivered
@@ -1743,7 +1743,11 @@ combineFragments(NSArray *fragments)
 
 - (NSURLSessionTaskState) state
 {
-  return internal->_state;
+  return gs_atomic_load(&internal->_state);
+}
+-(void) _setState: (NSURLSessionTaskState) state
+{
+  gs_atomic_store(&internal->_state, state);
 }
 
 - (NSProgress *) progress
