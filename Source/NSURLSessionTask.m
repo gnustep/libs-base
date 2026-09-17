@@ -1045,7 +1045,6 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return self;
 } /* initWithSession */
 
-
 - (instancetype) initWithSession: (NSURLSession *)session
   request: (NSURLRequest *)request
   taskIdentifier: (NSUInteger)identifier
