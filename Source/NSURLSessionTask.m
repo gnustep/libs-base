@@ -29,6 +29,8 @@
 /* The ivar macro below is expanded by Foundation/NSURLSession.h, so the
  * types it names have to be known before that header is imported.
  */
+#include "Foundation/NSURLRequest.h"
+#include "GNUstepBase/GNUstep.h"
 #import "common.h"
 #include <curl/curl.h>
 
@@ -1001,22 +1003,12 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (instancetype) initWithSession: (NSURLSession *)session
   request: (NSURLRequest *)request
   taskIdentifier: (NSUInteger)identifier
+  easyHandle: (CURL *) handle
 {
   self = [super init];
 
   if (self)
     {
-      ENTER_POOL
-      NSString			*httpMethod;
-      NSData 			*certificateBlob;
-      NSURL 			*url;
-      NSDictionary 		*immConfigHeaders;
-      NSURLSessionConfiguration *configuration;
-      NSHTTPCookieStorage 	*storage;
-
-      _GSMutableInsensitiveDictionary	*requestHeaders = nil;
-      _GSMutableInsensitiveDictionary	*configHeaders = nil;
-
       GS_CREATE_INTERNAL(NSURLSessionTask);
 
       internal->_taskIdentifier = identifier;
@@ -1027,15 +1019,10 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       internal->_heldCompletionCode = -1;
       internal->_numberOfRedirects = -1;
       internal->_headerCallbackCount = 0;
+      internal->_easyHandle = handle;
 
       ASSIGNCOPY(internal->_originalRequest, request);
       ASSIGNCOPY(internal->_currentRequest, request);
-
-      httpMethod = [[internal->_originalRequest HTTPMethod] lowercaseString];
-      url = [internal->_originalRequest URL];
-      requestHeaders
-	= AUTORELEASE([[internal->_originalRequest _insensitiveHeaders] mutableCopy]);
-      configuration = [session configuration];
 
       /* Only retain the session once the -resume method is called
        * and release the session as the last thing done once the
@@ -1051,6 +1038,52 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        */
       [internal->_taskData setObject: [NSMutableDictionary dictionary]
 			      forKey: @"headers"];
+    }
+
+  return self;
+} /* initWithSession */
+
+
+- (instancetype) initWithSession: (NSURLSession *)session
+  request: (NSURLRequest *)request
+  taskIdentifier: (NSUInteger)identifier
+{
+  /* Initialize with a placeholder for the easy handle We will initialize the
+   * handle after initializing the task object.
+   */
+  self = [self initWithSession:session
+                       request: request taskIdentifier: identifier
+                    easyHandle: NULL];
+  if (self)
+    {
+      [self _configureTaskForHTTP];
+    }
+
+  return self;
+}
+
+
+- (void) _configureTaskForHTTP {
+      ENTER_POOL
+
+      NSURLSessionConfiguration *configuration;
+      NSURLRequest *request;
+      NSString			*httpMethod;
+      NSData 			*certificateBlob;
+      NSURL 			*url;
+      NSDictionary 		*immConfigHeaders;
+      NSHTTPCookieStorage 	*storage;
+
+      _GSMutableInsensitiveDictionary	*requestHeaders = nil;
+      _GSMutableInsensitiveDictionary	*configHeaders = nil;
+
+      configuration = [internal->_session configuration];
+      request = internal->_currentRequest;
+      httpMethod = [[internal->_originalRequest HTTPMethod] lowercaseString];
+      url = [internal->_originalRequest URL];
+      requestHeaders
+	= AUTORELEASE([[internal->_originalRequest _insensitiveHeaders] mutableCopy]);
+
 
       /* Easy Handle Configuration
        */
@@ -1234,9 +1267,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       /* Append Headers to the libcurl header list
        */
       for (id key in requestHeaders)
-	{
+	      {
           NSString	*headerLine;
-	  id 		object = [requestHeaders objectForKey: key];
+	        id 		object = [requestHeaders objectForKey: key];
 
           headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
 
@@ -1245,10 +1278,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
         }
       curl_easy_setopt(internal->_easyHandle, CURLOPT_HTTPHEADER, internal->_headerList);
       LEAVE_POOL
-    }
-
-  return self;
-} /* initWithSession */
+}
 
 - (void) _enableAutomaticRedirects: (BOOL)flag
 {
@@ -1299,6 +1329,11 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (CURL *) _easyHandle
 {
   return internal->_easyHandle;
+}
+
+- (void) _setEasyHandle: (CURL *) handle
+{
+  internal->_easyHandle = handle;
 }
 
 - (void) _setVerbose: (BOOL)flag

@@ -35,27 +35,22 @@
 @interface
   NSURLSessionTask(Private)
 
-- (instancetype)initWithSession: (NSURLSession *)session
-                         request: (NSURLRequest *)request
-                  taskIdentifier: (NSUInteger)identifier;
+/**
+ * Initialize an NSURLSessionTask object for HTTP transfers.
+ */
+- (instancetype) initWithSession: (NSURLSession *)session
+  request: (NSURLRequest *)request
+  taskIdentifier: (NSUInteger)identifier;
 
-- (void)_initTaskStateWithSession: (NSURLSession *)session
-                          request: (NSURLRequest *)request
-                   taskIdentifier: (NSUInteger)identifier;
-- (void)_initializeEasyhandleForRequest: (NSURLRequest *)request;
-- (void)_configureEasyhandleForRequestBody: (NSURLRequest *)request;
-- (void)_configureTransferCallbacks;
-- (void)_configureProtocolOptionsForRequest: (NSURLRequest *)request
-                              configuration:
-  (NSURLSessionConfiguration *)configuration;
-- (NSMutableDictionary *)_mergedRequestHeadersForRequest:
-  (NSURLRequest *)request
-                                                        configuration:
-  (NSURLSessionConfiguration *)configuration
-                                                                 URL:
-  (NSURL *)url;
-- (void)_installRequestHeaders:
-  (NSDictionary *)requestHeaders;
+/**
+ * Initialize an NSURLSessionTask object with an existing
+ * Curl easy handle. A transfer of ownership occurs, and
+ * the task object will cleanup the handle during deallocation.
+ */
+- (instancetype) initWithSession: (NSURLSession *)session
+  request: (NSURLRequest *)request
+  taskIdentifier: (NSUInteger)identifier
+  easyHandle: (CURL *) handle;
 
 -(CURL *)_easyHandle;
 -(void)_setEasyHandle: (CURL *)handle;
