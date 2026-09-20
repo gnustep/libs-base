@@ -1255,6 +1255,7 @@ typedef	struct {
       if (shouldListen == YES)
 	{
 	  int	desc;
+	  int	flags;
 	  struct sockaddr_un	sockAddr;
 
 	  /*
@@ -1321,6 +1322,20 @@ typedef	struct {
 	  else if (getsockname(desc, (struct sockaddr*)&sockAddr, &i) < 0)
 	    {
 	      NSLog(@"unable to get socket name - %@", [NSError _last]);
+	      (void) close(desc);
+	      DESTROY(port);
+	    }
+	  /*
+	   * The run loop may report the listener readable when there is
+	   * no connection left to accept, e.g. when a nested run loop has
+	   * accepted it before the outer loop handles its stale poll
+	   * result.  A blocking accept() would then hang the thread.
+	   */
+	  else if ((flags = fcntl(desc, F_GETFL, 0)) < 0
+	    || fcntl(desc, F_SETFL, flags | NBLK_OPT) < 0)
+	    {
+	      NSLog(@"unable to set non-blocking mode on port - %@",
+		[NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
