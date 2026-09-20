@@ -1378,7 +1378,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 }
               else
                 {
-                  timeout_ms = (int)(ti * 1000.0);
+                  timeout_ms = (int)ceil(ti * 1000.0);
                 }
             }
 
