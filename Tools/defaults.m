@@ -30,6 +30,8 @@
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSPropertyList.h"
+#import	"Foundation/NSFileHandle.h"
 
 #define GSEXIT_SUCCESS EXIT_SUCCESS
 #define GSEXIT_FAILURE EXIT_FAILURE
@@ -195,6 +197,15 @@ main(int argc, char** argv, char **env)
 "    searches domain names, default names, and default value strings for\n"
 "    those equal to the specified word and lists them on standard output.\n\n");
 	  printf(
+"defaults export domain\n"
+"    exports the specified domain to stdout as a property list.\n\n");
+	  printf(
+"defaults import domain\n"
+"    imports a property list from stdin to create/replace the domain.\n\n");
+	  printf(
+"defaults meerge domain\n"
+"    merges a property list from stdin to update/create the domain.\n\n");
+	  printf(
 "defaults plist\n"
 "    output some information about property lists\n\n");
 	  printf(
@@ -305,8 +316,137 @@ main(int argc, char** argv, char **env)
       exit(GSEXIT_FAILURE);
     }
 
-  if ([[args objectAtIndex: i] isEqual: @"read"] ||
-      [[args objectAtIndex: i] isEqual: @"readkey"])
+  if ([[args objectAtIndex: i] isEqual: @"export"])
+    {
+      if ([args count] == ++i)
+	{
+	  GSPrintf(stderr, @"defaults export: domain argument not supplied!\n");
+	  [pool release];
+	  exit(GSEXIT_FAILURE);
+	}
+      else
+	{
+	  NSString	*domainName = [args objectAtIndex: i];
+	  NSDictionary	*dom = [defs persistentDomainForName: domainName];
+
+	  if (nil == dom)
+	    {
+	      GSPrintf(stderr, @"defaults export: domain not found\n");
+	      derror = GSEXIT_NOTFOUND;
+	    }
+	  else
+	    {
+	      NSData	*d;
+
+	      d = [NSPropertyListSerialization dataFromPropertyList: dom
+		format: NSPropertyListGNUstepFormat
+                errorDescription: NULL];
+	      [[NSFileHandle fileHandleWithStandardOutput] writeData: d];
+	    }
+	}
+    }
+  else if ([[args objectAtIndex: i] isEqual: @"import"])
+    {
+      if ([args count] == ++i)
+	{
+	  GSPrintf(stderr, @"defaults import: domain argument not supplied!\n");
+	  [pool release];
+	  exit(GSEXIT_FAILURE);
+	}
+      else
+	{
+	  NSString	*domainName = [args objectAtIndex: i];
+	  NSData	*d;
+
+	  d = [[NSFileHandle fileHandleWithStandardInput] readDataToEndOfFile];
+	  if (nil == d)
+	    {
+	      GSPrintf(stderr, @"defaults import: read from stdin failed\n");
+	      derror = GSEXIT_NOTFOUND;
+	    }
+	  else
+	    {
+	      NSDictionary	*domain;
+
+	      domain = [NSPropertyListSerialization propertyListFromData: d
+	        mutabilityOption: 0
+		format: NULL
+	        errorDescription: NULL];
+	      if ([domain isKindOfClass: [NSDictionary class]])
+		{
+		  [defs setPersistentDomain: domain forName: domainName];
+		}
+	      else
+		{
+		  GSPrintf(stderr, @"defaults import: read bad stdin\n");
+		  derror = GSEXIT_FAILURE;
+		}
+	    }
+	}
+      if ([defs synchronize] == NO)
+	{
+	  GSPrintf(stderr,
+	    @"defaults import: unable to write to defaults database\n");
+	}
+    }
+  else if ([[args objectAtIndex: i] isEqual: @"merge"])
+    {
+      if ([args count] == ++i)
+	{
+	  GSPrintf(stderr, @"defaults merge: domain argument not supplied!\n");
+	  [pool release];
+	  exit(GSEXIT_FAILURE);
+	}
+      else
+	{
+	  NSString	*domainName = [args objectAtIndex: i];
+	  NSData	*d;
+
+	  d = [[NSFileHandle fileHandleWithStandardInput] readDataToEndOfFile];
+	  if (nil == d)
+	    {
+	      GSPrintf(stderr, @"defaults merge: read from stdin failed\n");
+	      derror = GSEXIT_NOTFOUND;
+	    }
+	  else
+	    {
+	      NSDictionary	*domain;
+
+	      domain = [NSPropertyListSerialization propertyListFromData: d
+	        mutabilityOption: 0
+		format: NULL
+	        errorDescription: NULL];
+	      if ([domain isKindOfClass: [NSDictionary class]])
+		{
+		  NSMutableDictionary	*merged;
+
+		  merged = AUTORELEASE([[defs persistentDomainForName:
+		    domainName] mutableCopy]);
+		  if (nil == merged)
+		    {
+		      merged = domain;
+		    }
+		  else
+		    {
+		      [merged addEntriesFromDictionary: domain];
+		    }
+		  [defs setPersistentDomain: merged forName: domainName];
+		}
+	      else
+		{
+		  GSPrintf(stderr, @"defaults merge: read bad stdin\n");
+		  derror = GSEXIT_FAILURE;
+		}
+	    }
+	}
+      if ([defs synchronize] == NO)
+	{
+	  GSPrintf(stderr,
+	    @"defaults merge: unable to write to defaults database\n");
+	}
+    }
+  else if ([[args objectAtIndex: i] isEqual: @"read"]
+    || [[args objectAtIndex: i] isEqual: @"readkey"])
     {
       NSDictionary	*locale = [defs dictionaryRepresentation];
 
