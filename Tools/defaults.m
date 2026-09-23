@@ -422,15 +422,12 @@ main(int argc, char** argv, char **env)
 
 		  merged = AUTORELEASE([[defs persistentDomainForName:
 		    domainName] mutableCopy]);
-		  if (nil == merged)
-		    {
-		      merged = domain;
-		    }
-		  else
+		  if (merged)
 		    {
 		      [merged addEntriesFromDictionary: domain];
+		      domain = merged;
 		    }
-		  [defs setPersistentDomain: merged forName: domainName];
+		  [defs setPersistentDomain: domain forName: domainName];
 		}
 	      else
 		{
