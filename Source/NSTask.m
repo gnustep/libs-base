@@ -1884,7 +1884,7 @@ use_fork_implementation:
   if (pid == 0)
     {
       int	i;
-      sigset_t child_mask;
+      sigset_t 	child_mask;
 
       /* Make sure the task gets default signal setup.
        */
