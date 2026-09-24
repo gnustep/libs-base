@@ -2132,7 +2132,15 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         }
       
       localName = xmlSplitQName2(xmlName, &prefix);
-      if (prefix != NULL)
+      if (prefix != NULL
+        && (xmlStrEqual(prefix, (const xmlChar *)"xmlns")
+            || xmlStrEqual(prefix, (const xmlChar *)"xml")))
+        {
+          xmlNodeSetName(theNode, xmlName);
+          xmlFree(localName);
+          xmlFree(prefix);
+        }
+      else if (prefix != NULL)
         {
           if ((theNode->type == XML_ATTRIBUTE_NODE)
 	    || (theNode->type == XML_ELEMENT_NODE))

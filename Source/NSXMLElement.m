@@ -253,6 +253,18 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 		  format: @"Tried to add attribute to multiple parents."];
     }
 
+  {
+    NSString *aname = [attribute name];
+
+    if ([aname hasPrefix: @"xmlns:"] && [aname length] > 6)
+      {
+        NSXMLNode *ns = [NSXMLNode namespaceWithName: [aname substringFromIndex: 6]
+                                         stringValue: [attribute stringValue]];
+        [self addNamespace: ns];
+        return;
+      }
+  }
+
   if (attr->ns != NULL)
     {
       xmlNsPtr ns = attr->ns;
