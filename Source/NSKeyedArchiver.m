@@ -26,9 +26,11 @@
 #define	EXPOSE_NSKeyedArchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/FoundationErrors.h"
 
 #import "GSPrivate.h"
 
@@ -445,32 +447,53 @@ static NSDictionary *makeReference(unsigned ref)
                   requiringSecureCoding: (BOOL)requiresSecureCoding
                                   error: (NSError **)error
 {
-  NSData *d = nil;
+  NSData	*d = nil;
+  NSMutableData	*m = nil;
+  NSKeyedArchiver	*a = nil;
 
-  if (requiresSecureCoding == NO)
+  if (requiresSecureCoding == YES
+    && ([anObject respondsToSelector: @selector(class)] == NO
+      || [[anObject class] respondsToSelector:
+	@selector(supportsSecureCoding)] == NO
+      || [[anObject class] supportsSecureCoding] == NO))
     {
-      NSMutableData	*m = nil;
-      NSKeyedArchiver	*a = nil;
+      if (error != NULL)
+	{
+	  NSDictionary	*info = [NSDictionary dictionaryWithObject:
+	    [NSString stringWithFormat:
+	    @"The class '%@' does not support secure coding",
+	    NSStringFromClass([anObject class])]
+	    forKey: NSLocalizedDescriptionKey];
 
-      error = NULL;
-      NS_DURING
-        {
-          m = [[NSMutableData alloc] initWithCapacity: 10240];
-          a = [[NSKeyedArchiver alloc] initForWritingWithMutableData: m];
-          [a encodeObject: anObject forKey: @"root"];
-          [a finishEncoding];
-          d = [m copy];
-          DESTROY(m);
-          DESTROY(a);
-        }
-      NS_HANDLER
-        {
-          DESTROY(m);
-          DESTROY(a);
-          [localException raise];
-        }
-      NS_ENDHANDLER;
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: NSCoderInvalidValueError
+				   userInfo: info];
+	}
+      return nil;
     }
+
+  if (error != NULL)
+    {
+      *error = nil;
+    }
+  NS_DURING
+    {
+      m = [[NSMutableData alloc] initWithCapacity: 10240];
+      a = [[NSKeyedArchiver alloc] initForWritingWithMutableData: m];
+      [a setRequiresSecureCoding: requiresSecureCoding];
+      [a encodeObject: anObject forKey: @"root"];
+      [a finishEncoding];
+      d = [m copy];
+      DESTROY(m);
+      DESTROY(a);
+    }
+  NS_HANDLER
+    {
+      DESTROY(m);
+      DESTROY(a);
+      [localException raise];
+    }
+  NS_ENDHANDLER;
 
   return AUTORELEASE(d);
 }
