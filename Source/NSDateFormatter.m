@@ -222,6 +222,25 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   NSCalendarDate	*d;
 
+  if (internal->_behavior == NSDateFormatterBehavior10_4)
+    {
+      NSDate	*parsed = [self dateFromString: string];
+
+      if (parsed == nil && [string length] > 0)
+	{
+	  if (error)
+	    {
+	      *error = @"Couldn't convert to date";
+	    }
+	  return NO;
+	}
+      if (anObject)
+	{
+	  *anObject = parsed;
+	}
+      return YES;
+    }
+
   if ([string length] == 0)
     {
       d = nil;
