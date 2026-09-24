@@ -1800,7 +1800,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   if (self == [NSExpression class] && nil == evaluatedObjectExpression)
     {
-      evaluatedObjectExpression = [GSEvaluatedObjectExpression new];
+      evaluatedObjectExpression = [[GSEvaluatedObjectExpression alloc]
+	initWithExpressionType: NSEvaluatedObjectExpressionType];
 
       /* An archive names the kinds of expression the way OS X does, so that
        * one written here can be read there and the other way about.
