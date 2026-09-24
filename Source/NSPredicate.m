@@ -212,6 +212,12 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface GSSubqueryExpression : NSExpression
+{
+  @public
+  NSExpression	*_collection;
+  NSString	*_variable;
+  NSPredicate	*_subpredicate;
+}
 @end
 
 @interface GSAggregateExpression : NSExpression
@@ -1819,7 +1825,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 			   forClass: [GSFunctionExpression class]];
       [NSKeyedArchiver setClassName: @"NSAggregateExpression"
 			   forClass: [GSAggregateExpression class]];
+      [NSKeyedArchiver setClassName: @"NSSubqueryExpression"
+			   forClass: [GSSubqueryExpression class]];
 
+      [NSKeyedUnarchiver setClass: [GSSubqueryExpression class]
+		     forClassName: @"NSSubqueryExpression"];
       [NSKeyedUnarchiver setClass: [GSConstantValueExpression class]
 		     forClassName: @"NSConstantValueExpression"];
       [NSKeyedUnarchiver setClass: [GSEvaluatedObjectExpression class]
@@ -2012,6 +2022,21 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   
   return e;
 }
+
++ (NSExpression *) expressionForSubquery: (NSExpression *)expression
+                   usingIteratorVariable: (NSString *)variable
+                               predicate: (id)predicate
+{
+  GSSubqueryExpression *e;
+
+  e = AUTORELEASE([[GSSubqueryExpression alloc]
+    initWithExpressionType: NSSubqueryExpressionType]);
+  ASSIGN(e->_collection, expression);
+  ASSIGN(e->_variable, variable);
+  ASSIGN(e->_subpredicate, (NSPredicate *)predicate);
+
+  return e;
+}
 // end 10.5 methods
 
 // 10.6 methods...
@@ -2123,6 +2148,12 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 }
 
 - (NSString *) variable
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSPredicate *) predicate
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -2838,6 +2869,162 @@ do { \
 @end
 
 @implementation GSSubqueryExpression
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: NSSubqueryExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: _collection forKey: @"NSCollection"];
+      [coder encodeObject: _variable forKey: @"NSVariable"];
+      [coder encodeObject: _subpredicate forKey: @"NSSubpredicate"];
+    }
+  else
+    {
+      [coder encodeObject: _collection];
+      [coder encodeObject: _variable];
+      [coder encodeObject: _subpredicate];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: NSSubqueryExpressionType];
+  if (self != nil)
+    {
+      if ([coder allowsKeyedCoding])
+	{
+	  ASSIGN(_collection, [coder decodeObjectForKey: @"NSCollection"]);
+	  ASSIGN(_variable, [coder decodeObjectForKey: @"NSVariable"]);
+	  ASSIGN(_subpredicate, [coder decodeObjectForKey: @"NSSubpredicate"]);
+	}
+      else
+	{
+	  ASSIGN(_collection, [coder decodeObject]);
+	  ASSIGN(_variable, [coder decodeObject]);
+	  ASSIGN(_subpredicate, [coder decodeObject]);
+	}
+    }
+
+  return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  GSSubqueryExpression	*o = (GSSubqueryExpression *)other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSSubqueryExpression class]])
+    {
+      return NO;
+    }
+  return ([_collection isEqual: o->_collection]
+    && [_variable isEqual: o->_variable]
+    && [_subpredicate isEqual: o->_subpredicate]);
+}
+
+- (NSUInteger) hash
+{
+  return [_collection hash] ^ [_variable hash] ^ [_subpredicate hash];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSSubqueryExpression	*copy;
+
+  copy = (GSSubqueryExpression *)[super copyWithZone: zone];
+  copy->_collection = [_collection copyWithZone: zone];
+  copy->_variable = [_variable copyWithZone: zone];
+  copy->_subpredicate = [_subpredicate copyWithZone: zone];
+  return copy;
+}
+
+- (void) dealloc
+{
+  DESTROY(_collection);
+  DESTROY(_variable);
+  DESTROY(_subpredicate);
+  DEALLOC
+}
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"SUBQUERY(%@, $%@, %@)",
+    _collection, _variable, [_subpredicate predicateFormat]];
+}
+
+- (id) collection
+{
+  return _collection;
+}
+
+- (NSString *) variable
+{
+  return _variable;
+}
+
+- (NSPredicate *) predicate
+{
+  return _subpredicate;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id			collection;
+  NSMutableArray	*result;
+
+  collection = [_collection expressionValueWithObject: object context: context];
+  if (nil == collection)
+    {
+      return [NSArray array];
+    }
+  if (NO == [collection respondsToSelector: @selector(objectEnumerator)])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Subquery collection %@ is not a collection",
+	NSStringFromClass([collection class])];
+    }
+
+  result = [NSMutableArray array];
+
+  GS_FOR_IN(id, member, collection)
+    {
+      NSPredicate	*bound = _subpredicate;
+
+      if (nil != _variable && nil != member)
+	{
+	  bound = [_subpredicate predicateWithSubstitutionVariables:
+	    [NSDictionary dictionaryWithObject: member forKey: _variable]];
+	}
+      if ([bound evaluateWithObject: object])
+	{
+	  [result addObject: member];
+	}
+    }
+  GS_END_FOR(collection);
+
+  return result;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  NSMutableDictionary	*outer;
+  NSExpression		*collection;
+
+  outer = AUTORELEASE([variables mutableCopy]);
+  [outer removeObjectForKey: _variable];
+
+  collection = [_collection _expressionWithSubstitutionVariables: variables];
+
+  return [NSExpression expressionForSubquery: collection
+		       usingIteratorVariable: _variable
+				   predicate: [_subpredicate
+		 predicateWithSubstitutionVariables: outer]];
+}
 @end
 
 @implementation GSAggregateExpression
@@ -3787,6 +3974,17 @@ do { \
   return [self parseBinaryExpression];
 }
 
+static NSString *
+GSKeyPathIfKeyPath(NSExpression *expression)
+{
+  if (nil == expression
+    || NSKeyPathExpressionType != [expression expressionType])
+    {
+      return nil;
+    }
+  return [expression keyPath];
+}
+
 - (NSExpression *) parseIdentifierExpression
 {
   static NSCharacterSet *_identifier;
@@ -3885,6 +4083,51 @@ do { \
   if ([self scanPredicateKeyword: @"SELF"])
     {
       return [NSExpression expressionForEvaluatedObject];
+    }
+  if ([self scanPredicateKeyword: @"SUBQUERY"])
+    {
+      NSExpression	*collection;
+      NSExpression	*iterator;
+      NSPredicate	*subpredicate;
+
+      if (![self scanString: @"(" intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Missing ( in SUBQUERY"];
+        }
+      collection = [self parseExpression];
+      if (![self scanString: @"," intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Missing , after SUBQUERY collection"];
+        }
+      if (![self scanString: @"$" intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Missing iterator variable in SUBQUERY"];
+        }
+      iterator = [self parseIdentifierExpression];
+      if (![iterator keyPath])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Invalid iterator variable in SUBQUERY: %@",
+            iterator];
+        }
+      if (![self scanString: @"," intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Missing , after SUBQUERY iterator variable"];
+        }
+      subpredicate = [self parsePredicate];
+      if (![self scanString: @")" intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Missing ) in SUBQUERY"];
+        }
+
+      return [NSExpression expressionForSubquery: collection
+                           usingIteratorVariable: [iterator keyPath]
+                                       predicate: subpredicate];
     }
   if ([self scanString: @"$" intoString: NULL])
     {
@@ -4048,7 +4291,7 @@ do { \
           // The name may take its trailing colon as OS X writes it, as in
           // uppercase:(name); the colon becomes part of the function name.
           NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
-          NSString *name = [left keyPath];
+          NSString *name = GSKeyPathIfKeyPath(left);
 
           if (!name)
             {
@@ -4123,7 +4366,7 @@ do { \
           if (evaluatedObjectExpression != left)
             {
 	      // if both are simple key expressions (identifiers)
-	      if ([left keyPath] && [right keyPath])
+	      if (GSKeyPathIfKeyPath(left) && GSKeyPathIfKeyPath(right))
 	        {
                   // concatenate
                   left = [NSExpression expressionForKeyPath:
@@ -4139,7 +4382,11 @@ do { \
             }
           else
             {
-              left = [NSExpression expressionForKeyPath: [right keyPath]];
+              NSString	*path = GSKeyPathIfKeyPath(right);
+
+              left = (nil == path)
+                ? right
+                : [NSExpression expressionForKeyPath: path];
             }
         }
       else
