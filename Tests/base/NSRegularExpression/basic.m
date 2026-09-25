@@ -12,6 +12,48 @@
 #import <Foundation/NSError.h>
 #import <Foundation/FoundationErrors.h>
 
+static void
+testReplace(NSString *pattern, NSString *input, NSString *template,
+  NSString *expect, NSUInteger count)
+{
+  NSRegularExpression	*re;
+  NSRange		range;
+  NSString 		*result;
+  NSMutableString 	*mutable;
+  NSString 		*msg;
+  NSUInteger 		n;
+
+  msg = [NSString stringWithFormat:
+    @"Replacing '%@' in string '%@' with '%@' gives '%@'",
+    pattern, input, template, expect];
+
+  re = [NSRegularExpression regularExpressionWithPattern: pattern
+						 options: 0
+						   error: NULL];
+  range = NSMakeRange(0, input.length);
+  result = [re stringByReplacingMatchesInString: input
+					options: 0
+					  range: range
+				   withTemplate: template];
+
+  PASS_EQUAL(result, expect, "%s", [msg UTF8String])
+
+  mutable = AUTORELEASE([input mutableCopy]);
+  n = [re replaceMatchesInString: mutable
+			 options: 0
+			   range: range
+		    withTemplate:template];
+
+  msg = [NSString stringWithFormat:
+    @"Replacing '%@' in mutable string '%@' with '%@' gives '%@'",
+    pattern, template, input, expect];
+  PASS_EQUAL(mutable, expect, "%s", [msg UTF8String])
+  msg = [NSString stringWithFormat:
+    @"Replacing '%@' in mutable string '%@' with '%@' match count is %u",
+    pattern, template, input, (unsigned)count];
+  PASS(n == count, "%s", [msg UTF8String])
+}
+
 @interface DegeneratePatternTest : NSObject
 {
   NSRegularExpression *expression;
@@ -52,10 +94,8 @@
 }
 @end
 
-
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   START_SET("NSRegularExpression")
 
 #if !(__APPLE__ || GS_USE_ICU)
@@ -200,7 +240,15 @@ int main()
 
 #endif
 
+  testReplace(@"a", @"aaa", @"", @"", 3);	// every character removed
+  testReplace(@"a+", @"aaa", @"", @"", 1);	// one match for whole string
+  testReplace(@"a", @"", @"", @"", 0);		// empty input, no match
+  testReplace(@"x", @"", @"", @"", 0);		// empty input, can't match
+  testReplace(@"a", @"bab", @"", @"bb", 1);     // partial removal
+  testReplace(@"x", @"abc", @"", @"abc", 0);    // no match
+  testReplace(@"a", @"aaa", @"b", @"bbb", 3);   // non-empty result
+
   END_SET("NSRegularExpression")
-  [arp release]; arp = nil;
+
   return 0;
 }

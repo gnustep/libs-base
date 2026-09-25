@@ -605,7 +605,7 @@ prepareResult(NSRegularExpression *regex,
     }
   if (opts & NSMatchingAnchored)
     {
-      if (uregex_lookingAt(r, -1, &s) && (0 == s))
+      if (uregex_lookingAt(r, -1, &s) && U_SUCCESS(s))
 	{
 	  // FIXME: Factor all of this out into prepareResult()
 	  uint32_t		flags;
@@ -622,7 +622,7 @@ prepareResult(NSRegularExpression *regex,
     }
   else
     {
-      while (!stop && uregex_findNext(r, &s) && (0 == s))
+      while (!stop && uregex_findNext(r, &s) && U_SUCCESS(s))
 	{
 	  uint32_t		flags;
 	  NSTextCheckingResult	*result;
@@ -666,7 +666,7 @@ prepareResult(NSRegularExpression *regex,
     {
       if (opts & NSMatchingAnchored)
 	{
-	  if (uregex_lookingAt(r, -1, &s) && (0 == s))
+	  if (uregex_lookingAt(r, -1, &s) && U_SUCCESS(s))
 	    {
 	      // FIXME: Factor all of this out into prepareResult()
 	      uint32_t		flags;
@@ -683,7 +683,7 @@ prepareResult(NSRegularExpression *regex,
 	}
       else
 	{
-	  while (!stop && uregex_findNext(r, &s) && (0 == s))
+	  while (!stop && uregex_findNext(r, &s) && U_SUCCESS(s))
 	    {
 	      uint32_t		flags;
 	      NSTextCheckingResult	*result;
@@ -959,7 +959,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
       [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
       outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
-      if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+      if (U_SUCCESS(s) || U_BUFFER_OVERFLOW_ERROR == s)
 	{
           unichar	*output;
 
@@ -968,7 +968,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
 	  output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
 	  uregex_replaceAll(r, replacement, replLength,
 	    output, outLength + 1, &s);
-	  if (0 == s)
+	  if (U_SUCCESS(s))
 	    {
 	      NSString	*out;
 
@@ -1012,7 +1012,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
   [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
   outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
-  if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+  if (U_SUCCESS(s) || U_BUFFER_OVERFLOW_ERROR == s)
     {
       unichar	*output;
 
@@ -1020,7 +1020,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
 
       output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
       uregex_replaceAll(r, replacement, replLength, output, outLength + 1, &s);
-      if (0 == s)
+      if (U_SUCCESS(s))
 	{
 	  result = AUTORELEASE([[NSString alloc]
 	    initWithCharactersNoCopy: output
@@ -1062,7 +1062,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
   [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
   outLength = uregex_replaceFirst(r, replacement, replLength, NULL, 0, &s);
-  if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+  if (U_SUCCESS(s) || U_BUFFER_OVERFLOW_ERROR == s)
     {
       unichar	*output;
 
@@ -1070,7 +1070,7 @@ rangeCallback(void *context, NSTextCheckingResult *match,
       output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
       uregex_replaceFirst(r, replacement, replLength,
 	output, outLength + 1, &s);
-      if (0 == s)
+      if (U_SUCCESS(s))
 	{
 	  str = AUTORELEASE([[NSString alloc]
 	    initWithCharactersNoCopy: output
