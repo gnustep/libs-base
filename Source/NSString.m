@@ -41,6 +41,9 @@
    Limited choice of default encodings.
 */
 
+#include "Foundation/NSString.h"
+#include <unicode/uchar.h>
+#include <unicode/umachine.h>
 #define GS_UNSAFE_REGEX 1
 #import "common.h"
 #include <stdio.h>
@@ -130,6 +133,23 @@
 #if	defined(HAVE_ICU_H)
 # include <icu.h>
 #endif
+
+
+#if GS_USE_ICU
+// These macros may be useful elsewhere.
+#define GS_U_HANDLE_ERROR_RETVAL(errorCode, description, returnValue) do { \
+  if (U_FAILURE(errorCode)) { \
+    NSWarnMLog(@"Error " description ": %s", u_errorName(errorCode)); \
+    return returnValue; \
+  } else if (errorCode < U_ZERO_ERROR) { \
+    NSWarnMLog(@"Warning " description ": %s", u_errorName(errorCode)); \
+  } \
+  errorCode = U_ZERO_ERROR; \
+} while (NO)
+
+#define GS_U_HANDLE_ERROR(errorCode, description) GS_U_HANDLE_ERROR_RETVAL(errorCode, description,)
+#endif
+
 
 /* Create local inline versions of key functions for case-insensitive operations
  */
@@ -4166,6 +4186,117 @@ register_printf_atsign ()
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
+
+enum GSStringOption {
+  GSStringOptionUppercase = 0,
+  GSStringOptionLowercase = 1,
+  GSStringOptionCapitalized = 2
+};
+
+- (NSString *) _localizedStringConversion: (enum GSStringOption) option 
+{
+  #if GS_USE_ICU
+  UErrorCode code = U_ZERO_ERROR;
+
+  NSMutableData *destination;
+  NSData *source;
+  NSUInteger sourceLength;
+  NSInteger destLength;
+  UChar *sourceBuffer;
+  NSString *locale;
+
+  source = [self dataUsingEncoding: NSUTF16StringEncoding allowLossyConversion:NO];
+  if (source == nil)
+  {
+    return nil;
+  }
+
+  sourceLength = [source length];
+  sourceBuffer = (UChar *)[source bytes];
+  locale = [[NSLocale currentLocale] localeIdentifier];
+
+  if (option == GSStringOptionUppercase)
+  {
+    destLength = u_strToUpper(NULL,
+    0,
+    sourceBuffer,
+    sourceLength,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to get length for uppercase conversion", nil);
+
+    destination = [NSMutableData dataWithCapacity: destLength];
+    destLength = u_strToUpper((UChar *)[destination bytes],
+    destLength,
+    sourceBuffer,
+    sourceLength,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to perform uppercase conversion", nil);
+  } else if (option == GSStringOptionLowercase)
+  {
+    destLength = u_strToLower(NULL,
+    0,
+    sourceBuffer,
+    sourceLength,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to get length for lowercase conversion", nil);
+
+    destination = [NSMutableData dataWithCapacity: destLength];
+    destLength = u_strToLower((UChar *)[destination bytes],
+    destLength,
+    sourceBuffer,
+    sourceLength,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to perform lowercase conversion", nil);
+  } else if (option == GSStringOptionCapitalized)
+  {
+    destLength = u_strToTitle(NULL,
+    0,
+    sourceBuffer,
+    sourceLength,
+    NULL,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to get length for titlecase conversion", nil);
+
+    destination = [NSMutableData dataWithCapacity: destLength];
+    destLength = u_strToTitle((UChar *)[destination bytes],
+    destLength,
+    sourceBuffer,
+    sourceLength,
+    NULL,
+    [locale UTF8String],
+    &code);
+    GS_U_HANDLE_ERROR_RETVAL(code, "failed to perform titlecase conversion", nil);
+  } else {
+    return nil;
+  }
+
+  return AUTORELEASE([[NSString alloc] initWithData: destination encoding:NSUTF16StringEncoding]);
+  #else
+  return [self uppercaseString];
+  #endif // GS_USE_ICU
+}
+
+- (NSString*) localizedCapitalizedString
+{
+  return [self _localizedStringConversion: GSStringOptionCapitalized];
+}
+
+- (NSString*) localizedLowercaseString
+{
+  return [self _localizedStringConversion: GSStringOptionLowercase];
+}
+
+- (NSString*) localizedUppercaseString
+{
+  return [self _localizedStringConversion: GSStringOptionUppercase];
+}
+
+
 // Storing the String
 
 /** Returns <code>self</code>. */
@@ -6977,17 +7108,6 @@ static NSFileManager *fm = nil;
     || substringType == NSStringEnumerationBySentences)
     {
 #if GS_USE_ICU
-      // These macros may be useful elsewhere.
-      #define GS_U_HANDLE_ERROR(errorCode, description) do { \
-        if (U_FAILURE(errorCode)) { \
-          NSWarnMLog(@"Error " description ": %s", u_errorName(errorCode)); \
-          return; \
-        } else if (errorCode < U_ZERO_ERROR) { \
-          NSWarnMLog(@"Warning " description ": %s", u_errorName(errorCode)); \
-        } \
-        errorCode = U_ZERO_ERROR; \
-      } while (NO)
-
       BOOL		byWords = substringType == NSStringEnumerationByWords;
       NSUInteger	length = range.length;
       UChar 		characters[length];

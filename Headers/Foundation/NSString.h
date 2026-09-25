@@ -693,6 +693,10 @@ GS_EXPORT_CLASS
 - (NSString*) lowercaseString;
 - (NSString*) uppercaseString;
 
+- (NSString*) localizedCapitalizedString;
+- (NSString*) localizedLowercaseString;
+- (NSString*) localizedUppercaseString;
+
 // Getting C Strings
 - (const char*) cString;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
