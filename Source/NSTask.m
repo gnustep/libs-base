@@ -1719,6 +1719,7 @@ GSPrivateCheckTasks()
     posix_spawnattr_t		attr;
     short			flags;
     sigset_t 			default_signals;
+    sigset_t                    child_mask;
     int 			spawn_result;
 
     /* Initialize spawn attributes and file actions */
@@ -1745,7 +1746,8 @@ GSPrivateCheckTasks()
      * POSIX_SPAWN_SETSID detaches from controlling terminal (like setsid()).
      * It's reliably supported in glibc 2.26+ (2017).
      */
-    flags = POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF;
+    flags = POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF
+      | POSIX_SPAWN_SETSIGMASK;
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 29))
     flags |= POSIX_SPAWN_SETSID;
 #endif
@@ -1755,6 +1757,13 @@ GSPrivateCheckTasks()
     /* Reset all signals to default */
     sigfillset(&default_signals);
     posix_spawnattr_setsigdefault(&attr, &default_signals);
+
+    /* Resetting dispositions does not unblock signals inherited from the
+     * launching thread (for example, a libdispatch worker).  Start the child
+     * with an empty mask, without changing the parent's mask.
+     */
+    sigemptyset(&child_mask);
+    posix_spawnattr_setsigmask(&attr, &child_mask);
 
     if (_usePseudoTerminal == YES)
       {
@@ -1875,6 +1884,7 @@ use_fork_implementation:
   if (pid == 0)
     {
       int	i;
+      sigset_t child_mask;
 
       /* Make sure the task gets default signal setup.
        */
@@ -1882,6 +1892,13 @@ use_fork_implementation:
 	{
 	  signal(i, SIG_DFL);
 	}
+
+      /* The posix_spawn fallback must not inherit the launching thread's
+       * blocked signals either.  Only change the mask in the child, after
+       * resetting the inherited signal dispositions.
+       */
+      sigemptyset(&child_mask);
+      sigprocmask(SIG_SETMASK, &child_mask, NULL);
 
       /* Make sure task is session leader in it's own process group
        * and with no controlling terminal.
