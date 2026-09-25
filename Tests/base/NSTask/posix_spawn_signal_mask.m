@@ -9,20 +9,24 @@
 
 int main(int argc, char **argv)
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
 #if !defined(_WIN32)
-  sigset_t blocked, original, current;
-  NSTask *task;
-  NSString *path;
-  int result;
-
+  sigset_t	blocked;
+  sigset_t	original;
+  sigset_t	current;
+  int		result;
+ 
   if (argc > 1 && strcmp(argv[1], "--check-mask") == 0)
     {
       result = pthread_sigmask(SIG_BLOCK, NULL, &current);
-      [pool release];
       return result != 0 || sigismember(&current, SIGTERM) != 0
         || sigismember(&current, SIGUSR1) != 0;
     }
+#endif
+
+  START_SET("sigmask")
+#if !defined(_WIN32)
+  NSTask	*task;
+  NSString	*path;
 
   /* Dispatch workers may block these signals.  Reproduce deterministically
    * without depending on the configured NSOperationQueue implementation.
@@ -34,7 +38,7 @@ int main(int argc, char **argv)
   PASS(result == 0, "block signals on the launching thread");
   if (result == 0)
     {
-      @try
+      NS_DURING
         {
           path = [NSString stringWithUTF8String: argv[0]];
           if (![path isAbsolutePath])
@@ -53,14 +57,14 @@ int main(int argc, char **argv)
             "launch preserves the parent's blocked signals");
           [task release];
         }
-      @finally
-        {
-          pthread_sigmask(SIG_SETMASK, &original, NULL);
-        }
+      NS_HANDLER
+      NS_ENDHANDLER
+      pthread_sigmask(SIG_SETMASK, &original, NULL);
     }
 #else
   SKIP("POSIX signal masks are not available on Windows");
 #endif
-  [pool release];
+
+  END_SET("sigmask")
   return 0;
 }
