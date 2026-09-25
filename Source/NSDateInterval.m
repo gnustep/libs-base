@@ -28,11 +28,10 @@
 
 @implementation NSDateInterval
 
-// Init
-- (instancetype)init
+- (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _startDate = [NSDate date];
       _duration = 0.0;
@@ -41,26 +40,26 @@
   return self;
 }
 
-- (instancetype)initWithStartDate:(NSDate *)startDate 
-                         duration:(NSTimeInterval)duration
+- (instancetype) initWithStartDate: (NSDate*)startDate 
+                          duration: (NSTimeInterval)duration
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       ASSIGNCOPY(_startDate, startDate);
-      if(duration < 0)
+      if (duration < 0)
         {
+	  DESTROY(self);
           [NSException raise: NSInvalidArgumentException
                       format: @"Duration %f is less than zero", duration];
         }
       _duration = duration;
-      
     }
   return self;
 }
 
-- (instancetype)initWithStartDate:(NSDate *)startDate 
-                          endDate:(NSDate *)endDate
+- (instancetype) initWithStartDate: (NSDate*)startDate 
+                           endDate: (NSDate*)endDate
 {
   return [self initWithStartDate: startDate
                         duration: [endDate timeIntervalSinceDate: startDate]];
@@ -79,33 +78,33 @@
 - (id) copyWithZone: (NSZone *)zone
 {
   return [[[self class] allocWithZone: zone]
-           initWithStartDate: _startDate
-                    duration: _duration];
+		    initWithStartDate: _startDate
+			     duration: _duration];
 }
 
 - (void) dealloc
 {
   RELEASE(_startDate);
-  [super dealloc];
+  DEALLOC
 }
 
 // Access
-- (NSDate *) startDate
+- (NSDate*) startDate
 {
   return _startDate;
 }
 
-- (void) setStartDate: (NSDate *)startDate
+- (void) setStartDate: (NSDate*)startDate
 {
   ASSIGNCOPY(_startDate, startDate);
 }
 
-- (NSDate *) endDate
+- (NSDate*) endDate
 {
   return [_startDate dateByAddingTimeInterval: _duration];
 }
 
-- (void) setEndDate: (NSDate *)endDate
+- (void) setEndDate: (NSDate*)endDate
 {
   _duration = [endDate timeIntervalSinceDate: _startDate];
 }
@@ -125,25 +124,26 @@
 {
   NSComparisonResult result = NSOrderedSame;
   
-  if([_startDate isEqualToDate: [dateInterval startDate]] &&
-     _duration < [dateInterval duration])
+  if ([_startDate isEqualToDate: [dateInterval startDate]]
+    && _duration < [dateInterval duration])
     {
       result = NSOrderedAscending;
     }
-  else if([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
+  else if ([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
     {
       result = NSOrderedAscending;
     }
-  else if([self isEqualToDateInterval: dateInterval])
+  else if ([self isEqualToDateInterval: dateInterval])
     {
       result = NSOrderedSame;
     }
-  else if([_startDate isEqualToDate: [dateInterval startDate]] &&
-          _duration > [dateInterval duration])
+  else if ([_startDate isEqualToDate: [dateInterval startDate]]
+    && _duration > [dateInterval duration])
     {
       result = NSOrderedDescending;
     }
-  else if([_startDate compare: [dateInterval startDate]] == NSOrderedDescending)
+  else if ([_startDate compare: [dateInterval startDate]]
+    == NSOrderedDescending)
     {
       result = NSOrderedDescending;
     }
@@ -151,51 +151,54 @@
   return result;
 }
 
-- (BOOL) isEqualToDateInterval: (NSDateInterval *)dateInterval
+- (BOOL) isEqualToDateInterval: (NSDateInterval*)dateInterval
 {
-  return ([_startDate isEqualToDate: [dateInterval startDate]] &&
-          _duration == [dateInterval duration]);
+  return ([_startDate isEqualToDate: [dateInterval startDate]]
+    && _duration == [dateInterval duration]);
 }
 
 // Determine
-- (BOOL) intersectsDateInterval: (NSDateInterval *)dateInterval
+- (BOOL) intersectsDateInterval: (NSDateInterval*)dateInterval
 {
   return [self intersectionWithDateInterval: dateInterval] != nil;
 }
 
-- (NSDateInterval *) intersectionWithDateInterval: (NSDateInterval *)dateInterval
+- (NSDateInterval*) intersectionWithDateInterval: (NSDateInterval*)dateInterval
 {
   NSDateInterval *result = nil;
   NSDateInterval *first = self; //[sortedArray firstObject];
   NSDateInterval *last = dateInterval; // [sortedArray lastObject];
   NSDate *intersectStartDate = nil;
   NSDate *intersectEndDate = nil;
-  // NSArray *array = [NSArray arrayWithObjects: self, dateInterval, nil];
-  // NSArray *sortedArray = [array sortedArrayUsingSelector: @selector(compare:)];
+
+  /* NSArray *array = [NSArray arrayWithObjects: self, dateInterval, nil];
+   * NSArray *sortedArray
+   *   = [array sortedArrayUsingSelector: @selector(compare:)];
+   */
 
   // Max of start date....
-  if([[first startDate] compare: [last startDate]] == NSOrderedAscending ||
-     [[first startDate] isEqualToDate: [last startDate]])
+  if ([[first startDate] compare: [last startDate]] == NSOrderedAscending
+    || [[first startDate] isEqualToDate: [last startDate]])
     {
       intersectStartDate = [last startDate];
     }
-  if([[first startDate] compare: [last startDate]] == NSOrderedDescending)
+  if ([[first startDate] compare: [last startDate]] == NSOrderedDescending)
     {
       intersectStartDate = [first startDate];
     }
 
   // Min of end date...
-  if([[first endDate] compare: [last endDate]] == NSOrderedDescending ||
-     [[first endDate] isEqualToDate: [last endDate]])
+  if ([[first endDate] compare: [last endDate]] == NSOrderedDescending
+    || [[first endDate] isEqualToDate: [last endDate]])
     {
       intersectEndDate = [last endDate];
     }
-  if([[first endDate] compare: [last endDate]] == NSOrderedAscending)
+  if ([[first endDate] compare: [last endDate]] == NSOrderedAscending)
     {
       intersectEndDate = [first endDate];
     }
 
-  if([intersectStartDate compare: intersectEndDate] == NSOrderedAscending)
+  if ([intersectStartDate compare: intersectEndDate] == NSOrderedAscending)
     {
       result = [[NSDateInterval alloc] initWithStartDate: intersectStartDate
                                                  endDate: intersectEndDate];
@@ -206,14 +209,13 @@
 }
 
 // Contain
-- (BOOL) containsDate: (NSDate *)date
+- (BOOL) containsDate: (NSDate*)date
 {
   NSDate *endDate = [self endDate];
-  return ([_startDate compare: date] == NSOrderedSame ||
-          [endDate compare: date] == NSOrderedSame ||
-          ([_startDate compare: date] == NSOrderedAscending &&
-           [endDate compare: date] == NSOrderedDescending));
-    
+  return ([_startDate compare: date] == NSOrderedSame
+    || [endDate compare: date] == NSOrderedSame
+    || ([_startDate compare: date] == NSOrderedAscending
+      && [endDate compare: date] == NSOrderedDescending));
 }
 
 @end
