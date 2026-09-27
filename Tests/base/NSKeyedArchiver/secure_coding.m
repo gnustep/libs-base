@@ -233,5 +233,17 @@ int main(void)
       "a mutable array of a secure class is decoded");
   END_SET("mutable variants inherit NSSecureCoding")
 
+  START_SET("data that is not an archive")
+    NSError	*err = nil;
+    id		obj;
+
+    obj = [NSKeyedUnarchiver
+      unarchivedObjectOfClass: [NSString class]
+                     fromData: [@"not an archive" dataUsingEncoding: NSUTF8StringEncoding]
+                        error: &err];
+    PASS(obj == nil && [err code] == NSCoderReadCorruptError,
+      "data that is not an archive is a read error, not a crash");
+  END_SET("data that is not an archive")
+
   return 0;
 }
