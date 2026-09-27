@@ -228,7 +228,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
               if (((childNS != NULL) && 
                    ((cur->ns == childNS) ||
                     ((cur->ns == NULL) &&
-                     (xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))) ||
+                     (childNS->prefix == NULL
+                      || xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))) ||
                   ((cur->ns != NULL) && (xmlStrcmp(cur->ns->href, href) == 0)))
                 {
                   NSXMLNode *theNode = [NSXMLNode _objectForNode: cur];
@@ -504,9 +505,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       
       while (cur != NULL)
         {
-          if ((prefix != NULL) &&
-              (cur->prefix != NULL) &&
-              (xmlStrcmp(prefix, cur->prefix) == 0))
+          if (xmlStrEqual(prefix, cur->prefix))
             {
               break;
             }
@@ -541,7 +540,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
     }
 
   // Are we setting a default namespace?
-  if ((theNode->ns == NULL) && (xmlStrcmp(prefix, (const xmlChar*)"") == 0))
+  if ((theNode->ns == NULL)
+    && (prefix == NULL || xmlStrcmp(prefix, (const xmlChar*)"") == 0))
     {
       theNode->ns = ns;
     }

@@ -2117,7 +2117,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         {
           xmlFree((xmlChar *)ns->prefix);
         }
-      ns->prefix = XMLStringCopy(name);
+      ns->prefix = [name length] > 0 ? XMLStringCopy(name) : NULL;
     }
   else
     {
