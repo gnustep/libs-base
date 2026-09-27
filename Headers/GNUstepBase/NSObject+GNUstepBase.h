@@ -37,6 +37,12 @@ extern "C" {
 
 @class  NSHashTable;
 
+/** Utility function returning YES if the obj argument is a block, NO otherwise.
+ * This test currenlty assumes that all block classes share a common ancestor
+ * block class.
+ */
+GS_EXPORT BOOL          GSIsBlock(id obj);
+
 @interface NSObject (GNUstepBase)
 
 /**

@@ -1005,3 +1005,50 @@ makeLinkForClass(Class c)
 
 #endif
 
+
+BOOL
+GSIsBlock(id obj)
+{
+#if __has_feature(blocks)
+  static Class	blockRootClass = nil;
+  static BOOL	initialised = NO;
+  Class		objClass;
+
+  if (nil == obj)
+    {
+      return NO;
+    }
+    
+  if (!initialised)
+    {
+      static gs_mutex_t	blockLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(blockLock);
+      if (!initialised)
+	{
+          id	placeholderBlock = ^{};
+	  Class cls = object_getClass(placeholderBlock);
+        
+	  while (cls && class_getSuperclass(cls) != [NSObject class])
+	    {
+	      cls = class_getSuperclass(cls);
+	    }
+	  blockRootClass = cls;
+	  initialised = YES;
+	}
+      GS_MUTEX_UNLOCK(blockLock);
+    }
+    
+  objClass = object_getClass(obj);
+  while (objClass)
+    {
+      if (objClass == blockRootClass)
+	{
+	  return YES;
+	}
+      objClass = class_getSuperclass(objClass);
+    }
+#endif 
+  return NO;
+}
+
