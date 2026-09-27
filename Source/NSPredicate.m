@@ -1434,7 +1434,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     }
 
   // Change predicate options into string options.
-  if (!(_options & NSDiacriticInsensitivePredicateOption))
+  if (_options & NSDiacriticInsensitivePredicateOption)
+    {
+      compareOptions |= NSDiacriticInsensitiveSearch;
+    }
+  else
     {
       compareOptions |= NSLiteralSearch;
     }
