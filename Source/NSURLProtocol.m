@@ -1141,6 +1141,7 @@ typedef struct {
     {
       _parser = [GSMimeParser new];
       [_parser setIsHttp];
+      [_parser setMultipartAsData: YES];
     }
   wasInHeaders = [_parser isInHeaders];
   d = [NSData dataWithBytes: buffer length: readCount];

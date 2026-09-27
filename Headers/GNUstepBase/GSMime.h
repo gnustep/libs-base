@@ -249,6 +249,7 @@ GS_EXPORT_CLASS
     unsigned int	excessData:1;
     unsigned int	headersOnly:1;
     unsigned int        encodedWord:1;
+    unsigned int	multipartAsData:1;
   } flags;
   NSData		*boundary;	// Also overloaded to hold excess
   GSMimeDocument	*document;
@@ -297,6 +298,7 @@ GS_EXPORT_CLASS
 - (void) setDefaultCharset: (NSString*)aName;
 - (void) setHeadersOnly;
 - (void) setIsHttp;
+- (void) setMultipartAsData: (BOOL)flag;
 @end
 
 /** Instances of the GSMimeSerializer class are used to serialise
