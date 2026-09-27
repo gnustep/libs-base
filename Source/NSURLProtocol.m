@@ -1251,7 +1251,8 @@ typedef struct {
 
               NS_DURING
                 s = [[document headerNamed: @"location"] value];
-                url = [NSURL URLWithString: s];
+                url = [[NSURL URLWithString: s
+                              relativeToURL: [this->request URL]] absoluteURL];
               NS_HANDLER
                 url = nil;
               NS_ENDHANDLER
