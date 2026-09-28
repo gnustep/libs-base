@@ -45,6 +45,7 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSBlockOperationBlock, void);
 #endif  
 
+@class GSOperation;
 @class NSInvocation;
 @class NSMutableArray;
 
@@ -94,7 +95,8 @@ GS_EXPORT_CLASS
 /**
  * Returns the block that will be executed after the operation finishes.
  */
-- (GSOperationCompletionBlock) completionBlock;
+- (GSOperationCompletionBlock) completionBlock
+  GS_NON_PORTABLE(FIXME: implement a delegate for operation completion);
 #endif
 
 /** Returns all the dependencies of the receiver in the order in which they
@@ -206,6 +208,94 @@ GS_EXPORT_CLASS
 #endif
 
 @end
+
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+
+@protocol	GSOperationCompletion
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#else
+@end
+@interface NSObject (GSOperationCompletion)
+#endif
+/** Called on completion of the whole operation.
+ */
+- (void) operationCompleted;
+
+/** Called on completion of making a target perform a selector within the
+ * operation as a whole.<br />
+ * The result will be either the return value of that message, or the
+ * exception raised by that message.<br />
+ * The delegate may return YES to indicate that processing of the operation
+ * should complete without proceding to any items after the one which just
+ * completed.
+ */
+- (BOOL) shouldStopOperation: (GSOperation*)op
+		 afterItemAt: (NSUInteger)index
+	       completedWith: (id)result;
+@end
+
+/** The GSOperation class provides for traditional messaging to one or more
+ * objects, where the message has zero or one object argument and returns
+ * an object.<br />
+ * The constructor creates an instance with one such item, but you can add
+ * more items describing messagng to be performed in sequences.<br />
+ * The instance methods in this class may be used either before the operation
+ * is added to a queue or by the delegate handling a
+ * -shouldStopOperation:afterItemAt:completedWith: message.
+ */
+GS_EXPORT_CLASS
+@interface GSOperation : NSOperation
+{
+  @private
+  NSMutableArray	*_ops;
+}
+- (void) addOperationTarget: (id)aTarget
+            performSelector: (SEL)aSelector;
+- (void) addOperationTarget: (id)aTarget
+            performSelector: (SEL)aSelector
+                 withObject: (id)anObject;
+- (void) getTarget: (id*)t
+	  selector: (SEL*)s
+	    object: (id*)o
+	    ofItem: (NSUInteger)i;
+- (instancetype) initTarget: (id)aTarget
+		   selector: (SEL)aSelector
+		     object: (id)anObject;
+- (NSUInteger) itemCount;
+- (void) setObject: (id)o atIndex: (NSUInteger)i;
+- (void) setSelector: (SEL)s atIndex: (NSUInteger)i;
+- (void) setTarget: (id)t atIndex: (NSUInteger)i;
+@end
+
+@interface	NSOperation (GNUstep)
+
+/** Calls +operationTarget:performSelector:withObject: passing a nil object.
+ */
++ (GSOperation*) operationTarget: (id)aTarget
+		 performSelector: (SEL)aSelector;
+
+/** Creates and returns an autoreleased GSOperation instance set up with one
+ * item to make a target object perform a selector.
+ */
++ (GSOperation*) operationTarget: (id)aTarget
+		 performSelector: (SEL)aSelector
+		      withObject: (id)anObject;
+
+/** Returns the delegate (if any) set to handle completion of the operation.
+ * Use this rather than -completionBlock (do not attempt to use both).
+ */
+- (id<GSOperationCompletion>) delegate;
+
+/** Sets the delegate that will be messaged when the operation has finished.
+ * The operation uses a weak reference to the delegate, it does not retain it.
+ * Use this rather than -setCompletionBlock: (do not attempt to use both).
+ */
+- (void) setDelegate: (id<GSOperationCompletion>)anObject;
+
+@end
+
+#endif
 
 /** The NSBlockOperation class is inherently non-portable due to its
  * dependency on a single compiler.  Any portable code with a use for
@@ -356,7 +446,8 @@ GS_EXPORT_CLASS
   && GS_USE_LIBDISPATCH == 1
   /** Returns the underlying dispatch queue.
    */
-- (dispatch_queue_t) underlyingQueue;
+- (dispatch_queue_t) underlyingQueue
+  GS_NON_PORTABLE(libdispath is only availbel on some platforms);
 
   /** Sets the underlying dispatch queue.
    *
@@ -365,7 +456,8 @@ GS_EXPORT_CLASS
    *  - There are operations in the queue `(operationCount > 0)`
    *  - The argument is the value returned by `dispatch_get_main_queue()`
    */
-- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue;
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue
+  GS_NON_PORTABLE(libdispath is only availbel on some platforms);
 #endif
 @end
 

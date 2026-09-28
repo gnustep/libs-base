@@ -42,6 +42,7 @@ Additions_OBJC_FILES =\
 	GSInsensitiveDictionary.m \
 	GSMime.m \
 	GSMinHeap.m \
+	GSOperation.m \
 	GSStandaloneXMLParser.m \
 	GSURITemplate.m \
 	GSXML.m \

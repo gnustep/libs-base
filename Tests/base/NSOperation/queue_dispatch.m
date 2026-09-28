@@ -96,11 +96,11 @@
 
 int main()
 {
-  NSOperationQueue *queue;
   START_SET("NSOperationQueue dispatch-backed behavior")
 
 #if GS_USE_LIBDISPATCH == 1
   {
+    NSOperationQueue *queue;
     void *oldUnderlying;
     void *customUnderlying;
 
