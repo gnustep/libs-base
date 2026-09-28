@@ -223,8 +223,8 @@ translateWinSockToPOSIXError(NSInteger err)
 } /* translateWinSockToPOSIXError */
 #endif /* ifdef _WIN32 */
 
-static inline NSError *
-errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
+NSError *
+GSURLSessionErrorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
 {
   NSString	*curlErrorString;
   NSString	*errorString;
@@ -1123,6 +1123,20 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   internal->_easyHandle = handle;
 }
 
+- (char *) _curlErrorBuffer
+{
+  return internal->_curlErrorBuffer;
+}
+
+-(struct curl_slist *)_curlHeaderList
+{
+  return internal->_headerList;
+}
+-(void)_setCurlHeaderList: (struct curl_slist *)headerList
+{
+  internal->_headerList = headerList;
+}
+
 - (void) _setVerbose: (BOOL)flag
 {
   [internal->_session _performSelectorOnWorkThread: @selector(_workSetVerbose:)
@@ -1490,7 +1504,7 @@ combineFragments(NSArray *fragments)
       code = CURLE_ABORTED_BY_CALLBACK;
     }
 
-  error = errorForCURLcode(internal->_easyHandle, code,
+  error = GSURLSessionErrorForCURLcode(internal->_easyHandle, code,
     internal->_curlErrorBuffer);
 
   if (internal->_properties & GSURLSessionWritesDataToFile)

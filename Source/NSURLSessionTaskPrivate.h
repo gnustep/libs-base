@@ -32,6 +32,10 @@
 #import "Foundation/NSURLSession.h"
 #import <curl/curl.h>
 
+
+NSError *
+GSURLSessionErrorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE]);
+
 @interface
   NSURLSessionTask(Private)
 
@@ -53,9 +57,13 @@
   easyHandle: (CURL *) handle;
 
 -(CURL *)_easyHandle;
--(char *)_errorBuffer;
--(struct curl_slist *)_headerList;
--(void)_setHeaderList: (struct curl_slist *)headerList;
+-(char *)_curlErrorBuffer;
+
+/**
+ * Not locked. Only update in initializer.
+ */
+-(struct curl_slist *)_curlHeaderList;
+-(void)_setCurlHeaderList: (struct curl_slist *)headerList;
 
 /* Enable or disable libcurl verbose output. Disabled by default. */
 -(void)_setVerbose: (BOOL)flag;
