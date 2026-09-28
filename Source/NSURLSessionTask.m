@@ -29,11 +29,7 @@
 /* The ivar macro below is expanded by Foundation/NSURLSession.h, so the
  * types it names have to be known before that header is imported.
  */
-#include "Foundation/NSURLRequest.h"
-#include "Foundation/NSURLSession.h"
-#include "GNUstepBase/GNUstep.h"
 #import "common.h"
-#include <curl/curl.h>
 
 /* Where the compiler has no usable _Atomic, GSAtomic.h supplies a fallback
  * for it along with gs_atomic_load and gs_atomic_store.  It has to be seen
@@ -104,9 +100,15 @@
   CURL			*_easyHandle; \
   NSURLSession 		*_session;
 
-#import "NSURLSessionPrivate.h"
+#define	GSInternal	NSURLSessionTaskInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLSessionTask)
+
+/*
+ * We can now import all other required headers
+ */
+
 #include <curl/curl.h>
-#import "NSURLSessionTaskPrivate.h"
 
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSPathUtilities.h"
@@ -126,14 +128,12 @@
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSMethodSignature.h"
 
+#import "GSURLPrivate.h"
+#import "NSURLSessionPrivate.h"
+#import "NSURLSessionTaskPrivate.h"
+
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
-
-#import "GSURLPrivate.h"
-
-#define	GSInternal	NSURLSessionTaskInternal
-#include "GSInternal.h"
-GS_PRIVATE_INTERNAL(NSURLSessionTask)
 
 
 @interface _GSInsensitiveDictionary : NSDictionary
