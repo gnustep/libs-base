@@ -115,6 +115,8 @@ GS_PRIVATE_INTERNAL(NSURLSessionWebSocketTask)
 #import "Foundation/NSException.h"
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
 
 #import "GSURLPrivate.h"
 #import "NSURLSessionPrivate.h"
@@ -700,12 +702,18 @@ WSTaskResume(NSURLSessionWebSocketTask *task, int direction)
 static void
 WSTaskScheduleResume(NSURLSessionWebSocketTask *task, int direction)
 {
-  // FIXME(hugo): Convert to NSInvocation
-  /*
-  [[task _session] _performOnWorkThread: ^{
-      WSTaskResume(task, direction);
-    }];
-    */
+  NSInvocation	*inv;
+  SEL resumeTaskSel;
+
+  resumeTaskSel = @selector(_resumeTaskWithDirection:);
+
+  inv = [NSInvocation invocationWithMethodSignature:
+    [task methodSignatureForSelector: resumeTaskSel]];
+  [inv setTarget: task];
+  [inv setSelector: resumeTaskSel];
+  [inv setArgument: &direction atIndex:2];
+
+  [[task _session] _performInvocationOnWorkThread: inv];
 }
 
 static void
@@ -1320,7 +1328,6 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
             break;
         }
 
-      [task _clearErrorBuffer];
       result = curl_ws_start_frame([task _easyHandle],
                                    flags,
                                    (curl_off_t)payloadLength);
@@ -1466,7 +1473,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   handle = [self _easyHandle];
 
   /* The task is associated with the easy handle for completion/error lookup. */
-  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, [self _errorBuffer]);
+  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, [self _curlErrorBuffer]);
   curl_easy_setopt(handle, CURLOPT_PRIVATE, self);
 
   curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, ws_write_callback);
@@ -1511,6 +1518,11 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     }
 
   /* TODO(WS): Configure websocket protocol options and handshake behavior. */
+}
+
+- (void) _resumeTaskWithDirection: (int) direction
+{
+  WSTaskResume(self, direction);
 }
 
 /*
@@ -1801,7 +1813,10 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
   NSData *closeReason;
   BOOL shouldNotifyClose;
 
-  error = [self _errorForCURLcode: code];
+  CURL *handle = [self _easyHandle];
+  char *errorBuffer = [self _curlErrorBuffer];
+
+  error = GSURLSessionErrorForCURLcode(handle, code, errorBuffer);
   closeCode = NSURLSessionWebSocketCloseCodeInvalid;
   closeReason = nil;
   shouldNotifyClose = NO;
