@@ -204,10 +204,31 @@
 
 #import <objc/runtime.h>
 
-@interface GSOperationDelegateWeak : NSObject
-@property(nonatomic, weak) id value;
+@interface GSBoxWeak : NSObject
+{
+  id	value;
+}
+- (void) setValue: (id)v;
+- (id) value;
 @end
-@implementation GSOperationDelegateWeak
+@implementation GSBoxWeak
+- (void) dealloc
+{
+  objc_destroyWeak(&value);
+  DEALLOC
+}
+- (void) setValue: (id)v
+{
+  if (value)
+    {
+      objc_destroyWeak(&value);
+    }
+  objc_initWeak(&value, v);
+}
+- (id) value
+{
+  return objc_loadWeak(&value);
+}
 @end
 
 @implementation	NSOperation (GNUstep)
@@ -233,9 +254,9 @@ static char	*dKey = "GSOperationDelegateKey";
 
 - (id<GSOperationCompletion>) delegate
 {
-  GSOperationDelegateWeak	*w = objc_getAssociatedObject(self, &dKey);
+  GSBoxWeak	*w = objc_getAssociatedObject(self, &dKey);
 
-  return w ? w.valuei : nil;
+  return [w value];
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
@@ -244,9 +265,8 @@ static char	*dKey = "GSOperationDelegateKey";
 
   if (anObject)
     {
-      GSOperationDelegateWeak	*w = [GSOperationDelegateWeak new];
-
-      w.value = anobject;
+      o = [[GSBoxWeak alloc] init];
+      [o setValue: anObject];
     }
   else
     {
@@ -254,7 +274,8 @@ static char	*dKey = "GSOperationDelegateKey";
     }
   objc_setAssociatedObject(self, &dKey, o, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   RELEASE(o);
-  if (anObject && [anObject respondsToSelector: @selector(operationCompleted)])
+  if (anObject
+    && [(id)anObject respondsToSelector: @selector(operationCompleted)])
     {
       [self setCompletionBlock: ^{[[self delegate] operationCompleted];}];
     }
