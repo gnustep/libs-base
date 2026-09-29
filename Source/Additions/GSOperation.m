@@ -200,7 +200,16 @@
 
 @end
 
-#if	APPLE
+#if	__APPLE__
+
+#import <objc/runtime.h>
+
+@interface GSOperationDelegateWeak : NSObject
+@property(nonatomic, weak) id value;
+@end
+@implementation GSOperationDelegateWeak
+@end
+
 @implementation	NSOperation (GNUstep)
 + (GSOperation*) operationTarget: (id)aTarget
                  performSelector: (SEL)aSelector
@@ -214,36 +223,44 @@
                  performSelector: (SEL)aSelector
                       withObject: (id)anObject
 {
-  GSOperation	*o = [GSOperation new];
-  GSOp		*op = [GSOp new];
+  GSOperation	*o = [GSOperation alloc];
 
-  ASSIGN(op->target, aTarget);
-  op->selector = aSelector;
-  ASSIGN(op->object, anObject);
-  [o _add: op];
-  RELEASE(op);
+  o = [o initTarget: aTarget selector: aSelector object: anObject];
   return AUTORELEASE(o);
 }
 
+static char	*dKey = "GSOperationDelegateKey";
+
 - (id<GSOperationCompletion>) delegate
 {
-  if (NO == GSIsBlock(internal->delegate))
-    {
-      return (id<GSOperationCompletion>)objc_loadWeak(&internal->delegate);
-    }
-  return nil;
+  GSOperationDelegateWeak	*w = objc_getAssociatedObject(self, &dKey);
+
+  return w ? w.valuei : nil;
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
 {
-  if (internal->delegate)
-    {
-      objc_destroyWeak(&internal->delegate);
-      internal->delegate = nil;
-    }
+  id	o;
+
   if (anObject)
     {
-      objc_initWeak(&internal->delegate, (id)anObject);
+      GSOperationDelegateWeak	*w = [GSOperationDelegateWeak new];
+
+      w.value = anobject;
+    }
+  else
+    {
+      o = nil;
+    }
+  objc_setAssociatedObject(self, &dKey, o, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  RELEASE(o);
+  if (anObject && [anObject respondsToSelector: @selector(operationCompleted)])
+    {
+      [self setCompletionBlock: ^{[[self delegate] operationCompleted];}];
+    }
+  else
+    {
+      [self setCompletionBlock: NULL];
     }
 }
 
