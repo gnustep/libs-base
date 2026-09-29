@@ -1888,10 +1888,35 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   e = AUTORELEASE([[GSFunctionExpression alloc]
     initWithExpressionType: NSFunctionExpressionType]);
 
+  /* The arithmetic operators are functions with two-part names on OS X. */
+  if ([name isEqualToString: @"add:to:"])
+    {
+      implementation = @"_add";
+    }
+  else if ([name isEqualToString: @"from:subtract:"])
+    {
+      implementation = @"_sub";
+    }
+  else if ([name isEqualToString: @"multiply:by:"])
+    {
+      implementation = @"_mul";
+    }
+  else if ([name isEqualToString: @"divide:by:"])
+    {
+      implementation = @"_div";
+    }
+  else if ([name isEqualToString: @"raise:toPower:"])
+    {
+      implementation = @"_pow";
+    }
+  else if ([name isEqualToString: @"modulus:by:"])
+    {
+      implementation = @"_mod";
+    }
   /* A function is named with its trailing colon on OS X, as in 'sum:', and
    * without one here, as in 'sum'.  Take either.
    */
-  if ([implementation hasSuffix: @":"])
+  else if ([implementation hasSuffix: @":"])
     {
       implementation
 	= [implementation substringToIndex: [implementation length] - 1];
@@ -1917,11 +1942,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   ASSIGN(e->_function, name);
   e->_argc = [args count];
   ASSIGN(e->_args, args);
-  if ([name isEqualToString: @"_add"]) e->_op = @"+";
-  else if ([name isEqualToString: @"_sub"]) e->_op = @"-";
-  else if ([name isEqualToString: @"_mul"]) e->_op = @"*";
-  else if ([name isEqualToString: @"_div"]) e->_op = @"/";
-  else if ([name isEqualToString: @"_pow"]) e->_op = @"**";
+  if ([implementation isEqualToString: @"_add"]) e->_op = @"+";
+  else if ([implementation isEqualToString: @"_sub"]) e->_op = @"-";
+  else if ([implementation isEqualToString: @"_mul"]) e->_op = @"*";
+  else if ([implementation isEqualToString: @"_div"]) e->_op = @"/";
+  else if ([implementation isEqualToString: @"_pow"]) e->_op = @"**";
   return e;
 }
 
@@ -3206,6 +3231,15 @@ do { \
   return [NSNumber numberWithDouble: [left doubleValue] - [right doubleValue]];
 }
 
+- (id) _eval__mod: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble:
+    fmod([left doubleValue], [right doubleValue])];
+}
+
 - (id) _eval_count: (NSArray *)expressions
 {
   NSAssert(_argc == 1, NSInternalInconsistencyException);
@@ -4161,7 +4195,7 @@ do { \
       if ([self scanString: @"**" intoString: NULL])
         {
           right = [self parseFunctionalExpression];
-          left = [NSExpression expressionForFunction: @"_pow" 
+          left = [NSExpression expressionForFunction: @"raise:toPower:" 
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
@@ -4182,13 +4216,13 @@ do { \
       if ([self scanString: @"*" intoString: NULL])
         {
           right = [self parsePowerExpression];
-          left = [NSExpression expressionForFunction: @"_mul" 
+          left = [NSExpression expressionForFunction: @"multiply:by:" 
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else if ([self scanString: @"/" intoString: NULL])
         {
           right = [self parsePowerExpression];
-          left = [NSExpression expressionForFunction: @"_div" 
+          left = [NSExpression expressionForFunction: @"divide:by:" 
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
@@ -4209,13 +4243,13 @@ do { \
       if ([self scanString: @"+" intoString: NULL])
         {
           right = [self parseMultiplicationExpression];
-          left = [NSExpression expressionForFunction: @"_add"
+          left = [NSExpression expressionForFunction: @"add:to:"
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else if ([self scanString: @"-" intoString: NULL])
         {
           right = [self parseMultiplicationExpression];
-          left = [NSExpression expressionForFunction: @"_sub"
+          left = [NSExpression expressionForFunction: @"from:subtract:"
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
