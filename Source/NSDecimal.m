@@ -870,65 +870,35 @@ GSDecimalString(const GSDecimal *number, NSDictionary *locale)
 
   if (!number->length)
     {
-      [string appendString: @"0"];
-      [string appendString: sep];
-      [string appendString: @"0"];
-      return string;
+      return @"0";
     }
 
   if (number->isNegative)
     [string appendString: @"-"];
 
   size = number->length + number->exponent;
-  if ((number->length <= 6) && (0 < size) && (size < 7))
+  if (size <= 0)
     {
-      // For small numbers use the normal format
-      for (i = 0; i < number->length; i++)
-        {
-	  if (size == i)
-	    [string appendString: sep];
-	  d = number->cMantissa[i];
-	  s = [NSString stringWithFormat: @"%d", d];
-	  [string appendString: s];
-	}
-      for (i = 0; i < number->exponent; i++)
-        {
-	  [string appendString: @"0"];
-	}
-    }
-  else if ((number->length <= 6) && (0 >= size) && (size > -3))
-    {
-      // For small numbers use the normal format
       [string appendString: @"0"];
       [string appendString: sep];
-
-      for (i = 0; i > size; i--)
+      for (i = size; i < 0; i++)
         {
-	  [string appendString: @"0"];
-	}
-      for (i = 0; i < number->length; i++)
-        {
-	  d = number->cMantissa[i];
-	  s = [NSString stringWithFormat: @"%d", d];
-	  [string appendString: s];
-	}
+          [string appendString: @"0"];
+        }
     }
-  else
+  for (i = 0; i < number->length; i++)
     {
-      // Scientific format
-      for (i = 0; i < number->length; i++)
+      if (i == size && i > 0)
         {
-	  if (1 == i)
-	    [string appendString: sep];
-	  d = number->cMantissa[i];
-	  s = [NSString stringWithFormat: @"%d", d];
-	  [string appendString: s];
-	}
-      if (size != 1)
-        {
-	  s = [NSString stringWithFormat: @"E%d", size-1];
-	  [string appendString: s];
-	}
+          [string appendString: sep];
+        }
+      d = number->cMantissa[i];
+      s = [NSString stringWithFormat: @"%d", d];
+      [string appendString: s];
+    }
+  for (i = number->length; i < size; i++)
+    {
+      [string appendString: @"0"];
     }
 
   return string;
