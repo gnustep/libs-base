@@ -279,8 +279,12 @@ static char	*dKey = "GSOperationDelegateKey";
   if (anObject
     && [(id)anObject respondsToSelector: @selector(operationCompleted)])
     {
+      [self setCompletionBlock: ^{
+	id	del = [self delegate];
+
+	[del operationCompleted];
+    }];
 //NSLog(@"-setDelegate to %p %p", o, anObject);
-      [self setCompletionBlock: ^{[[self delegate] operationCompleted];}];
     }
   else
     {

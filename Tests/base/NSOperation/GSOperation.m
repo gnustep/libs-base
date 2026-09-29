@@ -1105,6 +1105,9 @@ testDelegateReplacementAndClearing(void)
 
   [op start];
 
+  PASS([op isFinished],
+       "GSOperation is finished after synchronous start");
+
   PASS([delegate1 completedCount] == 0,
        "replaced delegate receives no callback");
 
@@ -1272,6 +1275,8 @@ testOperationCompletedIsCalled(void)
   [op setDelegate: delegate];
   [op start];
 
+  PASS([op isFinished],
+       "GSOperation is finished after synchronous start");
   PASS([delegate completedCount] == 1,
        "operationCompleted is called once when operation completes");
 
@@ -1303,6 +1308,8 @@ testOperationCompletedAfterStop(void)
   [op setDelegate: delegate];
   [op start];
 
+  PASS([op isFinished],
+       "GSOperation is finished after synchronous start");
   PASS([delegate completedCount] == 1,
        "operationCompleted is called when delegate stops operation");
 
