@@ -1359,6 +1359,44 @@ argumentsFromFormat(NSString *format, va_list args)
 }
 
 #if	GS_USE_ICU == 1
+/* A LIKE pattern as a regular expression: '*' is any run of characters,
+ * '?' any one character, a backslash makes the next character literal,
+ * and every other character stands for itself.
+ */
+static NSString *
+GSRegexForLikePattern(NSString *pattern)
+{
+  NSUInteger		length = [pattern length];
+  NSMutableString	*regex = [NSMutableString stringWithCapacity: length * 2];
+  NSUInteger		i;
+
+  for (i = 0; i < length; i++)
+    {
+      unichar	c = [pattern characterAtIndex: i];
+
+      if (c == '*')
+	{
+	  [regex appendString: @".*"];
+	  continue;
+	}
+      if (c == '?')
+	{
+	  [regex appendString: @"."];
+	  continue;
+	}
+      if (c == '\\' && i + 1 < length)
+	{
+	  c = [pattern characterAtIndex: ++i];
+	}
+      if (c < 128 && !isalnum(c))
+	{
+	  [regex appendString: @"\\"];
+	}
+      [regex appendFormat: @"%C", c];
+    }
+  return regex;
+}
+
 static BOOL
 GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOptions opts)
 {
@@ -1537,20 +1575,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 #endif
       case NSLikePredicateOperatorType:
 #if	GS_USE_ICU == 1
-	{
-	  NSString *regex;
-
-	  /* The right hand is a pattern with '?' meaning match one character,
-	   * and '*' meaning match zero or more characters, so translate that
-	   * into a regex.
-	   */
-	  regex = [rightResult stringByReplacingOccurrencesOfString: @"*"
-							 withString: @".*"];
-	  regex = [regex stringByReplacingOccurrencesOfString: @"?"
-						   withString: @".?"];
-	  regex = [NSString stringWithFormat: @"^%@$", regex];
-	  return GSICUStringMatchesRegex(leftResult, regex, compareOptions);
-	}
+	return GSICUStringMatchesRegex(leftResult,
+	  GSRegexForLikePattern(rightResult), compareOptions);
 #else
 	return [leftResult compare: rightResult options: compareOptions]
 	  == NSOrderedSame ? YES : NO;
