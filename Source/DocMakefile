@@ -219,10 +219,11 @@ GSObjCRuntime.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-GSLocale.h \
 GSFunctions.h \
+GSLocale.h \
 GSMime.h \
 GSMinHeap.h \
+GSOperation.h \
 GSTLS.h \
 GSURITemplate.h \
 GSXML.h \

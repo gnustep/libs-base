@@ -5,6 +5,7 @@
 #import <Foundation/NSThread.h>
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import "GNUstepBase/Additions.h"
 #import "ObjectTesting.h"
 
 static BOOL completionHandled = NO;

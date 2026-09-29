@@ -5,6 +5,8 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <GNUstepBase/GNUstep.h>
+#import <GNUstepBase/GSOperation.h>
 #import <ObjectTesting.h>
 
 

@@ -255,8 +255,10 @@ static char	*dKey = "GSOperationDelegateKey";
 - (id<GSOperationCompletion>) delegate
 {
   GSBoxWeak	*w = objc_getAssociatedObject(self, &dKey);
+  id		v = [w value];
 
-  return [w value];
+//NSLog(@"-delegate provides %p %p", w, v);
+  return v;
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
@@ -277,6 +279,7 @@ static char	*dKey = "GSOperationDelegateKey";
   if (anObject
     && [(id)anObject respondsToSelector: @selector(operationCompleted)])
     {
+//NSLog(@"-setDelegate to %p %p", o, anObject);
       [self setCompletionBlock: ^{[[self delegate] operationCompleted];}];
     }
   else

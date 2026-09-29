@@ -24,7 +24,8 @@
 #ifndef __GSOperation_h_GNUSTEP_BASE_INCLUDE
 #define __GSOperation_h_GNUSTEP_BASE_INCLUDE
 
-#include "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/GSVersionMacros.h"
 #import <Foundation/NSObject.h>
 
 #if defined(__APPLE__)
@@ -32,6 +33,8 @@
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+@class	GSOperation;
 
 @protocol	GSOperationCompletion
 @optional

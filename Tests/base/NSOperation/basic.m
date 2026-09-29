@@ -1,6 +1,7 @@
 #import <Foundation/NSOperation.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import "GNUstepBase/GSOperation.h"
 #import "ObjectTesting.h"
 
 

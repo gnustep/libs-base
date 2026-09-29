@@ -36,6 +36,7 @@
 #import	<GNUstepBase/GSFunctions.h>
 #import	<GNUstepBase/GSLocale.h>
 #import	<GNUstepBase/GSMime.h>
+#import	<GNUstepBase/GSOperation.h>
 #import	<GNUstepBase/GSXML.h>
 #import	<GNUstepBase/Unicode.h>
 

@@ -131,6 +131,7 @@ GSFunctions.h \
 GSLocale.h \
 GSMime.h \
 GSMinHeap.h \
+GSOperation.h \
 GSTLS.h \
 GSURITemplate.h \
 GSXML.h \
