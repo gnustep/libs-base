@@ -38,10 +38,12 @@ Additions_OBJC_FILES =\
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \
+	GSBoxWeak.m \
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
 	GSMime.m \
 	GSMinHeap.m \
+	GSOperation.m \
 	GSStandaloneXMLParser.m \
 	GSURITemplate.m \
 	GSXML.m \

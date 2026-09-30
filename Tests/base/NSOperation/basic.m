@@ -1,6 +1,7 @@
 #import <Foundation/NSOperation.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import "GNUstepBase/GSOperation.h"
 #import "ObjectTesting.h"
 
 
@@ -8,7 +9,17 @@
 # define __has_feature(x) 0
 # endif
 
-static BOOL blockDidRun = NO;
+static BOOL completionHandled = NO;
+
+@interface MyDelegate : NSObject <GSOperationCompletion>
+- (void) operationCompleted;
+@end
+@implementation	MyDelegate
+- (void) operationCompleted
+{
+  completionHandled = YES;
+}
+@end
 
 int main()
 {
@@ -57,14 +68,14 @@ int main()
   [testObjs replaceObjectAtIndex: 0 withObject: obj1];
   [obj2 addDependency: obj1];
 # if __has_feature(blocks)
-  [obj1 setCompletionBlock: ^(void){blockDidRun = YES;}];
+  [obj1 setCompletionBlock: ^(void){completionHandled = YES;}];
 # endif
   [obj1 start];
   [NSThread sleepForTimeInterval: 1.0];
   PASS(([obj1 isFinished] == YES), "operation is finished");
   PASS(([obj1 isReady] == YES), "a finished operation is ready");
 # if __has_feature(blocks)
-  PASS(YES == blockDidRun, "completion block is executed");
+  PASS(YES == completionHandled, "completion block is executed");
 # endif
   PASS(([[obj2 dependencies] isEqual: testObjs]),
     "finished dependency continues");
@@ -120,9 +131,12 @@ int main()
 		 "NSOperationQueue cannot be given negative count");
 
   obj2 = AUTORELEASE([NSOperation new]);
+  [obj2 setDelegate: AUTORELEASE([MyDelegate new])];
+  completionHandled = NO;
   [obj1 addOperation: obj2];
   [NSThread sleepForTimeInterval: 1.0];
   PASS(([obj2 isFinished] == YES), "queue ran operation");
+  PASS(YES == completionHandled, "completion block is executed");
 
   LEAVE_POOL
   return 0;

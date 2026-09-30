@@ -33,9 +33,11 @@
 #if !(defined(NeXT_RUNTIME) || defined(Apple_RUNTIME))
 #import	<GNUstepBase/GSBlocks.h>
 #endif
+#import	<GNUstepBase/GSBoxWeak.h>
 #import	<GNUstepBase/GSFunctions.h>
 #import	<GNUstepBase/GSLocale.h>
 #import	<GNUstepBase/GSMime.h>
+#import	<GNUstepBase/GSOperation.h>
 #import	<GNUstepBase/GSXML.h>
 #import	<GNUstepBase/Unicode.h>
 

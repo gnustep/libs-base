@@ -43,7 +43,8 @@
   BOOL blocked; \
   BOOL ready; \
   NSMutableArray *dependencies; \
-  id completionBlock;
+  id delegate; \
+  GSOperationCompletionBlock completionBlock;
 
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
@@ -193,7 +194,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 - (GSOperationCompletionBlock) completionBlock
 {
-  return (GSOperationCompletionBlock)internal->completionBlock;
+  return internal->completionBlock;
 }
 
 - (void) dealloc
@@ -215,7 +216,14 @@ static const NSInteger GSOperationFinishedCondition = 1;
       RELEASE(internal->dependencies);
       RELEASE(internal->cond);
       RELEASE(internal->lock);
-      RELEASE(internal->completionBlock);
+      if (internal->completionBlock)
+	{
+	  RELEASE(internal->completionBlock);
+	}
+      if (internal->delegate)
+	{
+	  objc_destroyWeak(&internal->delegate);
+	}
       GS_DESTROY_INTERNAL(NSOperation);
     }
   DEALLOC
@@ -317,8 +325,19 @@ static const NSInteger GSOperationFinishedCondition = 1;
       if (YES == [self isConcurrent])
         {
           internal->finished = YES;
-          CALL_BLOCK_NO_ARGS(
-            ((GSOperationCompletionBlock)internal->completionBlock));
+	  if (internal->delegate)
+	    {
+	      id	del = [self delegate];
+
+	      if ([del respondsToSelector: @selector(operationCompleted)])
+		{
+		  [del operationCompleted];
+		}
+	    }
+	  else
+	    {
+	      CALL_BLOCK_NO_ARGS((internal->completionBlock));
+	    }
         }
 
       /* We have finished and need to unlock the condition lock so that
@@ -373,6 +392,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 - (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
 {
+  [self setDelegate: nil];
   ASSIGNCOPY(internal->completionBlock, (id)aBlock);
 }
 
@@ -520,8 +540,19 @@ static const NSInteger GSOperationFinishedCondition = 1;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-      CALL_BLOCK_NO_ARGS(
-	((GSOperationCompletionBlock)internal->completionBlock));
+      if (internal->delegate)
+	{
+	  id	del = [self delegate];
+
+	  if ([del respondsToSelector: @selector(operationCompleted)])
+	    {
+	      [del operationCompleted];
+	    }
+	}
+      else
+	{
+	  CALL_BLOCK_NO_ARGS((internal->completionBlock));
+	}
     }
   [internal->lock unlock];
 }
@@ -557,6 +588,46 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 @end
 
+
+@implementation	NSOperation (GNUstep)
++ (GSOperation*) operationTarget: (id)aTarget
+                 performSelector: (SEL)aSelector
+{
+  return [self operationTarget: aTarget
+	       performSelector: aSelector
+		    withObject: nil];
+}
+
++ (GSOperation*) operationTarget: (id)aTarget
+                 performSelector: (SEL)aSelector
+                      withObject: (id)anObject
+{
+  GSOperation	*o = [GSOperation alloc];
+
+  o = [o initTarget: aTarget selector: aSelector object: anObject];
+  return AUTORELEASE(o);
+}
+
+- (id<GSOperationCompletion>) delegate
+{
+  return (id<GSOperationCompletion>)objc_loadWeak(&internal->delegate);
+}
+
+- (void) setDelegate: (id<GSOperationCompletion>)anObject
+{
+  DESTROY(internal->completionBlock);
+  if (internal->delegate)
+    {
+      objc_destroyWeak(&internal->delegate);
+      internal->delegate = nil;
+    }
+  if (anObject)
+    {
+      objc_initWeak(&internal->delegate, (id)anObject);
+    }
+}
+
+@end
 
 @implementation NSBlockOperation
 

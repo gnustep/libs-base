@@ -121,6 +121,7 @@ libgnustep-base.def
 
 GNUSTEPBASE_HEADERS = \
 GCObject.h \
+GSBoxWeak.h \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
@@ -131,6 +132,7 @@ GSFunctions.h \
 GSLocale.h \
 GSMime.h \
 GSMinHeap.h \
+GSOperation.h \
 GSTLS.h \
 GSURITemplate.h \
 GSXML.h \

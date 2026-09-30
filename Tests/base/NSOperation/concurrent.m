@@ -5,8 +5,20 @@
 #import <Foundation/NSThread.h>
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import "GNUstepBase/Additions.h"
 #import "ObjectTesting.h"
 
+static BOOL completionHandled = NO;
+
+@interface MyDelegate : NSObject <GSOperationCompletion>
+- (void) operationCompleted;
+@end
+@implementation	MyDelegate
+- (void) operationCompleted
+{
+  completionHandled = YES;
+}
+@end
 // concurrent operation
 @interface MyOperation : NSOperation
 {
@@ -15,6 +27,7 @@
   BOOL executing;
   BOOL finished;
 }
+- (void) beginOperation;
 - (void) completeOperation;
 @end
 
@@ -115,12 +128,24 @@ int main()
 
   START_SET("concurrent operations")
 
+  q = [NSOperationQueue new];
+
+  // single concurrent operation
+  obj = [[MyOperation alloc] initWithValue: 1];
+  [obj setDelegate: AUTORELEASE([MyDelegate new])];
+  [q addOperation: obj];
+  [q waitUntilAllOperationsAreFinished];
+  PASS(([obj isFinished] == YES), "operation ran");
+  PASS(([obj isExecuting] == NO), "operation is not executing");
+  PASS(completionHandled == YES, "completion handler is executed");
+  PASS(([obj getCalculation] == 2), "operation was performed");
+  [obj release];
+
   // single concurrent operation
   obj = [[MyOperation alloc] initWithValue: 1];
 # if __has_feature(blocks)
   [obj setCompletionBlock: ^(void){blockDidRun = YES;}];
 # endif
-  q = [NSOperationQueue new];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "operation ran");
