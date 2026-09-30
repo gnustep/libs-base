@@ -21,6 +21,7 @@
   NSMutableArray *_calls;
   NSMutableArray *_arguments;
   id _returnValue;
+  NSLock	*_lock;
 }
 - (NSArray *) calls;
 - (NSArray *) arguments;
@@ -43,6 +44,7 @@
       _calls = [NSMutableArray new];
       _arguments = [NSMutableArray new];
       _returnValue = [@"return" retain];
+      _lock = [NSLock new];
     }
   return self;
 }
@@ -52,6 +54,7 @@
   RELEASE(_calls);
   RELEASE(_arguments);
   RELEASE(_returnValue);
+  RELEASE(_lock);
   DEALLOC
 }
 
@@ -67,44 +70,61 @@
 
 - (id) noArgument
 {
+  id	v;
+
+  [_lock lock];
   [_calls addObject: @"noArgument"];
   [_arguments addObject: [NSNull null]];
-  return _returnValue;
+  v = RETAIN(_returnValue);
+  [_lock unlock];
+  return AUTORELEASE(v);
 }
 
 - (id) oneArgument: (id)object
 {
+  [_lock lock];
   [_calls addObject: @"oneArgument"];
   [_arguments addObject: object ? object : [NSNull null]];
+  [_lock unlock];
   return object;
 }
 
 - (id) anotherArgument: (id)object
 {
+  [_lock lock];
   [_calls addObject: @"anotherArgument"];
   [_arguments addObject: object ? object : [NSNull null]];
+  [_lock unlock];
   return object;
 }
 
 - (id) nilResult
 {
+  [_lock lock];
   [_calls addObject: @"nilResult"];
   [_arguments addObject: [NSNull null]];
+  [_lock unlock];
   return nil;
 }
 
 - (id) returnValue
 {
+  id	v;
+
+  [_lock lock];
   [_calls addObject: @"returnValue"];
   [_arguments addObject: [NSNull null]];
-  return _returnValue;
+  v = RETAIN(_returnValue);
+  [_lock unlock];
+  return AUTORELEASE(v);
 }
 
 - (id) raiseException
 {
+  [_lock lock];
   [_calls addObject: @"raiseException"];
   [_arguments addObject: [NSNull null]];
-
+  [_lock unlock];
   [NSException raise: @"GSOperationTestException"
               format: @"expected test exception"];
 
