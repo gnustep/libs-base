@@ -204,33 +204,6 @@
 
 #import <objc/runtime.h>
 
-@interface GSBoxWeak : NSObject
-{
-  id	value;
-}
-- (void) setValue: (id)v;
-- (id) value;
-@end
-@implementation GSBoxWeak
-- (void) dealloc
-{
-  objc_destroyWeak(&value);
-  DEALLOC
-}
-- (void) setValue: (id)v
-{
-  if (value)
-    {
-      objc_destroyWeak(&value);
-    }
-  objc_initWeak(&value, v);
-}
-- (id) value
-{
-  return objc_loadWeak(&value);
-}
-@end
-
 @implementation	NSOperation (GNUstep)
 + (GSOperation*) operationTarget: (id)aTarget
                  performSelector: (SEL)aSelector

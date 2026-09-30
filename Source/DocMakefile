@@ -214,6 +214,7 @@ BaseAdditions_AGSDOC_FILES = \
 GNUstep.h \
 GCObject.h \
 GSBlocks.h \
+GSBoxWeak.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
 GSUnion.h \
