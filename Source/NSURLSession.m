@@ -366,7 +366,7 @@ static NSURLSession * sharedSession = nil;
 
       sessionIdentifier = nextSessionIdentifier();
       queueLabel = [[NSString alloc]
-                    initWithFormat: @"org.gnustep.NSURLSession.WorkQueue%ld",
+                    initWithFormat: @"NSURLSession.%ld",
                     sessionIdentifier];
       ASSIGN(internal->_delegate, delegate);
       ASSIGNCOPY(internal->_configuration, configuration);
