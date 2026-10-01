@@ -805,7 +805,7 @@ GSURLSessionWebSocketFailReceiveLocked(
               task,
               description);
 
-  [task _setStoredTaskError: error];
+  [task _setError: error];
   GSIVar(task, lifecycle).phase = GSURLSessionWebSocketLifecycleStateFailed;
   GSURLSessionWebSocketDrainOutstandingWorkLocked(task,
                                                   &sendEntries,
@@ -842,7 +842,7 @@ GSURLSessionWebSocketFailSend(
               description);
 
   GS_MUTEX_LOCK(GSIVar(task, mutex));
-  [task _setStoredTaskError: error];
+  [task _setError: error];
   GSURLSessionWebSocketDrainOutstandingWorkLocked(task,
                                                   &sendEntries,
                                                   &receiveHandlers,
@@ -1350,6 +1350,15 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
                             @"curl_ws_start_frame failed with CURLcode %d",
                             (int)result]);
             }
+
+          // User tried to close the session with a payload that is too large. This is a protocol violation.
+          // Foundation's NSURLSession happily violates the WebSocket spec.
+          if (flags == CURLWS_CLOSE && result == CURLE_TOO_LARGE)
+            {
+              // FIXME!
+              NSLog(@"OOOPS!!");
+            }
+
           return GSURLSessionWebSocketFailSend(task, error);
         }
 
@@ -1840,7 +1849,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     {
       error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket task finished before queued work completed");
-      [self _setStoredTaskError: error];
+      [self _setError: error];
     }
   else if (error == nil
            && internal->lifecycle.phase != GSURLSessionWebSocketLifecycleStateClosed)
@@ -1848,7 +1857,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
       error = GSURLSessionWebSocketError(NSURLErrorNetworkConnectionLost,
         @"WebSocket connection closed without completing the closing "
         @"handshake");
-      [self _setStoredTaskError: error];
+      [self _setError: error];
     }
   if (error == nil)
     {
