@@ -141,10 +141,10 @@ GSURLSessionErrorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_
 -(void)_setHeaderCallbackCount: (NSInteger)count;
 
 -(NSFileHandle *)_createTemporaryFileHandleWithError: (NSError **)error;
+
 -(NSError *)_errorForCURLcode: (CURLcode)code;
--(NSError *)_storedTaskError;
--(void)_setStoredTaskError: (NSError *)error;
--(void)_clearErrorBuffer;
+
+-(void)_setError: (NSError *)error;
 
 @end
 

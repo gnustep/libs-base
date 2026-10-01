@@ -1167,10 +1167,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setResponse: (NSURLResponse *)response
 {
-  NSURLResponse	*oldResponse = internal->_response;
-
-  internal->_response = [response retain];
-  [oldResponse release];
+  ASSIGN(internal->_response, response);
 }
 
 - (void) _setCountOfBytesSent: (int64_t)count
@@ -1420,6 +1417,15 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 - (void) _setHeaderCallbackCount: (NSInteger)count
 {
   internal->_headerCallbackCount = count;
+}
+
+-(NSError *)_errorForCURLcode: (CURLcode)code {
+  return GSURLSessionErrorForCURLcode([self _easyHandle], code, _curlErrorBuffer);
+}
+
+-(void)_setError: (NSError *)error
+{
+  ASSIGNCOPY(_error, error);
 }
 
 /* Creates a temporary file and opens a file handle for writing */
@@ -1776,7 +1782,7 @@ combineFragments(NSArray *fragments)
 
 - (NSError *) error
 {
-  return internal->_error;
+  return AUTORELEASE([internal->_error copy]);
 }
 
 - (id<NSURLSessionTaskDelegate>) delegate
@@ -1786,10 +1792,7 @@ combineFragments(NSArray *fragments)
 
 - (void) setDelegate: (id<NSURLSessionTaskDelegate>)delegate
 {
-  id<NSURLSessionTaskDelegate> oldDelegate = internal->_delegate;
-
-  internal->_delegate = RETAIN(delegate);
-  RELEASE(oldDelegate);
+  ASSIGN(internal->_delegate, delegate);
 }
 
 - (NSDate *) earliestBeginDate
@@ -1799,10 +1802,7 @@ combineFragments(NSArray *fragments)
 
 - (void) setEarliestBeginDate: (NSDate *)date
 {
-  NSDate	*oldDate = internal->_earliestBeginDate;
-
-  internal->_earliestBeginDate = RETAIN(date);
-  RELEASE(oldDate);
+  ASSIGN(internal->_earliestBeginDate, date);
 }
 
 - (int64_t) countOfBytesClientExpectsToSend
@@ -1832,15 +1832,12 @@ combineFragments(NSArray *fragments)
 
 - (NSString *) taskDescription
 {
-  return internal->_taskDescription;
+  return AUTORELEASE([internal->_taskDescription copy]);
 }
 
 - (void) setTaskDescription: (NSString *)description
 {
-  NSString	*oldDescription = internal->_taskDescription;
-
-  internal->_taskDescription = [description copy];
-  RELEASE(oldDescription);
+  ASSIGNCOPY(internal->_taskDescription, description);
 }
 
 - (void) dealloc
