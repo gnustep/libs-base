@@ -142,3 +142,14 @@ NSNextStepLatinStringEncoding =     "Occidental (NextStep)";
 NSNextStepJapaneseStringEncoding =     "Japanese (NextStep)";
 NSEBCDICUSStringEncoding =     "Occidental (EBCDIC Latin Core)";
 NSEBCDICCP037StringEncoding =     "Occidental (EBCDIC Latin 1)";
+
+/* Menu items for NSUndoManager */
+
+/* File: ../Source/NSUndoManager.m:718 */
+"Redo" = "Refaire";
+/* File: ../Source/NSUndoManager.m:723 */
+"Redo %@" = "Refaire %@";
+/* File: ../Source/NSUndoManager.m:999 */
+"Undo" = "Défaire";
+/* File: ../Source/NSUndoManager.m:1004 */
+"Undo %@" = "Défaire %@";
