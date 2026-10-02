@@ -1540,7 +1540,7 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 
 - (void) cancel
 {
-  [self cancelWithCloseCode: NSURLSessionWebSocketCloseCodeInvalid
+  [self cancelWithCloseCode: NSURLSessionWebSocketCloseCodeNormalClosure
                      reason: nil];
 }
 
