@@ -965,8 +965,6 @@ GSURLSessionWebSocketFailSend(
               task,
               description);
 
-  // FIXME(hugo): Does this require a lifecycle change?
-
   GS_MUTEX_LOCK(GSIVar(task, mutex));
   [task _setError: error];
   GSURLSessionWebSocketDrainOutstandingWorkLocked(task,
@@ -983,6 +981,7 @@ GSURLSessionWebSocketFailSend(
   RELEASE(sendEntries);
   RELEASE(receiveHandlers);
   RELEASE(pingHandlers);
+
   return CURL_READFUNC_ABORT;
 }
 
@@ -1493,14 +1492,6 @@ ws_read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
                 [NSString stringWithFormat:
                             @"curl_ws_start_frame failed with CURLcode %d",
                             (int)result]);
-            }
-
-          // User tried to close the session with a payload that is too large. This is a protocol violation.
-          // Foundation's NSURLSession happily violates the WebSocket spec.
-          if (flags == CURLWS_CLOSE && result == CURLE_TOO_LARGE)
-            {
-              // FIXME!
-              NSLog(@"OOOPS!!");
             }
 
           return GSURLSessionWebSocketFailSend(task, error);
