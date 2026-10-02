@@ -3982,7 +3982,9 @@ if test $enable_nsurlsession = yes; then
   fi
   GS_HAVE_NSURLSESSION=1
   if test $CURL_HAS_WEBSOCKETS = 1; then
-    GS_HAVE_NSURLSESSION_WEBSOCKETS=1
+    if test $HAVE_BLOCKS = 1; then
+      GS_HAVE_NSURLSESSION_WEBSOCKETS=1
+    fi
   fi
 fi
 AC_SUBST(GS_HAVE_NSURLSESSION)
