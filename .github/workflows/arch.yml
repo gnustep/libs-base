@@ -1,0 +1,183 @@
+
+name: Architecture CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Monday 04:23 UTC. Avoid the top of the hour, when GitHub says
+    # scheduled workflows are more likely to be delayed.
+    - cron: '23 4 * * 1'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APT_PACKAGES: >-
+    git
+    make
+    cmake
+    pkg-config
+    libgnutls28-dev
+    libffi-dev
+    libicu-dev
+    libxml2-dev
+    libxslt1-dev
+    libssl-dev
+    libavahi-client-dev
+    zlib1g-dev
+    gnutls-bin
+    libcurl4-gnutls-dev
+
+  APT_PACKAGES_gcc: >-
+    gcc
+    g++
+    libobjc-10-dev
+    libblocksruntime-dev
+    gobjc
+
+  APT_PACKAGES_clang: >-
+    clang
+    libpthread-workqueue-dev
+
+jobs:
+  should-run:
+    name: Check whether architecture CI is needed
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+
+    steps:
+      - name: Check for changes since previous scheduled run
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous_sha="$(
+            gh api \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/arch.yml/runs" \
+              --method GET \
+              -f event=schedule \
+              -f status=completed \
+              -f per_page=1 \
+              --jq '.workflow_runs[0].head_sha // ""'
+          )"
+
+          echo "Current SHA:  ${{ github.sha }}"
+          echo "Previous SHA: $previous_sha"
+
+          if [ -z "$previous_sha" ] || [ "$previous_sha" != "${{ github.sha }}" ]; then
+            echo "Repository changed since the previous scheduled run."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No repository changes since the previous scheduled run."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  run-on-arch:
+    needs: should-run
+    if: needs.should-run.outputs.run == 'true'
+    name: Ubuntu ${{ matrix.arch }} ${{ matrix.library-combo == 'ng-gnu-gnu' && 'Clang' || 'GCC' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - armv7
+          - aarch64
+          - s390x
+          - ppc64le
+        library-combo:
+          - gnu-gnu-gnu
+          - ng-gnu-gnu
+
+        exclude:
+          # libobjc2/libdispatch isn't currently useful here.
+          # This was excluded by the original PR because of the
+          # CMake/libobjc2 setup on armv7.
+          - arch: armv7
+            library-combo: ng-gnu-gnu
+
+          # Keep the original PR's exclusion until libdispatch is
+          # known to build reliably on s390x.
+          - arch: s390x
+            library-combo: ng-gnu-gnu
+
+    env:
+      SRC_PATH: source
+      DEPS_PATH: dependencies
+      INSTALL_PATH: build
+
+      CC: ${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
+      CXX: ${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang++' || 'g++' }}
+      LIBRARY_COMBO: ${{ matrix.library-combo }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: ${{ env.SRC_PATH }}
+
+      - name: Run on architecture
+        uses: uraimo/run-on-arch-action@v3
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu24.04
+          githubToken: ${{ github.token }}
+
+          install: |
+            echo "::group::Install packages"
+            apt-get update -q -y
+            apt-get install -q -y \
+              ${{ env.APT_PACKAGES }} \
+              ${{ matrix.library-combo == 'ng-gnu-gnu' && env.APT_PACKAGES_clang || env.APT_PACKAGES_gcc }}
+            echo "::endgroup::"
+
+          dockerRunArgs: --volume "${{ github.workspace }}:/workspace"
+
+          env: |
+            SRC_PATH: /workspace/${{ env.SRC_PATH }}
+            DEPS_PATH: /workspace/${{ env.DEPS_PATH }}
+            INSTALL_PATH: /workspace/${{ env.INSTALL_PATH }}
+            CC: ${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
+            CXX: ${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang++' || 'g++' }}
+            LIBRARY_COMBO: ${{ matrix.library-combo }}
+
+          run: |
+            set +u
+
+            cd "$SRC_PATH"
+
+            echo "::group::Install dependencies"
+            ./.github/scripts/dependencies.sh
+            echo "::endgroup::"
+
+            echo "::group::Build source"
+            . "$INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh"
+            ./configure
+            make -j"$(nproc)" && make install
+            echo "::endgroup::"
+
+            echo "::group::Run tests"
+            make check
+            echo "::endgroup::"
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: Logs - Ubuntu ${{ matrix.arch }} ${{ matrix.library-combo }}
+          path: |
+            ${{ env.SRC_PATH }}/config.log
+            ${{ env.SRC_PATH }}/Tests/tests.log
