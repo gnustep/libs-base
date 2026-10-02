@@ -24,6 +24,8 @@
 #import "common.h"
 #import "GSPThread.h"
 
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+
 @class NSMutableArray;
 @class NSMutableData;
 @class NSData;
@@ -288,7 +290,6 @@ static void lifecycleStateDestroy(GSURLSessionWebSocketLifecycleState *state)
   RELEASE(state->closeReason);
 }
 
-#if GS_HAVE_NSURLSESSION_WEBSOCKETS
 static NSString *taskWebSocketDidOpenKey = @"webSocketDidOpen";
 static NSString *taskWebSocketDidCloseKey = @"webSocketDidClose";
 

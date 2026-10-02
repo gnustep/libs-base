@@ -914,7 +914,7 @@ static NSURLSession * sharedSession = nil;
             _resumeSendIfWaitingForReadableSocket];
         }
     }
-#endif
+#endif // GS_HAVE_NSURLSESSION_WEBSOCKETS
 
 #if	defined(_WIN32)
   WSANETWORKEVENTS occurred;
@@ -1277,7 +1277,7 @@ static NSURLSession * sharedSession = nil;
   [self _didCreateTask: task];
   return AUTORELEASE(task);
 }
-#endif
+#endif // GS_HAVE_NSURLSESSION_WEBSOCKETS
 
 - (GS_GENERIC_CLASS(NSArray, NSURLSessionTask *) *) allTasks
 {
