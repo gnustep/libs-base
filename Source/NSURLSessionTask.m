@@ -36,10 +36,18 @@
  * before the header expands the ivar macro below.
  */
 #include "GSAtomic.h"
+#include <curl/curl.h>
 #import "GSPThread.h"
 
 @class NSProgress;
+@class NSDate;
+@class NSString;
+@class NSError;
 @class NSURLSession;
+@class NSURLRequest;
+@class NSURLResponse;
+@class NSMutableDictionary;
+@protocol NSURLSessionTaskDelegate;
 
 #define	GS_NSURLSessionTask_IVARS \
   /* The following three instance variables shall only be modified during \
@@ -48,7 +56,7 @@
   NSURLRequest *_originalRequest; \
   id<NSURLSessionTaskDelegate> _delegate; \
   \
-  _Atomic(NSURLSessionTaskState)        _state; \
+  _Atomic(NSUInteger)        _state; \
   _Atomic(int64_t) _countOfBytesClientExpectsToSend; \
   _Atomic(int64_t) _countOfBytesClientExpectsToReceive; \
   _Atomic(int64_t) _countOfBytesSent; \
@@ -58,7 +66,7 @@
   /* Advisory, and only ever read or written by -priority and -setPriority:, \
    * both of which take a float. \
    */ \
-  _Atomic(float) _priority; \
+  float _priority; \
   _Atomic(BOOL) _shouldStopTransfer; \
   _Atomic(NSUInteger) 		_suspendCount; \
  \
@@ -113,8 +121,6 @@ GS_PRIVATE_INTERNAL(NSURLSessionTask)
 /*
  * We can now import all other required headers
  */
-
-#include <curl/curl.h>
 
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSPathUtilities.h"
@@ -1040,7 +1046,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * session and tasks to be leaked.
        */
       internal->_session = session;
-      internal->_suspendCount = 0;
+      gs_atomic_store(&internal->_suspendCount, 0);
       internal->_curlErrorBuffer[0] = '\0';
       gs_atomic_store(&internal->_state, NSURLSessionTaskStateSuspended);
 
@@ -1422,13 +1428,13 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 }
 
 -(NSError *)_errorForCURLcode: (CURLcode)code {
-  return GSURLSessionErrorForCURLcode([self _easyHandle], code, _curlErrorBuffer);
+  return GSURLSessionErrorForCURLcode([self _easyHandle], code, internal->_curlErrorBuffer);
 }
 
 -(void)_setError: (NSError *)error
 {
   GS_MUTEX_LOCK(internal->lock);
-  ASSIGNCOPY(_error, error);
+  ASSIGNCOPY(internal->_error, error);
   GS_MUTEX_UNLOCK(internal->lock);
 }
 
@@ -1643,8 +1649,8 @@ combineFragments(NSArray *fragments)
 
 - (void) suspend
 {
-  internal->_suspendCount += 1;
-  if (internal->_suspendCount == 1)
+  NSUInteger count = gs_atomic_fetch_add(&internal->_suspendCount, 1);
+  if (count == 0)
     {
       /* If there is an active transfer associated with this task, it will be
        * aborted in the next libcurl progress_callback.
@@ -1659,7 +1665,7 @@ combineFragments(NSArray *fragments)
 {
   /* Only resume a transfer if the task is not suspended and in suspended state
    */
-  if (internal->_suspendCount == 0
+  if (gs_atomic_load(&internal->_suspendCount) == 0
     && [self state] == NSURLSessionTaskStateSuspended)
     {
       /*
@@ -1672,7 +1678,7 @@ combineFragments(NSArray *fragments)
       [internal->_session _resumeTask: self];
       return;
     }
-  internal->_suspendCount -= 1;
+  gs_atomic_fetch_sub(&internal->_suspendCount, 1);
 }
 - (void) cancel
 {
