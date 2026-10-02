@@ -253,6 +253,99 @@ ensure_oldNs(xmlNodePtr node)
   return newDoc;
 }
 
+#if LIBXML_VERSION >= 20620 && LIBXML_VERSION < 21200
+static BOOL
+ns_in_scope(xmlNodePtr node, xmlNsPtr ns)
+{
+  for (; node != NULL && node->type == XML_ELEMENT_NODE; node = node->parent)
+    {
+      xmlNsPtr cur;
+
+      for (cur = node->nsDef; cur != NULL; cur = cur->next)
+        {
+          if (xmlStrEqual(cur->prefix, ns->prefix)
+            || xmlStrEqual(cur->href, ns->href))
+            {
+              return YES;
+            }
+        }
+    }
+  return NO;
+}
+
+static void
+rebind_ns(xmlNodePtr node, xmlNsPtr from, xmlNsPtr to, BOOL siblings)
+{
+  while (node != NULL)
+    {
+      if (node->type == XML_ELEMENT_NODE || node->type == XML_ATTRIBUTE_NODE)
+        {
+          if (node->ns == from)
+            {
+              node->ns = to;
+            }
+          if (node->type == XML_ELEMENT_NODE)
+            {
+              rebind_ns((xmlNodePtr)node->properties, from, to, YES);
+            }
+          rebind_ns(node->children, from, to, YES);
+        }
+      node = siblings ? node->next : NULL;
+    }
+}
+
+/* Declare on parent a copy of each of its document's placeholders that
+ * nothing in scope there binds, and return how many it declared.
+ */
+static NSUInteger
+declare_placeholders(xmlNodePtr parent)
+{
+  NSUInteger    count = 0;
+  xmlNsPtr      ns;
+
+  if (parent->type != XML_ELEMENT_NODE)
+    {
+      return 0;
+    }
+  for (ns = parent->doc->oldNs; ns != NULL; ns = ns->next)
+    {
+      if (ns->href != NULL && !xmlStrEqual(ns->href, XML_XML_NAMESPACE)
+        && !ns_in_scope(parent, ns))
+        {
+          xmlNsPtr      copy = xmlNewNs(NULL, ns->href, ns->prefix);
+
+          copy->next = parent->nsDef;
+          parent->nsDef = copy;
+          count++;
+        }
+    }
+  return count;
+}
+
+/* Remove the copies declare_placeholders() made, pointing the nodes of
+ * child that adoption bound to one back at its placeholder.
+ */
+static void
+unbind_placeholders(xmlNodePtr parent, NSUInteger count, xmlNodePtr child)
+{
+  while (count-- > 0)
+    {
+      xmlNsPtr  copy = parent->nsDef;
+      xmlNsPtr  ns = parent->doc->oldNs;
+
+      while (!xmlStrEqual(ns->href, copy->href)
+        || !xmlStrEqual(ns->prefix, copy->prefix))
+        {
+          ns = ns->next;
+        }
+      parent->nsDef = copy->next;
+      rebind_ns(child, copy, ns, NO);
+      copy->next = NULL;
+      xmlFreeNs(copy);
+    }
+}
+#endif
+
 #if LIBXML_VERSION >= 21200
 /* Recursively update document pointers without calling xmlSetTreeDoc
  * to avoid automatic text node merging in libxml2 2.12.0+.
@@ -909,8 +1002,13 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
               updateTreeDocManually(childNode, parentNode->doc);
             }
 #elif LIBXML_VERSION >= 20620
-          xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, 
-                              parentNode->doc, parentNode, 0);
+          {
+            NSUInteger  count = declare_placeholders(parentNode);
+
+            xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode,
+                                parentNode->doc, parentNode, 0);
+            unbind_placeholders(parentNode, count, childNode);
+          }
 #else
           xmlSetTreeDoc(childNode, parentNode->doc);
 #endif
