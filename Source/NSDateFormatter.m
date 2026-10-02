@@ -379,7 +379,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSString*) stringFromDate: (NSDate*)date
 {
-  NSString	*result;
+  NSString	*result = nil;
 
 #if GS_USE_ICU == 1
   int32_t	length;
@@ -407,7 +407,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
   if (nil == result)
     {
-      /* Fallback for backward compatibility in -stringFromObjectValue:
+      /* Fallback for backward compatibility in -stringForObjectValue:
        * use old style format if we don't have ICU or if ICU fails.
        */
       result = [date descriptionWithCalendarFormat: _dateFormat
