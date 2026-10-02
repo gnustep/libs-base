@@ -26,6 +26,27 @@
 
 #if GS_HAVE_NSURLSESSION_WEBSOCKETS
 
+/**
+ * Each NSURLSessionWebSocketTask object has an internal lifecycle state, as
+ * well as a send and receive context.
+ *
+ * The NSURLSessionWebSocketTask configures a CURL easy handle for WebSocket
+ * transfer and registers `ws_read_callback` (CURLOPT_READFUNCTION) and
+ * `ws_write_callback` (CURLOPT_WRITEFUNCTION) with the underlying easy handle.
+ * These callbacks are exclusively invoked by libcurl on the session's worker thread.
+ *
+ * Because the transfer of websocket frames is chunked, we track an ongoing
+ * transmission, and reception of a WebSocket frame in the send and receive
+ * context respectively.
+ *
+ * If the user sends a new WebSocketMessage, a new send entry is created, and 
+ * enqueued in an internal queue within the task's send context.  Receive, and
+ * ping completion handlers are also enqueued within the receive context.
+ *
+ * All completion handlers are invoked on the session's delegate queue.
+ */
+
+
 @class NSMutableArray;
 @class NSMutableData;
 @class NSData;
@@ -124,10 +145,6 @@ GS_PRIVATE_INTERNAL(NSURLSessionWebSocketTask)
 #import "NSURLSessionPrivate.h"
 #import "NSURLSessionTaskPrivate.h"
 #import "GSDispatch.h"
-
-/**
- * GSURLSessionWebSocketSendQueueEntry
- */
 
 typedef struct
 {
