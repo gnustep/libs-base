@@ -33,7 +33,11 @@
 
 #if __has_feature(blocks)
 
+/** BLOCK_SCOPE is used to mark local variables, it must not be applied to
+ * instance variables.
+ */
 #define BLOCK_SCOPE __block
+
 /**
  * Defines a block type.  Will work whether or not the compiler natively
  * supports blocks.
@@ -75,7 +79,8 @@ typedef retTy(^name)()
     retTy (*invoke)(void*);\
   } *name
 
-#define CALL_NON_NULL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
+#define CALL_NON_NULL_BLOCK(block, args, ...) \
+  block->invoke(block, args, ## __VA_ARGS__)
 
 #define CALL_NON_NULL_BLOCK_NO_ARGS(block) block->invoke(block)
 #define BLOCK_SCOPE
@@ -106,11 +111,15 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
-#define CALL_BLOCK(block, args...) ({if (NULL != block) CALL_NON_NULL_BLOCK(block, args);})
-#define CALL_BLOCK_RET(block, rettype, args...) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK(block, args) : (rettype)0)
+#define CALL_BLOCK(block, args...) \
+  ({if (NULL != block) CALL_NON_NULL_BLOCK(block, args);})
+#define CALL_BLOCK_RET(block, rettype, args...) \
+  ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK(block, args) : (rettype)0)
 
-#define CALL_BLOCK_NO_ARGS(block) ({if (NULL != block) CALL_NON_NULL_BLOCK_NO_ARGS(block);})
-#define CALL_BLOCK_RET_NO_ARGS(block, rettype) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK_NO_ARGS(block) : (rettype)0)
+#define CALL_BLOCK_NO_ARGS(block) \
+  ({if (NULL != block) CALL_NON_NULL_BLOCK_NO_ARGS(block);})
+#define CALL_BLOCK_RET_NO_ARGS(block, rettype) \
+  ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK_NO_ARGS(block) : (rettype)0)
 
 #if __has_include(<objc/blocks_runtime.h>)
 #  include <objc/blocks_runtime.h>
