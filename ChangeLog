@@ -3,6 +3,8 @@
 	* Headers/Foundation/NSUserDefaults.h:
 	* Source/NSUserDefaults.m:
 	When setting volatile domain we should replace an existing domain.
+	* Source/NSDateFormatter.m:
+	When decoding from archive, properly initialise instance.
 
 2026-09-30 Richard Frith-Macdonald <rfm@gnu.org>
 
