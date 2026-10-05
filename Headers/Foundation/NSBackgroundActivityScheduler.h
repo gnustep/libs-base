@@ -77,7 +77,7 @@ GS_EXPORT_CLASS
   NSActivityOptions _opts;
   id _token;
   NSString *_reason;
-  BLOCK_SCOPE GSScheduledBlock _block;
+  GSScheduledBlock _block;
 }
   
 - (instancetype) initWithIdentifier: (NSString *)identifier;
