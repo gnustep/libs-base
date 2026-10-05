@@ -68,6 +68,15 @@ NSRunLoopMode const NSRunLoopCommonModes = @"NSRunLoopCommonModes";
 
 static NSDate	*theFuture = nil;
 
+/* Efficient code to find the indices of bits in a bitmask (which must
+ * not be zero), clearing the bits as they are processed.
+ */
+#define	GET_INDEX_AND_CLEAR_BIT(mask) ({\
+  int	index = __builtin_ctzll((unsigned long long)mask); \
+  mask &= (mask - 1); \
+  index; \
+})
+
 
 
 /*
@@ -509,7 +518,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
        * modes and use standard constants (mostly NSRunLoopDefaultMode).
        *
        * For efficiency, try the first using direct pointer comparison.
-       * If that doesn't work, try more using the -isEqualtoString: method
+       * If that doesn't work, try more using the -isEqualToString: method
        * (we can cache the implementation of the mode we are looking for).
        * Only when both strategies fail do we resort to a hash table lookup
        * (which is more efficient when we have a lot of modes).
@@ -557,29 +566,28 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 @interface NSRunLoop (Private)
 
 - (void) _addWatcher: (GSRunLoopWatcher*)item
-	     forMode: (NSString*)mode;
+	          in: (GSRunLoopCtxt*)context;
 - (BOOL) _checkPerformers: (GSRunLoopCtxt*)context;
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
-			  forMode: (NSString*)mode;
+			       in: (GSRunLoopCtxt*)context;
 - (id) _init;
 - (void) _removeWatcher: (void*)data
 		   type: (RunLoopEventType)type
-		forMode: (NSString*)mode;
+		     in: (GSRunLoopCtxt*)context;
 
 @end
 
 @implementation NSRunLoop (Private)
 
-/* Add a watcher to the list for the specified mode.  Keep the list in
-   limit-date order. */
-- (void) _addWatcher: (GSRunLoopWatcher*) item forMode: (NSString*)mode
+/* Add a watcher to the list for the specified mode.
+ */
+- (void) _addWatcher: (GSRunLoopWatcher*)item
+		  in: (GSRunLoopCtxt*)context
 {
-  GSRunLoopCtxt	*context;
   GSIArray	watchers;
   unsigned	i;
 
-  context = contextForMode(myvars, mode, YES);
   watchers = context->watchers;
   GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
   i = GSIArrayCount(watchers);
@@ -587,7 +595,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
     {
       context->maxWatchers = i;
       NSLog(@"WARNING ... there are %u watchers scheduled in mode %@ of %@",
-	i, mode, self);
+	i, context->mode, self);
     }
 }
 
@@ -663,27 +671,13 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   return found;
 }
 
-/**
- * Locates a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
+/** Locates a runloop watcher matching the specified data and type in this
+ * runloop.
  */
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
-			  forMode: (NSString*)mode
+			       in: (GSRunLoopCtxt*)context
 {
-  GSRunLoopCtxt	*context;
-
-  if (mode == nil)
-    {
-      mode = [self currentMode];
-      if (mode == nil)
-	{
-	  mode = NSDefaultRunLoopMode;
-	}
-    }
-
-  context = contextForMode(myvars, mode, NO);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -728,27 +722,13 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   return self;
 }
 
-/**
- * Removes a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
+/** Removes a runloop watcher matching the specified data and type in this
+ * runloop.
  */
 - (void) _removeWatcher: (void*)data
                    type: (RunLoopEventType)type
-                forMode: (NSString*)mode
+		     in: (GSRunLoopCtxt*)context
 {
-  GSRunLoopCtxt	*context;
-
-  if (mode == nil)
-    {
-      mode = [self currentMode];
-      if (mode == nil)
-	{
-	  mode = NSDefaultRunLoopMode;
-	}
-    }
-
-  context = contextForMode(myvars, mode, NO);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -773,12 +753,36 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 
 @implementation NSRunLoop(GNUstepExtensions)
 
+- (void) addCommonMode: (NSString*)mode
+{
+  GSRunLoopCtxt	*context;
+
+  if (NO == [mode isKindOfClass: [NSString class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] not a valid mode",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if ([mode isEqualToString: NSRunLoopCommonModes])
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] NSRunLoopCommonModes cannot be a common mode",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  context = contextForMode(myvars, mode, YES);
+  if (context)
+    {
+      myvars->commonModeMask |= (UINT64_C(1)<<context->modeIndex);
+    }
+}
+
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher
           forMode: (NSString*)mode
 {
-  GSRunLoopWatcher	*info;
+  GSRunLoopCtxt	*context;
+  uint64_t	modeMask;
 
   if (mode == nil)
     {
@@ -789,26 +793,61 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	}
     }
 
-  info = [self _getWatcher: data type: type forMode: mode];
-
-  if (info != nil && (id)info->receiver == (id)watcher)
+  if ([mode isEqualToString: NSRunLoopCommonModes])
     {
-      /* Increment usage count for this watcher. */
-      info->count++;
+      modeMask = myvars->commonModeMask;
     }
   else
     {
-      /* Remove any existing handler for another watcher. */
-      [self _removeWatcher: data type: type forMode: mode];
-
-      /* Create new object to hold information. */
-      info = [[GSRunLoopWatcher alloc] initWithType: type
-					   receiver: watcher
-					       data: data];
-      /* Add the object to the array for the mode. */
-      [self _addWatcher: info forMode: mode];
-      RELEASE(info);		/* Now held in array.	*/
+      /* Create the context for this mode if necessary, and get its
+       * bitmask position.
+       */
+      context = contextForMode(myvars, mode, YES);
+      modeMask = (UINT64_C(1) << context->modeIndex);
     }
+
+  while (modeMask)
+    {
+      int		modeIndex = GET_INDEX_AND_CLEAR_BIT(modeMask);
+      GSRunLoopWatcher	*info;
+
+      context = myvars->contexts[modeIndex];
+      info = [self _getWatcher: data type: type in: context];
+
+      if (info != nil && (id)info->receiver == (id)watcher)
+	{
+	  /* Increment usage count for this watcher. */
+	  info->count++;
+	}
+      else
+	{
+	  /* Remove any existing handler for another watcher. */
+	  [self _removeWatcher: data type: type in: context];
+
+	  /* Create new object to hold information. */
+	  info = [[GSRunLoopWatcher alloc] initWithType: type
+					       receiver: watcher
+						   data: data];
+	  /* Add the object to the array for the mode. */
+	  [self _addWatcher: info in: context];
+	  RELEASE(info);		/* Now held in array.	*/
+	}
+    }
+}
+
+- (NSArray*) commonModes
+{
+  uint64_t	modeMask = myvars->commonModeMask;
+  NSString	*modes[64];
+  unsigned	count = 0;
+
+  while (modeMask)
+    {
+      int	modeIndex = GET_INDEX_AND_CLEAR_BIT(modeMask);
+
+      modes[count++] = (myvars->contexts[modeIndex])->mode;
+    }
+  return [NSArray arrayWithObjects: modes count: count];
 }
 
 - (void) removeEvent: (void*)data
@@ -816,6 +855,9 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
              forMode: (NSString*)mode
 		 all: (BOOL)removeAll
 {
+  GSRunLoopCtxt	*context;
+  uint64_t	modeMask;
+
   if (mode == nil)
     {
       mode = [self currentMode];
@@ -824,25 +866,45 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	  mode = NSDefaultRunLoopMode;
 	}
     }
-  if (removeAll)
+
+  if ([mode isEqualToString: NSRunLoopCommonModes])
     {
-      [self _removeWatcher: data type: type forMode: mode];
+      modeMask = myvars->commonModeMask;
     }
   else
     {
-      GSRunLoopWatcher	*info;
-
-      info = [self _getWatcher: data type: type forMode: mode];
-
-      if (info)
+      if (nil == (context = contextForMode(myvars, mode, NO)))
 	{
-	  if (info->count == 0)
+	  return;	// No context, so nothing to do
+	}
+      modeMask = (UINT64_C(1) << context->modeIndex);
+    }
+
+  while (modeMask)
+    {
+      int	modeIndex = GET_INDEX_AND_CLEAR_BIT(modeMask);
+
+      context = myvars->contexts[modeIndex];
+
+      if (removeAll)
+	{
+	  [self _removeWatcher: data type: type in: context];
+	}
+      else
+	{
+	  GSRunLoopWatcher	*info;
+
+	  info = [self _getWatcher: data type: type in: context];
+	  if (info)
 	    {
-	      [self _removeWatcher: data type: type forMode: mode];
-  	    }
-	  else
-	    {
-	      info->count--;
+	      if (info->count == 0)
+		{
+		  [self _removeWatcher: data type: type in: context];
+		}
+	      else
+		{
+		  info->count--;
+		}
 	    }
 	}
     }
@@ -1011,9 +1073,8 @@ static GSMainQueueDrainer 	*drainer = nil;
 {
   const void	*loop = (const void*)self;
   GSRunLoopCtxt	*context;
-  GSMinHeap	*timerHeap;
+  uint64_t	modeMask;
   uint64_t	modeBit;
-  unsigned      i;
 
   if ([timer isKindOfClass: [NSTimer class]] == NO
     || [timer isProxy] == YES)
@@ -1034,36 +1095,60 @@ static GSMainQueueDrainer 	*drainer = nil;
 		  format: @"[%@-%@] not a valid mode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  context = contextForMode(myvars, mode, YES);
+
+  /* Mark timer as belinging to ths run loop.
+   */
+  timer->_loop = loop;	// Not retained.
 
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
-
-  timer->_loop = loop;	// Not retained.
-
-  modeBit = (UINT64_C(1) << context->modeIndex);
-
-  if ((timer->_modeMask & modeBit) != 0)
-    {
-      return;	// Already present in this mode
-    }
-
-  timerHeap = context->timerHeap;
 
   /* Timers can be scheduled in more than one mode, and if a timer fires
    * and repeats it will have updated its fire date.  That will leave it
    * incorrectly positioned in the min heap in other modes.  To handle
    * that we must track whether it is scheduled in more than one mode to
    * know if we need to check other modes for repositionng.
+   * The _modeMask variable of the timer is used to track that.
    */
-  timer->_modeMask |= modeBit;
-  [timerHeap push: timer];
-  i = [timerHeap count];
-  if (i % 1000 == 0 && i > context->maxTimers)
+
+  if ([mode isEqualToString: NSRunLoopCommonModes])
     {
-      context->maxTimers = i;
-      NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
-	i, mode, self);
+      /* Contexts for all the common modes have already been created,
+       */
+      modeMask = myvars->commonModeMask;
+    }
+  else
+    {
+      /* Create the context for this mode if necessary, and get its
+       * bitmask position.
+       */
+      context = contextForMode(myvars, mode, YES);
+      modeMask = (UINT64_C(1) << context->modeIndex);
+    }
+
+  while (modeMask)
+    {
+      int	modeIndex = GET_INDEX_AND_CLEAR_BIT(modeMask);
+
+      context = myvars->contexts[modeIndex];
+      modeBit = (UINT64_C(1) << context->modeIndex);
+
+      if (0 == (timer->_modeMask & modeBit))
+	{
+	  GSMinHeap	*timerHeap;
+	  unsigned      count;
+
+	  timer->_modeMask |= modeBit;
+	  timerHeap = context->timerHeap;
+	  [timerHeap push: timer];
+	  count = [timerHeap count];
+	  if (count % 1000 == 0 && count > context->maxTimers)
+	    {
+	      context->maxTimers = count;
+	      NSLog(@"WARNING ... there are %u timers scheduled"
+		@" in mode %@ of %@", count, context->mode, self);
+	    }
+	}
     }
 }
 
@@ -1122,15 +1207,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     }
   return YES;
 }
-
-/* Efficient code to find the indices of bits in a bitmask (which must
- * not be zero), clearing the bits as they are processed.
- */
-#define	GET_INDEX_AND_CLEAR_BIT(mask) ({\
-  int	index = __builtin_ctzll((unsigned long long)mask); \
-  mask &= (mask - 1); \
-  index; \
-})
 
 - (NSDate*) _limitDateForContext: (GSRunLoopCtxt *)context
 {
@@ -1311,8 +1387,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   RunState		saved = runStart(myvars, mode);
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-  NSAssert(mode, NSInvalidArgumentException);
-  if (mode == nil)
+  if (nil == mode)
     {
       mode = NSDefaultRunLoopMode;
     }
