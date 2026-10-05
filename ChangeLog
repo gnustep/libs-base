@@ -1,3 +1,9 @@
+2026-10-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSUserDefaults.h:
+	* Source/NSUserDefaults.m:
+	When setting volatile domain we should replace an existing domain.
+
 2026-09-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSOperation.h:

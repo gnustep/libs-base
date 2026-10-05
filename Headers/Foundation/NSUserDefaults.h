@@ -498,9 +498,10 @@ GS_EXPORT_CLASS
 
 /**
  * Sets the volatile-domain specified by domainName to
- * domain ... a dictionary containing keys and defaults values.<br />
+ * domain ... a dictionary containing keys and defaults values, replacing
+ * any existing volatile domain of thre same name.<br />
  * Raises an NSInvalidArgumentException if domainName already
- * exists as either a volatile-domain or a persistent-domain.<br />
+ * exists as a persistent-domain.<br />
  * Causes a NSUserDefaultsDidChangeNotification to be posted at the
  * next -synchronize.
  */

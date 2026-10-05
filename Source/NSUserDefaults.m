@@ -2176,13 +2176,6 @@ static BOOL isPlistObject(id o)
           [NSException raise: NSInvalidArgumentException
 	    format: @"a persistent domain called %@ exists", domainName];
         }
-      dict = [_tempDomains objectForKey: domainName];
-      if (dict != nil)
-        {
-          [NSException raise: NSInvalidArgumentException
-	    format: @"the volatile domain %@ already exists", domainName];
-        }
-
       DESTROY(_dictionaryRep);
       domain = [domain mutableCopy];
       [_tempDomains setObject: domain forKey: domainName];
