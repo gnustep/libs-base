@@ -42,7 +42,9 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
 #import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSValue.h"
@@ -235,6 +237,29 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   unsigned int		_argc;
   SEL                   _selector;
   NSString              *_op;        // Not retained;
+}
+@end
+
+/* Core Data declares this type, as a constant of its own; the value is
+ * what an archive carries, so it is known here too.
+ */
+#define	GSFetchRequestExpressionType	((NSExpressionType)50)
+
+@interface GSSelectorFunctionExpression : NSExpression
+{
+  @public
+  NSExpression		*_target;
+  NSString		*_selectorName;
+  NSArray		*_args;
+}
+@end
+
+@interface GSFetchExpression : NSExpression
+{
+  @public
+  NSExpression		*_request;
+  NSExpression		*_contextExpression;
+  BOOL			_countOnly;
 }
 @end
 
@@ -1867,6 +1892,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 			   forClass: [GSVariableExpression class]];
       [NSKeyedArchiver setClassName: @"NSKeyPathExpression"
 			   forClass: [GSKeyPathExpression class]];
+      [NSKeyedArchiver setClassName: @"NSKeyPathExpression"
+			   forClass: [GSKeyPathCompositionExpression class]];
       [NSKeyedArchiver setClassName: @"NSKeyPathSpecifierExpression"
 			   forClass: [GSKeyPathSpecifierExpression class]];
       [NSKeyedArchiver setClassName: @"NSFunctionExpression"
@@ -1875,6 +1902,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 			   forClass: [GSAggregateExpression class]];
       [NSKeyedArchiver setClassName: @"NSSubqueryExpression"
 			   forClass: [GSSubqueryExpression class]];
+      [NSKeyedArchiver setClassName: @"NSFetchRequestExpression"
+			   forClass: [GSFetchExpression class]];
 
       [NSKeyedUnarchiver setClass: [GSSubqueryExpression class]
 		     forClassName: @"NSSubqueryExpression"];
@@ -1892,6 +1921,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 		     forClassName: @"NSFunctionExpression"];
       [NSKeyedUnarchiver setClass: [GSAggregateExpression class]
 		     forClassName: @"NSAggregateExpression"];
+      [NSKeyedUnarchiver setClass: [GSFetchExpression class]
+		     forClassName: @"NSFetchRequestExpression"];
     }
 }
 
@@ -2005,6 +2036,40 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   else if ([implementation isEqualToString: @"_mul"]) e->_op = @"*";
   else if ([implementation isEqualToString: @"_div"]) e->_op = @"/";
   else if ([implementation isEqualToString: @"_pow"]) e->_op = @"**";
+  return e;
+}
+
++ (NSExpression *) expressionForFunction: (NSExpression *)target
+			    selectorName: (NSString *)name
+			       arguments: (NSArray *)parameters
+{
+  GSSelectorFunctionExpression	*e;
+
+  if (nil == target || nil == name)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"expressionForFunction:selectorName:arguments:"
+	@" needs a target and a selector name"];
+    }
+  e = AUTORELEASE([[GSSelectorFunctionExpression alloc]
+    initWithExpressionType: NSFunctionExpressionType]);
+  ASSIGN(e->_target, target);
+  ASSIGN(e->_selectorName, name);
+  ASSIGN(e->_args, (nil == parameters) ? (NSArray *)[NSArray array] : parameters);
+  return e;
+}
+
++ (NSExpression *) expressionForFetch: (NSExpression *)fetch
+			      context: (NSExpression *)context
+			    countOnly: (BOOL)countFlag
+{
+  GSFetchExpression	*e;
+
+  e = AUTORELEASE([[GSFetchExpression alloc]
+    initWithExpressionType: GSFetchRequestExpressionType]);
+  ASSIGN(e->_request, fetch);
+  ASSIGN(e->_contextExpression, context);
+  e->_countOnly = countFlag;
   return e;
 }
 
@@ -2218,6 +2283,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (NSExpression *) requestExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSExpression *) contextExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (BOOL) isCountOnlyRequest
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 - (NSString *) variable
@@ -2634,9 +2717,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   if ([coder allowsKeyedCoding])
     {
-      NSArray	*arguments = [coder decodeObjectForKey: @"NSArguments"];
-      id	first = ([arguments count] > 0
+      NSArray		*arguments = [coder decodeObjectForKey: @"NSArguments"];
+      id		first = ([arguments count] > 0
 	? [arguments objectAtIndex: 0] : nil);
+      NSExpression	*operand = [coder decodeObjectForKey: @"NSOperand"];
 
       if ([first isKindOfClass: [GSKeyPathSpecifierExpression class]])
 	{
@@ -2645,6 +2729,23 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       else if ([coder containsValueForKey: @"NSKeyPath"])
 	{
 	  ASSIGN(_keyPath, [coder decodeObjectForKey: @"NSKeyPath"]);
+	}
+
+      /* A key path reached through something else - $source.author, which
+       * OS X writes as this kind with that something as its operand - is a
+       * key path composition, and evaluating it against the operand is the
+       * whole of what it means.  An operand standing for the object being
+       * evaluated adds nothing, so it stays a plain key path.
+       */
+      if (nil != operand
+	&& NO == [operand isKindOfClass: [GSEvaluatedObjectExpression class]])
+	{
+	  NSExpression	*path;
+
+	  path = [NSExpression expressionForKeyPath: _keyPath];
+	  DESTROY(self);
+	  return RETAIN([NSExpression
+	    expressionForKeyPathCompositionWithLeft: operand right: path]);
 	}
     }
   else
@@ -2862,6 +2963,36 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
+/* As OS X writes it: a key path expression whose operand is what the path
+ * is reached through, the path itself an argument to valueForKeyPath:.
+ * A right side that is not a plain key path has no such form, and keeps
+ * the one this library has always written.
+ */
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  NSString	*path = [_right keyPath];
+
+  if ([coder allowsKeyedCoding] && nil != path)
+    {
+      GSKeyPathSpecifierExpression	*specifier;
+
+      specifier = [[GSKeyPathSpecifierExpression alloc]
+	initWithExpressionType: NSKeyPathExpressionType];
+      ASSIGN(specifier->_keyPath, path);
+
+      [coder encodeInt: NSKeyPathExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: _left forKey: @"NSOperand"];
+      [coder encodeObject: @"valueForKeyPath:" forKey: @"NSSelectorName"];
+      [coder encodeObject: [NSArray arrayWithObject: specifier]
+		   forKey: @"NSArguments"];
+      RELEASE(specifier);
+    }
+  else
+    {
+      [super encodeWithCoder: coder];
+    }
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -3289,11 +3420,13 @@ do { \
 {
   NSString	*name;
   NSArray	*args;
+  NSExpression	*operand = nil;
 
   if ([coder allowsKeyedCoding])
     {
       name = [coder decodeObjectForKey: @"NSSelectorName"];
       args = [coder decodeObjectForKey: @"NSArguments"];
+      operand = [coder decodeObjectForKey: @"NSOperand"];
     }
   else
     {
@@ -3302,6 +3435,25 @@ do { \
     }
 
   DESTROY(self);
+
+  /* An operand standing for a class is the placeholder a named function is
+   * archived with; anything else is a receiver, and the archive is of the
+   * form FUNCTION(receiver, "selector:", ...).
+   */
+  if ([operand isKindOfClass: [GSConstantValueExpression class]]
+    && nil == ((GSConstantValueExpression *)operand)->_className)
+    {
+      return RETAIN([NSExpression expressionForFunction: operand
+					   selectorName: name
+					      arguments: args]);
+    }
+  else if (nil != operand
+    && NO == [operand isKindOfClass: [GSConstantValueExpression class]])
+    {
+      return RETAIN([NSExpression expressionForFunction: operand
+					   selectorName: name
+					      arguments: args]);
+    }
 
   return RETAIN([NSExpression expressionForFunction: name arguments: args]);
 }
@@ -3634,6 +3786,408 @@ do { \
 @end
 
 
+
+@implementation GSSelectorFunctionExpression
+
+- (NSArray *) arguments
+{
+  return _args;
+}
+
+- (NSExpression *) operand
+{
+  return _target;
+}
+
+- (NSString *) function
+{
+  return _selectorName;
+}
+
+- (NSString *) keyPath
+{
+  return nil;
+}
+
+- (NSString *) description
+{
+  NSMutableString	*result;
+  NSUInteger		i, count = [_args count];
+
+  result = [NSMutableString stringWithFormat: @"FUNCTION(%@, \"%@\"",
+    _target, _selectorName];
+  if (count > 0)
+    {
+      [result appendString: @" "];	// OS X writes one here
+    }
+  for (i = 0; i < count; i++)
+    {
+      [result appendFormat: @", %@", [_args objectAtIndex: i]];
+    }
+  [result appendString: @")"];
+  return result;
+}
+
+/* The receiver is sent the selector with the evaluated arguments, one per
+ * colon in its name.  A result that is not an object is returned as an
+ * NSNumber, as the rest of this file expects of a value.
+ */
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id			target;
+  SEL			selector;
+  NSMethodSignature	*signature;
+  NSInvocation		*invocation;
+  NSUInteger		i, count = [_args count];
+  const char		*type;
+
+  target = [_target expressionValueWithObject: object context: context];
+  if (nil == target)
+    {
+      return nil;
+    }
+
+  selector = NSSelectorFromString(_selectorName);
+  signature = [target methodSignatureForSelector: selector];
+  if (0 == selector || nil == signature)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ does not respond to %@",
+	NSStringFromClass([target class]), _selectorName];
+    }
+  if ([signature numberOfArguments] != count + 2)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ takes %u arguments, %u given",
+	_selectorName, (unsigned)([signature numberOfArguments] - 2),
+	(unsigned)count];
+    }
+
+  invocation = [NSInvocation invocationWithMethodSignature: signature];
+  [invocation setTarget: target];
+  [invocation setSelector: selector];
+  for (i = 0; i < count; i++)
+    {
+      id	value;
+
+      value = [[_args objectAtIndex: i] expressionValueWithObject: object
+							 context: context];
+      [invocation setArgument: &value atIndex: i + 2];
+    }
+  [invocation invoke];
+
+  type = [signature methodReturnType];
+  if (0 == strcmp(type, @encode(void)))
+    {
+      return nil;
+    }
+  if (0 == strcmp(type, @encode(id)) || 0 == strcmp(type, @encode(Class)))
+    {
+      id	result = nil;
+
+      [invocation getReturnValue: &result];
+      return result;
+    }
+
+#define GSFETCH_NUMBER(ctype, method) \
+  if (0 == strcmp(type, @encode(ctype))) \
+    { \
+      ctype	v = 0; \
+      [invocation getReturnValue: &v]; \
+      return [NSNumber method v]; \
+    }
+
+  GSFETCH_NUMBER(BOOL, numberWithBool:)
+  GSFETCH_NUMBER(char, numberWithChar:)
+  GSFETCH_NUMBER(int, numberWithInt:)
+  GSFETCH_NUMBER(short, numberWithShort:)
+  GSFETCH_NUMBER(long, numberWithLong:)
+  GSFETCH_NUMBER(long long, numberWithLongLong:)
+  GSFETCH_NUMBER(unsigned char, numberWithUnsignedChar:)
+  GSFETCH_NUMBER(unsigned int, numberWithUnsignedInt:)
+  GSFETCH_NUMBER(unsigned short, numberWithUnsignedShort:)
+  GSFETCH_NUMBER(unsigned long, numberWithUnsignedLong:)
+  GSFETCH_NUMBER(unsigned long long, numberWithUnsignedLongLong:)
+  GSFETCH_NUMBER(float, numberWithFloat:)
+  GSFETCH_NUMBER(double, numberWithDouble:)
+#undef GSFETCH_NUMBER
+
+  [NSException raise: NSInvalidArgumentException
+	      format: @"%@ returns %s, which is not a value",
+    _selectorName, type];
+  return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: NSFunctionExpressionType forKey: @"NSExpressionType"];
+      [coder encodeObject: _selectorName forKey: @"NSSelectorName"];
+      [coder encodeObject: _target forKey: @"NSOperand"];
+      [coder encodeObject: _args forKey: @"NSArguments"];
+    }
+  else
+    {
+      [coder encodeObject: _selectorName];
+      [coder encodeObject: _target];
+      [coder encodeObject: _args];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  NSString	*name;
+  NSExpression	*target;
+  NSArray	*args;
+
+  if ([coder allowsKeyedCoding])
+    {
+      name = [coder decodeObjectForKey: @"NSSelectorName"];
+      target = [coder decodeObjectForKey: @"NSOperand"];
+      args = [coder decodeObjectForKey: @"NSArguments"];
+    }
+  else
+    {
+      name = [coder decodeObject];
+      target = [coder decodeObject];
+      args = [coder decodeObject];
+    }
+  DESTROY(self);
+
+  return RETAIN([NSExpression expressionForFunction: target
+				       selectorName: name
+					  arguments: args]);
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return RETAIN(self);
+}
+
+- (NSExpression *) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  NSMutableArray	*args;
+  NSUInteger		i, count = [_args count];
+
+  args = [NSMutableArray arrayWithCapacity: count];
+  for (i = 0; i < count; i++)
+    {
+      [args addObject: [[_args objectAtIndex: i]
+	_expressionWithSubstitutionVariables: variables]];
+    }
+  return [NSExpression expressionForFunction:
+    [_target _expressionWithSubstitutionVariables: variables]
+				selectorName: _selectorName
+				   arguments: args];
+}
+
+- (BOOL) isEqual: (id)other
+{
+  GSSelectorFunctionExpression	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSSelectorFunctionExpression class]])
+    {
+      return NO;
+    }
+  return [_selectorName isEqual: o->_selectorName]
+    && [_target isEqual: o->_target] && [_args isEqual: o->_args];
+}
+
+- (NSUInteger) hash
+{
+  return [_selectorName hash] ^ [_args hash];
+}
+
+- (void) dealloc
+{
+  RELEASE(_target);
+  RELEASE(_selectorName);
+  RELEASE(_args);
+  [super dealloc];
+}
+
+@end
+
+@implementation GSFetchExpression
+
+- (NSExpression *) requestExpression
+{
+  return _request;
+}
+
+- (NSExpression *) contextExpression
+{
+  return _contextExpression;
+}
+
+- (BOOL) isCountOnlyRequest
+{
+  return _countOnly;
+}
+
+- (NSString *) keyPath
+{
+  return nil;
+}
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"FETCH(%@, %@, %@)",
+    _request, _contextExpression, _countOnly ? @"YES" : @"NO"];
+}
+
+/* The request is run against the context, which is whatever object the
+ * context expression evaluates to - this library knows nothing of Core
+ * Data, so the two methods it needs are sent, not called.
+ */
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id			request;
+  id			target;
+  SEL			selector;
+  NSMethodSignature	*signature;
+  NSInvocation		*invocation;
+  NSError		*error = nil;
+  NSError		**errorPointer = &error;
+
+  request = [_request expressionValueWithObject: object context: context];
+  target = [_contextExpression expressionValueWithObject: object
+						context: context];
+  if (nil == request || nil == target)
+    {
+      return nil;
+    }
+
+  selector = _countOnly
+    ? @selector(countForFetchRequest:error:)
+    : @selector(executeFetchRequest:error:);
+  signature = [target methodSignatureForSelector: selector];
+  if (nil == signature)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ cannot answer a fetch request",
+	NSStringFromClass([target class])];
+    }
+
+  invocation = [NSInvocation invocationWithMethodSignature: signature];
+  [invocation setTarget: target];
+  [invocation setSelector: selector];
+  [invocation setArgument: &request atIndex: 2];
+  [invocation setArgument: &errorPointer atIndex: 3];
+  [invocation invoke];
+
+  if (_countOnly)
+    {
+      NSUInteger	count = 0;
+
+      [invocation getReturnValue: &count];
+      return [NSNumber numberWithUnsignedInteger: count];
+    }
+  else
+    {
+      id	result = nil;
+
+      [invocation getReturnValue: &result];
+      return result;
+    }
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: GSFetchRequestExpressionType
+		forKey: @"NSExpressionType"];
+      [coder encodeObject: _request forKey: @"NSFRExpression"];
+      [coder encodeObject: _contextExpression forKey: @"NSMOCExpression"];
+      [coder encodeBool: _countOnly forKey: @"NSCountOnlyFlag"];
+    }
+  else
+    {
+      [coder encodeObject: _request];
+      [coder encodeObject: _contextExpression];
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &_countOnly];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithExpressionType: GSFetchRequestExpressionType];
+  if (nil == self)
+    {
+      return nil;
+    }
+  if ([coder allowsKeyedCoding])
+    {
+      ASSIGN(_request, [coder decodeObjectForKey: @"NSFRExpression"]);
+      ASSIGN(_contextExpression,
+	[coder decodeObjectForKey: @"NSMOCExpression"]);
+      _countOnly = [coder decodeBoolForKey: @"NSCountOnlyFlag"];
+    }
+  else
+    {
+      ASSIGN(_request, [coder decodeObject]);
+      ASSIGN(_contextExpression, [coder decodeObject]);
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &_countOnly];
+    }
+  return self;
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return RETAIN(self);
+}
+
+- (NSExpression *) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  GSFetchExpression	*e;
+
+  e = AUTORELEASE([[GSFetchExpression alloc]
+    initWithExpressionType: GSFetchRequestExpressionType]);
+  ASSIGN(e->_request,
+    [_request _expressionWithSubstitutionVariables: variables]);
+  ASSIGN(e->_contextExpression,
+    [_contextExpression _expressionWithSubstitutionVariables: variables]);
+  e->_countOnly = _countOnly;
+  return e;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  GSFetchExpression	*o = other;
+
+  if (self == other)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSFetchExpression class]])
+    {
+      return NO;
+    }
+  return _countOnly == o->_countOnly && [_request isEqual: o->_request]
+    && [_contextExpression isEqual: o->_contextExpression];
+}
+
+- (NSUInteger) hash
+{
+  return [_request hash] ^ [_contextExpression hash];
+}
+
+- (void) dealloc
+{
+  RELEASE(_request);
+  RELEASE(_contextExpression);
+  [super dealloc];
+}
+
+@end
 
 @implementation NSArray (NSPredicate)
 
@@ -4451,8 +5005,81 @@ GSKeyPathIfKeyPath(NSExpression *expression)
                               format: @"Missing ) in function arguments"];
                 }
             }
-          left = [NSExpression expressionForFunction: name
-                                           arguments: args];
+          /* Two of them are not named functions at all but forms of
+           * their own: a selector sent to a receiver, and a fetch request
+           * run against a context.
+           */
+          if ([name isEqualToString: @"FUNCTION"]
+            || [name isEqualToString: @"FUNCTION:"])
+            {
+              NSExpression	*selectorExpression;
+              id		selectorName;
+
+              if ([args count] < 2)
+                {
+                  [NSException raise: NSInvalidArgumentException
+                              format: @"FUNCTION needs a receiver and a"
+                    @" selector name"];
+                }
+              selectorExpression = [args objectAtIndex: 1];
+              selectorName
+                = ([selectorExpression expressionType]
+                    == NSConstantValueExpressionType)
+                  ? [selectorExpression constantValue]
+                  : [selectorExpression keyPath];
+              if (NO == [selectorName isKindOfClass: [NSString class]])
+                {
+                  [NSException raise: NSInvalidArgumentException
+                              format: @"FUNCTION needs a selector name, had"
+                    @" %@", selectorExpression];
+                }
+              left = [NSExpression
+                expressionForFunction: [args objectAtIndex: 0]
+                         selectorName: selectorName
+                            arguments: [args subarrayWithRange:
+                              NSMakeRange(2, [args count] - 2)]];
+            }
+          else if ([name isEqualToString: @"FETCH"]
+            || [name isEqualToString: @"FETCH:"])
+            {
+              GSFetchExpression	*fetch;
+
+              if ([args count] < 2)
+                {
+                  [NSException raise: NSInvalidArgumentException
+                              format: @"FETCH needs a request and a context"];
+                }
+              fetch = AUTORELEASE([[GSFetchExpression alloc]
+                initWithExpressionType: GSFetchRequestExpressionType]);
+              ASSIGN(fetch->_request, [args objectAtIndex: 0]);
+              ASSIGN(fetch->_contextExpression, [args objectAtIndex: 1]);
+              if ([args count] > 2)
+                {
+                  NSExpression	*flag = [args objectAtIndex: 2];
+                  NSString	*word = ([flag expressionType]
+                    == NSKeyPathExpressionType) ? [flag keyPath] : nil;
+
+                  if (nil != word)
+                    {
+                      fetch->_countOnly = ([word caseInsensitiveCompare: @"YES"]
+                        == NSOrderedSame
+                        || [word caseInsensitiveCompare: @"TRUE"]
+                        == NSOrderedSame);
+                    }
+                  else
+                    {
+                      fetch->_countOnly
+                        = [[flag expressionValueWithObject: nil context: nil]
+                          boolValue];
+                    }
+                }
+              left = fetch;
+            }
+          else
+            {
+              left = [NSExpression expressionForFunction: name
+                                               arguments: args];
+            }
         }
       else if ([self scanString: @"[" intoString: NULL])
         {
