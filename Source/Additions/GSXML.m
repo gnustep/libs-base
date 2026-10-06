@@ -3917,7 +3917,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)calloc(1, sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3985,7 +3985,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (BOOL) _initLibXML
 {
   isHtmlHandler = YES;
-  lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
+  lib = (xmlSAXHandler*)calloc(1, sizeof(htmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
