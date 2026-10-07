@@ -112,6 +112,7 @@
 
 #import "../GSPrivate.h"
 
+static	NSCharacterSet	*spaceOrTab = nil;
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
@@ -482,6 +483,27 @@ selectCharacterSet(NSString *str, NSData **d)
   return @"utf-8";		// Catch-all character set.
 }
 
+static NSData*
+encodeWord(NSData *word, NSString *charset)
+{
+  int		len = [charset length];
+  char		buf[len + 1];
+  NSMutableData	*md;
+  NSData	*d;
+
+  [charset getCString: buf
+	    maxLength: len + 1
+	     encoding: NSISOLatin1StringEncoding];
+  md = [NSMutableData dataWithCapacity: [word length]*4/3 + len + 8];
+  d = [word base64EncodedDataWithOptions: 0];
+  [md appendBytes: "=?" length: 2];
+  [md appendBytes: buf length: len];
+  [md appendBytes: "?B?" length: 3];
+  [md appendData: d];
+  [md appendBytes: "?=" length: 2];
+  return md;
+}
+
 /**
  * Encode a word in a header according to RFC2047 if necessary.
  * For an ascii word, we just return the data.
@@ -500,22 +522,8 @@ wordData(NSString *word, BOOL *encoded)
     }
   else
     {
-      int		len = [charset length];
-      char		buf[len + 1];
-      NSMutableData	*md;
-
       *encoded = YES;
-      [charset getCString: buf
-		maxLength: len + 1
-		 encoding: NSISOLatin1StringEncoding];
-      md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
-      d = [d base64EncodedDataWithOptions: 0];
-      [md appendBytes: "=?" length: 2];
-      [md appendBytes: buf length: len];
-      [md appendBytes: "?B?" length: 3];
-      [md appendData: d];
-      [md appendBytes: "?=" length: 2];
-      return md;
+      return encodeWord(d, charset);
     }
 }
 
@@ -906,6 +914,8 @@ wordData(NSString *word, BOOL *encoded)
   rfc2045Specials = [m copy];
   [[NSObject leakAt: &rfc2045Specials] release];
   [m release];
+  spaceOrTab = [NSCharacterSet characterSetWithCharactersInString: @" \t"];
+  [NSObject leakAt: &spaceOrTab];
   whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
   [[NSObject leakAt: &whitespace] release];
 
@@ -4154,7 +4164,7 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 }
 
 static NSUInteger
-appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
+appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
   NSUInteger    pos = 0;
@@ -4174,18 +4184,20 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           NSData    *d = nil;
           BOOL      e = NO;
 
-          r = [str rangeOfCharacterFromSet: whitespace
+          r = [str rangeOfCharacterFromSet: spaceOrTab
                                    options: NSLiteralSearch
                                      range: r];
           if (r.length > 0 && r.location == pos)
             {
+	      unichar	c;
+
               /* Found space at the start of the string, so we reduce
                * it to a single space in the output, or omit it entirely
                * if the string contains nothing more but space.
                */
               pos++;
               while (pos < size
-                && [whitespace characterIsMember: [str characterAtIndex: pos]])
+                && (' ' == (c = [str characterAtIndex: pos]) || '\t' == c))
                 {
                   pos++;
                 }
@@ -4263,7 +4275,26 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         }
       else if ([cset isEqualToString: @"us-ascii"])
         {
-          if (0 == fold)
+	  NSUInteger	i;
+
+	  /* Check for characters which are not legal in a header.
+	   */
+	  for (i = 0; i < len; i++)
+	    {
+	      uint8_t	c = ptr[i];
+
+	      if ((c < ' ' && c != '\t') || c > 126)
+		{
+		  break;
+		}
+	    }
+
+	  if (i < len)
+	    {
+	      /* Bad character found ...
+	       */
+	    }
+          else if (0 == fold)
             {
               /* Simple ... no folding to do so we can just add the ascii.
                */
@@ -4322,7 +4353,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         }
 
       /* We get here to use encoded words, either because the text to be
-       * added contains non-ascii characters, or because it contains some
+       * added contains non-header characters, or because it contains some
        * non-foldable sequence too long to fit in the given line limit.
        */
       if (pos < len)
@@ -4438,7 +4469,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                        fold: (NSUInteger)fold
                          ok: (BOOL*)ok
 {
-  return appendString(m, offset, fold, str, ok);
+  return appendHeaderString(m, offset, fold, str, ok);
 }
 */
 
@@ -4550,7 +4581,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   offset = appendBytes(md, offset, fold, ":", 1);
   offset = appendBytes(md, offset, fold, " ", 1);
-  offset = appendString(md, offset, fold, value, &ok);
+  offset = appendHeaderString(md, offset, fold, value, &ok);
   if (ok == NO)
     {
       NSDebugMLLog(@"GSMime",
@@ -4590,7 +4621,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
           offset = appendBytes(md, offset, fold, " ", 1);
         }
-      offset = appendString(md, offset, fold, k, &ok);
+      offset = appendHeaderString(md, offset, fold, k, &ok);
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",
@@ -4610,7 +4641,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           [md appendBytes: "\r\n\t" length: 3];
           offset = 1;
         }
-      offset = appendString(md, offset, fold, v, &ok);
+      offset = appendHeaderString(md, offset, fold, v, &ok);
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",

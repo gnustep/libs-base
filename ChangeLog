@@ -1,3 +1,9 @@
+2026-10-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	* Tests/base/GSMime/general.m:
+	Changes to correct encoding of otherwise illegal characters in headers.
+
 2026-10-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSUserDefaults.h:

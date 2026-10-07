@@ -264,6 +264,18 @@ int main()
   PASS_EQUAL(idoc, doc, "rawMimeData reproduces document with 'Q' header");
 //  NSLog(@"Made\n%@\nOrig\n%@", data, orig);
 
+  /* Check embedded newline in subject
+   */
+  str = @"Embedded\r\nNewline";
+  idoc = [GSMimeDocument documentWithContent: @"hello"
+                                        type: @"text/plain"
+                                        name: nil];
+  [idoc setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+  [idoc setHeader: @"Subject" value: str parameters: nil];
+  data = [idoc rawMimeData];
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "can encode and parse a header with embedded CRLF")
+
   if (NO == oldStyleFolding)
     {
       [idoc setHeader: @"Subject" value: @"==répà==" parameters: nil];
