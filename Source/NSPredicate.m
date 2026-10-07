@@ -4293,6 +4293,18 @@ GSKeyPathIfKeyPath(NSExpression *expression)
                   [self nextArg]];
 
               case '@':
+                {
+                  id    arg;
+
+                  [self setScanLocation: [self scanLocation] + 1];
+                  arg = [self nextArg];
+                  if ([arg isKindOfClass: [NSExpression class]])
+                    {
+                      return arg;
+                    }
+                  return [NSExpression expressionForConstantValue: arg];
+                }
+
               case 'c':
               case 'C':
               case 'd':
