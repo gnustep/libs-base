@@ -4683,7 +4683,8 @@ fail:
 
 		      tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 							  length: pos - start];
-		      if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
+		      if ([tmp isEqualToString: @"GS_NON_PORTABLE"]
+		        || [tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
 			|| [tmp isEqualToString: @"NS_FORMAT_FUNCTION"]
 			|| [tmp isEqualToString: @"NS_DEPRECATED"])
 			{
