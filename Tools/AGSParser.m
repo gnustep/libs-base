@@ -3656,6 +3656,20 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		  [self log: @"@property bad %@ spec", key];
 		  return nil;
 		}
+	      if ([key isEqual: @"setter"])
+		{
+		  if (':' == buffer[pos])
+		    {
+		      pos++;
+		      token = [token stringByAppendingString: @":"];
+		    }
+		  else
+		    {
+		      [self log: @"@property bad setter (no colon after %@)",
+			token];
+		      return nil;
+		    }
+		}
 	      [attr setObject: token forKey: key];
 	    }
 	  else
