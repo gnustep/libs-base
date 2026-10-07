@@ -1809,7 +1809,7 @@ wordData(NSString *word, BOOL *encoded)
       NSString	*subtype;
 
       DESTROY(boundary);
-      if (tmp != nil)
+      if (tmp != nil && flags.multipartAsData == 0)
 	{
 	  NSUInteger	l = [tmp length];
 	  unsigned char	*b;
@@ -1846,7 +1846,7 @@ wordData(NSString *word, BOOL *encoded)
 	      subtype = @"mixed";
 	      [info setObject: subtype forKey: @"Subtype"];
 	    }
-	  if (boundary == nil)
+	  if (boundary == nil && flags.multipartAsData == 0)
 	    {
 	      NSLog(@"multipart message without boundary");
 	      return NO;
@@ -2377,6 +2377,17 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   flags.isHttp = 1;
 }
 
+/**
+ * Tells the parser to read a multipart body as the data it is, rather
+ * than as a document of parts.  An HTTP client wants the body as the
+ * server sent it (less any transfer encoding): its Content-Type, with
+ * the boundary, has already been handed on.
+ */
+- (void) setMultipartAsData: (BOOL)flag
+{
+  flags.multipartAsData = flag ? 1 : 0;
+}
+
 @end
 
 @implementation	GSMimeParser (Private)
@@ -2469,7 +2480,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       typeInfo = [document headerNamed: CteContentType];
       type = [typeInfo objectForKey: @"Type"];
-      if ([type isEqualToString: @"multipart"] == YES)
+      if ([type isEqualToString: @"multipart"] == YES
+	&& flags.multipartAsData == 0)
 	{
 	  NSLog(@"multipart decode attempt without boundary");
 	  flags.inBody = 0;
