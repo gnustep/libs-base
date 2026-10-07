@@ -1273,6 +1273,18 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
       fi
     fi
   fi
+  if test "$have_atomic" = "no"; then
+    AC_CHECK_LIB([atomic], [fetch_add])
+    if test "x$ac_cv_lib_atomic_fetch_add" = xyes; then
+      AC_MSG_RESULT([yes]);
+      LIBS="$LIBS -latomic";
+    else
+      AC_MSG_ERROR([no libatomic found and atomic functions])
+      LDFLAGS="$saved_LDFLAGS";
+      AC_MSG_RESULT([no]);
+    fi
+  fi
+
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
