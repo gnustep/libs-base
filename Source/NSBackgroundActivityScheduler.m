@@ -133,7 +133,7 @@
 {
   NSProcessInfo *pinfo = [NSProcessInfo processInfo];
 
-  ASSIGN(_block, (id)block);
+  ASSIGNCOPY(_block, (id)block);
   switch(_qualityOfService)
     {
     case NSQualityOfServiceUserInteractive:

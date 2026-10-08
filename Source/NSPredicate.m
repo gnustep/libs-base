@@ -4257,7 +4257,7 @@ do { \
     {
       return nil;
     }
-  _block = (GSBlockPredicateBlock)[(id)block retain];
+  _block = (GSBlockPredicateBlock)[(id)block copy];
   return self;
 }
 
