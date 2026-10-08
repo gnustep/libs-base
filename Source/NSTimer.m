@@ -171,7 +171,7 @@ static Class	NSDate_class;
                         repeats: repeats];
   if (self)
     {
-      ASSIGN(_block, (id)block);
+      ASSIGNCOPY(_block, (id)block);
     }
   return self;
 }
