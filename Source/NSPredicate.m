@@ -364,8 +364,12 @@ argumentsFromFormat(NSString *format, va_list args)
 
               case 'K':
               case '@':
-                ptr++;
-                [arr addObject: va_arg(args, id)];
+                {
+                  id    arg = va_arg(args, id);
+
+                  ptr++;
+                  [arr addObject: (arg == nil) ? [NSNull null] : arg];
+                }
                 break;
 
               case 'c':
