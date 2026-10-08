@@ -1273,6 +1273,43 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
       fi
     fi
   fi
+
+  # Test for modern gcc atomic builtins
+  AC_MSG_CHECKING([for GCC __atomic builtins])
+  AC_LINK_IFELSE([
+      AC_LANG_PROGRAM([[
+	  int g = 0;
+      ]], [[
+	  int d = __atomic_load_n(&g, __ATOMIC_RELAXED);
+	  __atomic_store_n(&g, d, __ATOMIC_RELEASE);
+	  return 0;
+      ]])
+  ], [
+      AC_MSG_RESULT([yes])
+      AC_DEFINE([HAVE_GCC_ATOMIC_BUILTINS], [1],
+	[Define if __atomic builtins are available])
+  ], [
+      # Fallback check with -latomic
+      save_LIBS="$LIBS"
+      LIBS="$LIBS -latomic"
+      AC_LINK_IFELSE([
+	  AC_LANG_PROGRAM([[
+	      int g = 0;
+	  ]], [[
+	      int d = __atomic_load_n(&g, __ATOMIC_RELAXED);
+	      __atomic_store_n(&g, d, __ATOMIC_RELEASE);
+	      return 0;
+	  ]])
+      ], [
+	  AC_MSG_RESULT([yes (with -latomic)])
+	  AC_DEFINE([HAVE_GCC_ATOMIC_BUILTINS], [1],
+	    [Define if __atomic builtins are available])
+      ], [
+	  AC_MSG_RESULT([no])
+	  LIBS="$save_LIBS"
+      ])
+  ])
+
   if test "$have_atomic" = "no"; then
     AC_CHECK_LIB([atomic], [fetch_add])
     if test "x$ac_cv_lib_atomic_fetch_add" = xyes; then

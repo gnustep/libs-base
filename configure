@@ -6816,6 +6816,87 @@ printf '%s\n' "no" >&6; };
       fi
     fi
   fi
+
+  # Test for modern gcc atomic builtins
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for GCC __atomic builtins" >&5
+printf %s "checking for GCC __atomic builtins... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+	  int g = 0;
+
+int
+main (void)
+{
+
+	  int d = __atomic_load_n(&g, __ATOMIC_RELAXED);
+	  __atomic_store_n(&g, d, __ATOMIC_RELEASE);
+	  return 0;
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+
+      { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+
+printf '%s\n' "#define HAVE_GCC_ATOMIC_BUILTINS 1" >>confdefs.h
+
+
+else case e in #(
+  e)
+      # Fallback check with -latomic
+      save_LIBS="$LIBS"
+      LIBS="$LIBS -latomic"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+	      int g = 0;
+
+int
+main (void)
+{
+
+	      int d = __atomic_load_n(&g, __ATOMIC_RELAXED);
+	      __atomic_store_n(&g, d, __ATOMIC_RELEASE);
+	      return 0;
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+
+	  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes (with -latomic)" >&5
+printf '%s\n' "yes (with -latomic)" >&6; }
+
+printf '%s\n' "#define HAVE_GCC_ATOMIC_BUILTINS 1" >>confdefs.h
+
+
+else case e in #(
+  e)
+	  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; }
+	  LIBS="$save_LIBS"
+       ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
   if test "$have_atomic" = "no"; then
     { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for fetch_add in -latomic" >&5
 printf %s "checking for fetch_add in -latomic... " >&6; }

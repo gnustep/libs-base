@@ -9,6 +9,8 @@
 #ifndef _GSAtomic_h_
 #define _GSAtomic_h_
 
+#include	"config.h"
+
 #ifndef __has_extension
 #define __has_extension(x) 0
 #endif
@@ -38,6 +40,20 @@
  * most forms of direct non-atomic access.
  */
 #define	_Atomic(T) struct { T volatile __val; }
+
+#if	defined(HAVE_GCC_ATOMIC_BUILTINS)
+
+#define	gs_atomic_exchange_explicit(object, desired, order) \
+  __atomic_exchange_n(&(object)->__val, desired, order)
+
+#define	gs_atomic_load_explicit(object, order) \
+  __atomic_load_n(&(object)->__val, order)
+  
+#define	gs_atomic_store_explicit(object, desired, order) \
+  __atomic_store_n(&(object)->__val, desired, order)
+
+#else	/* HAVE_GCC_ATOMIC_BUILTINS */
+
 #if __has_builtin(__sync_swap)
 /* Clang provides a full-barrier atomic exchange - use it if available. */
 #define	gs_atomic_exchange_explicit(object, desired, order) \
@@ -57,11 +73,13 @@ __extension__ ({ \
   __sync_lock_test_and_set(&(__o)->__val, __d); \
 })
 #endif
+
 #define	gs_atomic_load_explicit(object, order) \
   ((void)(order), __sync_fetch_and_add(&(object)->__val, 0))
 #define	gs_atomic_store_explicit(object, desired, order) \
   ((void)gs_atomic_exchange_explicit(object, desired, order))
 
+#endif
 #endif
 
 #ifndef __ATOMIC_SEQ_CST
