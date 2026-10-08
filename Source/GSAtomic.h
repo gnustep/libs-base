@@ -28,8 +28,13 @@
  * Use native C11 atomic operations. _Atomic() should be defined by the
  * compiler.
  */
+
+#define gs_atomic_exchange_explicit(object, desired, order) \
+  __c11_atomic_exchange(object, desired, order);
+
 #define	gs_atomic_load_explicit(object, order) \
   __c11_atomic_load(object, order)
+
 #define	gs_atomic_store_explicit(object, desired, order) \
   __c11_atomic_store(object, desired, order)
 
@@ -76,6 +81,7 @@ __extension__ ({ \
 
 #define	gs_atomic_load_explicit(object, order) \
   ((void)(order), __sync_fetch_and_add(&(object)->__val, 0))
+
 #define	gs_atomic_store_explicit(object, desired, order) \
   ((void)gs_atomic_exchange_explicit(object, desired, order))
 
@@ -89,8 +95,13 @@ __extension__ ({ \
 /*
  * Convenience functions.
  */
+
+#define gs_atomic_exchange(object, desired) \
+  gs_atomic_exchange_explicit(object, desired, __ATOMIC_SEQ_CST)
+
 #define	gs_atomic_load(object) \
   gs_atomic_load_explicit(object, __ATOMIC_SEQ_CST)
+
 #define	gs_atomic_store(object, desired) \
   gs_atomic_store_explicit(object, desired, __ATOMIC_SEQ_CST)
 
