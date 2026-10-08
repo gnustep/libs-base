@@ -6851,7 +6851,7 @@ printf '%s\n' "#define HAVE_GCC_ATOMIC_BUILTINS 1" >>confdefs.h
 else case e in #(
   e)
       # Fallback check with -latomic
-      save_LIBS="$LIBS"
+      saved_LIBS="$LIBS"
       LIBS="$LIBS -latomic"
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -6885,7 +6885,7 @@ else case e in #(
   e)
 	  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf '%s\n' "no" >&6; }
-	  LIBS="$save_LIBS"
+	  LIBS="$saved_LIBS"
        ;;
 esac
 fi
@@ -6898,6 +6898,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
 
   if test "$have_atomic" = "no"; then
+    saved_LIBS="$LIBS"
     { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for fetch_add in -latomic" >&5
 printf %s "checking for fetch_add in -latomic... " >&6; }
 if test ${ac_cv_lib_atomic_fetch_add+y}
@@ -6955,7 +6956,7 @@ printf '%s\n' "yes" >&6; };
       LIBS="$LIBS -latomic";
     else
       as_fn_error $? "no libatomic found and atomic functions" "$LINENO" 5
-      LDFLAGS="$saved_LDFLAGS";
+      LIBS="$saved_LIBS"
       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf '%s\n' "no" >&6; };
     fi

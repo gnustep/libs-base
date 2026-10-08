@@ -1290,7 +1290,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
 	[Define if __atomic builtins are available])
   ], [
       # Fallback check with -latomic
-      save_LIBS="$LIBS"
+      saved_LIBS="$LIBS"
       LIBS="$LIBS -latomic"
       AC_LINK_IFELSE([
 	  AC_LANG_PROGRAM([[
@@ -1306,18 +1306,19 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
 	    [Define if __atomic builtins are available])
       ], [
 	  AC_MSG_RESULT([no])
-	  LIBS="$save_LIBS"
+	  LIBS="$saved_LIBS"
       ])
   ])
 
   if test "$have_atomic" = "no"; then
+    saved_LIBS="$LIBS"
     AC_CHECK_LIB([atomic], [fetch_add])
     if test "x$ac_cv_lib_atomic_fetch_add" = xyes; then
       AC_MSG_RESULT([yes]);
       LIBS="$LIBS -latomic";
     else
       AC_MSG_ERROR([no libatomic found and atomic functions])
-      LDFLAGS="$saved_LDFLAGS";
+      LIBS="$saved_LIBS"
       AC_MSG_RESULT([no]);
     fi
   fi
