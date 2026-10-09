@@ -4205,7 +4205,7 @@ enum GSStringOption {
   code = U_ZERO_ERROR;
   source = [self dataUsingEncoding: NSUTF16StringEncoding
 	      allowLossyConversion: NO];
-  if (nill == source)
+  if (nil == source)
     {
       return nil;
     }
