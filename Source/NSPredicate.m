@@ -1418,6 +1418,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   [regex getCharacters: regexBuffer range: NSMakeRange(0, regexLength)];
 
   flags |= UREGEX_DOTALL; // . is supposed to recognize newlines
+  flags |= UREGEX_MULTILINE; // and ^ and $ the start and end of each line
   if ((opts & NSCaseInsensitiveSearch) != 0) { flags |= UREGEX_CASE_INSENSITIVE; }
 
   icuregex = uregex_open(regexBuffer, regexLength, flags, NULL, &error);
