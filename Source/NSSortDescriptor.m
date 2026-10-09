@@ -114,8 +114,17 @@ static BOOL     initialized = NO;
 
   if (_comparator == NULL)
     {
-      result = (NSComparisonResult) [comparedKey1 performSelector: _selector
-                                                       withObject: comparedKey2];
+      /* nil is less than any value, as on macOS. */
+      if (comparedKey1 == nil || comparedKey2 == nil)
+        {
+          result = comparedKey1 == comparedKey2 ? NSOrderedSame
+            : (comparedKey1 == nil ? NSOrderedAscending : NSOrderedDescending);
+        }
+      else
+        {
+          result = (NSComparisonResult) [comparedKey1
+            performSelector: _selector withObject: comparedKey2];
+        }
     }
   else
     {
