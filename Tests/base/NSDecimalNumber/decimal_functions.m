@@ -37,7 +37,7 @@ int main(void)
   START_SET("NSDecimalFromString and NSDecimalString")
     PASS_EQUAL(dstr(dfs("1.5")), @"1.5",
       "a fractional value round-trips through string conversion");
-    PASS_EQUAL(dstr(dfs("0")), @"0.0", "zero formats as 0.0");
+    PASS_EQUAL(dstr(dfs("0")), @"0", "zero formats as 0");
     PASS_EQUAL(dstr(dfs("-42.25")), @"-42.25", "a negative value keeps its sign");
     PASS_EQUAL(dstr(dfs("100")), @"100", "an integer value has no fraction");
     PASS_EQUAL(dstr(dfs("0.015")), @"0.015", "a small value keeps leading zeros");
@@ -118,7 +118,7 @@ int main(void)
 
     a = dfs("0"); b = dfs("5");
     NSDecimalDivide(&r, &a, &b, NSRoundPlain);
-    PASS_EQUAL(dstr(r), @"0.0", "0 / 5 == 0");
+    PASS_EQUAL(dstr(r), @"0", "0 / 5 == 0");
 
     a = dfs("1"); b = dfs("3");
     e = NSDecimalDivide(&r, &a, &b, NSRoundPlain);
