@@ -9,7 +9,15 @@
 #ifndef _GSAtomic_h_
 #define _GSAtomic_h_
 
+#if	defined(GS_USE_WIN32_THREADS_AND_LOCKS)
+/* As an evil hack on windows this file is included in configure.ac and
+ * config.h doesn't exist at that point.  That still works if clang is
+ * the compiler, because in that case we are using its __has_extension
+ * feature rather than the results of running the configure script.
+ */
+#else
 #include	"config.h"
+#endif
 
 #ifndef __has_extension
 #define __has_extension(x) 0
