@@ -1525,9 +1525,25 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   switch (_type)
     {
       case NSEqualToPredicateOperatorType:
-	return [leftResult isEqual: rightResult];
       case NSNotEqualToPredicateOperatorType:
-	return ![leftResult isEqual: rightResult];
+	{
+	  BOOL	equal;
+
+	  if ((_options & (NSCaseInsensitivePredicateOption
+	    | NSDiacriticInsensitivePredicateOption))
+	    && [leftResult isKindOfClass: [NSString class]]
+	    && [rightResult isKindOfClass: [NSString class]])
+	    {
+	      equal = ([leftResult compare: rightResult
+				   options: compareOptions] == NSOrderedSame);
+	    }
+	  else
+	    {
+	      equal = [leftResult isEqual: rightResult];
+	    }
+
+	  return (NSEqualToPredicateOperatorType == _type) ? equal : !equal;
+	}
       case NSMatchesPredicateOperatorType:
 #if	GS_USE_ICU == 1
 	return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
