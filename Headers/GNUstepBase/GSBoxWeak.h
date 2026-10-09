@@ -32,6 +32,12 @@
 extern "C" {
 #endif
 
+#if	defined(__APPLE__)
+OBJC_EXPORT void objc_destroyWeak(id *location);
+OBJC_EXPORT id objc_initWeak(id *location, id val);
+OBJC_EXPORT id objc_storeWeak(id *location, id val);
+#endif
+
 /** GSBoxWeak is a trivial class to provide an object which holds a weak
  * reference to another object value.  This allows easy use of weak references
  * in non-ARC code, so that you can write code which is portable to compilers

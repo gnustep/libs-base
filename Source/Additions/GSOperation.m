@@ -23,6 +23,7 @@
 
 #import "common.h"
 #import "Foundation/Foundation.h"
+#import "GNUstepBase/GSBoxWeak.h"
 #import "GNUstepBase/GSOperation.h"
 #import "GSPrivate.h"
 
