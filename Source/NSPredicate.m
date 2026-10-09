@@ -2329,7 +2329,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   GSConstantValueExpression *copy;
 
   copy = (GSConstantValueExpression *)[super copyWithZone: zone];
-  copy->_obj = [_obj copyWithZone: zone];
+  /* OSX compatibility ... the content of a constant expression
+   * is retained (because it may not support copying).
+   */
+  copy->_obj = RETAIN(_obj);
   copy->_className = [_className copyWithZone: zone];
   return copy;
 }
