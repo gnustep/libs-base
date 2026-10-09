@@ -4190,135 +4190,155 @@ enum GSStringOption {
   GSStringOptionCapitalized = 2
 };
 
-- (NSString *) _localizedStringConversion: (enum GSStringOption) option  withLocale: (NSLocale *)locale
+- (NSString *) _localizedStringConversion: (enum GSStringOption)option
+			       withLocale: (NSLocale*)locale
 {
-  #if GS_USE_ICU
-  UErrorCode code;
-  NSMutableData *destination;
-  NSData *source;
-  NSUInteger sourceLength;
-  NSInteger destLength;
-  UChar *sourceBuffer;
-  const char *localeUTF8;
+#if GS_USE_ICU
+  UErrorCode		code;
+  NSMutableData 	*destination;
+  NSData 		*source;
+  NSUInteger 		sourceLength;
+  NSInteger 		destLength;
+  UChar 		*sourceBuffer;
+  const char		*localeUTF8;
 
   code = U_ZERO_ERROR;
-  source = [self dataUsingEncoding: NSUTF16StringEncoding allowLossyConversion:NO];
-  if (source == nil)
-  {
-    return nil;
-  }
+  source = [self dataUsingEncoding: NSUTF16StringEncoding
+	      allowLossyConversion: NO];
+  if (nill == source)
+    {
+      return nil;
+    }
 
   sourceLength = [source length]/sizeof(UChar);
   sourceBuffer = (UChar *)[source bytes];
   localeUTF8 = [[locale localeIdentifier] UTF8String];
 
   if (option == GSStringOptionUppercase)
-  {
-    destLength = u_strToUpper(NULL,
-    0,
-    sourceBuffer,
-    sourceLength,
-    localeUTF8,
-    &code);
-    if (code != U_BUFFER_OVERFLOW_ERROR) {
-      GS_U_HANDLE_ERROR_RETVAL(code, "while getting length for uppercase conversion", nil);
-    }
-    code = U_ZERO_ERROR;
+    {
+      destLength = u_strToUpper(NULL,
+	0,
+	sourceBuffer,
+	sourceLength,
+	localeUTF8,
+	&code);
+      if (code != U_BUFFER_OVERFLOW_ERROR)
+	{
+	  GS_U_HANDLE_ERROR_RETVAL(code,
+	    "while getting length for uppercase conversion", nil);
+	}
+      code = U_ZERO_ERROR;
 
-    destLength += 1;
-    destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
-    destLength = u_strToUpper((UChar *)[destination mutableBytes],
-    destLength,
-    sourceBuffer,
-    sourceLength,
-    localeUTF8,
-    &code);
-    GS_U_HANDLE_ERROR_RETVAL(code, "while performing uppercase conversion", nil);
-  } else if (option == GSStringOptionLowercase)
-  {
-    destLength = u_strToLower(NULL,
-    0,
-    sourceBuffer,
-    sourceLength,
-    localeUTF8,
-    &code);
-    if (code != U_BUFFER_OVERFLOW_ERROR) {
-      GS_U_HANDLE_ERROR_RETVAL(code, "while getting length for lowercase conversion", nil);
+      destLength += 1;
+      destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
+      destLength = u_strToUpper((UChar *)[destination mutableBytes],
+	destLength,
+	sourceBuffer,
+	sourceLength,
+	localeUTF8,
+	&code);
+      GS_U_HANDLE_ERROR_RETVAL(code,
+	"while performing uppercase conversion", nil);
     }
-    code = U_ZERO_ERROR;
+  else if (option == GSStringOptionLowercase)
+    {
+      destLength = u_strToLower(NULL,
+	0,
+	sourceBuffer,
+	sourceLength,
+	localeUTF8,
+	&code);
+      if (code != U_BUFFER_OVERFLOW_ERROR)
+	{
+	  GS_U_HANDLE_ERROR_RETVAL(code,
+	    "while getting length for lowercase conversion", nil);
+	}
+      code = U_ZERO_ERROR;
 
-    destLength += 1;
-    destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
-    destLength = u_strToLower((UChar *)[destination mutableBytes],
-    destLength,
-    sourceBuffer,
-    sourceLength,
-    localeUTF8,
-    &code);
-    GS_U_HANDLE_ERROR_RETVAL(code, "while performing lowercase conversion", nil);
-  } else if (option == GSStringOptionCapitalized)
-  {
-    destLength = u_strToTitle(NULL,
-    0,
-    sourceBuffer,
-    sourceLength,
-    NULL,
-    localeUTF8,
-    &code);
-    code = U_ZERO_ERROR;
-    if (code != U_BUFFER_OVERFLOW_ERROR) {
-      GS_U_HANDLE_ERROR_RETVAL(code, "while getting length for titlecase conversion", nil);
+      destLength += 1;
+      destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
+      destLength = u_strToLower((UChar *)[destination mutableBytes],
+	destLength,
+	sourceBuffer,
+	sourceLength,
+	localeUTF8,
+	&code);
+      GS_U_HANDLE_ERROR_RETVAL(code,
+	"while performing lowercase conversion", nil);
     }
-    code = U_ZERO_ERROR;
+  else if (option == GSStringOptionCapitalized)
+    {
+      destLength = u_strToTitle(NULL,
+	0,
+	sourceBuffer,
+	sourceLength,
+	NULL,
+	localeUTF8,
+	&code);
+      code = U_ZERO_ERROR;
+      if (code != U_BUFFER_OVERFLOW_ERROR)
+	{
+	  GS_U_HANDLE_ERROR_RETVAL(code,
+	    "while getting length for titlecase conversion", nil);
+	}
+      code = U_ZERO_ERROR;
 
-    destLength += 1;
-    destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
-    destLength = u_strToTitle((UChar *)[destination mutableBytes],
-    destLength,
-    sourceBuffer,
-    sourceLength,
-    NULL,
-    localeUTF8,
-    &code);
-    if (code != U_ZERO_ERROR && code != U_USING_DEFAULT_WARNING) {
-      GS_U_HANDLE_ERROR_RETVAL(code, "while performing titlecase conversion", nil);
+      destLength += 1;
+      destination = [NSMutableData dataWithLength: destLength * sizeof(UChar)];
+      destLength = u_strToTitle((UChar *)[destination mutableBytes],
+	destLength,
+	sourceBuffer,
+	sourceLength,
+	NULL,
+	localeUTF8,
+	&code);
+      if (code != U_ZERO_ERROR && code != U_USING_DEFAULT_WARNING)
+	{
+	  GS_U_HANDLE_ERROR_RETVAL(code,
+	    "while performing titlecase conversion", nil);
+	}
     }
-  } else {
-    return nil;
-  }
+  else
+    {
+      return nil;
+    }
 
-  return AUTORELEASE([[NSString alloc] initWithData: destination encoding:NSUTF16StringEncoding]);
+  return AUTORELEASE([[NSString alloc] initWithData: destination
+					   encoding: NSUTF16StringEncoding]);
   #else
   return [self uppercaseString];
   #endif // GS_USE_ICU
 }
 
-- (NSString *)uppercaseStringWithLocale:(NSLocale *)locale
+- (NSString*) uppercaseStringWithLocale: (NSLocale*)locale
 {
   if (locale == nil)
-  {
-    locale = [NSLocale currentLocale];
-  }
-  return [self _localizedStringConversion: GSStringOptionUppercase withLocale: locale];
+    {
+      locale = [NSLocale currentLocale];
+    }
+  return [self _localizedStringConversion: GSStringOptionUppercase
+			       withLocale: locale];
 }
 
-- (NSString *)lowercaseStringWithLocale:(NSLocale *)locale
+- (NSString*) lowercaseStringWithLocale: (NSLocale*)locale
 {
   if (locale == nil)
-  {
-    locale = [NSLocale currentLocale];
-  }
-  return [self _localizedStringConversion: GSStringOptionLowercase withLocale: locale];
-}
-- (NSString *)capitalizedStringWithLocale:(NSLocale *)locale
-{
-  if (locale == nil)
-  {
-    locale = [NSLocale currentLocale];
-  }
-  return [self _localizedStringConversion: GSStringOptionCapitalized withLocale: locale];
+    {
+      locale = [NSLocale currentLocale];
+    }
+  return [self _localizedStringConversion: GSStringOptionLowercase
+			       withLocale: locale];
 }
 
+- (NSString*) capitalizedStringWithLocale: (NSLocale*)locale
+{
+  if (locale == nil)
+    {
+      locale = [NSLocale currentLocale];
+    }
+  return [self _localizedStringConversion: GSStringOptionCapitalized
+			       withLocale: locale];
+}
 
 - (NSString*) localizedUppercaseString
 {

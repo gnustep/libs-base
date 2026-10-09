@@ -697,9 +697,9 @@ GS_EXPORT_CLASS
 - (NSString*) localizedLowercaseString;
 - (NSString*) localizedUppercaseString;
 
-- (NSString *)uppercaseStringWithLocale:(NSLocale *)locale;
-- (NSString *)lowercaseStringWithLocale:(NSLocale *)locale;
-- (NSString *)capitalizedStringWithLocale:(NSLocale *)locale;
+- (NSString*) uppercaseStringWithLocale: (NSLocale*)locale;
+- (NSString*) lowercaseStringWithLocale: (NSLocale*)locale;
+- (NSString*) capitalizedStringWithLocale: (NSLocale*)locale;
 
 // Getting C Strings
 - (const char*) cString;
