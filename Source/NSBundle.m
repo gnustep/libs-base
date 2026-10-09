@@ -34,6 +34,7 @@
 #include "objc-load.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSException.h"
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
@@ -3271,12 +3272,52 @@ IF_NO_ARC(
 {
   return nil;
 }
+- (NSError *) _executableError: (NSInteger)code reason: (NSString *)reason
+{
+  NSDictionary  *info;
+
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSString stringWithFormat: @"The bundle %@ could not be loaded: %@",
+      [[self bundlePath] lastPathComponent], reason],
+    NSLocalizedDescriptionKey,
+    [self bundlePath], NSFilePathErrorKey,
+    nil];
+  return [NSError errorWithDomain: NSCocoaErrorDomain code: code userInfo: info];
+}
+
 - (BOOL) preflightAndReturnError: (NSError **)error
 {
+  NSString      *path;
+
+  if (_codeLoaded == YES)
+    {
+      return YES;
+    }
+  path = [self executablePath];
+  if (path != nil
+    && [[NSFileManager defaultManager] isReadableFileAtPath: path] == YES)
+    {
+      return YES;
+    }
+  if (error != NULL)
+    {
+      *error = [self _executableError: NSExecutableNotLoadableError
+                               reason: @"it has no executable"];
+    }
   return NO;
 }
+
 - (BOOL) loadAndReturnError: (NSError **)error
 {
+  if ([self load] == YES)
+    {
+      return YES;
+    }
+  if ([self preflightAndReturnError: error] == YES && error != NULL)
+    {
+      *error = [self _executableError: NSExecutableLoadError
+                               reason: @"its executable did not load"];
+    }
   return NO;
 }
 
