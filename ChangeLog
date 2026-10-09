@@ -1,3 +1,33 @@
+2026-09-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSOperation.h:
+	* Headers/GNUstepBase/Additions.h:
+	* Headers/GNUstepBase/GSBoxWeak.h:
+	* Headers/GNUstepBase/GSOperation.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSBoxWeak.m:
+	* Source/Additions/GSOperation.m:
+	* Source/DocMakefile:
+	* Source/GNUmakefile:
+	* Source/NSOperation.m:
+	* Tests/base/NSOperation/GSOperation.m:
+	* Tests/base/NSOperation/basic.m:
+	* Tests/base/NSOperation/concurrent.m:
+	* Tests/base/NSOperation/queue_dispatch.m:
+	Changes to fix portability issues with NSOperation and blocks/ARC:
+	Add GSBoxWeak as a convenience to work with zeroing weak references
+	on systems without ARC.  A GSBoxWak instance holds a weak reference
+	and returns either the referenced object (retained and autoreleased)
+	or nil if that object has been deallocated.
+	Adds GSOperation as a portable lightweight alternative to the
+	NSBlockOperation class (avoiding overheads of NSInvocationOperation).
+	Adds -delegate and -setDelegate: methods to NSOperation, to provide
+	a portable alternative to the non-portable Apple completionHandler and
+	-setCompletionHandler: methods.
+	Provides these features in the base additions library so that people
+	using Apple's Foundation can write portable code too.
+	Adds testcases for the delegate methods and the GSOperation class.
+
 2026-09-23 Daniel Boyd <danieljboyd@icloud.com>
 
 	* Source/NSTask.m: Start child processes with an empty signal mask
