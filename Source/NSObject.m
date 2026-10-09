@@ -249,6 +249,14 @@ typedef intptr_t gsrefcount_t;
 #define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
 #define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
 
+#elif defined(HAVE_GCC_ATOMIC_BUILTINS)
+
+typedef int32_t volatile *gsatomic_t;
+typedef int32_t gsrefcount_t;
+#define GSATOMICREAD(X) (*(X))
+#define GSAtomicIncrement(X)    __atomic_add_fetch(X, 1, __ATOMIC_SEQ_CST)
+#define GSAtomicDecrement(X)    __atomic_sub_fetch(X, 1, __ATOMIC_SEQ_CST)
+
 #elif (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 /* Use the GCC atomic operations with recent GCC versions */
 
