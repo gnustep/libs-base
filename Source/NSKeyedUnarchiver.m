@@ -449,6 +449,11 @@ GSNSErrorFromUnarchiverException(NSException *exception)
   NS_DURING
     {
       u = [[NSKeyedUnarchiver alloc] initForReadingWithData: data];
+      if (u == nil)
+	{
+	  [NSException raise: NSInvalidUnarchiveOperationException
+		      format: @"The data is not a keyed archive"];
+	}
       [u setRequiresSecureCoding: YES];
       u->_allowedClasses = classes;
       o = RETAIN([u decodeObjectForKey: @"root"]);
