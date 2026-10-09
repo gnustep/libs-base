@@ -2233,17 +2233,24 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
           RELEASE(theSubNodes);
         }
 
-      if (resolve == NO)
+      if (resolve == YES)
         {
           xmlNodeSetContent(theNode, XMLSTRING(string));
         }
+      else if (theNode->type == XML_ELEMENT_NODE
+        || theNode->type == XML_ATTRIBUTE_NODE)
+        {
+          /* xmlNodeSetContent() parses entity references here. */
+          xmlNodeSetContent(theNode, NULL);
+          if ([string length] > 0)
+            {
+              xmlAddChild(theNode,
+                xmlNewDocText(theNode->doc, XMLSTRING(string)));
+            }
+        }
       else
         {
-          // need to actually resolve entities...
-          // is this the right functionality?? xmlEncodeSpecialChars()
-          xmlChar *newstr = xmlEncodeEntitiesReentrant(theNode->doc, XMLSTRING(string));
-          xmlNodeSetContent(theNode, newstr);
-          xmlMemFree(newstr);
+          xmlNodeSetContent(theNode, XMLSTRING(string));
         }
     }
   ASSIGN(internal->objectValue, string);
