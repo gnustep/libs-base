@@ -96,7 +96,7 @@ GS_EXPORT_CLASS
  * Returns the block that will be executed after the operation finishes.
  */
 - (GSOperationCompletionBlock) completionBlock
-  GS_NON_PORTABLE(FIXME: implement a delegate for operation completion);
+  GS_NON_PORTABLE(use -setDelegate: to handle operation completion);
 #endif
 
 /** Returns all the dependencies of the receiver in the order in which they
@@ -161,7 +161,8 @@ GS_EXPORT_CLASS
 /**
  * Sets the block that will be executed when the operation has finished.
  */
-- (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock;
+- (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
+  GS_NON_PORTABLE(use -setDelegate: to handle operation completion);
 #endif
 
 /** Sets the priority for the receiver.  If the value supplied is not one of
@@ -211,6 +212,9 @@ GS_EXPORT_CLASS
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
+/** The GSOperationCompletion protocol specifies messages which will be sent
+ * to the delegate of an operation.
+ */
 @protocol	GSOperationCompletion
 #if GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
@@ -218,17 +222,19 @@ GS_EXPORT_CLASS
 @end
 @interface NSObject (GSOperationCompletion)
 #endif
-/** Called on completion of the whole operation.
+/** Called on completion of the whole operation.  This notifies the delegate
+ * that the entire operation has completed, but provides no information about
+ * whether the operation did its job successfully or not.
  */
 - (void) operationCompleted;
 
-/** Called on completion of making a target perform a selector within the
- * operation as a whole.<br />
+/** Called on completion of each item in a [GSOperation], after sending a
+ * message (making a target perform a selector).<br />
  * The result will be either the return value of that message, or the
  * exception raised by that message.<br />
  * The delegate may return YES to indicate that processing of the operation
- * should complete without proceding to any items after the one which just
- * completed.
+ * as a whole should complete without proceding to any items after the one
+ * which just completed.
  */
 - (BOOL) shouldStopOperation: (GSOperation*)op
 		 afterItemAt: (NSUInteger)index
@@ -313,7 +319,7 @@ GS_EXPORT_CLASS
  * Creates and returns an NSBlockOperationObject and adds the block.
  */
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block
-  GS_NON_PORTABLE(use the NSInvocationOperation class instead);
+  GS_NON_PORTABLE(use the GSOperation or NSInvocationOperation class instead);
 
 /**
  * Adds the execution block to the NSOperationBlock.
@@ -384,7 +390,7 @@ GS_EXPORT_CLASS
 /** This method wraps a block in an operation and adds it to the queue.
  */
 - (void) addOperationWithBlock: (GSBlockOperationBlock)block
-  GS_NON_PORTABLE(use the NSInvocationOperation class instead);
+  GS_NON_PORTABLE(use the GSOperation or NSInvocationOperation class instead);
 
 /** This method wraps an invocation in an operation and adds it to the queue.
  */
@@ -447,7 +453,7 @@ GS_EXPORT_CLASS
   /** Returns the underlying dispatch queue.
    */
 - (dispatch_queue_t) underlyingQueue
-  GS_NON_PORTABLE(libdispath is only availbel on some platforms);
+  GS_NON_PORTABLE(libdispatch is only available on some platforms);
 
   /** Sets the underlying dispatch queue.
    *
@@ -457,7 +463,7 @@ GS_EXPORT_CLASS
    *  - The argument is the value returned by `dispatch_get_main_queue()`
    */
 - (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue
-  GS_NON_PORTABLE(libdispath is only availbel on some platforms);
+  GS_NON_PORTABLE(libdispatch is only available on some platforms);
 #endif
 @end
 
