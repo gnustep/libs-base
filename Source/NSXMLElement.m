@@ -251,9 +251,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  xmlNodePtr theNode = internal->node.node;
-  xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
-  xmlAttrPtr oldAttr;
+  xmlNodePtr	theNode = internal->node.node;
+  xmlAttrPtr	attr = (xmlAttrPtr)[attribute _node];
+  xmlAttrPtr	oldAttr;
+  NSString	*aName;
 
   if (nil != [attribute parent])
     {
@@ -261,17 +262,17 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 		  format: @"Tried to add attribute to multiple parents."];
     }
 
-  {
-    NSString *aname = [attribute name];
+  aName = [attribute name];
 
-    if ([aname hasPrefix: @"xmlns:"] && [aname length] > 6)
-      {
-        NSXMLNode *ns = [NSXMLNode namespaceWithName: [aname substringFromIndex: 6]
-                                         stringValue: [attribute stringValue]];
-        [self addNamespace: ns];
-        return;
-      }
-  }
+  if ([aName hasPrefix: @"xmlns:"] && [aName length] > 6)
+    {
+      NSXMLNode *ns;
+
+      ns = [NSXMLNode namespaceWithName: [aName substringFromIndex: 6]
+			    stringValue: [attribute stringValue]];
+      [self addNamespace: ns];
+      return;
+    }
 
   if (attr->ns != NULL)
     {
@@ -429,10 +430,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   NSEnumerator	*en = [attributes keyEnumerator];
   NSString	*key;
+  NSArray	*currentAttributes = [self attributes]; 
+  int 		index;
 
   // Remove all previous attributes
-  NSArray *currentAttributes = [self attributes]; 
-  int index;
   for (index = [currentAttributes count]-1; index >= 0; index--)
     {
       NSXMLNode	*attrNode = [currentAttributes objectAtIndex: index];
@@ -452,9 +453,9 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (NSArray*) attributes
 {
-  NSMutableArray *attributes = [NSMutableArray array];
-  xmlNodePtr theNode = internal->node.node;
-  xmlAttrPtr attributeNode = theNode->properties;
+  NSMutableArray	*attributes = [NSMutableArray array];
+  xmlNodePtr 		theNode = internal->node.node;
+  xmlAttrPtr 		attributeNode = theNode->properties;
 
   while (attributeNode)
     {
@@ -806,9 +807,9 @@ joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
 
 - (void) normalizeAdjacentTextNodesPreservingCDATA: (BOOL)preserve
 {
-  NSEnumerator *subEnum = [internal->subNodes objectEnumerator];
-  NSXMLNode *subNode = nil;
-  NSMutableArray *nodesToDelete = [NSMutableArray array];
+  NSEnumerator		*subEnum = [internal->subNodes objectEnumerator];
+  NSXMLNode		*subNode = nil;
+  NSMutableArray	*nodesToDelete = [NSMutableArray array];
 
   while ((subNode = [subEnum nextObject]))
     {

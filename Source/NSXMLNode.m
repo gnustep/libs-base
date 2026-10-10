@@ -1418,10 +1418,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 + (NSString*) localNameForName: (NSString*)name
 {
-  const xmlChar *xmlName = XMLSTRING(name); 
-  xmlChar *prefix = NULL;
-  xmlChar *localName;
-  NSString *result = name;
+  const xmlChar	*xmlName = XMLSTRING(name); 
+  xmlChar 	*prefix = NULL;
+  xmlChar 	*localName;
+  NSString 	*result = name;
 
   if (NULL == xmlName)
     return nil;
@@ -1729,9 +1729,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                */
               internal->detached = xmlNewDoc((xmlChar *)"1.0");
               
-              // xmlDOMWrapAdoptNode can crash on some libxml2 versions (e.g., 2.9.14)
-              // with namespace nodes. Use manual doc assignment instead.
-              // Unlink first to disconnect from parent/siblings
+              /* xmlDOMWrapAdoptNode can crash on some libxml2
+	       * versions (e.g., 2.9.14)
+               * with namespace nodes. Use manual doc assignment instead.
+               * Unlink first to disconnect from parent/siblings
+	       */
               xmlUnlinkNode(theNode);
               setTreeDoc(theNode, internal->detached);
             }
