@@ -132,16 +132,24 @@ GS_EXPORT_CLASS
   options: (NSDataBase64DecodingOptions)options;
 - (instancetype _Nullable) initWithBase64EncodedString: (NSString*)base64String
   options: (NSDataBase64DecodingOptions)options;
-/**
- * <override-subclass/>
- * Initialize the receiver to hold memory pointed to by bytes without copying.
+/** <override-subclass/>
+ * When the receiver is deallocated, the memory will be freed using the user
+ * supplied function.
+ */
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                        freeFunction: (void (*)(void *buf, NSUInteger len))func;
+/** <override-subclass/>
+ * Non-portable OSX compatibility method.  Do not use.<br />
  * When the receiver is deallocated, the memory will be freed using the user
  * supplied deallocBlock. Note that passing a block that (either directly or
- * indirectly) holds a strong reference the receiver will cause a retain cycle. 
+ * indirectly) holds a strong reference the receiver will cause a retain cycle 
+ * and that this is stupidly inefficient.
  */
 - (instancetype) initWithBytesNoCopy: (void*)bytes
                               length: (NSUInteger)length
-                         deallocator: (GSDataDeallocatorBlock)deallocBlock;
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock
+GS_NON_PORTABLE(use initWithBytesNoCopy:length:freeFunction: instead);
 #endif
 - (_Nonnull instancetype) initWithBytes: (const void *_Nullable)aBuffer
                                 length: (NSUInteger)bufferSize;

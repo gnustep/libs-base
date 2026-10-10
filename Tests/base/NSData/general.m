@@ -4,6 +4,21 @@
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
 
+static int	deallocationCount = 0;
+
+static void
+dummyDeallocator(void *ptr, NSUInteger length)
+{
+  deallocationCount++;
+}
+
+static void
+realDeallocator(void *ptr, NSUInteger length)
+{
+  deallocationCount++;
+  free(ptr);
+}
+
 int main()
 {
   START_SET("basic")
@@ -72,10 +87,51 @@ int main()
 
   END_SET("basic")
 
-  START_SET("segault check")
+  START_SET("segfault check")
     BOOL didNotSegfault = YES;
     PASS(didNotSegfault, "+dataWithBytesNoCopy:length:freeWhenDone:NO doesn't free memory");
   END_SET("segfault check")
+
+
+  START_SET("deallocator check")
+  uint8_t stackBuf[4] = { 1, 2, 3, 5 };
+  NSData *immutable =
+    [[NSData alloc] initWithBytesNoCopy: stackBuf
+                                 length: 4
+			   freeFunction: dummyDeallocator];
+  PASS([immutable length] == 4, "Length set");
+  PASS([immutable bytes] == stackBuf, "Bytes set")
+  PASS_RUNS([immutable release]; immutable = nil;,
+      "No free() error with custom deallocator")
+  PASS(deallocationCount == 1, "Deallocator called")
+  uint8_t *buf = malloc(4 * sizeof(uint8_t));
+  NSMutableData *mutable =
+    [[NSMutableData alloc] initWithBytesNoCopy: buf
+                                        length: 4
+				  freeFunction: realDeallocator];
+  PASS([mutable length] == 4, "Length set")
+  PASS([mutable bytes] == buf, "Bytes set")
+  PASS_RUNS([mutable release]; mutable = nil;,
+    "No free() error with custom deallocator on mutable data")
+  PASS(deallocationCount == 2,
+    "Deallocator called on -dealloc of mutable data")
+  buf = malloc(4 * sizeof(uint8_t));
+  mutable =
+    [[NSMutableData alloc] initWithBytesNoCopy: buf
+                                        length: 4
+				  freeFunction: realDeallocator];
+  PASS_RUNS([mutable setCapacity: 10];,
+    "Can set capactiy with custom deallocator on mutable data")
+  PASS(deallocationCount == 3,
+      "Deallocator called on -setCapacity: of mutable data")
+  PASS_RUNS([mutable release]; mutable = nil;,
+    "No free() error with custom deallocator on mutable data "
+    "after capacity change")
+  PASS(deallocationCount == 3,
+    "Deallocator not called on -dealloc of mutable data "
+    "after its capacity has been changed")
+
+  END_SET("deallocator check")
 
 
   START_SET("deallocator blocks")
