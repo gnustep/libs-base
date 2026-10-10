@@ -2731,6 +2731,52 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 @implementation GSBinaryExpression
 
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeInt: [self expressionType] forKey: @"NSExpressionType"];
+      [coder encodeObject: _left forKey: @"NSLeftExpression"];
+      [coder encodeObject: _right forKey: @"NSRightExpression"];
+    }
+  else
+    {
+      int	type = (int)[self expressionType];
+
+      [coder encodeValueOfObjCType: @encode(int) at: &type];
+      [coder encodeObject: _left];
+      [coder encodeObject: _right];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      self = [super initWithExpressionType:
+	[coder decodeIntForKey: @"NSExpressionType"]];
+      if (self != nil)
+	{
+	  ASSIGN(_left, [coder decodeObjectForKey: @"NSLeftExpression"]);
+	  ASSIGN(_right, [coder decodeObjectForKey: @"NSRightExpression"]);
+	}
+    }
+  else
+    {
+      int	type = 0;
+
+      [coder decodeValueOfObjCType: @encode(int) at: &type];
+      self = [super initWithExpressionType: (NSExpressionType)type];
+      if (self != nil)
+	{
+	  ASSIGN(_left, [coder decodeObject]);
+	  ASSIGN(_right, [coder decodeObject]);
+	}
+    }
+
+  return self;
+}
+
 - (BOOL) isEqual: (id)other
 {
   GSBinaryExpression	*o = other;
