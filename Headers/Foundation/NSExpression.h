@@ -29,6 +29,8 @@
 
 #import	<Foundation/NSObject.h>
 
+@class NSPredicate;
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -85,6 +87,9 @@ GS_EXPORT_CLASS
 				    with: (NSExpression *)right;
 + (NSExpression *) expressionForMinusSet: (NSExpression *)left
 				    with: (NSExpression *)right;
++ (NSExpression *) expressionForSubquery: (NSExpression *)expression
+		   usingIteratorVariable: (NSString *)variable
+			       predicate: (id)predicate;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -109,6 +114,7 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (id) collection;
 - (NSExpression *) leftExpression;
+- (NSPredicate *) predicate;
 - (NSExpression *) rightExpression;
 #endif
 @end
