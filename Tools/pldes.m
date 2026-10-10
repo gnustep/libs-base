@@ -64,10 +64,17 @@ main(int argc, char** argv, char **env)
     {
       NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
       NSDictionary	*locale = [defs dictionaryRepresentation];
+      BOOL		raw = NO;
 
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
+
+	  if ([file caseInsensitiveCompare: @"--raw"] == NSOrderedSame)
+	    {
+	      raw = YES;
+	      continue;
+	    }
 
 	  NS_DURING
 	    {
@@ -91,9 +98,23 @@ main(int argc, char** argv, char **env)
 		{
 		  NSFileHandle	*out;
 
-		  myString = [result descriptionWithLocale: locale indent: 0];
+		  if ([result isKindOfClass: [NSData class]] && raw)
+		    {
+		      myData = result;
+		    }
+		  else if (raw)
+		    {
+		      GSPrintf(stderr, @"Loading '%@' - not a data plist\n",
+			file);
+		    }
+		  else
+		    {
+		      myString = [result descriptionWithLocale: locale
+							indent: 0];
+		      myData = [myString
+			dataUsingEncoding: NSASCIIStringEncoding];
+		    }
 		  out = [NSFileHandle fileHandleWithStandardOutput];
-		  myData = [myString dataUsingEncoding: NSASCIIStringEncoding];
 		  [out writeData: myData];
 		  [out synchronizeFile];
 		}
@@ -104,6 +125,7 @@ main(int argc, char** argv, char **env)
 		[localException reason]);
 	    }
 	  NS_ENDHANDLER
+	  raw = NO;
 	}
     }
   [pool release];
