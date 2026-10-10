@@ -32,7 +32,7 @@ testRoundTrip(NSExpression *expression, const char *what)
 
 int main(void)
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("Binary expression coding")
   NSExpression		*variable;
   NSExpression		*keyPath;
   NSExpression		*friends;
@@ -68,6 +68,7 @@ int main(void)
   PASS_EQUAL([back predicateFormat], [predicate predicateFormat],
     "a predicate holding a key path composition survives an archive");
 
-  [arp release];
+  END_SET("Binary expression coding")
+
   return 0;
 }

@@ -18,7 +18,7 @@
 
 int main(void)
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("constant copy")
   NotCopyable           *value = [[NotCopyable new] autorelease];
   NSMutableArray        *list = [NSMutableArray arrayWithObject: @"a"];
   NSExpression          *constant;
@@ -56,6 +56,7 @@ int main(void)
   PASS([copied constantValue] == list,
     "a mutable constant is shared too, not copied")
 
-  [arp release];
+  END_SET("constant copy")
+
   return 0;
 }

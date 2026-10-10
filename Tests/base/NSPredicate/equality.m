@@ -13,7 +13,7 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("Equality")
   NSExpression *keyA = [NSExpression expressionForKeyPath: @"name"];
   NSExpression *keyB = [NSExpression expressionForKeyPath: @"name"];
   NSExpression *keyC = [NSExpression expressionForKeyPath: @"other"];
@@ -79,6 +79,7 @@ main(int argc, char **argv)
          "the predicates that are always true and always false differ");
   }
 
-  [arp release];
+  END_SET("Equality")
+
   return 0;
 }

@@ -16,7 +16,7 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("Contains")
   NSDictionary *object;
   NSComparisonPredicate *parsed;
   NSPredicate *built;
@@ -85,6 +85,7 @@ main(int argc, char **argv)
          "an object held by a collection passes");
   }
 
-  [arp release];
+  END_SET("Contains")
+
   return 0;
 }

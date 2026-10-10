@@ -10,7 +10,7 @@
  */
 int main(void)
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("comparisons")
   NSDictionary		*ada;
   NSDictionary		*aged;
 
@@ -58,6 +58,7 @@ int main(void)
     evaluateWithObject: ada]),
     "BEGINSWITH honours the [c] option");
 
-  [arp release];
+  END_SET("comparisons")
+
   return 0;
 }

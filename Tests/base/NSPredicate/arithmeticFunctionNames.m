@@ -32,7 +32,7 @@ valueOf(NSExpression *e, NSDictionary *object)
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("Arithmetics")
   NSDictionary *object = [NSDictionary dictionaryWithObjectsAndKeys:
     [NSNumber numberWithInt: 8], @"a", [NSNumber numberWithInt: 2], @"b", nil];
   NSExpression *e;
@@ -77,6 +77,7 @@ main(int argc, char **argv)
   e = [NSKeyedUnarchiver unarchiveObjectWithData: archive];
   PASS(valueOf(e, object) == 10.0, "and the archive reads back");
 
-  [arp release];
+  END_SET("Arithmetics")
+
   return 0;
 }
