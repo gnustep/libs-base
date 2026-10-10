@@ -2109,6 +2109,12 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     {
       return @"";
     }
+  if (XML_ATTRIBUTE_NODE == theNode->type)
+    {
+      xmlNsPtr	ns = ((xmlAttrPtr)theNode)->ns;
+
+      return (NULL == ns) ? @"" : StringFromXMLStringPtr(ns->prefix);
+    }
   if (XML_ELEMENT_NODE != theNode->type)
     {
       return @"";
