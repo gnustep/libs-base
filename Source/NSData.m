@@ -3897,8 +3897,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       [self release];
       [NSException raise: NSInvalidArgumentException
-        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
-          @"length but NULL bytes", NSStringFromClass([self class])];
+        format: @"-[%@ %@] called with length but NULL bytes",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   else if (NULL == func)
     {
@@ -3954,8 +3954,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       [self release];
       [NSException raise: NSInvalidArgumentException
-        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
-          @"length but NULL bytes", NSStringFromClass([self class])];
+        format: @"-[%@ %@] called with length but NULL bytes",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 
   bytes = buf;
@@ -4312,8 +4312,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       [self release];
       [NSException raise: NSInvalidArgumentException
-        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
-          @"length but NULL bytes", NSStringFromClass([self class])];
+        format: @"-[%@ %@] called with length but NULL bytes",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   else if (NULL == func)
     {
@@ -4871,7 +4871,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       [self release];
       [NSException raise: NSInvalidArgumentException
-        format: @"[%@-] called with length but NULL bytes",
+        format: @"-[%@ %@] called with length but NULL bytes",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 
