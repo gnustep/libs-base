@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   NSMutableString *mutableString;
   unsigned i;
 
-  [NSAutoreleasePool new];
+  ENTER_POOL
   for (i=0;i<(sizeof(constantStringY)/sizeof(constantStringY[0]));i++)
     {
       PASS([constantStringY[i] boolValue] == YES, "constant:%s == YES", [constantStringY[i] lossyCString]);
@@ -43,6 +43,6 @@ int main(int argc, char **argv)
       mutableString = (id)[NSMutableString stringWithString:constantStringN[i]];
       PASS([mutableString boolValue] == NO,  "mutable:%s == NO",  [mutableString lossyCString]);
     }
-
+  LEAVE_POOL
   return 0;
 }

@@ -7,7 +7,7 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSArray *result;
 
 NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory, NSAllDomainsMask, YES));
@@ -402,6 +402,6 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
     "file in child directory")
 #endif
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

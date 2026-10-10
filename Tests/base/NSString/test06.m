@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   char		c[4];
   unsigned	i;
   NSString	*s;
@@ -1570,9 +1570,9 @@ int main()
       [escaped release];
       PASS_EQUAL(unescaped, reference, "unescapes '%s'", c);
 
-      [reference release];
+      RELEASE(reference);
     }
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

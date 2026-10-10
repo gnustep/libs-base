@@ -5,7 +5,7 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSCharacterSet *ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   PASS([[@"" stringByTrimmingLeadSpaces] isEqual:@""],
        "'' stringByTrimmingLeadSpaces == ''"); 
@@ -64,6 +64,6 @@ int main()
 			  startingAtIndex:1] isEqual:@"helloyxy"],
        "'hello' stringByPaddingToLength:8 withString:'xy' startingAtIndex:0 == 'helloyxy'");
    
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

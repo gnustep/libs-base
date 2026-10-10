@@ -267,7 +267,7 @@ static void testLineRange(char *s, NSRange range, NSRange want)
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString	*str;
   NSString	*sub;
   char	        buf[10];
@@ -526,6 +526,6 @@ int main()
   PASS([indianLong length] == res.location, "unicode found in middle backwards insensitive")
 
 }
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

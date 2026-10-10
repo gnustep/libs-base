@@ -4,7 +4,6 @@
 
 int main(void)
 {
-  [NSAutoreleasePool new];
   START_SET("NSString + surrogate pairs")
 
   NSString              *smiley;

@@ -12,7 +12,7 @@ Testing of Various Byte Order conversion.
 
 int main(int argc, char **argv)
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
+  START_SET("order")
   NSString *s1 = @"A";
   NSString *s2;
   NSData *d;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
       [s2 release];
     }
 
-  [pool release];
+  END_SET("order")
   return 0;
 }
 

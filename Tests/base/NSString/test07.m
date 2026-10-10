@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  ENTER_POOL
   unichar		u = 0x00a3;	// Pound sign
   NSString		*s;
   double 		d;
@@ -51,6 +51,6 @@ int main()
   s = [NSString stringWithCharacters: &u length: 1];
   PASS_EQUAL(s, @"£", "UTF-8 string literal matches 16bit unicode string");
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

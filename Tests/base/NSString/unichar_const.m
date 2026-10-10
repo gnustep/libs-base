@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString		*a = @"a";
   NSString              *alpha = @"α"; // @"\u03b1";
   NSString              *rightarrow = @"→"; // @"\u2192";
@@ -41,6 +41,6 @@ int main()
     "assigning rightarrow to a mutable string works.")
   mutable = [NSMutableString string]; [mutable setString: smiley];
   PASS_EQUAL(mutable, smiley, "assigning smiley to a mutable string works.")
-  [arp release];
+  LEAVE_POOL
   return 0;
 }

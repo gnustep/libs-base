@@ -16,7 +16,6 @@ int main()
 #if !(GS_USE_ICU == 1)
     SKIP("library built without ICU")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSUInteger            cd = NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch;
 
   PASS(found(@"Green TEA", @"tea", cd),
@@ -40,7 +39,6 @@ int main()
   PASS([@"café" compare: @"CAFÉ" options: NSCaseInsensitiveSearch] == NSOrderedSame,
     "compare: case insensitive ignores case");
 
-  [arp release];
 #endif
   END_SET("NSString diacritic insensitive search")
   return 0;

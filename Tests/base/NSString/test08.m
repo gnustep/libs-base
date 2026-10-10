@@ -17,7 +17,7 @@
 
 int main (int argc, const char * argv[])
 {
-  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+  ENTER_POOL
   NSArray *a1, *a2;
   NSArray *a;
   NSString *s1, *s2;
@@ -60,6 +60,6 @@ int main (int argc, const char * argv[])
   a2 = [a1 sortedArrayUsingSelector: @selector(numericCompare:)];
   PASS_EQUAL(a2, a, "numeric sort");
   
-  [pool drain];
+  LEAVE_POOL
   return 0;
 }

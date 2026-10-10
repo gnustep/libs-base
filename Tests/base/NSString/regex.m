@@ -4,7 +4,6 @@
 
 int main(void)
 {
-  [NSAutoreleasePool new];
   START_SET("NSString + regex")
 
 #if !(__APPLE__ || GS_USE_ICU)

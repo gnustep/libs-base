@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString *theString;
   unichar theUniChar[1] = {0xe5};
   theString = [NSString stringWithCharacters:theUniChar length:1];
@@ -23,6 +23,6 @@ int main()
     PASS(1,"bar2");
   NS_ENDHANDLER
   
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

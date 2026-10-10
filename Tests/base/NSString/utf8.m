@@ -4,7 +4,6 @@
 
 int main(void)
 {
-  [NSAutoreleasePool new];
   START_SET("NSString + utf8")
 
   NSString              *exp;
@@ -53,7 +52,6 @@ int main(void)
   buf[4] = 0x00;
   str = [NSString stringWithUTF8String: (const char*)buf];
   PASS_EQUAL(str, exp, "maximum unicode character ok")
-
 
   END_SET("NSString + utf8")
 

@@ -67,7 +67,7 @@ BOOL testSingleLineNoBreaks() {
 }
 
 int main() {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
 
   PASS(testEnumerateSimpleLines(), "Should enumerate all lines correctly.");
   PASS(testEnumerateCRLFLines(), "Should enumerate all CRLF lines correctly.");
@@ -75,7 +75,7 @@ int main() {
   PASS(testEmptyString(), "Should not call block for empty string.");
   PASS(testSingleLineNoBreaks(), "Should handle single line without line breaks correctly.");
 
-  [arp release];
+  LEAVE_POOL
   return 0;
 }
 

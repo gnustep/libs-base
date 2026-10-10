@@ -162,7 +162,6 @@ testStoppingEnumeration()
 int
 main(int argc, const char *argv[])
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   START_SET("Enumerate substrings by lines");
 
   NSString	    *s1 = @"Line 1\nLine 2";
@@ -257,8 +256,6 @@ main(int argc, const char *argv[])
   PASS(currentIteration == 2,
        "There are only two sentences in \"Sentence 1. Sentence 2.");
   END_SET("Enumerate substrings by sentences");
-
-  [pool drain];
 
   return 0;
 }

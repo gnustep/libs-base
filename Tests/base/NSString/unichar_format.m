@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString              *narrow = @"aaaa"; // fits in a single byte
   NSString              *wide = @"a\u20AC\u20ACa"; // Euro signs, requires UTF-16 storage
   NSString		*narrowNarrowFormat = [NSString stringWithFormat: @"a%@a", narrow];
@@ -19,6 +19,6 @@ int main()
              "Formatting a byte-width string into a 16 bit wide string works.");
   PASS_EQUAL(wideWideFormat, @"\u20ACa\u20AC\u20ACa\u20AC",
              "Formatting a 16 bit wide string into a 16 bit wide string works.");
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

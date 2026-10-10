@@ -17,9 +17,7 @@ void testEncodeDecode(NSString* encoded, NSString* decoded, NSCharacterSet* char
 
 int main (int argc, const char * argv[])
 {
-
-  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-
+  ENTER_POOL
 
   NSString *urlDecodedString = @"Only alphabetic characters should be allowed and not encoded. !@#$%^&*()_+-=";
   NSString *urlEncodedString = @"Only%20alphabetic%20characters%20should%20be%20allowed%20and%20not%20encoded%2E%20%21%40%23%24%25%5E%26%2A%28%29%5F%2B%2D%3D";
@@ -90,6 +88,6 @@ int main (int argc, const char * argv[])
   PASS_EQUAL([urlEncodedString stringByRemovingPercentEncoding], urlDecodedString, "Percent-encoded string decoding 11");
 
 
-  [pool drain];
+  LEAVE_POOL
   return 0;
 }

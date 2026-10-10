@@ -4,7 +4,7 @@
 
 int main()
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString *result;
 
   result = [@"abc" commonPrefixWithString:nil options:0];
@@ -34,7 +34,7 @@ int main()
   result = [@"abc" commonPrefixWithString:@"abcx" options:0];
   PASS_EQUAL(result, @"abc", "common prefix of 'abc' and 'abcx' is 'abc'");
 
-  [arp drain];
+  LEAVE_POOL
 
   return 0;
 }

@@ -30,7 +30,7 @@ Testing of Various Byte Order Markers.
 
 int main(int argc, char **argv)
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString *file=@"utf8bom.txt";
   NSString *contents;
   NSData *data;
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   data = [@"" dataUsingEncoding: NSUTF32StringEncoding];
   PASS([data length] == 4, "utf32 empty has bom")
 
-  [pool release];
+  LEAVE_POOL
   return 0;
 }
 
