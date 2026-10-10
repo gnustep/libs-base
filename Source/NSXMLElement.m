@@ -325,8 +325,13 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
         }
 
 #if LIBXML_VERSION >= 20620
-      xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr, 
-                          theNode->doc, theNode, 0);
+      if (xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr,
+        theNode->doc, theNode, 0) != 0)
+        {
+          /* The failed adoption set attr->doc but left the value nodes.  */
+          attr->doc = tmp;
+          xmlSetTreeDoc((xmlNodePtr)attr, theNode->doc);
+        }
 #else
       xmlSetTreeDoc((xmlNodePtr)attr, theNode->doc);
 #endif
