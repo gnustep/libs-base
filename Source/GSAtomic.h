@@ -45,6 +45,12 @@
 
 #define	gs_atomic_store_explicit(object, desired, order) \
   __c11_atomic_store(object, desired, order)
+#define gs_atomic_exchange_explicit(object, desired, order) \
+  __c11_atomic_exchange(object, desired, order);
+#define gs_atomic_fetch_add_explicit(object, arg, order) \
+  __c11_atomic_fetch_add(object, arg, order);
+#define gs_atomic_fetch_sub_explicit(object, arg, order) \
+  __c11_atomic_fetch_sub(object, arg, order);
 
 #else
 
@@ -92,6 +98,10 @@ __extension__ ({ \
 
 #define	gs_atomic_store_explicit(object, desired, order) \
   ((void)gs_atomic_exchange_explicit(object, desired, order))
+#define gs_atomic_fetch_add_explicit(object, arg, order) \
+  ((void)(order), __sync_fetch_and_add(&(object)->__val, arg))
+#define gs_atomic_fetch_sub_explicit(object, arg, order) \
+  ((void)(order), __sync_fetch_and_sub(&(object)->__val, arg))
 
 #endif
 #endif
@@ -112,5 +122,11 @@ __extension__ ({ \
 
 #define	gs_atomic_store(object, desired) \
   gs_atomic_store_explicit(object, desired, __ATOMIC_SEQ_CST)
+#define gs_atomic_exchange(object, desired) \
+  gs_atomic_exchange_explicit(object, desired, __ATOMIC_SEQ_CST)
+#define gs_atomic_fetch_add(object, arg) \
+  gs_atomic_fetch_add_explicit(object, arg, __ATOMIC_SEQ_CST)
+#define gs_atomic_fetch_sub(object, arg) \
+  gs_atomic_fetch_sub_explicit(object, arg, __ATOMIC_SEQ_CST)
 
 #endif // _GSAtomic_h_
