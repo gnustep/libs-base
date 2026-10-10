@@ -588,11 +588,17 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
   UErrorCode status = U_ZERO_ERROR;
   UCollator *coll;
 
+  /* The system locale: the root collation, as with no locale at all. */
+  if (localeCString == NULL || strcmp(localeCString, "en_US_POSIX") == 0)
+    {
+      localeCString = "";
+    }
   coll = ucol_open(localeCString, &status);
 
   if (U_SUCCESS(status))
     {
-      if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
+      if ((mask & NSCaseInsensitiveSearch)
+        && (mask & NSDiacriticInsensitiveSearch))
 	{
 	  ucol_setStrength(coll, UCOL_PRIMARY);
 	}
@@ -3356,7 +3362,8 @@ register_printf_atsign ()
       return result;
     }
 
-  if (locale == nil && (mask & NSNumericSearch) == 0)
+  if (locale == nil
+    && (mask & (NSNumericSearch | NSDiacriticInsensitiveSearch)) == 0)
   {
     return strRangeNsNs(self, aString, mask, searchRange);
   }
@@ -6576,7 +6583,8 @@ static NSFileManager *fm = nil;
    * comparison.) - so return NULL to indicate that the GNUstep
    * comparison code should be used.
    */
-  if (locale == nil && (mask & NSNumericSearch) == 0)
+  if (locale == nil
+    && (mask & (NSNumericSearch | NSDiacriticInsensitiveSearch)) == 0)
     {
       return strCompNsNs(self, string, mask, compareRange);
     }
