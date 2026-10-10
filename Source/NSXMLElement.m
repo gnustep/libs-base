@@ -342,6 +342,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 #else
       xmlSetTreeDoc((xmlNodePtr)attr, theNode->doc);
 #endif
+      if (tmp == GSIVar(attribute, detached))
+        {
+          GSIVar(attribute, detached) = 0;
+        }
       xmlFreeDoc(tmp);
 
       oldAttr = xmlHasNsProp(theNode, attr->name, ns->href);
