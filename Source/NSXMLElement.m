@@ -564,6 +564,12 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
           ns->next = cur->next;
           cur->next = NULL;
         }
+      else
+        {
+          xmlFreeNs(ns);
+          ns = cur;
+          prefix = ns->prefix;
+        }
     }
 
   // Are we setting a default namespace?
