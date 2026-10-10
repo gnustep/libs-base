@@ -44,7 +44,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   if (GS_EXISTS_INTERNAL)
     {
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (void) addChild: (NSXMLNode*)child
@@ -184,7 +184,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 	      [child detach]; // detach from document.
 	      [self addChild: child];
 	    }
-	  [tempDoc release];
+	  RELEASE(tempDoc);
 	}
     }
 
@@ -195,16 +195,18 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 {
   if (NSXMLDTDKind == theKind)
     {
-      return [super initWithKind: theKind options: theOptions];
+      self = [super initWithKind: theKind options: theOptions];
     }
   else
     {
-      [self release];
-      // This cast is here to keep clang quite that expects an init* method to 
-      // return an object of the same class, which is not true here.
-      return (NSXMLDTD*)[[NSXMLNode alloc] initWithKind: theKind
+      RELEASE(self);
+      /* This cast is here to keep clang quite that expects an init* method to 
+       * return an object of the same class, which is not true here.
+       */
+      self = (NSXMLDTD*)[[NSXMLNode alloc] initWithKind: theKind
                                                 options: theOptions];
     }
+  return self;
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index

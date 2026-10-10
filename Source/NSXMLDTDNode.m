@@ -38,7 +38,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
   if (GS_EXISTS_INTERNAL)
     {
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSXMLDTDNodeKind) DTDKind
@@ -57,35 +57,38 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
     || NSXMLElementDeclarationKind == theKind
     || NSXMLNotationDeclarationKind == theKind)
     {
-      return [super initWithKind: theKind options: theOptions];
+      self = [super initWithKind: theKind options: theOptions];
     }
   else
     {
-      [self release];
-      // This cast is here to keep clang quite that expects an init* method to 
-      // return an object of the same class, which is not true here.
-      return (NSXMLDTDNode*)[[NSXMLNode alloc] initWithKind: theKind
+      RELEASE(self);
+      /* This cast is here to keep clang quite that expects an init* method to 
+       * return an object of the same class, which is not true here.
+       */
+      self = (NSXMLDTDNode*)[[NSXMLNode alloc] initWithKind: theKind
                                                     options: theOptions];
     }
+  return self;
 }
 
 - (id) initWithXMLString: (NSString*)string
 {
-  NSXMLDTDNode *result = nil;
-  NSError *error;
-  NSXMLDocument *tempDoc = 
+  NSError	*error;
+  NSXMLDocument *tempDoc;
+
+  tempDoc = 
     [[NSXMLDocument alloc] initWithXMLString: string
                                      options: 0
                                        error: &error];
-  if (tempDoc != nil)
+  if (tempDoc)
     {
-      result = (NSXMLDTDNode*)RETAIN([tempDoc childAtIndex: 0]);
-      [result detach]; // detach from document.
+      RELEASE(self);
+      self = (NSXMLDTDNode*)RETAIN([tempDoc childAtIndex: 0]);
+      [self detach]; // detach from document.
     }
-  [tempDoc release];
-  [self release];
+  RELEASE(tempDoc);
 
-  return result;
+  return self;
 }
 
 - (BOOL) isExternal

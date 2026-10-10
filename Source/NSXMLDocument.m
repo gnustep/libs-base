@@ -47,9 +47,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->MIMEType release];
+      RELEASE(internal->MIMEType);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSString*) characterEncoding
@@ -166,16 +166,18 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if (NSXMLDocumentKind == theKind)
     {
-      return [super initWithKind: theKind options: theOptions];
+      self = [super initWithKind: theKind options: theOptions];
     }
   else
     {
-      [self release];
-      // This cast is here to keep clang quite that expects an init* method to 
-      // return an object of the same class, which is not true here.
-      return (NSXMLDocument*)[[NSXMLNode alloc] initWithKind: theKind
+      RELEASE(self);
+      /* This cast is here to keep clang quite that expects an init* method to 
+       * return an object of the same class, which is not true here.
+       */
+      self = (NSXMLDocument*)[[NSXMLNode alloc] initWithKind: theKind
                                                      options: theOptions];
     }
+  return self;
 }
 
 - (id) initWithRootElement: (NSXMLElement*)element

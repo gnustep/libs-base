@@ -1650,9 +1650,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
           if (theNode->type == XML_NAMESPACE_DECL)
             {
               ((xmlNsPtr)theNode)->_private = NULL;
-              // FIXME: Not sure when to free the node here,
-              // the same namespace node might be referenced
-              // from other places.
+              /* FIXME: Not sure when to free the node here,
+               * the same namespace node might be referenced
+               * from other places.
+	       */
               xmlFreeNode(theNode);
             }
           else
@@ -1665,8 +1666,9 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                     {
                       xmlFreeDoc((xmlDocPtr)theNode);
                     }
-                  else if (theNode->type == XML_ENTITY_DECL && 
-                           ((xmlEntityPtr)theNode)->etype == XML_INTERNAL_PREDEFINED_ENTITY)
+                  else if (theNode->type == XML_ENTITY_DECL
+		    && ((xmlEntityPtr)theNode)->etype
+		      == XML_INTERNAL_PREDEFINED_ENTITY)
                     {
                       // Don't free internal entity nodes
                     }
@@ -1675,7 +1677,9 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                       xmlDocPtr tmp = theNode->doc;
 
                       xmlFreeNode(theNode);
-                      // Free the private document we allocated in detach or ensure_oldNs
+                      /* Free the private document we allocated in detach
+		       * or ensure_oldNs
+		       */
                       if (tmp && tmp == internal->detached)
                         {
                           xmlFreeDoc(tmp);
@@ -1686,7 +1690,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         }
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (void) detach
