@@ -46,9 +46,9 @@ inrange(ch,'0','9') \
 ? ((ch)-0x57) : ((ch)-0x37))
 
 
-/** <p>Converts  a file encoded in a specified or default non-unicode encoding
- *  to unicode, or, if the file is already in unicode,  converts  it  to  a
- *  specified  or  default  non-unicode  encoding.   The  converted text is
+/** <p>Converts a file encoded in a specified or default non-unicode encoding
+ *  to unicode, or, if the file is already in unicode,  converts it to a
+ *  specified or default non-unicode encoding.  The converted text is
  *  printed to standard out.</p>
  */
 int
@@ -260,7 +260,7 @@ main(int argc, char** argv, char **env)
 		      myString = [[NSString alloc] initWithCharactersNoCopy: u
 			length: o freeWhenDone: YES];
 		    }
-		  if (eOut == YES)
+		  if (eOut)
 		    {
 		      unsigned	l = [myString length];
 		      unichar	*u;
@@ -274,23 +274,23 @@ main(int argc, char** argv, char **env)
 		      [myString getCharacters: u];
 		      for (i = 0; i < l; i++)
 			{
-			  if (u[i] < 128)
+			  unichar  v = u[i];
+
+			  if (v < 128)
 			    {
-			      c[o++] = u[i];
+			      c[o++] = v;
 			    }
 			  else
 			    {
-                              unsigned  v = u[i];
-
                               c[o++] = '\\';
                               c[o++] = 'U';
-                              c[3] = "0123456789abcdef"[v & 0xf];
+                              c[o+3] = "0123456789abcdef"[v & 0xf];
                               v /= 16;
-                              c[2] = "0123456789abcdef"[v & 0xf];
+                              c[o+2] = "0123456789abcdef"[v & 0xf];
                               v /= 16;
-                              c[1] = "0123456789abcdef"[v & 0xf];
+                              c[o+1] = "0123456789abcdef"[v & 0xf];
                               v /= 16;
-                              c[0] = "0123456789abcdef"[v & 0xf];
+                              c[o+0] = "0123456789abcdef"[v & 0xf];
 			      o += 4;
 			    }
 			}
