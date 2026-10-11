@@ -121,7 +121,7 @@ int main()
                                         length: 4
 				  freeFunction: realDeallocator];
   PASS_RUNS([mutable setCapacity: 10];,
-    "Can set capactiy with custom deallocator on mutable data")
+    "Can set capacity with custom deallocator on mutable data")
   PASS(deallocationCount == 3,
       "Deallocator called on -setCapacity: of mutable data")
   PASS_RUNS([mutable release]; mutable = nil;,
@@ -178,7 +178,7 @@ int main()
                                     }
    ];
   PASS_RUNS([mutable setCapacity: 10];,
-    "Can set capactiy with custom deallocator on mutable data");
+    "Can set capacity with custom deallocator on mutable data");
   PASS(called == 3,
       "Deallocator block called on -setCapacity: of mutable data");
   PASS_RUNS([mutable release]; mutable = nil;,

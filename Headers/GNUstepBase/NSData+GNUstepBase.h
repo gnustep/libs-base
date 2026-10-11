@@ -1,6 +1,6 @@
 /** Declaration of extension methods for base additions
 
-   Copyright (C) 2003-2010 Free Software Foundation, Inc.
+   Copyright (C) 2003-2026 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    and:         Adam Fedor <fedor@gnu.org>
@@ -66,6 +66,16 @@ extern "C" {
  * the trailing nul terminator).
  */
 - (char*) escapedRepresentation: (NSUInteger*)length;
+
+#if	defined(__APPLE__)
+/** <override-subclass/>
+ * When the receiver is deallocated, the memory will be freed using the user
+ * supplied function.
+ */
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                        freeFunction: (void (*)(void *buf, NSUInteger len))func;
+#endif
 
 /** Returns data formed by gunzipping the contents of the receiver.<br />
  * If the receiver did not contain data produced by gzip, this method
