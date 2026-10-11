@@ -92,6 +92,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   NSMapTable *_browsers;
   NSMapTable *_browserTimeouts;
   NSTimer *_timer;
+  void *_addressBrowsers[2];
 }
 
 /**
