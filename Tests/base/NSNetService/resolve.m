@@ -8,6 +8,9 @@
  */
 #import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
+/* libs-base has no zeroconf backend on Windows, and the interface check
+ * uses POSIX networking headers: there the test is only skipped. */
+#if !defined(_WIN32)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -101,9 +104,17 @@ isLocalAddress(const struct sockaddr *sa)
   return found;
 }
 
+#endif
+
 int main()
 {
   ENTER_POOL
+  START_SET("NSNetService resolve")
+
+#if defined(_WIN32)
+  SKIP("NSNetService has no zeroconf backend on Windows")
+#else
+  {
   NSString	*name;
   NSNetService	*service;
   NSNetService	*resolver;
@@ -112,7 +123,6 @@ int main()
   NSArray	*addresses;
   NSUInteger	i;
 
-  START_SET("NSNetService resolve")
 
   name = [NSString stringWithFormat: @"NSNetService test %d", (int)getpid()];
   service = AUTORELEASE([[NSNetService alloc] initWithDomain: @"local."
@@ -195,6 +205,8 @@ int main()
 
   [resolver stop];
   [service stop];
+  }
+#endif
 
   END_SET("NSNetService resolve")
   LEAVE_POOL
