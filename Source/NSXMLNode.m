@@ -54,14 +54,33 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
     || (node->type == XML_ELEMENT_NODE))
     {
       xmlNsPtr ns1 = node->ns;
-      
-      if (ns1 == ns)
+      xmlNsPtr placeholders = NULL;
+
+      // Drop the href-less declaration adoption left for this prefix
+      if (node->type == XML_ELEMENT_NODE)
         {
-          return;
+          xmlNsPtr *link = &node->nsDef;
+
+          while (*link != NULL)
+            {
+              xmlNsPtr cur = *link;
+
+              if (cur != ns && cur->href == NULL
+                && xmlStrcmp(cur->prefix, ns->prefix) == 0)
+                {
+                  *link = cur->next;
+                  cur->next = placeholders;
+                  placeholders = cur;
+                }
+              else
+                {
+                  link = &cur->next;
+                }
+            }
         }
 
       // Either both the same or one NULL and the other the same
-      if (ns1 != NULL)
+      if (ns1 != NULL && ns1 != ns)
 	{
 	  BOOL	equalPrefix;
 
@@ -72,10 +91,6 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
 	      || (xmlStrcmp(ns1->href, ns->href) == 0)))
 	    {
 	      xmlSetNs(node, ns);
-	      if (ns1->href != NULL)
-		{
-	          //xmlFreeNs(ns1);
-		}
 	    }
 	}
  
@@ -84,6 +99,10 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
       if (node->type == XML_ELEMENT_NODE)
         {
           cleanup_namespaces((xmlNodePtr)node->properties, ns);
+        }
+      if (placeholders != NULL)
+        {
+          xmlFreeNsList(placeholders);
         }
     }
 }
@@ -953,6 +972,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
                 {
                   xmlNsPtr cur = ns;
                   xmlNsPtr oldNs1;
+                  xmlNsPtr same = NULL;
 
                   // Need to transfer the namespace to the new tree
                   // Unlink in old
@@ -967,17 +987,39 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
                   ns = ns->next;
                   cur->next = NULL;
-                  
-                  // Insert in new
-                  oldNs1 = parentNode->doc->oldNs;
-                  while (oldNs1)
+
+                  if (cur->href == NULL)
                     {
-                      if (oldNs1->next == NULL)
+                      for (oldNs1 = parentNode->doc->oldNs; oldNs1 != NULL;
+                        oldNs1 = oldNs1->next)
                         {
-                          oldNs1->next = cur;
-                          break;
+                          if (oldNs1->href == NULL
+                            && xmlStrcmp(oldNs1->prefix, cur->prefix) == 0)
+                            {
+                              same = oldNs1;
+                              break;
+                            }
                         }
-                      oldNs1 = oldNs1->next;
+                    }
+                  if (same != NULL)
+                    {
+                      // One unresolved prefix, not one per node using it
+                      cleanup_namespaces(childNode, same);
+                      xmlFreeNs(cur);
+                    }
+                  else
+                    {
+                      // Insert in new
+                      oldNs1 = parentNode->doc->oldNs;
+                      while (oldNs1)
+                        {
+                          if (oldNs1->next == NULL)
+                            {
+                              oldNs1->next = cur;
+                              break;
+                            }
+                          oldNs1 = oldNs1->next;
+                        }
                     }
                 }
               else
