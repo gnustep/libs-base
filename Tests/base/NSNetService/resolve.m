@@ -11,7 +11,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <string.h>
 #include <unistd.h>
@@ -23,7 +22,7 @@
 
 static const int	testPort = 47913;
 
-@interface Watcher : NSObject
+@interface Watcher : NSObject <NSNetServiceDelegate>
 {
 @public
   BOOL	published;
@@ -100,24 +99,6 @@ isLocalAddress(const struct sockaddr *sa)
     }
   freeifaddrs(list);
   return found;
-}
-
-static NSString *
-describe(const struct sockaddr *sa)
-{
-  char	text[INET6_ADDRSTRLEN] = "?";
-
-  if (sa->sa_family == AF_INET)
-    {
-      inet_ntop(AF_INET, &((const struct sockaddr_in *)(const void *)sa)->sin_addr,
-	text, sizeof(text));
-    }
-  else if (sa->sa_family == AF_INET6)
-    {
-      inet_ntop(AF_INET6, &((const struct sockaddr_in6 *)(const void *)sa)->sin6_addr,
-	text, sizeof(text));
-    }
-  return [NSString stringWithUTF8String: text];
 }
 
 int main()
@@ -209,8 +190,7 @@ int main()
       PASS(port == (unsigned)testPort,
 	"address %u carries the published port (%u)", (unsigned)i, port)
       PASS(isLocalAddress(sa),
-	"address %u (%s) is an address of this host", (unsigned)i,
-	[describe(sa) UTF8String])
+	"address %u is an address of this host", (unsigned)i)
     }
 
   [resolver stop];
