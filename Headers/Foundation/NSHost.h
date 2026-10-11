@@ -138,8 +138,11 @@ GS_EXPORT_CLASS
  */
 @interface NSHost (GNUstep)
 
-/**
- *  Synonym for +currentHost.
+/** Return host from the cache or nil if the named host is not in the cache.
+ */
++ (NSHost*) cachedHostWithName: (NSString*)name;
+
+/**  Synonym for +currentHost.
  */
 + (NSHost*) localHost;		/* All local IP addresses	*/
 @end
