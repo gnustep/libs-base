@@ -41,8 +41,6 @@ int main()
   PASS_EQUAL([child URI], @"urn:a", "the grandchild is in the root's namespace")
   [doc release];
 
-testHopeful = YES;
-
   /* Two attributes with the same prefix on a grandchild. */
   r = root();
   parent = [NSXMLNode elementWithName: @"a:parent"];
