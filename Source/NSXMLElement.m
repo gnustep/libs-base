@@ -31,6 +31,27 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
+/* The placeholder for prefix declared at node or an ancestor: a namespace
+ * with that prefix and no href, which xmlSearchNs() passes over.
+ */
+static xmlNsPtr
+searchPlaceholderNs(xmlNodePtr node, const xmlChar *prefix)
+{
+  for (; node != NULL && node->type == XML_ELEMENT_NODE; node = node->parent)
+    {
+      xmlNsPtr	cur;
+
+      for (cur = node->nsDef; cur != NULL; cur = cur->next)
+	{
+	  if (NULL == cur->href && xmlStrEqual(cur->prefix, prefix))
+	    {
+	      return cur;
+	    }
+	}
+    }
+  return NULL;
+}
+
 @implementation NSXMLElement
 
 - (void) dealloc
@@ -284,6 +305,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
         {
           xmlNsPtr newNs = xmlSearchNs(theNode->doc, theNode, ns->prefix);
           
+          if (NULL == newNs)
+            {
+              newNs = searchPlaceholderNs(theNode, ns->prefix);
+            }
           if (newNs != NULL)
             {
               ns = newNs;
@@ -345,12 +370,24 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
         }
 
 #if LIBXML_VERSION >= 20620
+      /* Adoption finds a namespace by its href, so it would declare a
+       * placeholder that is already in scope again, under a made-up
+       * prefix.  Such a one is kept out of the adoption.
+       */
+      if (resolved && NULL == ns->href)
+        {
+          attr->ns = NULL;
+        }
       if (xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr,
         theNode->doc, theNode, 0) != 0)
         {
           /* The failed adoption set attr->doc but left the value nodes.  */
           attr->doc = tmp;
           xmlSetTreeDoc((xmlNodePtr)attr, theNode->doc);
+        }
+      if (resolved && NULL == ns->href)
+        {
+          attr->ns = ns;
         }
 #else
       xmlSetTreeDoc((xmlNodePtr)attr, theNode->doc);
