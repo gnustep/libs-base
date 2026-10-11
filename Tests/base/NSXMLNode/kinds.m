@@ -22,7 +22,6 @@ int main()
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLNode           *node;
   NS_DURING
   {
@@ -41,8 +40,6 @@ int main()
     PASS(YES == NO, "NSXMLNode kinds working");
   }
   NS_ENDHANDLER
-  [arp release];
-  arp = nil;
 #endif
   END_SET("NSXMLNode -initWithKind: initializer")
   return 0;

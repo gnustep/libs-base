@@ -1,3 +1,4 @@
+#import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
 
 /* Test detaching nodes from their parents
@@ -6,8 +7,9 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   int exitCode = 0;
+
+  START_SET("detach")
   
   NS_DURING
     {
@@ -88,6 +90,7 @@ main(int argc, char **argv)
     }
   NS_ENDHANDLER
   
-  [arp release];
+  END_SET("detach")
+
   return exitCode;
 }

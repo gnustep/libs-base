@@ -33,8 +33,6 @@ int main()
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-
   // create elements and attributes
 
   // create with URI and local name
@@ -182,8 +180,6 @@ int main()
   PASS_EQUAL(actualXML, expectedXML, "unexpected xml output");
   testHopeful = NO;
 
-  [arp drain];
-  arp = nil;
 #endif
   END_SET("NSXMLNode namespace handling")
   return 0;

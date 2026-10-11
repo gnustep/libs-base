@@ -16,7 +16,7 @@
 int
 main(int argc, char **argv)
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  START_SET("detached strings")
   NSString      *source =
     @"<document type=\"com.apple.InterfaceBuilder3.Cocoa.XIB\">"
      "<objects id=\"a\" customClass=\"NSObject\">text of the element</objects>"
@@ -52,6 +52,7 @@ main(int argc, char **argv)
     "a detached node keeps its text");
 
   [child release];
-  DESTROY(arp);
+  END_SET("detached strings")
+
   return 0;
 }

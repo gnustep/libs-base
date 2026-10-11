@@ -75,7 +75,6 @@ parseBytes(const char *xml)
 int
 main(int argc, char *argv[])
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   CendHandler		*h;
   unsigned		i;
   const char		*truncated[] = {
@@ -106,6 +105,5 @@ main(int argc, char *argv[])
 
   END_SET("NSXMLParser comment/CDATA bounds")
 
-  [arp release];
   return 0;
 }

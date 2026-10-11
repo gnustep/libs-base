@@ -11,7 +11,6 @@ int main()
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSString              *tricky = @"A&B <\"x\"> &amp; ]]>";
   NSXMLNode             *attribute;
   NSXMLElement          *element;
@@ -49,7 +48,6 @@ int main()
   [element setStringValue: @""];
   PASS([element childCount] == 0, "an empty string value leaves no text node");
 
-  [arp release];
 #endif
   END_SET("NSXMLNode string values are text")
   return 0;

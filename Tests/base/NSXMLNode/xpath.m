@@ -7,7 +7,7 @@
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("xpath")
   
   NSString *sourceXML = @"<parent>"
     "<chyld>buzz</chyld>"
@@ -28,8 +28,7 @@ int main()
   PASS(node == nil, "can't access ln:loner node if namespace not defined at top");
   PASS(anError != nil, "should get error when fail to access node");
 
-  [arp release];
-  arp = nil;
+  END_SET("xpath")
 
   return 0;
 }

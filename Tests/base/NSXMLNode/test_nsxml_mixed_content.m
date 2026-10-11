@@ -1,3 +1,4 @@
+#import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
 
 /* Test mixed content (elements and text nodes)
@@ -6,8 +7,9 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   int exitCode = 0;
+
+  START_SET("mixed content")
   
   NS_DURING
     {
@@ -93,6 +95,7 @@ main(int argc, char **argv)
     }
   NS_ENDHANDLER
   
-  [arp release];
+  END_SET("mixed content")
+
   return exitCode;
 }

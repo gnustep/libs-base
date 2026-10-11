@@ -8,7 +8,6 @@
  */
 int main()
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   START_SET("NSXMLNode text node handling (no merging)")
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
@@ -53,6 +52,6 @@ int main()
 
 #endif
   END_SET("NSXMLNode text node handling (no merging)")
-  [arp release];
+
   return 0;
 }

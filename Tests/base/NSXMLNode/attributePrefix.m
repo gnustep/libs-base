@@ -11,7 +11,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("attribute prefix")
   NSXMLDocument		*doc;
   NSXMLElement		*e;
   NSXMLNode		*prefixed;
@@ -44,6 +44,7 @@ int main()
     "so is one added in the namespace")
 
   [doc release];
-  [arp release];
+  END_SET("attribute prefix")
+
   return 0;
 }

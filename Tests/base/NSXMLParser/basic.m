@@ -3,7 +3,7 @@
 #import <Foundation/NSXMLParser.h>
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLParser basic")
   NSXMLParser           *parser;
   Class                 c = NSClassFromString(@"GSSloppyXMLParser");
 
@@ -17,12 +17,7 @@ int main()
   test_NSObject(@"NSXMLParser", [NSArray arrayWithObject: parser]);
   DESTROY(parser);
 
-  [arp release]; arp = nil;
+  END_SET("NSXMLParser basic")
 
-/* Don't release the parser ... it appears that on OSX there is a bug in
- * NSXMLParser such that deallocation crashes if the -self method has been
- * called on it (which is something the NSObject test does).
-  [parser release];
- */
   return 0;
 }

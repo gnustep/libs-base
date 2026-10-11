@@ -83,7 +83,7 @@ buildAndRelease(Declaration how, NSUInteger rounds, BOOL release)
 
 int main(void)
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("namespace sttribute")
   NSUInteger const	 rounds = 400;
 
   /* The fault: the document that carried the attribute is released, and
@@ -111,6 +111,7 @@ int main(void)
   PASS(buildAndRelease(PrefixedAttribute, 50, NO),
     "the same documents, never released, write themselves out");
 
-  [arp release];
+  END_SET("namespace sttribute")
+
   return 0;
 }

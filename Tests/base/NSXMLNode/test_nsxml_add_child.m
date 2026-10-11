@@ -1,3 +1,4 @@
+#import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
 
 /* Test adding children to NSXMLElement
@@ -6,8 +7,9 @@
 int
 main(int argc, char **argv)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   int exitCode = 0;
+
+  START_SET("add child")
   
   NS_DURING
     {
@@ -72,6 +74,7 @@ main(int argc, char **argv)
     }
   NS_ENDHANDLER
   
-  [arp release];
+  END_SET("add child")
+
   return exitCode;
 }

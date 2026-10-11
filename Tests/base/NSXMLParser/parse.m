@@ -280,17 +280,18 @@ testParser(NSXMLParser *parser, NSString *expect)
 static BOOL
 testParseData(NSData *xml, NSString *expect, BOOL strict)
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLParser           *parser;
-  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
+  Class                 c;
   BOOL                  result;
 
+  ENTER_POOL
+  c = NSClassFromString(@"GSSloppyXMLParser");
   if (strict) c = Nil;
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithData: xml];
   result = testParser(parser, expect);
   RELEASE(parser);
-  [arp release];
+  LEAVE_POOL
   return result;
 }
 
@@ -306,23 +307,24 @@ testParseCString(const char *xmlBytes, NSString *expect, BOOL strict)
 static BOOL
 testParseStream(NSInputStream *stream, NSString *expect, BOOL strict)
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLParser           *parser;
-  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
+  Class                 c;
   BOOL                  result;
 
+  ENTER_POOL
+  c = NSClassFromString(@"GSSloppyXMLParser");
   if (strict) c = Nil;
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithStream: stream];
   result = testParser(parser, expect);
   RELEASE(parser);
-  [arp release];
+  LEAVE_POOL
   return result;
 }
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLParser parse")
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSDirectoryEnumerator	*dir;
   NSString	        *str;
@@ -403,6 +405,7 @@ parserDidEndDocument:\n\
     PASS((testParseData(dat, exp, YES)), "external entity (sloppy)")
   }
 
-  [arp release]; arp = nil;
+  END_SET("NSXMLParser parse")
+
   return 0;
 }

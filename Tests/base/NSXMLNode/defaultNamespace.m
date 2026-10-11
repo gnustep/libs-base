@@ -11,7 +11,6 @@ int main()
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLElement          *schema;
   NSXMLNode             *ns;
   NSXMLDocument         *doc;
@@ -40,7 +39,6 @@ int main()
     "a parsed element in a default namespace is in it");
   [doc release];
 
-  [arp release];
 #endif
   END_SET("NSXMLNode default namespaces")
   return 0;

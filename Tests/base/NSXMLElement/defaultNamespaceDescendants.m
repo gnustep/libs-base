@@ -26,7 +26,6 @@ int main()
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
 #else
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLDocument         *doc;
   NSXMLDocument         *parsed;
   NSXMLElement          *rule;
@@ -80,7 +79,6 @@ int main()
     "a parsed declaration is kept");
   [parsed release];
 
-  [arp release];
 #endif
   END_SET("NSXMLElement default namespace descendants")
   return 0;

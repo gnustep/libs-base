@@ -5,7 +5,6 @@
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   START_SET("NSXMLElement")
 #if !GS_USE_LIBXML
     SKIP("library built without libxml2")
@@ -92,8 +91,6 @@ int main()
   [xml release];
 #endif
   END_SET("NSXMLElement")
-  [arp release];
-  arp = nil;
 
   return 0;
 }
