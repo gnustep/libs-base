@@ -113,7 +113,6 @@ int main()
 #if defined(_WIN32)
   SKIP("NSNetService has no zeroconf backend on Windows")
 #else
-  {
   NSString	*name;
   NSNetService	*service;
   NSNetService	*resolver;
@@ -204,7 +203,6 @@ int main()
 
   [resolver stop];
   [service stop];
-  }
 #endif
 
   END_SET("NSNetService resolve")

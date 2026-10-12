@@ -323,6 +323,7 @@
     {
       [timer invalidate];
     }
+  DESTROY(fireDate);
   [super dealloc];
 }
 @end

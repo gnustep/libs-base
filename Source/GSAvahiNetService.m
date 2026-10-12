@@ -1240,11 +1240,11 @@ didUpdateRecordData: (id)data
           [_timer invalidate];
           _timer = nil;
         }
-      _timer = [[NSTimer timerWithTimeInterval: timeout
+      _timer = [NSTimer timerWithTimeInterval: timeout
                                        target: self
                                      selector: @selector(didTimeout:)
                                      userInfo: nil
-                                      repeats: NO] retain];
+                                      repeats: NO];
 
       [[ctx runLoop] addTimer: _timer
                       forMode: [ctx mode]];
