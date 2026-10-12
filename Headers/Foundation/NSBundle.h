@@ -449,7 +449,9 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 
 /** Returns a localized info property list based on the preferred
  *  localization or the most appropriate localization if the preferred
- *  one cannot be found.
+ *  one cannot be found.<br />
+ * Localization is performed using the InfoPlist table (defined in the
+ * InfoPlist.strings file of the preferred locale).
  */
 - (NSDictionary*) localizedInfoDictionary;
 

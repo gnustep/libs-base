@@ -2991,10 +2991,10 @@ IF_NO_ARC(
 
 - (NSDictionary*) localizedInfoDictionary
 {
-  NSString  *path;
-  NSArray   *locales;
-  NSString  *locale = nil;
-  NSDictionary *dict = nil;
+  NSString	*path;
+  NSArray   	*locales;
+  NSString  	*locale = nil;
+  NSDictionary	*dict = nil;
 
   locales = [self preferredLocalizations];
   if ([locales count] > 0)
@@ -3021,6 +3021,22 @@ IF_NO_ARC(
   if (nil == [dict autorelease])
     {
       dict = [self infoDictionary];
+    }
+  if (dict)
+    {
+      NSMutableDictionary	*m = AUTORELEASE([dict mutableCopy]);
+
+      GS_FOR_IN(NSString *, key, dict)
+        NSString	*val = [dict objectForKey: key];
+	NSString	*loc;
+
+	loc = [self localizedStringForKey: key value: val table: @"InfoPlist"];
+	if (loc != val)
+	  {
+	    [m setObject: loc forKey: val];
+	  }
+      GS_END_FOR(dict) 
+      dict = m;
     }
   return dict;
 }
@@ -3207,7 +3223,7 @@ IF_NO_ARC(
 	    }
 	  if (0 == entry || e->generation < entry->generation)
 	    {
-	      entry = e;	// the oldest entry, replaced if a table is loaded
+	      entry = e; // the oldest entry, replaced if a table is loaded
 	    }
 	}
     }
