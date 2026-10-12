@@ -3027,14 +3027,22 @@ IF_NO_ARC(
       NSMutableDictionary	*m = AUTORELEASE([dict mutableCopy]);
 
       GS_FOR_IN(NSString *, key, dict)
-        NSString	*val = [dict objectForKey: key];
-	NSString	*loc;
+	{
+	  NSString	*val = [dict objectForKey: key];
 
-	loc = [self localizedStringForKey: key value: val table: @"InfoPlist"];
-	if (loc != val)
-	  {
-	    [m setObject: loc forKey: val];
-	  }
+	  if ([val isKindOfClass: [NSString class]])
+	    {
+	      NSString	*loc;
+
+	      loc = [self localizedStringForKey: key
+					  value: val
+					  table: @"InfoPlist"];
+	      if (loc != val)
+		{
+		  [m setObject: loc forKey: val];
+		}
+	    }
+	}
       GS_END_FOR(dict) 
       dict = m;
     }
