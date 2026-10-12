@@ -65,6 +65,18 @@
 
 - (void) allForNowForRRCode: (NSUInteger)rrCode;
 
+- (void) addressBrowserEvent: (AvahiBrowserEvent)event
+                     address: (const AvahiAddress*)address
+                     ifIndex: (AvahiIfIndex)anIfIndex;
+
+- (void) startAddressBrowsers;
+
+- (void) stopAddressBrowsers;
+
+- (BOOL) addResolvedAddressData: (NSData*)data;
+
+- (NSString *) avahiType;
+
 - (void) entryGroup: (AvahiEntryGroup*)group
        enteredState: (AvahiEntryGroupState)state;
 
@@ -268,50 +280,50 @@ GSAvahiStringListFromNSData(NSData *txtData, AvahiStringList **list)
 }
 
 /**
- * Creates an <code>NSData</code> object (wrapping a <code>struct
- * sockaddr_storage</code>) from the necessary Avahi data structures.
+ * Creates an <code>NSData</code> object wrapping a <code>struct
+ * sockaddr_in</code> or <code>struct sockaddr_in6</code> from the necessary
+ * Avahi data structures.
  */
 static NSData*
 NSDataFromAvahiAddressPortAndInterface(const AvahiAddress *addr,
   uint16_t port,
   AvahiIfIndex iface)
 {
+  union {
+    struct sockaddr_in	in4;
+    struct sockaddr_in6	in6;
+  } s;
+  size_t s_len;
 
-  struct sockaddr_storage s;
-  size_t s_len = sizeof(struct sockaddr_storage);
-  if ((addr->proto != AVAHI_PROTO_INET) && (addr->proto != AVAHI_PROTO_INET6))
-    {
-      //We can't fill the struct if AVAHI_PROTO_UNSPEC
-      return nil;
-    }
   // POSIX says we shall zero the structure:
-  memset(&s, '\0', s_len);
+  memset(&s, '\0', sizeof(s));
 
   if (addr->proto == AVAHI_PROTO_INET)
     {
-      struct sockaddr_in *s4 = (struct sockaddr_in*)&s;
+      s_len = sizeof(struct sockaddr_in);
+#if defined(HAVE_SA_LEN)
+      s.in4.sin_len = s_len;
+#endif
+      s.in4.sin_family = AF_INET;
+      s.in4.sin_port = htons(port);
       // The address is already in network byte-order.
-      struct in_addr a;
-      a.s_addr = addr->data.ipv4.address;
-      s4->sin_family = AF_INET;
-      s4->sin_port = htons(port);
-      s4->sin_addr = a;
+      s.in4.sin_addr.s_addr = addr->data.ipv4.address;
     }
   else if (addr->proto == AVAHI_PROTO_INET6)
     {
-      struct sockaddr_in6 *s6 = (struct sockaddr_in6*)&s;
-      struct in6_addr a;
-      // Copy the address from the avahi structure to in6_addr:
-      memcpy(&(a.s6_addr), &(addr->data.ipv6.address), 16);
-      s6->sin6_family = AF_INET6;
-      s6->sin6_port = htons(port);
-      s6->sin6_addr = a;
-      if (IN6_IS_ADDR_LINKLOCAL(&a))
+      s_len = sizeof(struct sockaddr_in6);
+#if defined(HAVE_SA_LEN)
+      s.in6.sin6_len = s_len;
+#endif
+      s.in6.sin6_family = AF_INET6;
+      s.in6.sin6_port = htons(port);
+      memcpy(&s.in6.sin6_addr, &(addr->data.ipv6.address), 16);
+      if (IN6_IS_ADDR_LINKLOCAL(&s.in6.sin6_addr))
         {
            // For a link-local address set the interface index
            // NOTE: These are implementation-defined but Avahi doesn't seem to
            // mangle them.
-           s6->sin6_scope_id = iface;
+           s.in6.sin6_scope_id = iface;
         }
       else
         {
@@ -323,11 +335,34 @@ NSDataFromAvahiAddressPortAndInterface(const AvahiAddress *addr,
     }
   else
     {
-      // Shouldn't happen:
+      //We can't fill the struct if AVAHI_PROTO_UNSPEC
       return nil;
     }
   return [NSData dataWithBytes: &s
                         length: s_len];
+}
+
+static BOOL
+GSAvahiIsLoopbackAddressData(NSData *data)
+{
+  union {
+    struct sockaddr	sa;
+    struct sockaddr_in	in4;
+    struct sockaddr_in6	in6;
+  } s;
+
+  memset(&s, '\0', sizeof(s));
+  memcpy(&s, [data bytes], MIN([data length], sizeof(s)));
+  if (s.sa.sa_family == AF_INET)
+    {
+      return ((ntohl(s.in4.sin_addr.s_addr) >> 24) == IN_LOOPBACKNET)
+        ? YES : NO;
+    }
+  if (s.sa.sa_family == AF_INET6)
+    {
+      return IN6_IS_ADDR_LOOPBACK(&s.in6.sin6_addr) ? YES : NO;
+    }
+  return NO;
 }
 
 /**
@@ -411,9 +446,9 @@ GSAvahiServiceResolverEvent(
 
         [service avahiResolver: resolver
           foundServiceWithName: NSStringIfNotNull(name)
-	  type: NSStringIfNotNull(type)
+	  type: GSNetServiceDotTerminatedNSStringFromString(type)
 	  domain: GSNetServiceDotTerminatedNSStringFromString(domain)
-	  hostName: NSStringIfNotNull(hostName)
+	  hostName: GSNetServiceDotTerminatedNSStringFromString(hostName)
 	  address: NSDataFromAvahiAddressPortAndInterface(addr, port, interface)
 	  port: (NSInteger)port
 	  txtRecord: NSDataFromAvahiStringList(txtRecord)
@@ -491,6 +526,44 @@ GSAvahiRecordBrowserEvent(
         [service allForNowForRRCode: type];
         break;
     }
+}
+
+static void
+GSAvahiAddressBrowserEvent(
+  AvahiRecordBrowser *browser,
+  AvahiIfIndex interface,
+  AvahiProtocol protocol,
+  AvahiBrowserEvent event,
+  const char *name,
+  uint16_t dnsClass,
+  uint16_t type,
+  const void *rdata,
+  size_t size,
+  AvahiLookupResultFlags flags,
+  void *userInfo)
+{
+  AvahiAddress addr;
+
+  if ((event != AVAHI_BROWSER_NEW) && (event != AVAHI_BROWSER_REMOVE))
+    {
+      return;
+    }
+  if ((type == AVAHI_DNS_TYPE_A) && (size == 4))
+    {
+      addr.proto = AVAHI_PROTO_INET;
+    }
+  else if ((type == AVAHI_DNS_TYPE_AAAA) && (size == 16))
+    {
+      addr.proto = AVAHI_PROTO_INET6;
+    }
+  else
+    {
+      return;
+    }
+  memcpy(addr.data.data, rdata, size);
+  [(GSAvahiNetService*)userInfo addressBrowserEvent: event
+                                            address: &addr
+                                            ifIndex: interface];
 }
 
 /**
@@ -724,6 +797,10 @@ didUpdateRecordData: (id)data
   _infoLock = [[NSRecursiveLock alloc] init];
   _info = [[NSMutableDictionary alloc] init];
   [_info setObject: domain forKey: @"domain"];
+  if (NO == [type hasSuffix: @"."])
+    {
+      type = [type stringByAppendingString: @"."];
+    }
   [_info setObject: type   forKey: @"type"];
   [_info setObject: name   forKey: @"name"];
   [_info setObject: [NSNumber numberWithInteger: port]
@@ -969,7 +1046,7 @@ didUpdateRecordData: (id)data
     _protocol,
     0, // Flags, we don't need them
     [(NSString*)[self infoObjectForKey: @"name"] UTF8String],
-    [(NSString*)[self infoObjectForKey: @"type"] UTF8String],
+    [[self avahiType] UTF8String],
     d, // Domain (might be NULL for default)
     NULL, // The hostname is filled automatically
     [[self infoObjectForKey: @"port"] integerValue],
@@ -1109,7 +1186,7 @@ didUpdateRecordData: (id)data
 	avahi_client_get_domain_name((AvahiClient*)_client)];
     }
   full = [NSString stringWithFormat: @"%@.%@.%@", [self name],
-                                             [self type], domain];
+                                             [self avahiType], domain];
   if ((unichar)'.' != [full characterAtIndex: ([full length] - 1)])
     {
       return [full stringByAppendingString: @"."];
@@ -1145,7 +1222,7 @@ didUpdateRecordData: (id)data
                                                              _ifIndex,
                                                             _protocol,
                            [[self infoObjectForKey: @"name"] UTF8String],
-                           [[self infoObjectForKey: @"type"] UTF8String],
+                           [[self avahiType] UTF8String],
                          [[self infoObjectForKey: @"domain"] UTF8String],
                                                   AVAHI_PROTO_UNSPEC,
                                                                    0,
@@ -1224,6 +1301,7 @@ didUpdateRecordData: (id)data
       avahi_service_resolver_free((AvahiServiceResolver*)_resolver);
       _resolver = NULL;
     }
+  [self stopAddressBrowsers];
   if (_entryGroup != NULL)
     {
       //Make sure to unpublish it.
@@ -1371,19 +1449,19 @@ didUpdateRecordData: (id)data
       // service, the returned array contains zero elements."
       return [[[NSArray alloc] init] autorelease];
     }
-  return addresses;
+  return [[addresses copy] autorelease];
 }
 
 /**
  * Private method to add new address data to the service.
  */
-- (void) addAddressData: (NSData*)data
+- (BOOL) addAddressData: (NSData*)data
 {
   NSMutableArray *addresses = nil;
 
   if (data == nil)
     {
-      return;
+      return NO;
     }
   addresses = [self infoObjectForKey: @"addresses"];
   if (addresses == nil)
@@ -1396,7 +1474,9 @@ didUpdateRecordData: (id)data
   if (![addresses containsObject: data])
     {
       [addresses addObject: data];
+      return YES;
     }
+  return NO;
 }
 
 /**
@@ -1419,11 +1499,84 @@ didUpdateRecordData: (id)data
       [self setInfoObject: addresses
                    forKey: @"addresses"];
     }
-  index = [addresses indexOfObjectIdenticalTo: data];
+  index = [addresses indexOfObject: data];
   if (index != NSNotFound)
     {
       [addresses removeObjectAtIndex: index];
     }
+}
+
+- (void) startAddressBrowsers
+{
+  const char *host = [[self hostName] UTF8String];
+  uint16_t types[2] = { AVAHI_DNS_TYPE_A, AVAHI_DNS_TYPE_AAAA };
+  int i;
+
+  for (i = 0; i < 2; i++)
+    {
+      _addressBrowsers[i] = (void*)avahi_record_browser_new(
+        (AvahiClient*)_client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, host,
+        AVAHI_DNS_CLASS_IN, types[i], 0, GSAvahiAddressBrowserEvent,
+        (void*)self);
+      if (NULL == _addressBrowsers[i])
+        {
+          [self handleError: avahi_client_errno((AvahiClient*)_client)];
+          return;
+        }
+    }
+}
+
+- (void) stopAddressBrowsers
+{
+  int i;
+
+  for (i = 0; i < 2; i++)
+    {
+      if (_addressBrowsers[i] != NULL)
+        {
+          avahi_record_browser_free((AvahiRecordBrowser*)_addressBrowsers[i]);
+          _addressBrowsers[i] = NULL;
+        }
+    }
+}
+
+- (BOOL) addResolvedAddressData: (NSData*)data
+{
+  if ((data == nil) || GSAvahiIsLoopbackAddressData(data))
+    {
+      return NO;
+    }
+  if (NO == [self addAddressData: data])
+    {
+      return NO;
+    }
+  if (_timer != nil)
+    {
+      [_timer invalidate];
+      _timer = nil;
+    }
+  [self netServiceDidResolveAddress: self];
+  return YES;
+}
+
+- (void) addressBrowserEvent: (AvahiBrowserEvent)event
+                     address: (const AvahiAddress*)address
+                     ifIndex: (AvahiIfIndex)anIfIndex
+{
+  NSData *data;
+
+  [_lock lock];
+  data = NSDataFromAvahiAddressPortAndInterface(address,
+    (uint16_t)[self port], anIfIndex);
+  if (event == AVAHI_BROWSER_NEW)
+    {
+      [self addResolvedAddressData: data];
+    }
+  else
+    {
+      [self removeAddressData: data];
+    }
+  [_lock unlock];
 }
 
 - (NSString *) domain
@@ -1444,6 +1597,13 @@ didUpdateRecordData: (id)data
 - (NSString *) type
 {
   return [self infoObjectForKey: @"type"];
+}
+
+- (NSString *) avahiType
+{
+  NSString *type = [self type];
+
+  return [type substringToIndex: [type length] - 1];
 }
 
 /**
@@ -1498,11 +1658,6 @@ didUpdateRecordData: (id)data
       [self setInfoObject: txtRecord forKey: @"TXT"];
     }
 
-  if (address)
-    {
-      [self addAddressData: address];
-    }
-
   // This makes sure all further actions happen on the same if/protocol
   // combination (they might have been AVAHI_(IF|PROTO)_UNSPEC before).
   _ifIndex = anIfIndex;
@@ -1513,12 +1668,8 @@ didUpdateRecordData: (id)data
   _resolver = NULL;
 
   _serviceState = GSNetServiceResolved;
-  [self netServiceDidResolveAddress: self];
-  if (_timer != nil)
-    {
-      [_timer invalidate];
-      _timer = nil;
-    }
+  [self addResolvedAddressData: address];
+  [self startAddressBrowsers];
   [_lock unlock];
 
 }
@@ -1850,7 +2001,7 @@ didUpdateRecordData: (id)data
     _protocol,
     0, //no flags
     [[self infoObjectForKey: @"name"] UTF8String],
-    [[self infoObjectForKey: @"type"] UTF8String],
+    [[self avahiType] UTF8String],
     StringOrNullIfEmpty([self infoObjectForKey: @"domain"]),
     list);
   if (list != NULL)
