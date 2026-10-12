@@ -338,7 +338,7 @@ cifframe_type(const char *typePtr, const char **advance, NSPointerArray **extra)
 	const char *adv;
 	ftype = &ffi_type_pointer;
 
-	while (isdigit(*typePtr))
+	while (isdigit(*(uint8_t*)typePtr))
 	  {
 	    typePtr++;
 	  }
@@ -639,7 +639,7 @@ cifframe_type(const char *typePtr, const char **advance, NSPointerArray **extra)
 	typePtr++;
       if (*typePtr == '-')
 	typePtr++;
-      while (isdigit(*typePtr))
+      while (isdigit(*(uint8_t*)typePtr))
 	typePtr++;
     }
   if (advance)

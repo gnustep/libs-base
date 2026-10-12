@@ -407,8 +407,8 @@ randombytes(uint8_t *buf, unsigned len)
 
   while (src < end)
     {
-      char		c = *src++;
-      unsigned char	v;
+      uint8_t	c = *src++;
+      uint8_t	v;
 
       if (isspace(c))
 	{

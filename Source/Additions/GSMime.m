@@ -1088,16 +1088,16 @@ wordData(NSString *word, BOOL *encoded)
       unsigned char                     *buf;
       unsigned char                     *beg;
       unsigned char		        *dst;
-      const char		        *src;
-      const char		        *end;
-      const char		        *footers;
+      const unsigned char	        *src;
+      const unsigned char	        *end;
+      const unsigned char	        *footers;
       BOOL                              atEnd;
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
       /* Get pointers into source data buffer.
        */
-      src = (const char *)[sData bytes];
+      src = (const unsigned char *)[sData bytes];
       footers = src;
       src += aRange.location;
       end = src + aRange.length;
@@ -4076,8 +4076,10 @@ quotedWord(const uint8_t *ptr, NSUInteger size, uint8_t *buffer)
 
 static NSUInteger
 appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
-  const char *bytes, NSUInteger size)
+  const void *ptr, NSUInteger size)
 {
+  const uint8_t	*bytes = ptr;
+
   if (fold > 0 && offset + size > fold && size + 8 <= fold)
     {
       /* This would take the line beyond the folding limit,
@@ -4550,7 +4552,7 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   else
     {
       NSUInteger        l = [d length];
-      char	        buf[l];
+      uint8_t	        buf[l];
       NSUInteger	i = 0;
 
       /*
@@ -4558,7 +4560,7 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
        * case - it is defined as being literally 'MIME-Version'
        */
       memcpy(buf, [d bytes], l);
-      if (l == 12 && strncasecmp(buf, "mime-version", 12) == 0)
+      if (l == 12 && strncasecmp((char*)buf, "mime-version", 12) == 0)
 	{
 	  memcpy(buf, "MIME-Version", 12);
 	}
