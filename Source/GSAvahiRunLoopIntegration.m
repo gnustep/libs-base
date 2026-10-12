@@ -145,11 +145,13 @@
 
 - (void) removeFromContext
 {
+  RETAIN(self);
   [self unschedule];
   [ctx removeWatcher: self];
   // Don't reference the context anymore, since it won't have any chance of
   // notifying us if it goes away.
   ctx = nil;
+  RELEASE(self);
 }
 
 - (void) receivedEvent: (void*)data
@@ -210,11 +212,11 @@
 
 @interface GSAvahiTimer: NSObject
 {
-  GSAvahiRunLoopContext *ctx;
-  AvahiTimeoutCallback callback;
-  NSTimer *timer;
-  NSDate *fireDate;
-  void *userData;
+  GSAvahiRunLoopContext	*ctx;
+  AvahiTimeoutCallback	callback;
+  NSTimer		*timer;
+  NSDate		*fireDate;
+  void			*userData;
 }
 @end
 
@@ -290,9 +292,11 @@
 
 - (void) removeFromContext
 {
+  RETAIN(self);
   [self unschedule];
   [ctx removeTimeout: self];
   ctx = nil;
+  RELEASE(self);
 }
 
 - (void) setContext: (GSAvahiRunLoopContext*)aCtxt
@@ -440,7 +444,8 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
                              withTimeval: (const struct timeval*)tv
                                 userData: (void*)ud
 {
-  GSAvahiTimer *timer = nil;
+  GSAvahiTimer	*timer = nil;
+
   [lock lock];
   timer = [[[GSAvahiTimer alloc] initWithCallback: callback
                                        andContext: self
