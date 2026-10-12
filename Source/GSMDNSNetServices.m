@@ -1125,11 +1125,17 @@ static void DNSSD_API
   {
     NSData		*data = nil;
     NSMutableArray	*addresses = nil;
-    struct sockaddr	*address = { 0 };
+    union {
+      struct sockaddr		sa;
+      struct sockaddr_in	in4;
+#if defined(AF_INET6)
+      struct sockaddr_in6	in6;
+#endif
+    }			address;
     size_t		length = 0;
-    const unsigned char	*rd = rdata;
     char		rdb[INET6_ADDRSTRLEN];
     
+    memset(&address, 0, sizeof address);
     memset(rdb, 0, sizeof rdb);
     
     addresses = [service->info objectForKey: @"Addresses"];
@@ -1145,54 +1151,41 @@ static void DNSSD_API
     switch(rrtype)
       {
 	case kDNSServiceType_A:		// AF_INET
-	  {
-	    struct sockaddr_in	ip4;
-	    
-	    // oogly
-	    snprintf(rdb, sizeof(rdb),
-	      "%d.%d.%d.%d", rd[0], rd[1], rd[2], rd[3]);
-	    LOG(@"Found IPv4 <%s> on port %d", rdb, ntohs(service->port));
-	    
-	    length = sizeof (struct sockaddr_in);
-	    memset(&ip4, 0, length);
-	    
-	    inet_pton(AF_INET, rdb, &ip4.sin_addr);
-	    ip4.sin_family = AF_INET;
-	    ip4.sin_port = service->port;
-	    
-	    address = (struct sockaddr *) &ip4;
-	  }
+	  if (rdlen != sizeof address.in4.sin_addr)
+	    {
+	      LOG(@"Ignoring IPv4 record of length <%d>", rdlen);
+	      break;
+	    }
+	  length = sizeof address.in4;
+#if defined(HAVE_SA_LEN)
+	  address.in4.sin_len = length;
+#endif
+	  address.in4.sin_family = AF_INET;
+	  address.in4.sin_port = service->port;
+	  memcpy(&address.in4.sin_addr, rdata, rdlen);
+	  inet_ntop(AF_INET, &address.in4.sin_addr, rdb, sizeof rdb);
+	  LOG(@"Found IPv4 <%s> on port %d", rdb, ntohs(service->port));
 	  break;
 	
   #if defined(AF_INET6)
 	case kDNSServiceType_AAAA:	// AF_INET6
 	case kDNSServiceType_A6:		// deprecates AAAA
-	  {
-	    struct sockaddr_in6	ip6;
-	    
-	    // Even more oogly
-	    snprintf(rdb, sizeof(rdb),
-	      "%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x",
-	      rd[0], rd[1], rd[2], rd[3],
-	      rd[4], rd[5], rd[6], rd[7],
-	      rd[8], rd[9], rd[10], rd[11],
-	      rd[12], rd[13], rd[14], rd[15]);
-	    LOG(@"Found IPv6 <%s> on port %d", rdb, ntohs(service->port));
-	    
-	    length = sizeof (struct sockaddr_in6);
-	    memset(&ip6, 0, length);
-	    
-	    inet_pton(AF_INET6, rdb, &ip6.sin6_addr);
+	  if (rdlen != sizeof address.in6.sin6_addr)
+	    {
+	      LOG(@"Ignoring IPv6 record of length <%d>", rdlen);
+	      break;
+	    }
+	  length = sizeof address.in6;
 #if defined(HAVE_SA_LEN)
-	    ip6.sin6_len = sizeof ip6;
+	  address.in6.sin6_len = length;
 #endif
-	    ip6.sin6_family = AF_INET6;
-	    ip6.sin6_port = service->port;
-	    ip6.sin6_flowinfo = 0;
-	    ip6.sin6_scope_id = interfaceIndex;
-	    
-	    address = (struct sockaddr *) &ip6;
-	  }
+	  address.in6.sin6_family = AF_INET6;
+	  address.in6.sin6_port = service->port;
+	  address.in6.sin6_flowinfo = 0;
+	  address.in6.sin6_scope_id = interfaceIndex;
+	  memcpy(&address.in6.sin6_addr, rdata, rdlen);
+	  inet_ntop(AF_INET6, &address.in6.sin6_addr, rdb, sizeof rdb);
+	  LOG(@"Found IPv6 <%s> on port %d", rdb, ntohs(service->port));
 	  break;
 #endif /* AF_INET6 */      
 	
@@ -1202,10 +1195,10 @@ static void DNSSD_API
       }
     
     // check for duplicate entries
-    if ([self addAddress: rdb])
+    if (length > 0 && [self addAddress: rdb])
       {
 	// add it
-	data = [NSData dataWithBytes: address
+	data = [NSData dataWithBytes: &address.sa
 			      length: length];
 	
 	[addresses addObject: data];
