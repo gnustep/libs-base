@@ -108,7 +108,6 @@ isLocalAddress(const struct sockaddr *sa)
 
 int main()
 {
-  ENTER_POOL
   START_SET("NSNetService resolve")
 
 #if defined(_WIN32)
@@ -209,6 +208,5 @@ int main()
 #endif
 
   END_SET("NSNetService resolve")
-  LEAVE_POOL
   return 0;
 }
