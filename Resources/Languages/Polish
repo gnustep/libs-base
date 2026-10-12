@@ -4,7 +4,7 @@
   NSLanguageCode = POL;
   NSFormalName = "Polski";
   
-  NSCurrencySymbol = "Złoty";
+  NSCurrencySymbol = "Z\U0142oty";
   NSPositiveCurrencyFormatString = "$9,999.00";
   NSNegativeCurrencyFormatString = "$-9,999.00";
   NSInternationalCurrencyString = "PLN";
@@ -16,20 +16,20 @@
   NSAMPMDesignation = (AM, PM);
   NSDateFormatString = "%A, %B %d, %Y";
   NSDateTimeOrdering = DMYH;
-  NSEarlierTimeDesignations = (poprzednia, ostatnia, przeszłość, przeszłość);
-  NSHourNameDesignations = ((0, północ), (12, południe, obiad), (10, rano), (14, popołudnie), (19, wieczór, kolacja));
-  NSLaterTimeDesignations = (później);
-  NSMonthNameArray = (Styczeń, Luty, Marzec, Kwiecień, Maj, Czerwiec, Lipiec, Sierpień, Wrzesień, Październik, Listopad, Grudzień);
+  NSEarlierTimeDesignations = (poprzednia, ostatnia, "przesz\U0142o\U015b\U0107", "przesz\U0142o\U015b\U0107");
+  NSHourNameDesignations = ((0, "p\U00f3\U0142noc"), (12, "po\U0142udnie", obiad), (10, rano), (14, "popo\U0142udnie"), (19, "wiecz\U00f3r", kolacja));
+  NSLaterTimeDesignations = ("p\U00f3\U017aniej");
+  NSMonthNameArray = ("Stycze\U0144", Luty, Marzec, "Kwiecie\U0144", Maj, Czerwiec, Lipiec, "Sierpie\U0144", "Wrzesie\U0144", "Pa\U017adziernik", Listopad, "Grudzie\U0144");
   NSNextDayDesignations = (jutro);
   NSNextNextDayDesignations = (pojutrze);
   NSPriorDayDesignations = (wczoraj);
   NSShortDateFormatString = "%m/%d/%Y";
   NSShortMonthNameArray = (stycz.,	luty,	mar.,	kwiec.,	maj,	czerw.,	lip.,	sierp.,	wrzes.,	pazdz.,	listop.,	grudz.);
   NSShortTimeDateFormatString = "%d %b, %Y %H:%M";
-  NSShortWeekDayNameArray = (Niedz., Pon., Wt., Śr., Czw., Pt., Sob.);
+  NSShortWeekDayNameArray = (Niedz., Pon., Wt., "\U015ar.", Czw., Pt., Sob.);
   NSThisDayDesignations = (dzisiaj);
   NSTimeDateFormatString = "%a %b %d %H:%M:%S %z %Y";
   NSTimeFormatString = "%H:%M:%S";
-  NSWeekDayNameArray = (Niedziela, Poniedziałek, Wtorek, środa, Czwartek, Piątek, Sobota);
-  NSYearMonthWeekDesignations = (rok, miesiąc, tydzień);
+  NSWeekDayNameArray = (Niedziela, "Poniedzia\U0142ek", Wtorek, "\U015broda", Czwartek, "Pi\U0105tek", Sobota);
+  NSYearMonthWeekDesignations = (rok, "miesi\U0105c", "tydzie\U0144");
 }
