@@ -34,6 +34,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSPropertyList.h"
 #import "Foundation/NSRange.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
@@ -798,24 +799,23 @@ static SEL	rlSel;
  * <p>Initialises the array with the contents of the specified file,
  * which must contain an array in property-list format.
  * </p>
- * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
- * method will recognise which it is.
+ * <p>The property list may be in any format NSPropertyListSerialization
+ * reads: binary, XML or OpenStep ... this method recognises which it is.
  * </p>
  * <p>If there is a failure to load the file for any reason, the receiver
  * will be released, the method will return nil, and a warning may be logged.
  * </p>
- * <p>Works by invoking [NSString-initWithContentsOfFile:] and
- * [NSString-propertyList] then checking that the result is an array.
+ * <p>Works by reading the data and parsing it with
+ * [NSPropertyListSerialization+propertyListWithData:options:format:error:]
+ * then checking that the result is an array.
  * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)file
 {
-  NSString 	*myString;
+  NSData	*data;
 
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: file];
-  if (myString == nil)
+  data = [NSData dataWithContentsOfFile: file];
+  if (data == nil)
     {
       DESTROY(self);
     }
@@ -823,16 +823,19 @@ static SEL	rlSel;
     {
       id result;
 
+      /* Any format: the data says which (binary, XML or OpenStep). */
       NS_DURING
 	{
-	  result = [myString propertyList];
+	  result = [NSPropertyListSerialization propertyListWithData: data
+	    options: NSPropertyListMutableContainers
+	    format: NULL
+	    error: NULL];
 	}
       NS_HANDLER
 	{
           result = nil;
 	}
       NS_ENDHANDLER
-      RELEASE(myString);
       if ([result isKindOfClass: NSArrayClass])
 	{
 	  //self = [self initWithArray: result];
@@ -855,24 +858,23 @@ static SEL	rlSel;
  * <p>Initialises the array with the contents of the specified URL,
  * which must contain an array in property-list format.
  * </p>
- * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (UTF8 XML data) ... this
- * method will recognise which it is.
+ * <p>The property list may be in any format NSPropertyListSerialization
+ * reads: binary, XML or OpenStep ... this method recognises which it is.
  * </p>
  * <p>If there is a failure to load the URL for any reason, the receiver
  * will be released, the method will return nil, and a warning may be logged.
  * </p>
- * <p>Works by invoking [NSString-initWithContentsOfURL:] and
- * [NSString-propertyList] then checking that the result is an array.
+ * <p>Works by reading the data and parsing it with
+ * [NSPropertyListSerialization+propertyListWithData:options:format:error:]
+ * then checking that the result is an array.
  * </p>
  */
 - (id) initWithContentsOfURL: (NSURL*)aURL
 {
-  NSString 	*myString;
+  NSData	*data;
 
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfURL: aURL];
-  if (myString == nil)
+  data = [NSData dataWithContentsOfURL: aURL];
+  if (data == nil)
     {
       DESTROY(self);
     }
@@ -880,16 +882,19 @@ static SEL	rlSel;
     {
       id result;
 
+      /* Any format: the data says which (binary, XML or OpenStep). */
       NS_DURING
 	{
-	  result = [myString propertyList];
+	  result = [NSPropertyListSerialization propertyListWithData: data
+	    options: NSPropertyListMutableContainers
+	    format: NULL
+	    error: NULL];
 	}
       NS_HANDLER
 	{
           result = nil;
 	}
       NS_ENDHANDLER
-      RELEASE(myString);
       if ([result isKindOfClass: NSArrayClass])
 	{
 	  self = [self initWithArray: result];

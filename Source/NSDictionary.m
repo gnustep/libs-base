@@ -31,6 +31,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSOrderedSet.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSPropertyList.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSFileManager.h"
@@ -636,24 +637,23 @@ static SEL	appSel;
  * <p>Initialises the dictionary with the contents of the specified file,
  * which must contain a dictionary in property-list format.
  * </p>
- * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
- * method will recognise which it is.
+ * <p>The property list may be in any format NSPropertyListSerialization
+ * reads: binary, XML or OpenStep ... this method recognises which it is.
  * </p>
  * <p>If there is a failure to load the file for any reason, the receiver
  * will be released and the method will return nil.
  * </p>
- * <p>Works by invoking [NSString-initWithContentsOfFile:] and
- * [NSString-propertyList] then checking that the result is a dictionary.
+ * <p>Works by reading the data and parsing it with
+ * [NSPropertyListSerialization+propertyListWithData:options:format:error:]
+ * then checking that the result is a dictionary.
  * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  NSString 	*myString;
+  NSData	*data;
 
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: path];
-  if (myString == nil)
+  data = [NSData dataWithContentsOfFile: path];
+  if (data == nil)
     {
       DESTROY(self);
     }
@@ -661,16 +661,19 @@ static SEL	appSel;
     {
       id result;
 
+      /* Any format: the data says which (binary, XML or OpenStep). */
       NS_DURING
 	{
-	  result = [myString propertyList];
+	  result = [NSPropertyListSerialization propertyListWithData: data
+	    options: NSPropertyListImmutable
+	    format: NULL
+	    error: NULL];
 	}
       NS_HANDLER
 	{
           result = nil;
 	}
       NS_ENDHANDLER
-      RELEASE(myString);
       if ([result isKindOfClass: NSDictionaryClass])
 	{
 	  self = [self initWithDictionary: result];
@@ -689,24 +692,23 @@ static SEL	appSel;
  * <p>Initialises the dictionary with the contents of the specified URL,
  * which must contain a dictionary in property-list format.
  * </p>
- * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
- * method will recognise which it is.
+ * <p>The property list may be in any format NSPropertyListSerialization
+ * reads: binary, XML or OpenStep ... this method recognises which it is.
  * </p>
  * <p>If there is a failure to load the URL for any reason, the receiver
  * will be released and the method will return nil.
  * </p>
- * <p>Works by invoking [NSString-initWithContentsOfURL:] and
- * [NSString-propertyList] then checking that the result is a dictionary.
+ * <p>Works by reading the data and parsing it with
+ * [NSPropertyListSerialization+propertyListWithData:options:format:error:]
+ * then checking that the result is a dictionary.
  * </p>
  */
 - (id) initWithContentsOfURL: (NSURL*)aURL
 {
-  NSString 	*myString;
+  NSData	*data;
 
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfURL: aURL];
-  if (myString == nil)
+  data = [NSData dataWithContentsOfURL: aURL];
+  if (data == nil)
     {
       DESTROY(self);
     }
@@ -714,16 +716,19 @@ static SEL	appSel;
     {
       id result;
 
+      /* Any format: the data says which (binary, XML or OpenStep). */
       NS_DURING
 	{
-	  result = [myString propertyList];
+	  result = [NSPropertyListSerialization propertyListWithData: data
+	    options: NSPropertyListImmutable
+	    format: NULL
+	    error: NULL];
 	}
       NS_HANDLER
 	{
           result = nil;
 	}
       NS_ENDHANDLER
-      RELEASE(myString);
       if ([result isKindOfClass: NSDictionaryClass])
 	{
 	  self = [self initWithDictionary: result];
