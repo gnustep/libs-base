@@ -25,7 +25,7 @@ written(id plist, NSPropertyListFormat format, NSString *name)
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSDictionary          *dict;
   NSArray               *array;
   NSString              *path;
@@ -33,7 +33,8 @@ int main()
   dict = [NSDictionary dictionaryWithObjectsAndKeys:
     @"a.b.c", @"access", [NSNumber numberWithDouble: 1.5], @"expires",
     [NSArray arrayWithObject: @"x"], @"list", nil];
-  array = [NSArray arrayWithObjects: @"one", [NSNumber numberWithInt: 2], dict, nil];
+  array = [NSArray arrayWithObjects:
+    @"one", [NSNumber numberWithInt: 2], dict, nil];
 
   START_SET("a binary property list is read back")
 
@@ -50,7 +51,8 @@ int main()
   PASS_EQUAL([NSArray arrayWithContentsOfURL: [NSURL fileURLWithPath: path]],
     array, "+[NSArray arrayWithContentsOfURL:]")
   PASS([[NSArray arrayWithContentsOfFile: path]
-    isKindOfClass: [NSMutableArray class]], "and the array is mutable, as before")
+    isKindOfClass: [NSMutableArray class]],
+    "and the array is mutable, as before")
 
   END_SET("a binary property list is read back")
 
@@ -66,14 +68,18 @@ int main()
   START_SET("anything else is nil")
 
   path = [NSTemporaryDirectory() stringByAppendingPathComponent: @"plist-none"];
-  [[NSData dataWithBytes: "\x01\x02\xff" length: 3] writeToFile: path atomically: YES];
-  PASS([NSDictionary dictionaryWithContentsOfFile: path] == nil, "bytes that are no property list")
+  [[NSData dataWithBytes: "\x01\x02\xff" length: 3]
+    writeToFile: path atomically: YES];
+  PASS([NSDictionary dictionaryWithContentsOfFile: path] == nil,
+    "bytes that are no property list")
   path = written(array, NSPropertyListBinaryFormat_v1_0, @"plist-binary-array");
-  PASS([NSDictionary dictionaryWithContentsOfFile: path] == nil, "an array, for a dictionary")
-  PASS([NSDictionary dictionaryWithContentsOfFile: @"/nonexistent/plist"] == nil, "no file")
+  PASS([NSDictionary dictionaryWithContentsOfFile: path] == nil,
+    "an array, for a dictionary")
+  PASS([NSDictionary dictionaryWithContentsOfFile:
+    @"/nonexistent/plist"] == nil, "no file")
 
   END_SET("anything else is nil")
 
-  [arp release];
+  LEAVE_POOL
   return 0;
 }
