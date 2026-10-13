@@ -1022,7 +1022,7 @@ dnsaliases(NSString *host, NSMutableSet *names)
 
 + (NSHost*) hostWithName: (NSString*)name
 {
-  NSHost	*host;
+  NSHost	*host = nil;
 
   if (name == nil)
     {
@@ -1360,7 +1360,7 @@ dnsaliases(NSString *host, NSMutableSet *names)
 @implementation	NSHost (GNUstep)
 + (NSHost*) cachedHostWithName: (NSString*)name
 {
-  NSHost	*host;
+  NSHost	*host = nil;
 
   if (name == nil)
     {
@@ -1392,6 +1392,7 @@ dnsaliases(NSString *host, NSMutableSet *names)
       host = RETAIN([_hostCache objectForKey: name]);
       [_hostCacheLock unlock];
     }
+
   return host;
 }
 
