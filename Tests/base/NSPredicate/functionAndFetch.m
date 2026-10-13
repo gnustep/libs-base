@@ -28,6 +28,11 @@
 @end
 
 @implementation FetchStub
+- (void) dealloc
+{
+  DESTROY(_request);
+  DEALLOC
+}
 - (NSArray *) executeFetchRequest: (id)request error: (NSError **)error
 {
   ASSIGN(_request, request);
@@ -62,7 +67,7 @@
 
 int main(void)
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("function and fetch")
   FetchStub             *stub = AUTORELEASE([FetchStub new]);
   NSMutableDictionary   *context;
   NSExpression          *e;
@@ -180,6 +185,7 @@ int main(void)
     ([NSArray arrayWithObjects: @"one", @"two", @"three", nil]),
     "and evaluates afterwards");
 
-  [arp release];
+  END_SET("function and fetch")
+
   return 0;
 }
