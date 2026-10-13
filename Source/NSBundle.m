@@ -3039,7 +3039,7 @@ IF_NO_ARC(
 					  table: @"InfoPlist"];
 	      if (loc != val)
 		{
-		  [m setObject: loc forKey: val];
+		  [m setObject: loc forKey: key];
 		}
 	    }
 	}
