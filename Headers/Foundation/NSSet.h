@@ -104,7 +104,8 @@ DEFINE_BLOCK_TYPE(GSSetFilterBlock, BOOL, GS_GENERIC_TYPE(ElementT), BOOL*);
  * whether the enumeration should stop.  Setting this to YES will interupt
  * the enumeration.
  */
-- (void) enumerateObjectsUsingBlock:(GSSetEnumeratorBlock)aBlock;
+- (void) enumerateObjectsUsingBlock:(GSSetEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Enumerate over the collection using the given block.  The first argument is
@@ -117,14 +118,17 @@ DEFINE_BLOCK_TYPE(GSSetFilterBlock, BOOL, GS_GENERIC_TYPE(ElementT), BOOL*);
  * that it should be enumerated in reverse order.
  */
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
-                          usingBlock: (GSSetEnumeratorBlock)aBlock;
+                          usingBlock: (GSSetEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 
 - (GS_GENERIC_CLASS(NSSet, ElementT) *) objectsPassingTest:
-    (GSSetFilterBlock)aBlock;
+    (GSSetFilterBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 
 - (GS_GENERIC_CLASS(NSSet, ElementT) *) objectsWithOptions:
     (NSEnumerationOptions)opts
-                                    passingTest: (GSSetFilterBlock)aBlock;
+                                    passingTest: (GSSetFilterBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)

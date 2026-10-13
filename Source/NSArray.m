@@ -1803,7 +1803,10 @@ compare(id elem1, id elem2, void* context)
 
 - (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
+#pragma GCC diagnostic pop
 }
 
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
@@ -1848,8 +1851,11 @@ compare(id elem1, id elem2, void* context)
 			   options: (NSEnumerationOptions)opts
 		        usingBlock: (GSEnumeratorBlock)block
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
 						      usingBlock: block];
+#pragma GCC diagnostic pop
 }
 
 - (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts
@@ -1913,21 +1919,27 @@ compare(id elem1, id elem2, void* context)
 
 - (NSIndexSet*) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSIndexSet*) indexesOfObjectsAtIndexes: (NSIndexSet*)indexSet
 				  options: (NSEnumerationOptions)opts
 			      passingTest: (GSPredicateBlock)predicate
 {
-  NSIndexSet *rindexes =[[self objectsAtIndexes: indexSet]
-			 indexesOfObjectsWithOptions: opts
-					 passingTest: predicate];
-  NSUInteger count = [indexSet count];
-  NSUInteger resultCount = [rindexes count];
-  NSUInteger indexArray[count], resultIndexArray[resultCount];
-  NSMutableIndexSet *resultSet = [NSMutableIndexSet indexSet];
-  NSUInteger i = 0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  NSIndexSet		*rindexes = [[self objectsAtIndexes: indexSet]
+				indexesOfObjectsWithOptions: opts
+						passingTest: predicate];
+#pragma GCC diagnostic pop
+  NSUInteger		count = [indexSet count];
+  NSUInteger		resultCount = [rindexes count];
+  NSUInteger 		indexArray[count], resultIndexArray[resultCount];
+  NSMutableIndexSet	*resultSet = [NSMutableIndexSet indexSet];
+  NSUInteger		i = 0;
   
   [indexSet getIndexes: indexArray
 	      maxCount: count
@@ -1938,10 +1950,11 @@ compare(id elem1, id elem2, void* context)
 	  inIndexRange: NULL];
 
   // interate over indexes and collect the matching ones..
-  for(i = 0; i < resultCount; i++)
+  for (i = 0; i < resultCount; i++)
     {
-      NSUInteger rindx = resultIndexArray[i];
-      NSUInteger indx = indexArray[rindx];
+      NSUInteger	rindx = resultIndexArray[i];
+      NSUInteger	indx = indexArray[rindx];
+
       [resultSet addIndex: indx];
     }
 
@@ -2014,18 +2027,24 @@ compare(id elem1, id elem2, void* context)
 
 - (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self indexOfObjectWithOptions: 0 passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate
 {
-  NSUInteger index = [[self objectsAtIndexes: indexSet]
-		       indexOfObjectWithOptions: 0
-				    passingTest: predicate];
-  NSUInteger count = [indexSet count];
-  NSUInteger indexArray[count];
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  NSUInteger		index = [[self objectsAtIndexes: indexSet]
+			       indexOfObjectWithOptions: 0
+					    passingTest: predicate];
+#pragma GCC diagnostic pop
+  NSUInteger		count = [indexSet count];
+  NSUInteger		indexArray[count];
 
   [indexSet getIndexes: indexArray
 	      maxCount: count

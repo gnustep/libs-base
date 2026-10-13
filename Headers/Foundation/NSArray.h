@@ -189,7 +189,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  * a pointer to a BOOL indicating whether the enumeration should stop.  Setting
  * this to YES will interrupt the enumeration.
  */
-- (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock;
+- (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Enumerate over the collection using the given block.  The first argument is
@@ -202,7 +203,9 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  * that it should be enumerated in reverse order.
  */
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
-			  usingBlock: (GSEnumeratorBlock)aBlock;
+			  usingBlock: (GSEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
+
 /**
  * Enumerate over the specified indexes in the collection using the given
  * block.  The first argument is the object and the second is the index in the
@@ -216,7 +219,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  */
 - (void) enumerateObjectsAtIndexes: (NSIndexSet*)indexSet
 			   options: (NSEnumerationOptions)opts
-			usingBlock: (GSEnumeratorBlock)block;
+			usingBlock: (GSEnumeratorBlock)block
+GS_NON_PORTABLE(use fast enumeration instead);
 /**
  * Returns the indexes of the objects in a collection that match the condition
  * specified by the block.
@@ -226,13 +230,15 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  * that it should be enumerated in reverse order.
  */
 - (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts
-				 passingTest: (GSPredicateBlock)predicate;
+				 passingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Returns the indexes of the objects in a collection that match the condition
  * specified by the block.
  */
-- (NSIndexSet*) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate;
+- (NSIndexSet*) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Returns the indexes of the objects in a collection that match the condition
@@ -244,7 +250,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  */
 - (NSIndexSet*) indexesOfObjectsAtIndexes: (NSIndexSet*)indexSet
 				  options: (NSEnumerationOptions)opts
-			      passingTest: (GSPredicateBlock)predicate;
+			      passingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Returns the index of the first object in the array that matches the
@@ -255,13 +262,15 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  * that it should be enumerated in reverse order.
  */
 - (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
-			    passingTest: (GSPredicateBlock)predicate;
+			    passingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Returns the index of the first object in the array that matches the
  * condition specified by the block.
  */
-- (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate;
+- (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /**
  * Returns the index of the first object in the specified range in a collection
@@ -273,7 +282,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  */
 - (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
 			      options: (NSEnumerationOptions)opts
-			  passingTest: (GSPredicateBlock)predicate;
+			  passingTest: (GSPredicateBlock)predicate
+GS_NON_PORTABLE(use fast enumeration instead);
 
 /** Returns a sorted array using the comparator to determine the
  * order of objects.

@@ -614,13 +614,19 @@ static SEL	remSel;
                            options: (NSEnumerationOptions)opts
                         usingBlock: (GSEnumeratorBlock)aBlock
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
 						      usingBlock: aBlock];
+#pragma GCC diagnostic pop
 }
 
 - (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
+#pragma GCC diagnostic pop
 }
 
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
@@ -814,15 +820,21 @@ static SEL	remSel;
                               options: (NSEnumerationOptions)opts
                           passingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [[self array]
            indexOfObjectAtIndexes: indexSet
                           options: opts
                       passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self indexOfObjectWithOptions: 0 passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
@@ -892,15 +904,21 @@ static SEL	remSel;
 				   options: (NSEnumerationOptions)opts
 			       passingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [[self array]
            indexesOfObjectsAtIndexes: indexSet
                              options: opts
                          passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSIndexSet *) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts

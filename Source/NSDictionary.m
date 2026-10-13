@@ -161,8 +161,11 @@ static SEL	appSel;
 - (void) enumerateKeysAndObjectsUsingBlock:
   (GSKeysAndObjectsEnumeratorBlock)aBlock
 {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateKeysAndObjectsWithOptions: 0
                                 usingBlock: aBlock];
+#pragma GCC diagnostic pop 
 }
 
 - (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
@@ -1103,8 +1106,11 @@ compareIt(id o1, id o2, void* context)
 
 - (NSSet*) keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
 {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self keysOfEntriesWithOptions: 0
                             passingTest: aPredicate];
+#pragma GCC diagnostic pop 
 }
 
 /**

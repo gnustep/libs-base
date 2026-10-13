@@ -73,9 +73,11 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
 - (void) enumerateKeysAndObjectsUsingBlock:
-  (GSKeysAndObjectsEnumeratorBlock)aBlock;
+  (GSKeysAndObjectsEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 - (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
-  usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock;
+  usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
+GS_NON_PORTABLE(use fast enumeration instead);
 #endif
 
 - (void) getObjects:
@@ -107,10 +109,12 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesPassingTest:
-    (GSKeysAndObjectsPredicateBlock)aPredicate;
+    (GSKeysAndObjectsPredicateBlock)aPredicate
+GS_NON_PORTABLE(use fast enumeration instead);
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesWithOptions:
   (NSEnumerationOptions)opts
-  passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+  passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
+GS_NON_PORTABLE(use fast enumeration instead);
 #endif
 
 - (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingSelector: (SEL)comp;
