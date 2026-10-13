@@ -486,22 +486,39 @@ selectCharacterSet(NSString *str, NSData **d)
 static NSData*
 encodeWord(NSData *word, NSString *charset)
 {
-  int		len = [charset length];
-  char		buf[len + 1];
-  NSMutableData	*md;
-  NSData	*d;
+  const uint8_t	*wordBytes = [word bytes];
+  int		wordLength = [word length];
+  int		charsetLength = [charset length];
+  NSUInteger	encodedLength = wordLength*4/3;
+  NSUInteger	totalLength = charsetLength + encodedLength + 8;
+  NSData	*result;
+  uint8_t	*buf;
+  uint8_t	*ptr;
 
-  [charset getCString: buf
-	    maxLength: len + 1
+  if (NULL == (buf = malloc(totalLength)))
+    {
+      return nil;
+    }
+  ptr = buf;
+  *ptr++ = '=';
+  *ptr++ = '?';
+  [charset getCString: (char*)ptr
+	    maxLength: charsetLength + 1
 	     encoding: NSISOLatin1StringEncoding];
-  md = [NSMutableData dataWithCapacity: [word length]*4/3 + len + 8];
-  d = [word base64EncodedDataWithOptions: 0];
-  [md appendBytes: "=?" length: 2];
-  [md appendBytes: buf length: len];
-  [md appendBytes: "?B?" length: 3];
-  [md appendData: d];
-  [md appendBytes: "?=" length: 2];
-  return md;
+  ptr += charsetLength;
+  *ptr++ = '?';
+  *ptr++ = 'B';
+  *ptr++ = '?';
+  GSPrivateEncodeBase64(wordBytes, wordLength, ptr);
+  ptr += encodedLength;
+  *ptr++ = '?';
+  *ptr++ = '=';
+  *ptr = '\0';	// not really needed
+  
+  result = [[NSData alloc] initWithBytesNoCopy: buf
+					length: totalLength
+				  freeWhenDone: YES]; 
+  return AUTORELEASE(result);
 }
 
 /**

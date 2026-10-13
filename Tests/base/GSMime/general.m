@@ -72,7 +72,7 @@ exact(GSMimeParser **parserPointer, NSData *data)
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSData *cr;
   NSData *data;
   NSData *orig;
@@ -301,7 +301,20 @@ int main()
   PASS([[doc allHeaders] count] == 0, "empty document part has no headers")
   PASS_EQUAL([doc content], nil, "empty document part has no content")
 
-  [arp release]; arp = nil;
+  orig = [NSData dataWithContentsOfFile: @"mime14.dat"];
+  doc = [GSMimeParser documentFromData: orig];
+  PASS([[doc allHeaders] count] == 6, "special character doc has 6 headers")
+  PASS_EQUAL([[doc headerNamed: @"from"] value],
+    @"José\r\nAdmin <jose@example.com>", 
+    "special character doc decodes from header correctly")
+  PASS_EQUAL([[doc headerNamed: @"subject"] value],
+    @"Hello\r\nWorld — Café",
+    "special character doc decodes subject header correctly")
+  data = [doc rawMimeData];
+  idoc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "encode/parse cycle OK for special character doc")
+
+  LEAVE_POOL
   return 0;
 }
 #else
