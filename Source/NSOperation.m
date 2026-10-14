@@ -610,7 +610,12 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 - (id<GSOperationCompletion>) delegate
 {
-  return (id<GSOperationCompletion>)objc_loadWeak(&internal->delegate);
+//  void  *ref = internal->delegate;
+  id    obj = objc_loadWeak(&internal->delegate);
+   
+//GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
+  return (id<GSOperationCompletion>)obj;
+
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
@@ -618,13 +623,20 @@ static const NSInteger GSOperationFinishedCondition = 1;
   DESTROY(internal->completionBlock);
   if (internal->delegate)
     {
-      objc_destroyWeak(&internal->delegate);
-      internal->delegate = nil;
+      if (anObject)
+	{
+	  objc_storeWeak(&internal->delegate, (id)anObject);
+	}
+      else
+	{
+	  objc_destroyWeak(&internal->delegate);
+	}
     }
-  if (anObject)
+  else if (anObject)
     {
       objc_initWeak(&internal->delegate, (id)anObject);
     }
+//GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
 }
 
 @end
