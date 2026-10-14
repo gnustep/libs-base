@@ -619,7 +619,6 @@ GSPrintf(stderr, @"Calling completion with %p\n", del);
   id	obj = objc_loadWeak(&internal->delegate);
 
 GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
-  return (id<GSOperationCompletion>)obj;
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
