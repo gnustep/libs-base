@@ -321,9 +321,11 @@ static const NSInteger GSOperationFinishedCondition = 1;
       [object removeObserver: self forKeyPath: @"isFinished"];
 
       /* Concurrent operations: Call completion block and set internal finished
-       * state so we don't try removing the observer again in -dealloc. */
-      if (YES == [self isConcurrent])
+       * state so we don't try removing the observer again in -dealloc.
+       */
+      if ([self isConcurrent])
         {
+GSPrintf(stdout, @"Finish concurrent with weak ref %p", internal->delegate);
           internal->finished = YES;
 	  if (internal->delegate)
 	    {
@@ -331,6 +333,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 	      if ([del respondsToSelector: @selector(operationCompleted)])
 		{
+GSPrintf(stdout, @"Calling completion with %p", del);
 		  [del operationCompleted];
 		}
 	    }
@@ -540,12 +543,14 @@ static const NSInteger GSOperationFinishedCondition = 1;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
+GSPrintf(stdout, @"Finish synchronous with weak ref %p", internal->delegate);
       if (internal->delegate)
 	{
 	  id	del = [self delegate];
 
 	  if ([del respondsToSelector: @selector(operationCompleted)])
 	    {
+GSPrintf(stdout, @"Calling completion with %p", del);
 	      [del operationCompleted];
 	    }
 	}
@@ -610,7 +615,11 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 - (id<GSOperationCompletion>) delegate
 {
-  return (id<GSOperationCompletion>)objc_loadWeak(&internal->delegate);
+  void	*ref = internal->delegate;
+  id	obj = objc_loadWeak(&internal->delegate);
+
+GSPrintf(stdout, @"-delegate %p weak %p", obj, ref);
+  return (id<GSOperationCompletion>)obj;
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
@@ -618,13 +627,20 @@ static const NSInteger GSOperationFinishedCondition = 1;
   DESTROY(internal->completionBlock);
   if (internal->delegate)
     {
-      objc_destroyWeak(&internal->delegate);
-      internal->delegate = nil;
+      if (anObject)
+	{
+	  objc_storeWeak(&internal->delegate, (id)anObject);
+	}
+      else
+	{
+	  objc_destroyWeak(&internal->delegate);
+	}
     }
-  if (anObject)
+  else if (anObject)
     {
       objc_initWeak(&internal->delegate, (id)anObject);
     }
+GSPrintf(stdout, @"-setDelegate: %p weak %p", anObject, internal->delegate);
 }
 
 @end
