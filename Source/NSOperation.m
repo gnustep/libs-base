@@ -257,8 +257,8 @@ static const NSInteger GSOperationFinishedCondition = 1;
       internal->lock = [NSRecursiveLock new];
       [internal->lock setName:
         [NSString stringWithFormat: @"lock-for-opqueue-%p", self]];
-      internal->cond
-	= [[NSConditionLock alloc] initWithCondition: GSOperationInitialCondition];
+      internal->cond = [[NSConditionLock alloc]
+	initWithCondition: GSOperationInitialCondition];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-opqueue-%p", self]];
       [self addObserver: self
