@@ -1218,6 +1218,11 @@ didUpdateRecordData: (id)data
 {
   if (_serviceState < GSNetServiceResolving)
     {
+      if (NULL == _client)
+        {
+          [self handleError: AVAHI_ERR_NO_DAEMON];
+          return;
+        }
       _resolver =  (void*)avahi_service_resolver_new((AvahiClient*)_client,
                                                              _ifIndex,
                                                             _protocol,
@@ -1362,6 +1367,14 @@ didUpdateRecordData: (id)data
     || (_serviceState > GSNetServiceRecordBrowsing))
     {
       [self handleError: NSNetServicesBadArgumentError
+              forRRCode: code];
+      [_lock unlock];
+      return;
+    }
+
+  if (NULL == _client)
+    {
+      [self handleError: AVAHI_ERR_NO_DAEMON
               forRRCode: code];
       [_lock unlock];
       return;
