@@ -325,7 +325,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
        */
       if ([self isConcurrent])
         {
-GSPrintf(stdout, @"Finish concurrent with weak ref %p", internal->delegate);
+GSPrintf(stderr, @"Finish concurrent with weak ref %p\n", internal->delegate);
           internal->finished = YES;
 	  if (internal->delegate)
 	    {
@@ -333,7 +333,7 @@ GSPrintf(stdout, @"Finish concurrent with weak ref %p", internal->delegate);
 
 	      if ([del respondsToSelector: @selector(operationCompleted)])
 		{
-GSPrintf(stdout, @"Calling completion with %p", del);
+GSPrintf(stderr, @"Calling completion with %p\n", del);
 		  [del operationCompleted];
 		}
 	    }
@@ -543,14 +543,14 @@ GSPrintf(stdout, @"Calling completion with %p", del);
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-GSPrintf(stdout, @"Finish synchronous with weak ref %p", internal->delegate);
+GSPrintf(stderr, @"Finish synchronous with weak ref %p\n", internal->delegate);
       if (internal->delegate)
 	{
 	  id	del = [self delegate];
 
 	  if ([del respondsToSelector: @selector(operationCompleted)])
 	    {
-GSPrintf(stdout, @"Calling completion with %p", del);
+GSPrintf(stderr, @"Calling completion with %p\n", del);
 	      [del operationCompleted];
 	    }
 	}
@@ -618,7 +618,7 @@ GSPrintf(stdout, @"Calling completion with %p", del);
   void	*ref = internal->delegate;
   id	obj = objc_loadWeak(&internal->delegate);
 
-GSPrintf(stdout, @"-delegate %p weak %p", obj, ref);
+GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
   return (id<GSOperationCompletion>)obj;
 }
 
@@ -640,7 +640,7 @@ GSPrintf(stdout, @"-delegate %p weak %p", obj, ref);
     {
       objc_initWeak(&internal->delegate, (id)anObject);
     }
-GSPrintf(stdout, @"-setDelegate: %p weak %p", anObject, internal->delegate);
+GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
 }
 
 @end
