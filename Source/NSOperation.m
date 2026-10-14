@@ -222,7 +222,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 	}
       if (internal->delegate)
 	{
-	  objc_destroyWeak(&internal->delegate);
+	  objc_storeWeak(&internal->delegate, nil);
 	}
       GS_DESTROY_INTERNAL(NSOperation);
     }
@@ -257,8 +257,8 @@ static const NSInteger GSOperationFinishedCondition = 1;
       internal->lock = [NSRecursiveLock new];
       [internal->lock setName:
         [NSString stringWithFormat: @"lock-for-opqueue-%p", self]];
-      internal->cond
-	= [[NSConditionLock alloc] initWithCondition: GSOperationInitialCondition];
+      internal->cond = [[NSConditionLock alloc]
+	initWithCondition: GSOperationInitialCondition];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-opqueue-%p", self]];
       [self addObserver: self
@@ -615,27 +615,12 @@ static const NSInteger GSOperationFinishedCondition = 1;
    
 //GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
   return (id<GSOperationCompletion>)obj;
-
 }
 
 - (void) setDelegate: (id<GSOperationCompletion>)anObject
 {
   DESTROY(internal->completionBlock);
-  if (internal->delegate)
-    {
-      if (anObject)
-	{
-	  objc_storeWeak(&internal->delegate, (id)anObject);
-	}
-      else
-	{
-	  objc_destroyWeak(&internal->delegate);
-	}
-    }
-  else if (anObject)
-    {
-      objc_initWeak(&internal->delegate, (id)anObject);
-    }
+  objc_storeWeak(&internal->delegate, (id)anObject);
 //GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
 }
 
