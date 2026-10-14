@@ -29,11 +29,12 @@ static BOOL completionHandled = NO;
 }
 - (void) beginOperation;
 - (void) completeOperation;
+- (instancetype) initWithValue: (int)aVal;
 @end
 
 @implementation MyOperation
 
-- (id) initWithValue: (int)aVal
+- (instancetype) initWithValue: (int)aVal
 {
   self = [super init];
   if (self) {
@@ -131,7 +132,7 @@ int main()
   q = [NSOperationQueue new];
 
   // single concurrent operation
-  obj = [[MyOperation alloc] initWithValue: 1];
+  obj = [(MyOperation*)[MyOperation alloc] initWithValue: 1];
   [obj setDelegate: AUTORELEASE([MyDelegate new])];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
@@ -142,7 +143,7 @@ int main()
   [obj release];
 
   // single concurrent operation
-  obj = [[MyOperation alloc] initWithValue: 1];
+  obj = [(MyOperation*)[MyOperation alloc] initWithValue: 1];
 # if __has_feature(blocks)
   [obj setCompletionBlock: ^(void){blockDidRun = YES;}];
 # endif
@@ -164,7 +165,7 @@ int main()
   ran = 0;
   for (i = 0; i < want; ++i)
     {
-      obj = [[MyOperation alloc] initWithValue: i];
+      obj = [(MyOperation*)[MyOperation alloc] initWithValue: i];
       [a addObject: obj];
       RELEASE(obj);
       [q addOperation: obj];
@@ -190,7 +191,7 @@ int main()
   a = [NSMutableArray array];
   for (i = 0; i < 10; ++i)
     {
-      obj = [[MyOperation alloc] initWithValue: i];
+      obj = [(MyOperation*)[MyOperation alloc] initWithValue: i];
       [a addObject: obj];
       [obj release];
     }

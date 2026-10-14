@@ -36,7 +36,7 @@
   objc_storeWeak(&value, nil);
   DEALLOC
 }
-- (id) init
+- (instancetype) init
 {
   return [self initWithValue: nil];
 }
