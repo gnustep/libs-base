@@ -322,7 +322,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
       /* Concurrent operations: Call completion block and set internal finished
        * state so we don't try removing the observer again in -dealloc. */
-      if (YES == [self isConcurrent])
+      if ([self isConcurrent])
         {
           internal->finished = YES;
 	  if (internal->delegate)
@@ -449,13 +449,13 @@ static const NSInteger GSOperationFinishedCondition = 1;
   [internal->lock lock];
   NS_DURING
     {
-      if (YES == [self isExecuting])
+      if ([self isExecuting])
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"[%@-%@] called on executing operation",
 	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	}
-      if (YES == [self isFinished])
+      if ([self isFinished])
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"[%@-%@] called on finished operation",
@@ -525,7 +525,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
   [internal->lock lock];
   if (NO == internal->finished)
     {
-      if (YES == internal->executing)
+      if (internal->executing)
         {
 	  [self willChangeValueForKey: @"isExecuting"];
 	  [self willChangeValueForKey: @"isFinished"];
@@ -794,7 +794,7 @@ static void dispatchQueueExecuteOperation(void *context);
 
 - (void) dealloc
 {
-  if (YES == _ownsUnderlyingQueue)
+  if (_ownsUnderlyingQueue)
     {
       dispatch_release(_underlyingQueue);
     }
@@ -897,7 +897,7 @@ static void dispatchQueueExecuteOperation(void *context);
         }
 
       dispatch_retain(dispatchQueue);
-      if (YES == _ownsUnderlyingQueue && _underlyingQueue != NULL)
+      if (_ownsUnderlyingQueue && _underlyingQueue != NULL)
         {
           dispatch_release(_underlyingQueue);
         }
@@ -915,7 +915,7 @@ static void dispatchQueueExecuteOperation(void *context);
 
 - (void) initAsMainQueue
 {
-  if (YES == _ownsUnderlyingQueue && _underlyingQueue != NULL)
+  if (_ownsUnderlyingQueue && _underlyingQueue != NULL)
     {
       dispatch_release(_underlyingQueue);
     }
@@ -998,7 +998,7 @@ dispatchQueueExecuteOperation(void *context)
       [internal->operations addObject: op];
       [self didChangeValueForKey: @"operationCount"];
       [self didChangeValueForKey: @"operations"];
-      if (YES == [op isReady])
+      if ([op isReady])
 	{
 	  [self observeValueForKeyPath: @"isReady"
 			      ofObject: op
@@ -1059,7 +1059,7 @@ dispatchQueueExecuteOperation(void *context)
 	      toAdd = 0;
 	      break;
 	    }
-	  if (YES == [op isFinished])
+	  if ([op isFinished])
 	    {
 	      buf[index] = nil;
 	      toAdd--;
@@ -1112,7 +1112,7 @@ dispatchQueueExecuteOperation(void *context)
           [internal->lock unlock];
 	}
       GS_ENDITEMBUF()
-      if (YES == invalidArg)
+      if (invalidArg)
 	{
 	  [NSException raise: NSInvalidArgumentException
 	    format: @"[%@-%@] object at index %"PRIuPTR" is not an NSOperation",
@@ -1120,7 +1120,7 @@ dispatchQueueExecuteOperation(void *context)
 	    index];
 	}
     }
-  if (YES == shouldWait)
+  if (shouldWait)
     {
       [self waitUntilAllOperationsAreFinished];
     }
@@ -1342,7 +1342,7 @@ dispatchQueueExecuteOperation(void *context)
   if (context == isFinishedCtxt)
     {
       NSOperation *op = object;
-      if (YES == [op isFinished])
+      if ([op isFinished])
         {
           [internal->lock lock];
           internal->executing--;
@@ -1606,7 +1606,7 @@ static const NSInteger GSThreadQueueHasWorkCondition = 1;
 	    }
 	  [mainQueueOperations addObject: op];
 	}
-      else if (YES == [op isConcurrent])
+      else if ([op isConcurrent])
 	{
 	  [op start];
 	}
