@@ -32,6 +32,7 @@
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
 #import "GNUstepBase/GSObjCRuntime.h"
+#include <avahi-common/error.h>
 #include <avahi-client/lookup.h>
 
 #define SERVICE_KEY(name, type, domain, iface, proto) [NSString stringWithFormat: @"%@.%@.%@%d:%d", name, type, domain, iface, proto]
@@ -295,7 +296,11 @@ GSAvahiServiceBrowserEvent(
       /* Check whether the avahi-client is in a working state (the caller
        * might be trying to search again after a failure event).
        */
-      switch (avahi_client_get_state((AvahiClient*)_client))
+      if (_client == NULL)
+	{
+	  err = AVAHI_ERR_NO_DAEMON;
+	}
+      else switch (avahi_client_get_state((AvahiClient*)_client))
 	{
 	  case AVAHI_CLIENT_FAILURE:
 	    err = avahi_client_errno((AvahiClient*)_client);
