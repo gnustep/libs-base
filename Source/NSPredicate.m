@@ -2452,6 +2452,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (NSString *) description
 {
+  if (nil == _obj || [_obj isKindOfClass: [NSNull class]])
+    {
+      return @"nil";
+    }
   if ([_obj isKindOfClass: [NSString class]])
     {
       NSMutableString	*result = nil;
