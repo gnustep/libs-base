@@ -33,10 +33,10 @@
 }
 - (void) dealloc
 {
-  objc_destroyWeak(&value);
+  objc_storeWeak(&value, nil);
   DEALLOC
 }
-- (id) init
+- (instancetype) init
 {
   return [self initWithValue: nil];
 }
@@ -44,7 +44,7 @@
 {
   if ((self = [super init]) != nil)
     {
-      objc_initWeak(&value, v);
+      objc_storeWeak(&value, v);
     }
   return self;
 }
