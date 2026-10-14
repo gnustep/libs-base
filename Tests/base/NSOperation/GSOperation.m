@@ -18,10 +18,10 @@
 
 @interface GSOperationTestTarget : NSObject
 {
-  NSMutableArray *_calls;
-  NSMutableArray *_arguments;
-  id _returnValue;
-  NSLock	*_lock;
+  NSMutableArray	*_calls;
+  NSMutableArray	*_arguments;
+  id 			_returnValue;
+  NSLock		*_lock;
 }
 - (NSArray *) calls;
 - (NSArray *) arguments;
@@ -142,11 +142,13 @@
 
 @interface GSOperationTestDelegate : NSObject <GSOperationCompletion>
 {
-  NSMutableArray *_indexes;
-  NSMutableArray *_results;
-  NSUInteger _completedCount;
-  BOOL _stop;
+  NSMutableArray	*_indexes;
+  NSMutableArray	*_results;
+  NSUInteger		_completedCount;
+  BOOL			_stop;
+  BOOL			_add;
 }
+- (void) setAdd: (BOOL)flag;
 - (void) setStop: (BOOL)flag;
 
 - (NSUInteger) completedCount;
@@ -172,6 +174,11 @@
   RELEASE(_indexes);
   RELEASE(_results);
   DEALLOC
+}
+
+- (void) setAdd: (BOOL)flag
+{
+  _add = flag;
 }
 
 - (void) setStop: (BOOL)flag
@@ -207,6 +214,15 @@
     [NSNumber numberWithUnsignedInteger: index]];
 
   [_results addObject: result ? result : [NSNull null]];
+
+  if (_add)
+    {
+      /* Add a single target/method to the operation.
+       */
+      _add = NO;
+      [operation addOperationTarget: @"dummy"
+		    performSelector: @selector(description)];
+    }
 
   return _stop;
 }
@@ -891,20 +907,28 @@ testDelegateCanAppendItem(void)
   op = [GSOperation new];
 
   [op addOperationTarget: target
-        performSelector: @selector(oneArgument:)
-             withObject: @"initial"];
+         performSelector: @selector(oneArgument:)
+              withObject: @"initial"];
 
   /*
    * Use the delegate's callback to append an item while main is
    * iterating over the operation's item list.
    */
+  [delegate setAdd: YES];
   [delegate setStop: NO];
   [op setDelegate: delegate];
 
-  /*
-   * The standard delegate does not append, so use a small subclass
-   * implemented below.
-   */
+  [op start];
+
+  PASS([op isFinished], "operation with add is finished")
+
+  PASS(([op isExecuting] == NO), "operation with add is not executing")
+
+  PASS([[delegate indexes] count] == 2,
+    "delegate with add has second method call");
+
+  PASS([delegate completedCount] == 1,
+    "operationCompleted is called after added method call");
 
   [op release];
   [delegate release];
@@ -1499,7 +1523,6 @@ testQueueExecution(void)
   [target release];
 }
 
-
 static void
 testQueuedOperationWithDelegate(void)
 {
@@ -1523,13 +1546,17 @@ testQueuedOperationWithDelegate(void)
   [queue waitUntilAllOperationsAreFinished];
 
   PASS([[target calls] count] == 1,
-       "queued GSOperation executes its target");
+    "queued GSOperation executes its target")
 
   PASS([[delegate indexes] count] == 1,
-       "queued GSOperation invokes item delegate");
+    "queued GSOperation invokes item delegate")
+
+  PASS([op isFinished], "queued GSOperation is finished")
+
+  PASS(([op isExecuting] == NO), "queued GSOperation is not executing")
 
   PASS([delegate completedCount] == 1,
-       "queued GSOperation invokes operationCompleted");
+    "queued GSOperation invokes operationCompleted")
 
   [queue release];
   [delegate release];
@@ -1607,6 +1634,7 @@ main(void)
   testDelegateCanAppendItemActuallyExecutes();
   testDelegateCanMutateLaterItem();
   testDelegateWithoutStopMethod();
+  testDelegateCanAppendItem();
 
   /*
    * Delegate lifecycle.
