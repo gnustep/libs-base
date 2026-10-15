@@ -22,7 +22,8 @@
    */
 
 #import "common.h"
-#import "Foundation/Foundation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSOperation.h"
 #import "GNUstepBase/GSBoxWeak.h"
 #import "GNUstepBase/GSOperation.h"
 #import "GSPrivate.h"
@@ -34,6 +35,7 @@
   id	target;
   SEL	selector;
   id	object;
+  id	result;
 }
 @end
 @implementation	GSOp
@@ -41,6 +43,7 @@
 {
   RELEASE(target);
   RELEASE(object);
+  RELEASE(result);
   DEALLOC
 }
 @end
@@ -79,6 +82,7 @@
 - (void) getTarget: (id*)t
           selector: (SEL*)s 
             object: (id*)o 
+            result: (id*)r 
             ofItem: (NSUInteger)i
 {
   GSOp	*op = [_ops objectAtIndex: i];
@@ -94,6 +98,10 @@
   if (o)
     {
       *o = op->object;
+    }
+  if (r)
+    {
+      *r = op->result;
     }
 }
 
@@ -130,11 +138,6 @@
   return [_ops count];
 }
 
-- (NSArray*) items
-{
-  return AUTORELEASE([_ops copy]);
-}
-
 - (void) main
 {
   SEL		sel = @selector(shouldStopOperation:afterItemAt:completedWith:);
@@ -166,6 +169,7 @@
 	  NS_HANDLER
 	    result = localException;
 	  NS_ENDHANDLER
+	  ASSIGN(op->result, result);
 	}
       if ([del shouldStopOperation: self
 		       afterItemAt: index
@@ -192,6 +196,13 @@
   op->selector = s;
 }
 
+- (void) setResult: (id)r atIndex: (NSUInteger)i
+{
+  GSOp	*op = [_ops objectAtIndex: i];
+
+  ASSIGN(op->result, r);
+}
+
 - (void) setTarget: (id)t atIndex: (NSUInteger)i
 {
   GSOp	*op = [_ops objectAtIndex: i];
@@ -201,7 +212,7 @@
 
 @end
 
-#if	__APPLE__
+#if defined(__APPLE__)
 
 #import <objc/runtime.h>
 

@@ -264,6 +264,7 @@ GS_EXPORT_CLASS
 - (void) getTarget: (id*)t
 	  selector: (SEL*)s
 	    object: (id*)o
+	    result: (id*)r
 	    ofItem: (NSUInteger)i;
 - (instancetype) initTarget: (id)aTarget
 		   selector: (SEL)aSelector
@@ -271,6 +272,7 @@ GS_EXPORT_CLASS
 - (NSUInteger) itemCount;
 - (void) setObject: (id)o atIndex: (NSUInteger)i;
 - (void) setSelector: (SEL)s atIndex: (NSUInteger)i;
+- (void) setResult: (id)r atIndex: (NSUInteger)i;
 - (void) setTarget: (id)t atIndex: (NSUInteger)i;
 @end
 
