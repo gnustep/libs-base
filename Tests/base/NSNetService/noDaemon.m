@@ -33,13 +33,11 @@
 
 int main()
 {
-  ENTER_POOL
   START_SET("NSNetService without a daemon")
 
 #if defined(_WIN32)
   SKIP("NSNetService has no zeroconf backend on Windows")
 #else
-  {
   Watcher		*watcher = AUTORELEASE([Watcher new]);
   NSNetServiceBrowser	*browser;
   NSNetService		*service;
@@ -75,10 +73,8 @@ int main()
 			       beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
     }
   PASS(watcher->resolveFailed, "a resolve reports didNotResolve without a daemon")
-  }
 #endif
 
   END_SET("NSNetService without a daemon")
-  LEAVE_POOL
   return 0;
 }
