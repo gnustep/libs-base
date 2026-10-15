@@ -926,7 +926,10 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 
 - (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateRangesWithOptions: 0 usingBlock: aBlock];
+#pragma GCC diagnostic pop 
 }
 
 - (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
@@ -945,7 +948,10 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   lastIndex = [self lastIndex];
   range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
 
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateRangesInRange: range options: opts usingBlock: aBlock];
+#pragma GCC diagnostic pop 
 }
 
 - (void) enumerateIndexesInRange: (NSRange)range
@@ -1070,15 +1076,21 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   lastIndex = [self lastIndex];
   range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
 
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateIndexesInRange: range
                         options: opts
                      usingBlock: aBlock];
+#pragma GCC diagnostic pop 
 }
 
 - (void) enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateIndexesWithOptions: 0
                          usingBlock: aBlock];
+#pragma GCC diagnostic pop 
 }
 @end
 

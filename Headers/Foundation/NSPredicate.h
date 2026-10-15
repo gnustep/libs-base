@@ -51,7 +51,8 @@ GS_EXPORT_CLASS
 			    arguments: (va_list)args;
 + (NSPredicate *) predicateWithValue: (BOOL)value;
 #if	OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-+ (NSPredicate *) predicateWithBlock: (GSBlockPredicateBlock)block;
++ (NSPredicate *) predicateWithBlock: (GSBlockPredicateBlock)block
+GS_NON_PORTABLE(please contribute similar portable method);
 #endif
 - (BOOL) evaluateWithObject: (id)object;
 - (NSString *) predicateFormat;

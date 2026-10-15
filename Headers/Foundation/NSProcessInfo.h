@@ -242,9 +242,11 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
 - (void) endActivity:(id<NSObject>)activity;
 - (void) performActivityWithOptions:(NSActivityOptions)options
                             reason: (NSString *)reason
-                        usingBlock: (GSPerformActivityBlock)block;
+                        usingBlock: (GSPerformActivityBlock)block
+GS_NON_PORTABLE(use -beginActivityWithOptions:reason:);
 - (void) performExpiringActivityWithReason: (NSString *)reason
-            usingBlock: (GSPerformExpiringActivityBlock)block;
+            usingBlock: (GSPerformExpiringActivityBlock)block
+GS_NON_PORTABLE(use ialternativbe methods);
 #endif
 @end
 
