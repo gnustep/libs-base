@@ -56,9 +56,11 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSXPCInvalidationHandler, void);
 
 - (id) remoteObjectProxy;
 
-- (id) remoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler;
+- (id) remoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler
+GS_NON_PORTABLE(do not use);
 
-- (id) synchronousRemoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler;
+- (id) synchronousRemoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler
+GS_NON_PORTABLE(do not use);
 
 @end
 
@@ -91,19 +93,25 @@ GS_EXPORT_CLASS
 - (id) remoteObjectProxy;
 - (void) setRemoteObjectProxy: (id)remoteObjectProxy;
 
-- (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler;
+- (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
+GS_NON_PORTABLE(do not use);
 
 - (NSString *) serviceName;
 - (void) setServiceName: (NSString *)serviceName;
   
 - (id) synchronousRemoteObjectProxyWithErrorHandler:
-  (GSXPCProxyErrorHandler)handler;
+  (GSXPCProxyErrorHandler)handler
+GS_NON_PORTABLE(do not use);
 
-- (GSXPCInterruptionHandler) interruptionHandler; 
-- (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler;
+- (GSXPCInterruptionHandler) interruptionHandler
+GS_NON_PORTABLE(do not use); 
+- (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler
+GS_NON_PORTABLE(do not use);
   
-- (GSXPCInvalidationHandler) invalidationHandler; 
-- (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler;
+- (GSXPCInvalidationHandler) invalidationHandler
+GS_NON_PORTABLE(do not use); 
+- (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler
+GS_NON_PORTABLE(do not use);
   
 - (void) resume;
 

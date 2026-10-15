@@ -91,7 +91,8 @@ GS_EXPORT_CLASS
 - (id) addObserverForName: (NSString *)name 
                    object: (id)object 
                     queue: (NSOperationQueue *)queue 
-               usingBlock: (GSNotificationBlock)block;
+               usingBlock: (GSNotificationBlock)block
+GS_NON_PORTABLE(use -addObserver:selector:name:object: instead);
 #endif
 
 - (void) removeObserver: (id)observer;

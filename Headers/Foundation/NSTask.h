@@ -138,7 +138,8 @@ GS_EXPORT_CLASS
 + (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
                                  arguments: (NSArray *)arguments 
                                      error: (NSError **)error 
-                        terminationHandler: (GSTaskTerminationHandler)terminationHandler;
+                        terminationHandler: (GSTaskTerminationHandler)terminationHandler
+GS_NON_PORTABLE(use +launchedTaskWithLaunchPath:arguments: instead);
 
 - (BOOL) launchAndReturnError: (NSError **)error;
 
