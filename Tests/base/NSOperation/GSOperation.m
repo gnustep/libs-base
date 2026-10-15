@@ -1558,6 +1558,9 @@ testQueuedOperationWithDelegate(void)
   PASS([delegate completedCount] == 1,
     "queued GSOperation invokes operationCompleted")
 
+  PASS([op delegate] == delegate,
+    "queued GSOperation delegate persists")
+
   [queue release];
   [delegate release];
   [target release];
