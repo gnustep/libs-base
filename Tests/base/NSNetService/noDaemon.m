@@ -44,7 +44,9 @@ int main()
   NSDate		*limit;
 
   setenv("DBUS_SYSTEM_BUS_ADDRESS", "unix:path=/nonexistent", 1);
-  browser = AUTORELEASE([NSNetServiceBrowser new]);
+  browser = [NSNetServiceBrowser alloc];
+  browser = AUTORELEASE([browser init]);
+
   if (browser == nil
     || [NSStringFromClass([browser class]) isEqual: @"GSAvahiNetServiceBrowser"]
     == NO)
