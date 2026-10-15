@@ -349,6 +349,7 @@ testAddOperationWithoutObject(void)
   [op getTarget: &storedTarget
        selector: &storedSelector
          object: &storedObject
+	 result: NULL
          ofItem: 0];
 
   PASS(storedTarget == target,
@@ -372,6 +373,7 @@ testAddOperationWithObject(void)
   GSOperation *op;
   id storedTarget;
   id storedObject;
+  id storedResult;
   SEL storedSelector;
 
   target = [GSOperationTestTarget new];
@@ -391,6 +393,7 @@ testAddOperationWithObject(void)
   [op getTarget: &storedTarget
        selector: &storedSelector
          object: &storedObject
+	 result: &storedResult
          ofItem: 0];
 
   PASS(storedTarget == target,
@@ -399,8 +402,11 @@ testAddOperationWithObject(void)
   PASS(storedSelector == @selector(oneArgument:),
        "operation stores the supplied selector");
 
-  PASS([storedObject isEqual: @"hello"],
+  PASS_EQUAL(storedObject, @"hello",
        "operation stores the supplied object");
+
+  PASS_EQUAL(storedObject, @"hello",
+       "operation stores the expected result");
 
   [op release];
   [target release];
@@ -433,7 +439,7 @@ testMultipleItemsAndOrder(void)
   PASS([op itemCount] == 3,
        "multiple operation items are counted correctly");
 
-  [op getTarget: &t selector: &s object: &o ofItem: 1];
+  [op getTarget: &t selector: &s object: &o result: NULL ofItem: 1];
 
   PASS(t == target,
        "second item has the correct target");
@@ -444,7 +450,7 @@ testMultipleItemsAndOrder(void)
   PASS([o isEqual: @"one"],
        "second item has the correct object");
 
-  [op getTarget: &t selector: &s object: &o ofItem: 2];
+  [op getTarget: &t selector: &s object: &o result: NULL ofItem: 2];
 
   PASS(t == target,
        "third item has the correct target");
@@ -489,6 +495,7 @@ testGetTargetAllowsNullOutputs(void)
   [op getTarget: NULL
        selector: NULL
          object: NULL
+	 result: NULL
          ofItem: 0];
 
   PASS([op itemCount] == 1,
@@ -534,6 +541,7 @@ testItemMutation(void)
   [op getTarget: &target
        selector: &selector
          object: &object
+	 result: NULL
          ofItem: 0];
 
   PASS(target == target2,
@@ -1396,6 +1404,7 @@ testFactoryWithoutObject(void)
   [op getTarget: &storedTarget
        selector: &storedSelector
          object: &storedObject
+	 result: NULL
          ofItem: 0];
 
   PASS(storedTarget == target,
@@ -1439,6 +1448,7 @@ testFactoryWithObject(void)
   [op getTarget: &storedTarget
        selector: &storedSelector
          object: &storedObject
+	 result: NULL
          ofItem: 0];
 
   PASS(storedTarget == target,
