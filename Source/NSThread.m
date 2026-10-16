@@ -1459,12 +1459,21 @@ unregisterActiveThread(NSThread *thread)
 {
   ASSIGN(_name, aName);
   
-  if (YES == _active)
+  if (_active)
     {
-      [self performSelector: @selector(_setName:)
-                   onThread: self
-                 withObject: aName
-              waitUntilDone: NO];
+      /* Stuff that the thread can only do itself ...
+       */
+      if ([NSThread currentThread] == self)
+	{
+	  [self _setName: aName];
+	}
+      else
+	{
+	  [self performSelector: @selector(_setName:)
+		       onThread: self
+		     withObject: aName
+		  waitUntilDone: NO];
+	}
     }
 }
 
