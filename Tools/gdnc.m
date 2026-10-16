@@ -75,6 +75,8 @@ static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
 
 static NSTimer  *timer = nil;           /* When to shut down. */
 
+static NSTimeInterval	clientTimeout = 5.0;
+
 #if defined(HAVE_SYSLOG) || defined(HAVE_SLOGF)
 #  if defined(HAVE_SLOGF)
 #    include <sys/slogcodes.h>
@@ -335,6 +337,8 @@ ihandler(int sig)
   NSHashTable		*allObservers;
   NSMutableDictionary	*observersForNames;
   NSMutableDictionary	*observersForObjects;
+  NSMutableArray	*pending;
+  BOOL			delivering;
 }
 
 - (void) addObserver: (uint64_t)anObserver
@@ -354,6 +358,8 @@ ihandler(int sig)
 			    userInfo: (NSData*)d
 		  deliverImmediately: (BOOL)deliverImmediately
 				 for: (id<GDNCClient>)client;
+
+- (void) deliverPending;
 
 - (void) removeObserver: (GDNCObserver*)observer;
 
@@ -425,6 +431,7 @@ ihandler(int sig)
    */
   RELEASE(observersForNames);
   RELEASE(observersForObjects);
+  RELEASE(pending);
   [super dealloc];
 }
 
@@ -447,8 +454,13 @@ ihandler(int sig)
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
   observersForNames = [NSMutableDictionary new];
   observersForObjects = [NSMutableDictionary new];
+  pending = [NSMutableArray new];
 
   defs = [NSUserDefaults standardUserDefaults];
+  if ([defs doubleForKey: @"GDNCClientTimeout"] > 0.0)
+    {
+      clientTimeout = [defs doubleForKey: @"GDNCClientTimeout"];
+    }
   hostname = [defs stringForKey: @"NSHost"];
   if ([hostname length] > 0 || [defs boolForKey: @"GSPublic"] == YES)
     {
@@ -668,6 +680,7 @@ ihandler(int sig)
 	   name: NSConnectionDidDieNotification
 	 object: newConn];
   [newConn setDelegate: self];
+  [newConn setRequestTimeout: clientTimeout];
   /*
    *	Create a new map table entry for this connection with a value that
    *	is a table (normally with a single entry) containing registered
@@ -848,48 +861,86 @@ ihandler(int sig)
     }
 
   /*
-   *	Now perform the actual posting of the notification to the observers in
-   *	our array.
+   *	Now arrange for the actual posting of the notification to the
+   *	observers in our array.
    */
   for (pos = [observers count]; pos > 0; pos--)
     {
       GDNCObserver	*obs = [observers objectAtIndex: pos - 1];
 
-      if (obs->client->suspended == NO || deliverImmediately == YES)
+      if ((obs->client->suspended == NO || deliverImmediately == YES)
+	&& [pending indexOfObjectIdenticalTo: obs] == NSNotFound)
 	{
-	  /*
-	   *	Post notifications to the observer until:
-	   *		an exception		(obs is set to nil)
-	   *		the queue is empty	([obs->queue count] == 0)
-	   *		the observer is removed	(obs is not in allObservers)
-	   */
-	  while (obs != nil && [obs->queue count] > 0
-	    && NSHashGet(allObservers, obs) != 0)
+	  [pending addObject: obs];
+	}
+    }
+  [self deliverPending];
+}
+
+- (void) deliverPending
+{
+  if (delivering == YES)
+    {
+      return;
+    }
+  delivering = YES;
+  while ([pending count] > 0)
+    {
+      GDNCObserver	*obs = RETAIN([pending objectAtIndex: 0]);
+      NSConnection	*c = nil;
+      BOOL		failed = NO;
+
+      [pending removeObjectAtIndex: 0];
+      if (NSHashGet(allObservers, obs) != 0)
+	{
+	  c = RETAIN([(NSDistantObject*)obs->client->client
+	    connectionForProxy]);
+	}
+
+      /*
+       *	Post notifications to the observer until:
+       *		an exception		(failed is set)
+       *		the queue is empty	([obs->queue count] == 0)
+       *		the observer is removed	(obs is not in allObservers)
+       */
+      while (failed == NO && [obs->queue count] > 0
+	&& NSHashGet(allObservers, obs) != 0)
+	{
+	  GDNCNotification *n;
+	  n = RETAIN([obs->queue objectAtIndex: 0]);
+	  NS_DURING
 	    {
-	      GDNCNotification *n;
-	      n = RETAIN([obs->queue objectAtIndex: 0]);
-	      NS_DURING
-		{
-		  [obs->queue removeObjectAtIndex: 0];
+	      [obs->queue removeObjectAtIndex: 0];
   if (debugging)
     NSLog(@"Posting to observer %llu with %@", (unsigned long long)obs->observer, n);
-		  [obs->client->client postNotificationName: n->name
-						     object: n->object
-						   userInfo: n->info
-						   selector: obs->selector
-							 to: obs->observer];
-		}
-	      NS_HANDLER
+	      [obs->client->client postNotificationName: n->name
+						 object: n->object
+					       userInfo: n->info
+					       selector: obs->selector
+						     to: obs->observer];
+	    }
+	  NS_HANDLER
+	    {
+	      if ([[localException name] isEqual: NSPortTimeoutException])
 		{
-		  obs = nil;
+		  NSLog(@"Dropping a client that has not read for %g"
+		    @" seconds: %@", clientTimeout, c);
+		  [c invalidate];
+		}
+	      else
+		{
 		  NSLog(@"Problem posting notification to client: %@",
 		    localException);
 		}
-	      NS_ENDHANDLER
-	      RELEASE(n);
+	      failed = YES;
 	    }
+	  NS_ENDHANDLER
+	  RELEASE(n);
 	}
+      RELEASE(c);
+      RELEASE(obs);
     }
+  delivering = NO;
 }
 
 - (void) removeObserver: (GDNCObserver*)observer
@@ -1230,8 +1281,9 @@ main(int argc, char** argv, char** env)
     server = [GDNCServer new];
 
     /*
-     * Close standard input, output, and error to run as daemon.
+     * Detach standard input, output, and error to run as daemon.
      */
+#if	defined(_WIN32)
     [[NSFileHandle fileHandleWithStandardInput] closeFile];
     [[NSFileHandle fileHandleWithStandardOutput] closeFile];
 #ifndef __MINGW__
@@ -1239,6 +1291,27 @@ main(int argc, char** argv, char** env)
       {
 	[[NSFileHandle fileHandleWithStandardError] closeFile];
       }
+#endif
+#else
+    {
+      int	fd = open("/dev/null", O_RDWR);
+
+      if (fd < 0)
+	{
+	  gdnc_log(LOG_CRIT, "unable to open /dev/null");
+	  exit(EXIT_FAILURE);
+	}
+      dup2(fd, 0);
+      dup2(fd, 1);
+      if (debugging == NO)
+	{
+	  dup2(fd, 2);
+	}
+      if (fd > 2)
+	{
+	  close(fd);
+	}
+    }
 #endif
 
     RELEASE(pool);

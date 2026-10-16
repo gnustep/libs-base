@@ -24,6 +24,11 @@
    $Date$ $Revision$
    */
 
+#define	GS_NSDistributedNotificationCenter_IVARS \
+  NSMutableArray	*_observations; \
+  NSTimeInterval	_reconnectDelay; \
+  BOOL			_reconnectScheduled
+
 #import	"common.h"
 
 #define	EXPOSE_NSDistributedNotificationCenter_IVARS	1
@@ -43,13 +48,45 @@
 #import	"Foundation/NSHost.h"
 #import	"Foundation/NSPortNameServer.h"
 #import "Foundation/NSThread.h"
+#import	"Foundation/NSTimer.h"
+#import	"Foundation/NSEnumerator.h"
 #import	"../Tools/gdnc.h"
 #import "GSPThread.h"
 
+#define	GSInternal	NSDistributedNotificationCenterInternal
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(NSDistributedNotificationCenter)
+
+@interface	GSDistributedObservation : NSObject
+{
+@public
+  uint64_t				observer;
+  NSString				*selector;
+  NSString				*name;
+  NSString				*object;
+  NSNotificationSuspensionBehavior	behavior;
+}
+@end
+
+@implementation	GSDistributedObservation
+- (void) dealloc
+{
+  RELEASE(selector);
+  RELEASE(name);
+  RELEASE(object);
+  [super dealloc];
+}
+@end
+
+static const NSTimeInterval	reconnectFirstDelay = 0.5;
+static const NSTimeInterval	reconnectMaxDelay = 32.0;
 
 @interface	NSDistributedNotificationCenter (Private)
 - (void) _connect;
+- (id) _initWithType: (NSString*)type;
 - (void) _invalidated: (NSNotification*)notification;
+- (void) _reconnect: (NSTimer*)timer;
+- (void) _scheduleReconnect;
 - (void) postNotificationName: (NSString*)name
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
@@ -167,8 +204,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 
 		  tmp = (NSDistributedNotificationCenter*)
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
-		  tmp->_centerLock = [NSRecursiveLock new];
-		  tmp->_type = RETAIN(NSLocalNotificationCenterType);
+		  tmp = [tmp _initWithType: NSLocalNotificationCenterType];
 		  locCenter = tmp;
 		}
 	      NS_HANDLER
@@ -195,8 +231,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 
 		  tmp = (NSDistributedNotificationCenter*)
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
-		  tmp->_centerLock = [NSRecursiveLock new];
-		  tmp->_type = RETAIN(GSPublicNotificationCenterType);
+		  tmp = [tmp _initWithType: GSPublicNotificationCenterType];
 		  pubCenter = tmp;
 		}
 	      NS_HANDLER
@@ -223,8 +258,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 
 		  tmp = (NSDistributedNotificationCenter*)
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
-		  tmp->_centerLock = [NSRecursiveLock new];
-		  tmp->_type = RETAIN(GSNetworkNotificationCenterType);
+		  tmp = [tmp _initWithType: GSNetworkNotificationCenterType];
 		  netCenter = tmp;
 		}
 	      NS_HANDLER
@@ -254,6 +288,8 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
     }
   RELEASE(_remote);
   RELEASE(_type);
+  RELEASE(internal->_observations);
+  GS_DESTROY_INTERNAL(NSDistributedNotificationCenter)
   [super dealloc];
 }
 
@@ -353,6 +389,8 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
   [_centerLock lock];
   NS_DURING
     {
+      GSDistributedObservation	*o;
+
       [self _connect];
       [(id<GDNCProtocol>)_remote addObserver: (uint64_t)(uintptr_t)anObserver
 				    selector: NSStringFromSelector(aSelector)
@@ -360,6 +398,14 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 				      object: anObject
 			  suspensionBehavior: suspensionBehavior
 					 for: (id<GDNCClient>)self];
+      o = [GSDistributedObservation new];
+      o->observer = (uint64_t)(uintptr_t)anObserver;
+      o->selector = RETAIN(NSStringFromSelector(aSelector));
+      o->name = [notificationName copy];
+      o->object = [anObject copy];
+      o->behavior = suspensionBehavior;
+      [internal->_observations addObject: o];
+      RELEASE(o);
     }
   NS_HANDLER
     {
@@ -479,6 +525,21 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
   [_centerLock lock];
   NS_DURING
     {
+      NSUInteger	i = [internal->_observations count];
+
+      while (i-- > 0)
+	{
+	  GSDistributedObservation	*o;
+
+	  o = [internal->_observations objectAtIndex: i];
+	  if ((anObserver == nil
+	    || o->observer == (uint64_t)(uintptr_t)anObserver)
+	    && (notificationName == nil || [notificationName isEqual: o->name])
+	    && (anObject == nil || [anObject isEqual: o->object]))
+	    {
+	      [internal->_observations removeObjectAtIndex: i];
+	    }
+	}
       [self _connect];
       [(id<GDNCProtocol>)_remote removeObserver: (uint64_t)(uintptr_t)anObserver
 					   name: notificationName
@@ -800,7 +861,38 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 	       name: NSConnectionDidDieNotification
 	     object: c];
       [_remote registerClient: (id<GDNCClient>)self];
+
+      if (_suspended)
+	{
+	  [_remote setSuspended: YES for: (id<GDNCClient>)self];
+	}
+      if ([internal->_observations count] > 0)
+	{
+	  NSEnumerator			*e;
+	  GSDistributedObservation	*o;
+
+	  e = [internal->_observations objectEnumerator];
+	  while ((o = [e nextObject]) != nil)
+	    {
+	      [_remote addObserver: o->observer
+			  selector: o->selector
+			      name: o->name
+			    object: o->object
+		suspensionBehavior: o->behavior
+			       for: (id<GDNCClient>)self];
+	    }
+	}
+      internal->_reconnectDelay = 0.0;
     }
+}
+
+- (id) _initWithType: (NSString*)type
+{
+  GS_CREATE_INTERNAL(NSDistributedNotificationCenter)
+  _centerLock = [NSRecursiveLock new];
+  _type = RETAIN(type);
+  internal->_observations = [NSMutableArray new];
+  return self;
 }
 
 - (void) _invalidated: (NSNotification*)notification
@@ -818,6 +910,63 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 		 NSInternalInconsistencyException);
   RELEASE(_remote);
   _remote = nil;
+
+  [self performSelectorOnMainThread: @selector(_scheduleReconnect)
+			 withObject: nil
+		      waitUntilDone: NO];
+}
+
+- (void) _reconnect: (NSTimer*)timer
+{
+  [_centerLock lock];
+  internal->_reconnectScheduled = NO;
+  if (_remote == nil && [internal->_observations count] > 0
+    && NO == [NSObject isExiting])
+    {
+      NS_DURING
+	{
+	  [self _connect];
+	}
+      NS_HANDLER
+	{
+	  NSDebugMLLog(@"NSDistributedNotificationCenter",
+	    @"Reconnecting to gdnc failed: %@", localException);
+	  if (internal->_reconnectDelay < reconnectFirstDelay)
+	    {
+	      internal->_reconnectDelay = reconnectFirstDelay;
+	    }
+	  internal->_reconnectDelay
+	    = MIN(internal->_reconnectDelay * 2, reconnectMaxDelay);
+	  if (_remote == nil)
+	    {
+	      [self _scheduleReconnect];
+	    }
+	}
+      NS_ENDHANDLER
+    }
+  [_centerLock unlock];
+}
+
+- (void) _scheduleReconnect
+{
+  [_centerLock lock];
+  if (_remote == nil && [internal->_observations count] > 0
+    && NO == internal->_reconnectScheduled && NO == [NSObject isExiting])
+    {
+      NSTimeInterval	delay = internal->_reconnectDelay;
+
+      if (delay < reconnectFirstDelay)
+	{
+	  delay = reconnectFirstDelay;
+	}
+      internal->_reconnectScheduled = YES;
+      [NSTimer scheduledTimerWithTimeInterval: delay
+				       target: self
+				     selector: @selector(_reconnect:)
+				     userInfo: nil
+				      repeats: NO];
+    }
+  [_centerLock unlock];
 }
 
 - (void) postNotificationName: (NSString*)name
