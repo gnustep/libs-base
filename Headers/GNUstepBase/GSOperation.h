@@ -59,10 +59,12 @@ extern "C" {
  * objects, where the message has zero or one object argument and returns
  * an object.<br />
  * The constructor creates an instance with one such item, but you can add
- * more items describing messagng to be performed in sequences.<br />
+ * more items describing messaging to be performed in sequences.<br />
  * The instance methods in this class may be used either before the operation
  * is added to a queue or by the delegate handling a
- * -shouldStopOperation:afterItemAt:completedWith: message.
+ * -shouldStopOperation:afterItemAt:completedWith: message.<br />
+ * Items may be examined once the operation has finished (until the operation
+ * object itself is deallocated).
  */
 GS_EXPORT_CLASS
 @interface GSOperation : NSOperation

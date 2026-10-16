@@ -573,31 +573,33 @@ testItemMutation(void)
 static void
 testTargetAndObjectAreRetained(void)
 {
-  GSOperation *op;
+  GSOperation		*op;
   GSOperationTestTarget *target;
-  NSString *object;
+  NSString		*object;
+  NSUInteger		tr;
+  NSUInteger		or;
 
   op = [GSOperation new];
   target = [GSOperationTestTarget new];
   object = [[NSString alloc] initWithString: @"retained"];
 
+  tr = [target retainCount];
+  or = [object retainCount];
   [op addOperationTarget: target
-        performSelector: @selector(oneArgument:)
-             withObject: object];
+         performSelector: @selector(oneArgument:)
+              withObject: object];
 
-  RELEASE(target);
-  RELEASE(object);
+  PASS([target retainCount] > tr, "target retained by operation")
+  PASS([object retainCount] > or, "object retained by operation")
 
   [op start];
 
-  /*
-   * If either the target or object had not been retained by the
-   * operation, execution here would use a dangling reference.
-   */
-  PASS([op itemCount] == 0,
-       "operation executes after caller releases target and object");
+  PASS([target retainCount] > tr, "target retained after completion")
+  PASS([object retainCount] > or, "object retained after completion")
 
-  [op release];
+  RELEASE(target);
+  RELEASE(object);
+  RELEASE(op);
 }
 
 
@@ -1236,8 +1238,8 @@ testItemsAreClearedAfterExecution(void)
 
   [op start];
 
-  PASS([op itemCount] == 0,
-       "items are cleared after execution");
+  PASS([op itemCount] == 1,
+       "items are not cleared after execution");
 
   [op release];
   [target release];
@@ -1266,8 +1268,8 @@ testItemsAreClearedAfterStop(void)
   [op setDelegate: delegate];
   [op start];
 
-  PASS([op itemCount] == 0,
-       "items are cleared when delegate stops operation");
+  PASS([op itemCount] == 2,
+       "items are not cleared when delegate stops operation");
 
   [op release];
   [delegate release];
@@ -1301,8 +1303,8 @@ testItemsAreClearedAfterExceptionAndStop(void)
   PASS([[target calls] count] == 1,
        "exception is the only executed item when delegate stops");
 
-  PASS([op itemCount] == 0,
-       "items are cleared after exception and delegate stop");
+  PASS([op itemCount] == 2,
+       "items are not cleared after exception and delegate stop");
 
   [op release];
   [delegate release];

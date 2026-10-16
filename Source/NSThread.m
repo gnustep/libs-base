@@ -2437,26 +2437,11 @@ GSRunLoopInfoForThread(NSThread *aThread)
       aThread = t;
     }
   info = GSRunLoopInfoForThread(aThread);
-  if (t == aThread)
+  if (t == aThread && aFlag)
     {
-      /* Perform in current thread.
+      /* Current thread, Wait until done.
        */
-      if (aFlag == YES || info->loop == nil)
-	{
-          /* Wait until done or no run loop.
-           */
-	  [self performSelector: aSelector withObject: anObject];
-	}
-      else
-	{
-          /* Don't wait ... schedule operation in run loop.
-           */
-	  [info->loop performSelector: aSelector
-                               target: self
-                             argument: anObject
-                                order: 0
-                                modes: anArray];
-	}
+      [self performSelector: aSelector withObject: anObject];
     }
   else
     {
@@ -2471,7 +2456,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
             NSStringFromSelector(aSelector),
             aThread];
         }
-      if (aFlag == YES)
+      if (aFlag)
 	{
 	  l = [[NSConditionLock alloc] init];
 	}

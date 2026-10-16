@@ -179,7 +179,6 @@
 	}
       index++;
     }
-  [_ops removeAllObjects];
 }
 
 - (void) setObject: (id)o atIndex: (NSUInteger)i
