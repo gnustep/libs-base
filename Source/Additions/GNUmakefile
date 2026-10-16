@@ -55,6 +55,7 @@ Additions_OBJC_FILES =\
 	NSDebug+GNUstepBase.m \
 	NSError+GNUstepBase.m \
 	NSHashTable+GNUstepBase.m \
+	NSHost+GNUstepBase.m \
 	NSFileHandle+GNUstepBase.m \
 	NSMutableString+GNUstepBase.m \
 	NSNumber+GNUstepBase.m \

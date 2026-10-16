@@ -144,6 +144,7 @@ NSData+GNUstepBase.h \
 NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
 NSHashTable+GNUstepBase.h \
+NSHost+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \

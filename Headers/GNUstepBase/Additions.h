@@ -48,6 +48,8 @@
 #import	<GNUstepBase/NSData+GNUstepBase.h>
 #import	<GNUstepBase/NSDebug+GNUstepBase.h>
 #import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
+#import	<GNUstepBase/NSHashTable+GNUstepBase.h>
+#import	<GNUstepBase/NSHost+GNUstepBase.h>
 #import	<GNUstepBase/NSMutableString+GNUstepBase.h>
 #import	<GNUstepBase/NSNetServices+GNUstepBase.h>
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>
