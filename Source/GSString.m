@@ -877,13 +877,13 @@ tsbytes(uintptr_t s, char *buf)
 
 - (BOOL) boolValue
 {
-  char  buf[9];
-  int   count =  tsbytes((uintptr_t)self, buf);
-  int   i;
+  uint8_t	buf[9];
+  int   	count =  tsbytes((uintptr_t)self, (char*)buf);
+  int   	i;
 
   for (i = 0; i < count; i++)
     {
-      char	c = buf[i];
+      uint8_t	c = buf[i];
 
       if (strchr("123456789yYtT", c) != 0)
         {
@@ -1911,7 +1911,7 @@ boolValue_c(GSStr self)
 
   for (i = 0; i < count; i++)
     {
-      char	c = self->_contents.c[i];
+      uint8_t	c = self->_contents.c[i];
 
       if (strchr("123456789yYtT", c) != 0)
         {

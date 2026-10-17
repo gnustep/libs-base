@@ -337,25 +337,28 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
    */
   if (0 != [machine length])
     {
-      const char	*n;
+      const uint8_t	*n;
+      const char	*p;
 
-      n = [machine UTF8String];
-      if ((!isdigit(n[0]) || sscanf(n, "%*d.%*d.%*d.%*d") != 4)
-	&& 0 == strchr(n, ':'))
+      p = [machine UTF8String];
+      n = (const uint8_t*)p;
+      if ((!isdigit(n[0]) || sscanf(p, "%*d.%*d.%*d.%*d") != 4)
+	&& 0 == strchr(p, ':'))
 	{
 	  machine = [[NSHost hostWithName: machine] address];
-	  n = [machine UTF8String];
+	  p = [machine UTF8String];
+          n = (const uint8_t*)p;
 	}
 
       if (0 == n)
 	{
 	  return NO;
 	}
-      if (0 == strchr(n, ':'))
+      if (0 == strchr(p, ':'))
 	{
 	  struct sockaddr_in	*addr = (struct sockaddr_in*)(void*)sin;
 
-	  if (inet_pton(AF_INET, n, &addr->sin_addr) <= 0)
+	  if (inet_pton(AF_INET, p, &addr->sin_addr) <= 0)
 	    {
 	      return NO;
 	    }
@@ -366,7 +369,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 	  struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)(void*)sin;
 
 	  sin->sa_family = AF_INET6;
-	  if (inet_pton(AF_INET6, n, &addr6->sin6_addr) <= 0)
+	  if (inet_pton(AF_INET6, p, &addr6->sin6_addr) <= 0)
 	    {
 	      return NO;
 	    }
@@ -402,8 +405,8 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
       sname = [service UTF8String];
       if ((sp = getservbyname(sname, proto)) == 0)
 	{
-	  const char*     ptr = sname;
-	  int             val = atoi(ptr);
+	  const uint8_t	*ptr = (const uint8_t*)sname;
+	  int           val = atoi((const char*)ptr);
 
 	  while (isdigit(*ptr))
 	    {
@@ -413,7 +416,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 	    {
 	      port = val;
 	    }
-	  else if (strcmp(ptr, "gdomap") == 0)
+	  else if (strcmp((const char*)ptr, "gdomap") == 0)
 	    {
 #ifdef	GDOMAP_PORT_OVERRIDE
 	      port = GDOMAP_PORT_OVERRIDE;
@@ -1479,10 +1482,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	}
       else if (state == GSSOCKSSendConn)
 	{
-	  unsigned char	buf[10];
+	  uint8_t	buf[10];
 	  int		want = 10;
 	  int		result;
-	  const char	*ptr;
+	  const uint8_t	*ptr;
 
 	  /*
 	   * Connect command is ten bytes -
@@ -1497,20 +1500,26 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  buf[1] = 1;	// Connect command
 	  buf[2] = 0;	// Reserved
 	  buf[3] = 1;	// Address type (IPV4)
-	  ptr = [address UTF8String];
-	  buf[4] = atoi(ptr);
+	  ptr = (const uint8_t*)[address UTF8String];
+	  buf[4] = atoi((const char*)ptr);
 	  while (isdigit(*ptr))
-	    ptr++;
+	    {
+	      ptr++;
+	    }
 	  ptr++;
-	  buf[5] = atoi(ptr);
+	  buf[5] = atoi((const char*)ptr);
 	  while (isdigit(*ptr))
-	    ptr++;
+	    {
+	      ptr++;
+	    }
 	  ptr++;
-	  buf[6] = atoi(ptr);
+	  buf[6] = atoi((const char*)ptr);
 	  while (isdigit(*ptr))
-	    ptr++;
+	    {
+	      ptr++;
+	    }
 	  ptr++;
-	  buf[7] = atoi(ptr);
+	  buf[7] = atoi((const char*)ptr);
 	  result = [port intValue];
 	  buf[8] = ((result & 0xff00) >> 8);
 	  buf[9] = (result & 0xff);
