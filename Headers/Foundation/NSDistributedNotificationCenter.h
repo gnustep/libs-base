@@ -87,6 +87,10 @@ GS_EXPORT_CLASS
   BOOL		_suspended;	/* Is delivery suspended?	*/
 #endif
 #if     GS_NONFRAGILE
+#  if	defined(GS_NSDistributedNotificationCenter_IVARS)
+@public
+GS_NSDistributedNotificationCenter_IVARS;
+#  endif
 #else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.

@@ -1,0 +1,2 @@
+# The tests start their own gdnc in a private temporary directory:
+# the one named by GDNC, or gdnc from PATH.
