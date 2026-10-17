@@ -32,6 +32,10 @@
 #import "Foundation/NSURLSession.h"
 #import <curl/curl.h>
 
+
+NSError *
+GSURLSessionErrorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE]);
+
 @interface
   NSURLSessionTask(Private)
 
@@ -53,9 +57,19 @@
   easyHandle: (CURL *) handle;
 
 -(CURL *)_easyHandle;
+-(char *)_curlErrorBuffer;
+
+/**
+ * Not locked. Only update in initializer.
+ */
+-(struct curl_slist *)_curlHeaderList;
+-(void)_setCurlHeaderList: (struct curl_slist *)headerList;
 
 /* Enable or disable libcurl verbose output. Disabled by default. */
 -(void)_setVerbose: (BOOL)flag;
+
+-(void) _setState: (NSURLSessionTaskState) state;
+- (NSURLSessionTaskState) _compareAndExchangeState: (NSURLSessionTaskState) state;
 
 /* This method is called by -[NSURLSession _checkForCompletion]
  *
@@ -128,6 +142,10 @@
 
 -(NSFileHandle *)_createTemporaryFileHandleWithError: (NSError **)error;
 
+-(NSError *)_errorForCURLcode: (CURLcode)code;
+
+-(void)_setError: (NSError *)error;
+
 @end
 
 @interface
@@ -148,3 +166,15 @@
 -(void)_setCompletionHandler: (GSNSURLSessionDownloadCompletionHandler)handler;
 
 @end
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+@interface NSURLSessionWebSocketTask(Private)
+
+- (instancetype)initWebSocketTask: (NSURLSession *)session
+                          request: (NSURLRequest *)request
+                   taskIdentifier: (NSUInteger)identifier;
+- (void)_resumeSendIfWaitingForReadableSocket;
+- (void)_notifyDidOpenWithProtocol: (NSString *)protocol;
+
+@end
+#endif

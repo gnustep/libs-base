@@ -29,31 +29,34 @@
 /* The ivar macro below is expanded by Foundation/NSURLSession.h, so the
  * types it names have to be known before that header is imported.
  */
-#include "Foundation/NSURLRequest.h"
-#include "GNUstepBase/GNUstep.h"
 #import "common.h"
-#include <curl/curl.h>
 
 /* Where the compiler has no usable _Atomic, GSAtomic.h supplies a fallback
  * for it along with gs_atomic_load and gs_atomic_store.  It has to be seen
  * before the header expands the ivar macro below.
  */
 #include "GSAtomic.h"
+#include <curl/curl.h>
+#import "GSPThread.h"
 
 @class NSProgress;
+@class NSDate;
+@class NSString;
+@class NSError;
 @class NSURLSession;
+@class NSURLRequest;
+@class NSURLResponse;
+@class NSMutableDictionary;
+@protocol NSURLSessionTaskDelegate;
 
 #define	GS_NSURLSessionTask_IVARS \
+  /* The following three instance variables shall only be modified during \
+   * object initialization */  \
   NSUInteger    _taskIdentifier; \
   NSURLRequest *_originalRequest; \
- \
   id<NSURLSessionTaskDelegate> _delegate; \
-  NSURLSessionTaskState        _state; \
-  NSURLRequest                *_currentRequest; \
-  NSURLResponse               *_response; \
-  NSProgress                  *_progress; \
-  NSDate                      *_earliestBeginDate; \
- \
+  \
+  _Atomic(NSUInteger)        _state; \
   _Atomic(int64_t) _countOfBytesClientExpectsToSend; \
   _Atomic(int64_t) _countOfBytesClientExpectsToReceive; \
   _Atomic(int64_t) _countOfBytesSent; \
@@ -64,11 +67,8 @@
    * both of which take a float. \
    */ \
   float _priority; \
- \
-  NSString *_taskDescription; \
-  NSError  *_error; \
- \
   _Atomic(BOOL) _shouldStopTransfer; \
+  _Atomic(NSUInteger) 		_suspendCount; \
  \
   /* Set while an intercepted 3xx response is being handled by the delegate \
    * (or automatically) and the easy handle is about to be re-added for the \
@@ -85,27 +85,42 @@
    * _heldCompletionCode) and delivered once the disposition is known. */ \
   _Atomic(BOOL) _awaitingResponseDisposition; \
   /* The CURLcode of a completion held back while _awaitingResponseDisposition, \
-   * or -1 if none has been held. */ \
+   * or -1 if none has been held. Accessed exclusively on work thread. */ \
   int _heldCompletionCode; \
  \
-  /* Opaque value for storing task specific properties */ \
-  NSInteger _properties; \
+  /* Opaque value for storing task specific properties. Set only after task
+   * object initialization, and before publishing object to other threads. */ \
+  NSInteger _properties;  \
  \
-  /* Internal task data */ \
+  /* FIXME(hugo): These instance variables need to be locked, because we expose public \
+   * accessor methods */ \
+  gs_mutex_t lock; \
+  NSString *_taskDescription; \
+  NSError  *_error; \
+  NSURLRequest                *_currentRequest; \
+  NSURLResponse               *_response; \
+  NSProgress                  *_progress; \
+  NSDate                      *_earliestBeginDate; \
+ \
+  /* The instance variables below are only modified in the worker thread */ \
   NSMutableDictionary	*_taskData; \
   NSInteger 		_numberOfRedirects; \
   NSInteger 		_headerCallbackCount; \
-  NSUInteger 		_suspendCount; \
- \
   char _curlErrorBuffer[CURL_ERROR_SIZE]; \
   struct curl_slist	*_headerList; \
  \
+  /* CURL easy handle set in initializer, before publishing object. */ \
   CURL			*_easyHandle; \
+  /* Set in initializer, before publishing object. */ \
   NSURLSession 		*_session;
 
-#import "NSURLSessionPrivate.h"
-#include <curl/curl.h>
-#import "NSURLSessionTaskPrivate.h"
+#define	GSInternal	NSURLSessionTaskInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLSessionTask)
+
+/*
+ * We can now import all other required headers
+ */
 
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSPathUtilities.h"
@@ -125,14 +140,12 @@
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSMethodSignature.h"
 
+#import "GSURLPrivate.h"
+#import "NSURLSessionPrivate.h"
+#import "NSURLSessionTaskPrivate.h"
+
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
 #import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
-
-#import "GSURLPrivate.h"
-
-#define	GSInternal	NSURLSessionTaskInternal
-#include "GSInternal.h"
-GS_PRIVATE_INTERNAL(NSURLSessionTask)
 
 
 @interface _GSInsensitiveDictionary : NSDictionary
@@ -222,8 +235,8 @@ translateWinSockToPOSIXError(NSInteger err)
 } /* translateWinSockToPOSIXError */
 #endif /* ifdef _WIN32 */
 
-static inline NSError *
-errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
+NSError *
+GSURLSessionErrorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
 {
   NSString	*curlErrorString;
   NSString	*errorString;
@@ -570,6 +583,18 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
       [task _setCookiesFromHeaders: headerFields];
       [task _setResponse: response];
+
+#if GS_HAVE_NSURLSESSION_WEBSOCKETS
+      if ([task isKindOfClass: [NSURLSessionWebSocketTask class]]
+          && statusCode == 101)
+        {
+          NSString *protocol;
+
+          protocol = [headerFields objectForKey: @"Sec-WebSocket-Protocol"];
+          [(NSURLSessionWebSocketTask *)task
+            _notifyDidOpenWithProtocol: protocol];
+        }
+#endif
 
       /* Assume this response is final; the redirection handling below sets
        * this again if the handle is going to be re-added for a new location. */
@@ -1001,6 +1026,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
     {
       GS_CREATE_INTERNAL(NSURLSessionTask);
 
+      GS_MUTEX_INIT(internal->lock);
       internal->_taskIdentifier = identifier;
       internal->_taskData = [[NSMutableDictionary alloc] init];
       gs_atomic_store(&internal->_shouldStopTransfer, NO);
@@ -1020,9 +1046,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
        * session and tasks to be leaked.
        */
       internal->_session = session;
-      internal->_suspendCount = 0;
-      internal->_state = NSURLSessionTaskStateSuspended;
+      gs_atomic_store(&internal->_suspendCount, 0);
       internal->_curlErrorBuffer[0] = '\0';
+      gs_atomic_store(&internal->_state, NSURLSessionTaskStateSuspended);
 
       /* Configure initial task data
        */
@@ -1032,7 +1058,6 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   return self;
 } /* initWithSession */
-
 
 - (instancetype) initWithSession: (NSURLSession *)session
   request: (NSURLRequest *)request
@@ -1106,9 +1131,14 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   return internal->_easyHandle;
 }
 
-- (void) _setEasyHandle: (CURL *) handle
+- (char *) _curlErrorBuffer
 {
-  internal->_easyHandle = handle;
+  return internal->_curlErrorBuffer;
+}
+
+-(struct curl_slist *)_curlHeaderList
+{
+  return internal->_headerList;
 }
 
 - (void) _setVerbose: (BOOL)flag
@@ -1136,15 +1166,16 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 - (void) _setCurrentRequest: (NSURLRequest *)request
 {
+  GS_MUTEX_LOCK(internal->lock);
   ASSIGNCOPY(internal->_currentRequest, request);
+  GS_MUTEX_UNLOCK(internal->lock);
 }
 
 - (void) _setResponse: (NSURLResponse *)response
 {
-  NSURLResponse	*oldResponse = internal->_response;
-
-  internal->_response = [response retain];
-  [oldResponse release];
+  GS_MUTEX_LOCK(internal->lock);
+  ASSIGN(internal->_response, response);
+  GS_MUTEX_UNLOCK(internal->lock);
 }
 
 - (void) _setCountOfBytesSent: (int64_t)count
@@ -1396,6 +1427,17 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
   internal->_headerCallbackCount = count;
 }
 
+-(NSError *)_errorForCURLcode: (CURLcode)code {
+  return GSURLSessionErrorForCURLcode([self _easyHandle], code, internal->_curlErrorBuffer);
+}
+
+-(void)_setError: (NSError *)error
+{
+  GS_MUTEX_LOCK(internal->lock);
+  ASSIGNCOPY(internal->_error, error);
+  GS_MUTEX_UNLOCK(internal->lock);
+}
+
 /* Creates a temporary file and opens a file handle for writing */
 - (NSFileHandle *) _createTemporaryFileHandleWithError: (NSError **)error
 {
@@ -1478,7 +1520,7 @@ combineFragments(NSArray *fragments)
       code = CURLE_ABORTED_BY_CALLBACK;
     }
 
-  error = errorForCURLcode(internal->_easyHandle, code,
+  error = GSURLSessionErrorForCURLcode(internal->_easyHandle, code,
     internal->_curlErrorBuffer);
 
   if (internal->_properties & GSURLSessionWritesDataToFile)
@@ -1607,8 +1649,8 @@ combineFragments(NSArray *fragments)
 
 - (void) suspend
 {
-  internal->_suspendCount += 1;
-  if (internal->_suspendCount == 1)
+  NSUInteger count = gs_atomic_fetch_add(&internal->_suspendCount, 1);
+  if (count == 0)
     {
       /* If there is an active transfer associated with this task, it will be
        * aborted in the next libcurl progress_callback.
@@ -1623,7 +1665,7 @@ combineFragments(NSArray *fragments)
 {
   /* Only resume a transfer if the task is not suspended and in suspended state
    */
-  if (internal->_suspendCount == 0
+  if (gs_atomic_load(&internal->_suspendCount) == 0
     && [self state] == NSURLSessionTaskStateSuspended)
     {
       /*
@@ -1632,11 +1674,11 @@ combineFragments(NSArray *fragments)
        */
       RETAIN(internal->_session);
 
-      internal->_state = NSURLSessionTaskStateRunning;
+      gs_atomic_store(&internal->_state, NSURLSessionTaskStateRunning);
       [internal->_session _resumeTask: self];
       return;
     }
-  internal->_suspendCount -= 1;
+  gs_atomic_fetch_sub(&internal->_suspendCount, 1);
 }
 - (void) cancel
 {
@@ -1657,7 +1699,7 @@ combineFragments(NSArray *fragments)
   curl_easy_pause(internal->_easyHandle, CURLPAUSE_CONT);
 
   gs_atomic_store(&internal->_shouldStopTransfer, YES);
-  internal->_state = NSURLSessionTaskStateCanceling;
+  gs_atomic_store(&internal->_state, NSURLSessionTaskStateCanceling);
 
   /* If the task was awaiting a didReceiveResponse disposition its completion
    * was being held back; resolve that state so the cancellation is delivered
@@ -1712,37 +1754,63 @@ combineFragments(NSArray *fragments)
 
 - (NSUInteger) taskIdentifier
 {
+  /* Does not require locking, as this ivar is not modified after initialization */
   return internal->_taskIdentifier;
 }
 
 - (NSURLRequest *) originalRequest
 {
+  /* Does not require locking, as this ivar is not modified after initialization */
   return AUTORELEASE([internal->_originalRequest copy]);
 }
 
 - (NSURLRequest *) currentRequest
 {
-  return AUTORELEASE([internal->_currentRequest copy]);
+  NSURLRequest *request;
+  GS_MUTEX_LOCK(internal->lock);
+  request = AUTORELEASE([internal->_currentRequest copy]);
+  GS_MUTEX_UNLOCK(internal->lock);
+  return request;
 }
 
 - (NSURLResponse *) response
 {
-  return AUTORELEASE([internal->_response copy]);
+  NSURLResponse *response;
+  GS_MUTEX_LOCK(internal->lock);
+  response = AUTORELEASE([internal->_response copy]);
+  GS_MUTEX_UNLOCK(internal->lock);
+  return response;
 }
 
 - (NSURLSessionTaskState) state
 {
-  return internal->_state;
+  return gs_atomic_load(&internal->_state);
+}
+-(void) _setState: (NSURLSessionTaskState) state
+{
+  gs_atomic_store(&internal->_state, state);
+}
+- (NSURLSessionTaskState) _compareAndExchangeState: (NSURLSessionTaskState) state
+{
+  return gs_atomic_exchange(&internal->_state, state);
 }
 
 - (NSProgress *) progress
 {
-  return internal->_progress;
+  NSProgress *progress;
+  GS_MUTEX_LOCK(internal->lock);
+  progress = internal->_progress;
+  GS_MUTEX_UNLOCK(internal->lock);
+  return progress;
 }
 
 - (NSError *) error
 {
-  return internal->_error;
+  NSError *error;
+  GS_MUTEX_LOCK(internal->lock);
+  error =  AUTORELEASE([internal->_error copy]);
+  GS_MUTEX_UNLOCK(internal->lock);
+  return error;
 }
 
 - (id<NSURLSessionTaskDelegate>) delegate
@@ -1752,23 +1820,23 @@ combineFragments(NSArray *fragments)
 
 - (void) setDelegate: (id<NSURLSessionTaskDelegate>)delegate
 {
-  id<NSURLSessionTaskDelegate> oldDelegate = internal->_delegate;
-
-  internal->_delegate = RETAIN(delegate);
-  RELEASE(oldDelegate);
+  ASSIGN(internal->_delegate, delegate);
 }
 
 - (NSDate *) earliestBeginDate
 {
-  return internal->_earliestBeginDate;
+  NSDate *date;
+  GS_MUTEX_LOCK(internal->lock);
+  date =  AUTORELEASE([internal->_earliestBeginDate copy]);
+  GS_MUTEX_UNLOCK(internal->lock);
+  return date;
 }
 
 - (void) setEarliestBeginDate: (NSDate *)date
 {
-  NSDate	*oldDate = internal->_earliestBeginDate;
-
-  internal->_earliestBeginDate = RETAIN(date);
-  RELEASE(oldDate);
+  GS_MUTEX_LOCK(internal->lock);
+  ASSIGN(internal->_earliestBeginDate, date);
+  GS_MUTEX_UNLOCK(internal->lock);
 }
 
 - (int64_t) countOfBytesClientExpectsToSend
@@ -1798,15 +1866,18 @@ combineFragments(NSArray *fragments)
 
 - (NSString *) taskDescription
 {
-  return internal->_taskDescription;
+  NSString *description;
+  GS_MUTEX_LOCK(internal->lock);
+  description = AUTORELEASE([internal->_taskDescription copy]);
+  GS_MUTEX_UNLOCK(internal->lock);
+  return description;
 }
 
 - (void) setTaskDescription: (NSString *)description
 {
-  NSString	*oldDescription = internal->_taskDescription;
-
-  internal->_taskDescription = [description copy];
-  RELEASE(oldDescription);
+  GS_MUTEX_LOCK(internal->lock);
+  ASSIGNCOPY(internal->_taskDescription, description);
+  GS_MUTEX_UNLOCK(internal->lock);
 }
 
 - (void) dealloc
@@ -1820,6 +1891,8 @@ combineFragments(NSArray *fragments)
        */
       curl_easy_cleanup(internal->_easyHandle);
       curl_slist_free_all(internal->_headerList);
+
+      GS_MUTEX_DESTROY(internal->lock);
 
       RELEASE(internal->_originalRequest);
       RELEASE(internal->_currentRequest);
