@@ -608,12 +608,12 @@ static NSLock			*urlLock = nil;
 	    {
 	      if ([line length] > 4)
 		{
-		  char	buf[4];	
+		  uint8_t	buf[4];	
 
-		  buf[0] = (char)[line characterAtIndex: 0];
-		  buf[1] = (char)[line characterAtIndex: 1];
-		  buf[2] = (char)[line characterAtIndex: 2];
-		  buf[3] = (char)[line characterAtIndex: 3];
+		  buf[0] = (uint8_t)[line characterAtIndex: 0];
+		  buf[1] = (uint8_t)[line characterAtIndex: 1];
+		  buf[2] = (uint8_t)[line characterAtIndex: 2];
+		  buf[3] = (uint8_t)[line characterAtIndex: 3];
 		  if (isdigit(buf[0]) && isdigit(buf[1]) && isdigit(buf[2]))
 		    {
 		      if (buf[3] == '-')
@@ -623,7 +623,7 @@ static NSLock			*urlLock = nil;
 			   */
 			  buf[3] = ' ';
 			  term = [[NSString alloc]
-			    initWithCString: buf length: 4];
+			    initWithCString: (const char*)buf length: 4];
 			}
 		      else if (buf[3] == ' ')
 			{
