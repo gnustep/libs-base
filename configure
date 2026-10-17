@@ -12276,15 +12276,27 @@ fi
 
 
 USE_ZLIB=0
-ac_fn_c_check_header_compile "$LINENO" "zlib.h" "ac_cv_header_zlib_h" "$ac_includes_default"
+
+if test -n "$PKG_CONFIG"; then
+  if $PKG_CONFIG --exists zlib; then
+    USE_ZLIB=1
+    ZLIB_CFLAGS=`$PKG_CONFIG --cflags zlib`
+    ZLIB_LIBS=`$PKG_CONFIG --libs zlib`
+    CFLAGS="$CFLAGS $ZLIB_CFLAGS"
+    LIBS="$LIBS $ZLIB_LIBS"
+  fi
+fi
+
+if test "$ZLIB_LIBS" = ""; then
+  ac_fn_c_check_header_compile "$LINENO" "zlib.h" "ac_cv_header_zlib_h" "$ac_includes_default"
 if test "x$ac_cv_header_zlib_h" = xyes
 then :
   printf '%s\n' "#define HAVE_ZLIB_H 1" >>confdefs.h
 
 fi
 
-if test $ac_cv_header_zlib_h = yes; then
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for gzseek in -lz" >&5
+  if test $ac_cv_header_zlib_h = yes; then
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for gzseek in -lz" >&5
 printf %s "checking for gzseek in -lz... " >&6; }
 if test ${ac_cv_lib_z_gzseek+y}
 then :
@@ -12335,9 +12347,10 @@ else case e in #(
 esac
 fi
 
-  if test "$zlib_ok" = yes; then
-    LIBS="$LIBS -lz"
-    USE_ZLIB=1
+    if test "$zlib_ok" = yes; then
+      LIBS="$LIBS -lz"
+      USE_ZLIB=1
+    fi
   fi
 fi
 

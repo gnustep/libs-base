@@ -2891,12 +2891,25 @@ AC_SEARCH_LIBS([inet_ntop],[nsl Ws2_32])
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 
 USE_ZLIB=0
-AC_CHECK_HEADERS(zlib.h)
-if test $ac_cv_header_zlib_h = yes; then
-  AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
-  if test "$zlib_ok" = yes; then
-    LIBS="$LIBS -lz"
+
+if test -n "$PKG_CONFIG"; then
+  if $PKG_CONFIG --exists zlib; then
     USE_ZLIB=1
+    ZLIB_CFLAGS=`$PKG_CONFIG --cflags zlib`
+    ZLIB_LIBS=`$PKG_CONFIG --libs zlib`
+    CFLAGS="$CFLAGS $ZLIB_CFLAGS"
+    LIBS="$LIBS $ZLIB_LIBS"
+  fi
+fi
+
+if test "$ZLIB_LIBS" = ""; then
+  AC_CHECK_HEADERS(zlib.h)
+  if test $ac_cv_header_zlib_h = yes; then
+    AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
+    if test "$zlib_ok" = yes; then
+      LIBS="$LIBS -lz"
+      USE_ZLIB=1
+    fi
   fi
 fi
 AC_SUBST(USE_ZLIB)
