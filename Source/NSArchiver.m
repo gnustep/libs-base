@@ -376,7 +376,7 @@ static Class	NSMutableDataMallocClass;
 	{
 	  unsigned	count = atoi(++type);
 
-	  while (isdigit(*type))
+	  while (isdigit(*(const uint8_t*)type))
 	    {
 	      type++;
 	    }

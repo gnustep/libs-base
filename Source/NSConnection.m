@@ -90,8 +90,14 @@ skip_argspec(const char *ptr)
   if (ptr != NULL)
     {
       ptr = NSGetSizeAndAlignment(ptr, NULL, NULL);
-      if (*ptr == '+') ptr++;
-      while (isdigit(*ptr)) ptr++;
+      if (*ptr == '+')
+	{
+	  ptr++;
+	}
+      while (isdigit(*(uint8_t*)ptr))
+	{
+	  ptr++;
+	}
     }
   return ptr;
 }
