@@ -376,6 +376,9 @@ else
   NSKeyValueObserving.m
 endif
 
+# Works around a clang miscompile of GSPrivateFormat (see configure.ac).
+GSFormat.m_FILE_FLAGS += $(GSFORMAT_CFLAGS)
+
 ifeq ($(OBJC_RUNTIME_LIB), ng)
   BASE_MFILES += \
   NSKeyValueCoding+Caching.m

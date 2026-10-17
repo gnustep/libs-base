@@ -737,6 +737,7 @@ PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
 WHOAMI
+GSFORMAT_CFLAGS
 CLANG_CC
 CPP
 OBJEXT
@@ -6069,6 +6070,40 @@ else
   CLANG_CC=no
   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf '%s\n' "no" >&6; }
+fi
+
+
+# LLVM's DFA jump threading pass (on by default from clang 23) miscompiles the
+# computed-goto table in GSPrivateFormat (llvm/llvm-project#231864).
+GSFORMAT_CFLAGS=
+if test "$CLANG_CC" = "yes"; then
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether the compiler accepts -mllvm -enable-dfa-jump-thread=false" >&5
+printf %s "checking whether the compiler accepts -mllvm -enable-dfa-jump-thread=false... " >&6; }
+  saved_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -mllvm -enable-dfa-jump-thread=false"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+    GSFORMAT_CFLAGS="-mllvm -enable-dfa-jump-thread=false"
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; } ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  CFLAGS="$saved_CFLAGS"
 fi
 
 
