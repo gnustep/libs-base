@@ -270,6 +270,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         if: env.IS_WINDOWS_MINGW == 'true'
         with:
+          update: true
           msystem: ${{ matrix.msystem }}
           install: >
             git
