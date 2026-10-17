@@ -1154,6 +1154,21 @@ else
 fi
 AC_SUBST(CLANG_CC)
 
+# LLVM's DFA jump threading pass (on by default from clang 23) miscompiles the
+# computed-goto table in GSPrivateFormat (llvm/llvm-project#231864).
+GSFORMAT_CFLAGS=
+if test "$CLANG_CC" = "yes"; then
+  AC_MSG_CHECKING(whether the compiler accepts -mllvm -enable-dfa-jump-thread=false)
+  saved_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -mllvm -enable-dfa-jump-thread=false"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+    AC_MSG_RESULT(yes)
+    GSFORMAT_CFLAGS="-mllvm -enable-dfa-jump-thread=false",
+    AC_MSG_RESULT(no))
+  CFLAGS="$saved_CFLAGS"
+fi
+AC_SUBST(GSFORMAT_CFLAGS)
+
 
 # Large file support needed by NSData/NSFileHandle.
 # These macros must be called after AC_USE_SYSTEM_EXTENSIONS because
