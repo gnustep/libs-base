@@ -310,8 +310,10 @@ static Class	mutableSetClass;
   GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
 
   _version++;
-  GSIArrayRemoveItemAtIndex(&array, index);
+  /* Remove from the map first: removing from the array releases the object,
+   * and the map needs to hash it to find its bucket. */
   GSIMapRemoveKey(&map, (GSIMapKey)item.obj);
+  GSIArrayRemoveItemAtIndex(&array, index);
   _version++;
 }
 
