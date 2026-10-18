@@ -495,7 +495,7 @@ runRestore(RunLoopInternal *loop, RunState *saved)
  * Returns nil if it does not exist and was not created.
  */
 static GSRunLoopCtxt*
-contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
+contextForMode(RunLoopInternal *loop, NSString *mode)
 {
   unsigned	limit = (loop->modeCount < 8) ? loop->modeCount : 8;
   unsigned	index;
@@ -535,17 +535,26 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	}
     }
 
-  if (NO == shouldCreate)
-    {
-      return nil;
-    }
   if (loop->modeCount > 63)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Too many nodes added to run loop"];
     }
-  c = [[GSRunLoopCtxt alloc] initWithMode: mode
-				    extra: &loop->sharedContextInfo];
+
+  if ([mode isEqualToString: NSRunLoopCommonModes])
+    {
+      /* This is not a real mode, but a special group mode to which event
+       * sources can be added.  This modes is not runnable.
+       */
+      c = (GSRunLoopCtxt*)[[GSRunLoopCtxt alloc] initWithMode: mode
+        extra: &loop->sharedContextInfo];
+    }
+  else                                        
+    {
+      c = [[GSRunLoopCtxt alloc] initWithMode: mode
+                                        extra: &loop->sharedContextInfo];
+    }
+
   c->modeIndex = loop->modeCount;
   loop->contexts[loop->modeCount] = c;
   loop->modeCount++;
@@ -579,7 +588,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
   GSIArray	watchers;
   unsigned	i;
 
-  context = contextForMode(myvars, mode, YES);
+  context = contextForMode(myvars, mode);
   watchers = context->watchers;
   GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
   i = GSIArrayCount(watchers);
@@ -683,7 +692,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	}
     }
 
-  context = contextForMode(myvars, mode, NO);
+  context = contextForMode(myvars, mode);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -721,9 +730,11 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
       _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
       myvars->contextMap = NSCreateMapTable(
 	NSNonRetainedObjectMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
-      // The first mode must be NSDefaultRunLoopMode
-      contextForMode(myvars, NSDefaultRunLoopMode, YES);
+      // The first mode (index 0, bitmask 1) must be NSDefaultRunLoopMode
+      contextForMode(myvars, NSDefaultRunLoopMode);
       myvars->commonModeMask |= UINT64_C(1);
+      // The second mode (index 1, bitmask 2) must be NSRunLoopCommonModes
+      contextForMode(myvars, NSRunLoopCommonModes);
     }
   return self;
 }
@@ -748,7 +759,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 	}
     }
 
-  context = contextForMode(myvars, mode, NO);
+  context = contextForMode(myvars, mode);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -772,6 +783,20 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
 
 
 @implementation NSRunLoop(GNUstepExtensions)
+
+- (void) addCommonMode: (NSString*)mode
+{
+  GSRunLoopCtxt	*context;
+
+  context = contextForMode(myvars, mode);
+  /* NB. a mode can be added to the common group only if it is runnable.
+   * This prevents the common group itself being added (which would be bad).
+   */
+  if ([context runnable])
+    {
+      myvars->commonModeMask |= (UINT64_C(1) << context->modeIndex);
+    }
+}
 
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
@@ -809,6 +834,18 @@ contextForMode(RunLoopInternal *loop, NSString *mode, BOOL shouldCreate)
       [self _addWatcher: info forMode: mode];
       RELEASE(info);		/* Now held in array.	*/
     }
+}
+
+- (BOOL) currentModeIsCommon
+{
+  GSRunLoopCtxt	*context;
+
+  context = contextForMode(myvars, myvars->currentMode);
+  if (myvars->commonModeMask & (UINT64_C(1) << context->modeIndex))
+    {
+      return YES;
+    }
+  return NO;
 }
 
 - (void) removeEvent: (void*)data
@@ -1034,7 +1071,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 		  format: @"[%@-%@] not a valid mode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  context = contextForMode(myvars, mode, YES);
+  context = contextForMode(myvars, mode);
 
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
@@ -1255,6 +1292,23 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
         }
     }
 
+  /* If we are running one of the common run loop modes we check for
+   * timers in the common modes group, and we use the earlier limit
+   * date of the group and the individual mode.
+   */
+  if (myvars->commonModeMask & (UINT64_C(1) << context->modeIndex))
+    {
+      GSRunLoopCtxt	*common = myvars->contexts[1];
+      NSDate		*alt = [self _limitDateForContext: common];
+
+      if (alt)
+	{
+	  if (nil == when || [alt earlierDate: when] == alt)
+	    {
+	      when = alt;
+	    }
+	}
+    }
   return when;
 }
 
@@ -1272,8 +1326,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   GSRunLoopCtxt		*context;
   NSDate		*when = nil;
 
-  context = contextForMode(myvars, mode, NO);
-  if (context != nil)
+  context = contextForMode(myvars, mode);
+  if ([context runnable])
     {
       NS_DURING
 	{
@@ -1316,13 +1370,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     {
       mode = NSDefaultRunLoopMode;
     }
-  context = contextForMode(myvars, mode, NO);
-  if (nil == context)
+  context = contextForMode(myvars, mode);
+  if (NO == [context runnable])
     {
       return;
     }
   myvars->currentMode = mode;
 
+  [GSRunLoopInfoForThread(myvars->currentThread) fire];
   [self _checkPerformers: context];
 
   NS_DURING
@@ -1344,6 +1399,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                * a method to perform in this thread.
                */
               [GSRunLoopCtxt awakenedBefore: nil];
+	      [GSRunLoopInfoForThread(myvars->currentThread) fire];
               [self _checkPerformers: context];
               GSPrivateNotifyASAP(myvars->currentMode);
               [_contextStack removeObjectIdenticalTo: context];
@@ -1399,6 +1455,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                   done = YES;
                 }
             }
+	  [GSRunLoopInfoForThread(myvars->currentThread) fire];
           [self _checkPerformers: context];
           GSPrivateNotifyASAP(myvars->currentMode);
           [context endPoll];
@@ -1444,7 +1501,12 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    * another thread.
    */
   myvars->currentMode = mode;
-  context = contextForMode(myvars, mode, NO);
+  context = contextForMode(myvars, mode);
+  if (NO == [context runnable])
+    {
+      return NO;
+    }
+  [GSRunLoopInfoForThread(myvars->currentThread) fire];
   [self _checkPerformers: context];
 
   /* Find out how long we can wait before first limit date.
@@ -1649,7 +1711,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  GSRunLoopCtxt	*context;
 	  GSIArray	performers;
 
-	  context = contextForMode(myvars, mode, YES);
+	  context = contextForMode(myvars, mode);
 	  performers = context->performers;
 
 	  end = GSIArrayCount(performers);

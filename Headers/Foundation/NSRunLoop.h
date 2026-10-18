@@ -186,6 +186,9 @@ typedef	enum {
  * for the win32 API).
  */
 @interface NSRunLoop(GNUstepExtensions)
+/** Adds the specified mode to the set of common modes.
+ */
+- (void) addCommonMode: (NSString*)aMode;
 /** Adds a watcher to the receiver ... the watcher is used to monitor events
  * of the specified type which are associted with the event handle data and
  * it operates in the specified run loop modes.<br />
@@ -197,6 +200,9 @@ typedef	enum {
 	     type: (RunLoopEventType)type
 	  watcher: (id<RunLoopEvents>)watcher
 	  forMode: (NSString*)mode;
+/** Returns YES if the current run loop mode is common, NO otherwise
+ */
+- (BOOL) currentModeIsCommon;
 /** Removes a watcher from the receiver ... the watcher must have been 
  * previously added using -addEvent:type:watcher:forMode:<br />
  * This method mirrors exactly one addition of a watcher unless removeAll

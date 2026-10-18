@@ -483,6 +483,7 @@
 	{
 	  watcher = nil;
 	  NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+	  [threadInfo reset];	// consume event
 	  [threadInfo fire];
 	}
       else
@@ -535,6 +536,7 @@
   if (WaitForMultipleObjects(1, &h, NO, milliseconds) != WAIT_TIMEOUT)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo reset];	// consume event
       [threadInfo fire];
       return YES;
     }

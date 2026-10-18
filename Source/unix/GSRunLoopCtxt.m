@@ -256,6 +256,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   /* Watch for signals from other threads.
    */
   setPollfd(threadInfo->inputFd, POLLIN, self);
+  NSDebugMLLog(@"NSRunLoop", @"Thread handle monitor %d", threadInfo->inputFd);
 
   while (i-- > 0)
     {
@@ -948,6 +949,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
           if (fdIndex == threadInfo->inputFd)
             {
 	      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+              [threadInfo reset];	// consume event
               [threadInfo fire];
               watcher = nil;
             }
@@ -1019,6 +1021,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     &exception_fds, &timeout) > 0)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo reset];	// consume event
       [threadInfo fire];
       return YES;
     }

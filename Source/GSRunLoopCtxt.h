@@ -43,17 +43,25 @@
 @class NSString;
 @class GSRunLoopWatcher;
 
-@interface	GSRunLoopCtxt : NSObject
+@interface	GSRunLoopCtxtBase : NSObject
 {
 @public
   void		*extra;		/** Common data for contexts in a loop  */
   NSString	*mode;		/** The mode for this context.		*/
   unsigned	modeIndex;	/** Position of mode within run loop    */
+  GSIArray	watchers;	/** The inputs set for the runloop mode */
+  GSMinHeap	*timerHeap;     /** The timers set for the runloop mode */
+}
+- (id) initWithMode: (NSString*)theMode extra: (void**)e;
+- (BOOL) runnable;	// Whether the loop can run in this mode
+@end
+
+@interface	GSRunLoopCtxt : GSRunLoopCtxtBase
+{
+@public
   GSIArray	performers;	/** The actions to perform regularly.	*/
   unsigned	maxPerformers;
-  GSIArray	watchers;	/** The inputs set for the runloop mode */
   unsigned	maxWatchers;
-  GSMinHeap	*timerHeap;     /** The timers set for the runloop mode */
   unsigned	maxTimers;
 @protected
   GSIArray	_trigger;	// Watchers to trigger unconditionally.
