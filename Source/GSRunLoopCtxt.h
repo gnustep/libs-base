@@ -28,6 +28,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSRunLoop.h"
 #import "GNUstepBase/GSMinHeap.h"
+#import "GSPrivate.h"
 
 /*
  *      Setup for inline operation of arrays.
@@ -56,6 +57,7 @@ typedef struct {
   NSMapTable            *contextMap;            /* Hash lookup by mode */
   GSRunLoopCtxt         *contexts[64];          /* Context for each mode */
   NSThread              *currentThread;         /* Our thread, not retained */
+  GSRunLoopThreadInfo   *threadInfo;		/* Not retained */
   GSRunLoopCtxt         *currentContext;        /* Not retained */
   GSRunLoopCtxt         *savedContext;          /* Not retained */
 } GSRLInternal;

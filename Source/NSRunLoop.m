@@ -558,7 +558,11 @@ runStart(GSRLInternal *loop, NSString *mode)
     {
       loop->savedContext = loop->savedContext;
       loop->currentContext = context;
-      loop->currentThread = thread;
+      if (nil == loop->currentThread)
+	{
+	  loop->currentThread = thread;
+  	  loop->threadInfo = GSRunLoopInfoForThread(thread);
+	}
     }
   else
     {
@@ -951,6 +955,7 @@ static GSMainQueueDrainer 	*drainer = nil;
       /* The loop must only be used by the specified thread.
        */
       ((GSRLInternal*)loop->_internal)->currentThread = aThread;
+      ((GSRLInternal*)loop->_internal)->threadInfo = info;
 
       /* If this is the main thread, set up a housekeeping timer.
        */
@@ -1384,7 +1389,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       return;
     }
 
-  [GSRunLoopInfoForThread(myvars->currentThread) fire];
+  [myvars->threadInfo fire];
   [self _checkPerformers: context];
 
   NS_DURING
@@ -1406,7 +1411,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                * a method to perform in this thread.
                */
               [GSRunLoopCtxt awakenedBefore: nil];
-	      [GSRunLoopInfoForThread(myvars->currentThread) fire];
+	      [myvars->threadInfo fire];
               [self _checkPerformers: context];
               GSPrivateNotifyASAP(context->mode);
               [_contextStack removeObjectIdenticalTo: context];
@@ -1462,7 +1467,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                   done = YES;
                 }
             }
-	  [GSRunLoopInfoForThread(myvars->currentThread) fire];
+	  [myvars->threadInfo fire];
           [self _checkPerformers: context];
           GSPrivateNotifyASAP(context->mode);
           [context endPoll];
@@ -1506,7 +1511,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    */
   GSPrivateNotifyASAP(mode);
 
-  [GSRunLoopInfoForThread(myvars->currentThread) fire];
+  [myvars->threadInfo fire];
   [self _checkPerformers: context];
 
   /* Find out how long we can wait before first limit date.
