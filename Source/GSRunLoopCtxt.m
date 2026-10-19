@@ -49,6 +49,36 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   0
 };
 
+@implementation	GSRunLoopCtxtBase
+- (void) dealloc
+{
+  RELEASE(mode);
+  RELEASE(timerHeap);
+  GSIArrayEmpty(watchers);
+  NSZoneFree(watchers->zone, (void*)watchers);
+  DEALLOC
+}
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
+{
+  if (nil != (self = [super init]))
+    {
+      NSZone	*z = [self zone];
+
+      mode = [theMode copy];
+      loop = l;
+      timerHeap = [[GSMinHeap allocWithZone: z]
+	initWithCapacity: 100 andComparator: NULL];
+      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+    }
+  return self;
+}
+- (BOOL) runnable
+{
+  return NO;
+}
+@end
+
 @implementation	GSRunLoopCtxt
 
 + (void) initialize
@@ -88,12 +118,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 - (void) dealloc
 {
-  RELEASE(mode);
-  RELEASE(timerHeap);
   GSIArrayEmpty(performers);
   NSZoneFree(performers->zone, (void*)performers);
-  GSIArrayEmpty(watchers);
-  NSZoneFree(watchers->zone, (void*)watchers);
   GSIArrayEmpty(_trigger);
   NSZoneFree(_trigger->zone, (void*)_trigger);
   DEALLOC
@@ -130,22 +156,15 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   completed = YES;
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
-  self = [super init];
-  if (self != nil)
+  if (nil != (self = [super initWithMode: theMode for: l]))
     {
-      NSZone	*z;
+      NSZone	*z = [self zone];
 
-      mode = [theMode copy];
-      extra = *e;
-      z = [self zone];
-      timerHeap = [[GSMinHeap alloc] initWithCapacity: 100 andComparator: NULL];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(performers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
@@ -154,6 +173,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   return NO;
+}
+
+- (BOOL) runnable
+{
+  return YES;
 }
 
 - (const NSMapTableValueCallBacks) watcherCallbacks

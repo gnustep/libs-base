@@ -68,9 +68,9 @@ typedef struct {
     {
       NSZoneFree(NSDefaultMallocZone(), pollfds);
     }
-  if (extra)
+  if (loop->sharedContextInfo)
     {
-      pollextra	*pe = (pollextra*)extra;
+      pollextra	*pe = (pollextra*)loop->sharedContextInfo;
 
       if (--pe->refcount == 0)
 	{
@@ -79,6 +79,7 @@ typedef struct {
 	      NSZoneFree(NSDefaultMallocZone(), pe->index);
 	    }
 	  NSZoneFree(NSDefaultMallocZone(), pe);
+	  loop->sharedContextInfo = NULL;
 	}
     }
 #endif
@@ -96,6 +97,7 @@ typedef struct {
 - (void) endEvent: (void*)data
               for: (GSRunLoopWatcher*)watcher
 {
+return;
   if (completed == NO)
     {
       unsigned i = GSIArrayCount(_trigger);
@@ -133,9 +135,9 @@ typedef struct {
     }
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
-  if (nil != (self = [super initWithMode: theMode extra: e]))
+  if (nil != (self = [super initWithMode: theMode for: l]))
     {
       _efdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);
@@ -144,12 +146,12 @@ typedef struct {
       _wfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);
 #ifdef	HAVE_POLL_F
-      if (NULL == *e)
+      if (NULL == loop->sharedContextInfo)
 	{
-          *e = extra
+          loop->sharedContextInfo
 	    = NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(pollextra));
 	}
-      ((pollextra*)extra)->refcount++;
+      ((pollextra*)loop->sharedContextInfo)->refcount++;
 #endif
     }
   return self;
@@ -161,7 +163,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 {
   int		index;
   struct pollfd *pollfds = ctxt->pollfds;
-  pollextra	*pe = (pollextra*)ctxt->extra;
+  pollextra	*pe = (pollextra*)ctxt->loop->sharedContextInfo;
 
   if (fd >= pe->limit)
     {
@@ -251,11 +253,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	}
     }
   pollfds_count = 0;
-  ((pollextra*)extra)->limit = 0;
+  ((pollextra*)loop->sharedContextInfo)->limit = 0;
 
   /* Watch for signals from other threads.
    */
   setPollfd(threadInfo->inputFd, POLLIN, self);
+  NSDebugMLLog(@"NSRunLoop", @"Thread handle monitor %d", threadInfo->inputFd);
 
   while (i-- > 0)
     {
@@ -948,6 +951,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
           if (fdIndex == threadInfo->inputFd)
             {
 	      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+              [threadInfo reset];	// consume event
               [threadInfo fire];
               watcher = nil;
             }
@@ -1019,6 +1023,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     &exception_fds, &timeout) > 0)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo reset];	// consume event
       [threadInfo fire];
       return YES;
     }

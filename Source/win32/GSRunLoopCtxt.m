@@ -78,9 +78,9 @@
   return nil;
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
-  if (nil != (self = [super initWithMode: theMode extra: e]))
+  if (nil != (self = [super initWithMode: theMode for: l]))
     {
       handleMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);
@@ -483,6 +483,7 @@
 	{
 	  watcher = nil;
 	  NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+	  [threadInfo reset];	// consume event
 	  [threadInfo fire];
 	}
       else
@@ -535,6 +536,7 @@
   if (WaitForMultipleObjects(1, &h, NO, milliseconds) != WAIT_TIMEOUT)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo reset];	// consume event
       [threadInfo fire];
       return YES;
     }
