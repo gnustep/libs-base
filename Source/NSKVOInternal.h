@@ -106,6 +106,7 @@
 {
   id                         	_object;
   id                         	_observer;
+  id                         	_weakObserver;
   NSString                  	*_keypath;
   NSKeyValueObservingOptions	_options;
   void                      	*_context;
@@ -120,7 +121,8 @@
                         options: (NSKeyValueObservingOptions)options
                         context: (void *)context;
 @property (nonatomic, assign) id                         object;
-@property (nonatomic, assign) id                         observer;
+/* Not retained; use -retainedObserver to message it. */
+@property (nonatomic, readonly) id                       observer;
 @property (nonatomic, copy) NSString                    *keypath;
 @property (nonatomic, assign) NSKeyValueObservingOptions options;
 @property (nonatomic, assign) void                      *context;
@@ -136,6 +138,9 @@
  */
 - (void) lockChange;
 - (void) unlockChange;
+
+/* Returns the observer retained, or nil once it is being deallocated. */
+- (id) retainedObserver;
 
 /* Bracket the call to the observer, which happens with no lock held.  The
  * change dictionary is read for the length of that call, so it may not be

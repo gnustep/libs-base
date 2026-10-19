@@ -158,6 +158,7 @@ static NSDictionary *_kvoSettingChange = nil;
     {
       _object = object;
       _observer = observer;
+      objc_initWeak(&_weakObserver, observer);
       _keypath = [keypath copy];
       _options = options;
       _context = context;
@@ -168,6 +169,7 @@ static NSDictionary *_kvoSettingChange = nil;
 
 - (void) dealloc
 {
+  objc_destroyWeak(&_weakObserver);
   [_keypath release];
   [_pendingChange release];
   GS_MUTEX_DESTROY(_changeLock);
@@ -182,6 +184,11 @@ static NSDictionary *_kvoSettingChange = nil;
 - (void) unlockChange
 {
   GS_MUTEX_UNLOCK(_changeLock);
+}
+
+- (id) retainedObserver
+{
+  return objc_loadWeakRetained(&_weakObserver);
 }
 
 - (void) beginDelivery
@@ -255,7 +262,7 @@ static NSDictionary *_kvoSettingChange = nil;
                          change: (NSDictionary *)change
                         context: (void *)context
 {
-  id                   observer = [_keypathObserver observer];
+  id                   observer = [_keypathObserver retainedObserver];
   NSString            *keypath = [_keypathObserver keypath];
   id                   rootObject = [_keypathObserver object];
   NSMutableDictionary *relayed;
@@ -281,6 +288,7 @@ static NSDictionary *_kvoSettingChange = nil;
                           ofObject: rootObject
                             change: relayed
                            context: [_keypathObserver context]];
+  RELEASE(observer);
 }
 
 @end
@@ -1135,10 +1143,12 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           [change setObject:newValue forKey:NSKeyValueChangeNewKey];
         }
 
+      RETAIN(observer);
       [observer observeValueForKeyPath:keyPath
                               ofObject:self
                                 change:change
                                context:context];
+      RELEASE(observer);
     }
 }
 
@@ -1247,14 +1257,16 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
           if (options & NSKeyValueObservingOptionPrior)
             {
               NSMutableDictionary *change = keypathObserver.pendingChange;
+              id                   observer = [keypathObserver retainedObserver];
 
               [change setObject:[NSNumber numberWithBool: YES]
                          forKey:NSKeyValueChangeNotificationIsPriorKey];
-              [keypathObserver.observer
+              [observer
                 observeValueForKeyPath:keypathObserver.keypath
                               ofObject:keypathObserver.object
                                 change:change
                                context:keypathObserver.context];
+              RELEASE(observer);
               [change
                 removeObjectForKey:NSKeyValueChangeNotificationIsPriorKey];
             }
@@ -1354,11 +1366,14 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
        * notifications are delivered, so skip it either way. */
       if (!keyObserver.isRemoved)
         {
-          [keypathObserver.observer
+          id observer = [keypathObserver retainedObserver];
+
+          [observer
             observeValueForKeyPath: keypathObserver.keypath
                           ofObject: keypathObserver.object
                             change: pending[index].change
                            context: keypathObserver.context];
+          RELEASE(observer);
         }
       [keypathObserver endDelivery];
       [pending[index].change release];
