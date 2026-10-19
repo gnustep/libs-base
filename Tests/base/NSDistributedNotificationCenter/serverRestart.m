@@ -211,8 +211,8 @@ int main(int argc, char **argv)
     SKIP("fork() is not available")
 #else
     NSDistributedNotificationCenter	*dnc;
-    RestartObserver			*kept = [RestartObserver new];
-    RestartObserver			*removed = [RestartObserver new];
+    RestartObserver			*kept;
+    RestartObserver			*removed;
     pid_t				server;
     pid_t				before;
     pid_t				after;
@@ -229,6 +229,8 @@ int main(int argc, char **argv)
 	exit(1);
       }
 
+    kept = AUTORELEASE([RestartObserver new]);
+    removed = AUTORELEASE([RestartObserver new]);
     before = startPoster(&beforeGo);
     after = startPoster(&afterGo);
     server = startServer();
