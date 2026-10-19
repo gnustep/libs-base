@@ -78,9 +78,9 @@
   return nil;
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
-  if (nil != (self = [super initWithMode: theMode extra: e]))
+  if (nil != (self = [super initWithMode: theMode for: l]))
     {
       handleMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	[self watcherCallbacks], 0);

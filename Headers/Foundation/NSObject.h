@@ -150,7 +150,7 @@ extern "C" {
  * correspond to a method that takes one object argument.
  */
 - (id _Nullable) performSelector: (SEL)aSelector
-	    withObject: (id _Nullable)anObject;
+		      withObject: (id _Nullable)anObject;
 
 /**
  * Performs the specified selector, with the objects as the arguments.  This
@@ -158,8 +158,8 @@ extern "C" {
  * correspond to a method that takes two object arguments.
  */
 - (id _Nullable) performSelector: (SEL)aSelector
-	    withObject: (id _Nullable)object1
-	    withObject: (id _Nullable)object2;
+		      withObject: (id _Nullable)object1
+		      withObject: (id _Nullable)object2;
 
 /**
  * Returns YES if the object can respond to messages with the specified

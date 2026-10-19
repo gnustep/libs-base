@@ -440,25 +440,15 @@ extern int eventfd_read(int, uint64_t*);
 
 #endif
 
-
-typedef struct {
-  void                  *sharedContextInfo;
-  uint8_t		modeCount;		/* Number of known modes */
-  uint64_t		commonModeMask;		/* Common modes as mask */
-  NSMapTable		*contextMap;		/* Hash lookup by mode */
-  GSRunLoopCtxt		*contexts[64];		/* Context for each mode */
-  NSThread		*currentThread;		/* Our thread, not retained */
-  GSRunLoopCtxt		*currentContext;	/* Not retained */
-  GSRunLoopCtxt		*savedContext;		/* Not retained */
-} RunLoopInternal;
-                               
-#define myvars	((RunLoopInternal*)_internal)
+/* See GSRunLoopCtxt.h
+ */
+#define myvars	((GSRLInternal*)_internal)
                                               
 /* Get the context for the mode name in the current run loop.
  * Returns nil if it does not exist and was not created.
  */
 static GSRunLoopCtxt*
-contextForMode(RunLoopInternal *loop, NSString *mode)
+contextForMode(GSRLInternal *loop, NSString *mode)
 {
   unsigned	limit = (loop->modeCount < 8) ? loop->modeCount : 8;
   unsigned	index;
@@ -521,13 +511,11 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
       /* This is not a real mode, but a special group mode to which event
        * sources can be added.  This modes is not runnable.
        */
-      c = (GSRunLoopCtxt*)[[GSRunLoopCtxt alloc] initWithMode: mode
-        extra: &loop->sharedContextInfo];
+      c = (GSRunLoopCtxt*)[[GSRunLoopCtxt alloc] initWithMode: mode for: loop];
     }
   else                                        
     {
-      c = [[GSRunLoopCtxt alloc] initWithMode: mode
-                                        extra: &loop->sharedContextInfo];
+      c = [[GSRunLoopCtxt alloc] initWithMode: mode for: loop];
     }
 
   c->modeIndex = loop->modeCount;
@@ -539,7 +527,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
 }
 
 static GSRunLoopCtxt*
-runStart(RunLoopInternal *loop, NSString *mode)
+runStart(GSRLInternal *loop, NSString *mode)
 {
   GSRunLoopCtxt	*context;
   NSThread	*thread = GSCurrentThread();
@@ -581,7 +569,7 @@ runStart(RunLoopInternal *loop, NSString *mode)
 }
 
 static inline void
-runRestore(RunLoopInternal *loop)
+runRestore(GSRLInternal *loop)
 {
   loop->currentContext = loop->savedContext;
   loop->savedContext = nil;
@@ -739,7 +727,7 @@ runRestore(RunLoopInternal *loop)
 
 /* Just for debugging ... get at internals
  */
-- (RunLoopInternal*) internal
+- (GSRLInternal*) internal
 {
   return myvars;
 }
@@ -752,7 +740,7 @@ runRestore(RunLoopInternal *loop)
 
       _contextStack = [NSMutableArray new];
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-      _internal = (RunLoopInternal*)NSZoneCalloc(z, 1, sizeof(RunLoopInternal));
+      _internal = (GSRLInternal*)NSZoneCalloc(z, 1, sizeof(GSRLInternal));
       myvars->contextMap = NSCreateMapTable(
 	NSNonRetainedObjectMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
       // The first mode (index 0, bitmask 1) must be NSDefaultRunLoopMode
@@ -962,7 +950,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 
       /* The loop must only be used by the specified thread.
        */
-      ((RunLoopInternal*)loop->_internal)->currentThread = aThread;
+      ((GSRLInternal*)loop->_internal)->currentThread = aThread;
 
       /* If this is the main thread, set up a housekeeping timer.
        */

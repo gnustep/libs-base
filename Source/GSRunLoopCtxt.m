@@ -58,14 +58,14 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   NSZoneFree(watchers->zone, (void*)watchers);
   DEALLOC
 }
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
   if (nil != (self = [super init]))
     {
       NSZone	*z = [self zone];
 
       mode = [theMode copy];
-      extra = *e;
+      loop = l;
       timerHeap = [[GSMinHeap allocWithZone: z]
 	initWithCapacity: 100 andComparator: NULL];
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
@@ -156,9 +156,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   completed = YES;
 }
 
-- (id) initWithMode: (NSString*)theMode extra: (void**)e
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l
 {
-  if (nil != (self = [super initWithMode: theMode extra: e]))
+  if (nil != (self = [super initWithMode: theMode for: l]))
     {
       NSZone	*z = [self zone];
 
