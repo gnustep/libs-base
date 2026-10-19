@@ -187,6 +187,10 @@ typedef	enum {
  */
 @interface NSRunLoop(GNUstepExtensions)
 /** Adds the specified mode to the set of common modes.
+ * May raise an exception if given a bad mode value or adding too many
+ * modes. The gnustep implementation permits 63 modes in a loop, including
+ * NSDefaultRunLoopMode (which is always available in a loop as one of the
+ * common modes).
  */
 - (void) addCommonMode: (NSString*)aMode;
 /** Adds a watcher to the receiver ... the watcher is used to monitor events

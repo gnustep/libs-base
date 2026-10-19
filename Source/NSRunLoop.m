@@ -444,8 +444,9 @@ extern int eventfd_read(int, uint64_t*);
  */
 #define myvars	((GSRLInternal*)_internal)
                                               
-/* Get the context for the mode name in the current run loop.
- * Returns nil if it does not exist and was not created.
+/* Get the context for the mode name in the current run loop,
+ * creating it if it if necessary.
+ * Raises an exception if too many modes are created.
  */
 static GSRunLoopCtxt*
 contextForMode(GSRLInternal *loop, NSString *mode)
@@ -526,6 +527,11 @@ contextForMode(GSRLInternal *loop, NSString *mode)
   return c;
 }
 
+/* Function to handle starting running in a (possibly new) mode.
+ * Raises an exception if the supplied mode is not valid or if the
+ * loop is started in the wrong thread.
+ * Must be matched by a call to runRestore().
+ */
 static GSRunLoopCtxt*
 runStart(GSRLInternal *loop, NSString *mode)
 {
