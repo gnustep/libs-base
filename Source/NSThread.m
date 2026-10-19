@@ -2043,6 +2043,7 @@ lockInfoErr(NSString *str)
   if (YES == signalled)
     {
       [performers addObject: performer];
+      NSDebugMLLog(@"NSRunLoop", @"Added %@ thread", performer);
     }
   [lock unlock];
   if (NO == signalled)
@@ -2060,6 +2061,57 @@ lockInfoErr(NSString *str)
   DESTROY(lock);
   DESTROY(loop);
   [super dealloc];
+}
+
+- (BOOL) fire
+{
+  NSMutableArray	*toDo = nil;
+  NSRunLoop		*cLoop = [NSRunLoop currentRunLoop];
+  NSString		*mode = [cLoop currentMode];
+  BOOL			common = [cLoop currentModeIsCommon];
+
+  [lock lock];
+  GS_FOR_IN(GSPerformHolder*, h, performers)
+    {
+      NSArray	*modes = [h modes];
+
+      if ([modes containsObject: mode]
+	|| (common && [modes containsObject: NSRunLoopCommonModes]))
+	{
+	  if (nil == toDo)
+	    {
+	      toDo = [[NSMutableArray alloc]
+		initWithCapacity: [performers count]];
+	    }
+	  [toDo addObject: h];
+	}
+    }
+  GS_END_FOR(performers)
+  if (toDo)
+    {
+      GS_FOR_IN(GSPerformHolder*, h, toDo)
+	{
+	  [performers removeObjectIdenticalTo: h];
+	}
+      GS_END_FOR(toDo)
+    }
+  [lock unlock];
+  if (toDo)
+    {
+      GS_FOR_IN(GSPerformHolder*, h, toDo)
+	{
+	  [cLoop performSelector: @selector(fire)
+			  target: h
+			argument: nil
+			   order: 0
+			   modes: [h modes]];
+	}
+      GS_END_FOR(toDo)
+      RELEASE(toDo);
+      return YES;
+    }
+  return NO;
+  
 }
 
 - (id) init
@@ -2182,7 +2234,7 @@ lockInfoErr(NSString *str)
   [p makeObjectsPerformSelector: @selector(invalidate)];
 }
 
-- (void) fire
+- (void) reset
 {
   NSArray	*toDo;
   unsigned int	i;
@@ -2319,8 +2371,10 @@ GSRunLoopInfoForThread(NSThread *aThread)
 
 - (NSString*) description
 {
-  return [[super description] stringByAppendingFormat: @" [%s %s]",
-    class_getName(object_getClass(receiver)), sel_getName(selector)];
+  NSString	*s = [super description];
+
+  return [s stringByAppendingFormat: @" [%s %s] modes %@",
+    class_getName(object_getClass(receiver)), sel_getName(selector), modes];
 }
 
 - (void) fire

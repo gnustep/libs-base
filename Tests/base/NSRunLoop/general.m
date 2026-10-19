@@ -92,7 +92,7 @@ int main()
      "-acceptInputForMode:beforeDate: works with a timer");
   ti = [NSDate timeIntervalSinceReferenceDate] - ti;
   PASS(ti >= 2.0 && ti < 2.5,
-    "-acceptInputForMode:beforeDate: takes the correct time");
+    "-acceptInputForMode:beforeDate: should be 2 sec (was %f)", ti);
   PASS(2 == counter, "-acceptInputForMode:beforeDate: fires timer");
 
   [arp release]; arp = nil;

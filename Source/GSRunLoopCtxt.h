@@ -28,6 +28,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSRunLoop.h"
 #import "GNUstepBase/GSMinHeap.h"
+#import "GSPrivate.h"
 
 /*
  *      Setup for inline operation of arrays.
@@ -40,25 +41,59 @@
 
 #include "GNUstepBase/GSIArray.h"
 
+@class NSMapTable;
 @class NSString;
+@class NSThread;
+@class GSRunLoopCtxt;
 @class GSRunLoopWatcher;
 
-@interface	GSRunLoopCtxt : NSObject
+/* This structure defines internal layout of an NSRunLoop instance which is
+ * available to all contexts which implement functionality for that loop.
+ */
+typedef struct {
+  void                  *sharedContextInfo;
+  uint8_t               modeCount;              /* Number of known modes */
+  uint64_t              commonModeMask;         /* Common modes as mask */
+  NSMapTable            *contextMap;            /* Hash lookup by mode */
+  GSRunLoopCtxt         *contexts[64];          /* Context for each mode */
+  NSThread              *currentThread;         /* Our thread, not retained */
+  GSRunLoopThreadInfo   *threadInfo;		/* Not retained */
+  GSRunLoopCtxt         *currentContext;        /* Not retained */
+  GSRunLoopCtxt         *savedContext;          /* Not retained */
+} GSRLInternal;
+
+/* These constants are the indexes (within the contexts field above) at which
+ * information for the default run loop mode and the common run loop modes are
+ * stored.  These contexts are guaranteed to exist for any running loop.
+ */
+#define	DefaultModeIndex	0	// The defualt mode (GSRunLoopCtxt)
+#define	CommonModesIndex	1	// The common modes (GSRunLoopCtxtBase)
+
+
+@interface	GSRunLoopCtxtBase : NSObject
 {
 @public
-  void		*extra;		/** Common data for contexts in a loop  */
+  GSRLInternal	*loop;		/** Pointer into owning loop.		*/
   NSString	*mode;		/** The mode for this context.		*/
   unsigned	modeIndex;	/** Position of mode within run loop    */
-  GSIArray	performers;	/** The actions to perform regularly.	*/
-  unsigned	maxPerformers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
-  unsigned	maxWatchers;
   GSMinHeap	*timerHeap;     /** The timers set for the runloop mode */
-  unsigned	maxTimers;
+}
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l;
+- (BOOL) runnable;	// Whether the loop can run in this mode
+@end
+
+@interface	GSRunLoopCtxt : GSRunLoopCtxtBase
+{
+@public
+  GSIArray		performers;	/** The actions to perform regularly. */
+  unsigned		maxPerformers;
+  unsigned		maxWatchers;
+  unsigned		maxTimers;
 @protected
-  GSIArray	_trigger;	// Watchers to trigger unconditionally.
-  int		fairStart;	// For trying to ensure fair handling.
-  BOOL		completed;	// To mark operation as completed.
+  GSIArray		_trigger;	// Watchers to trigger unconditionally.
+  int			fairStart;	// For trying to ensure fair handling.
+  BOOL			completed;	// To mark operation as completed.
 }
 /* Check to see of the thread has been awakened, blocking until it
  * does get awakened or until the limit date has been reached.
@@ -78,7 +113,7 @@
               for: (GSRunLoopWatcher*)watcher;
 
 - (void) endPoll;
-- (id) initWithMode: (NSString*)theMode extra: (void**)e;
+- (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
 
 /* Callbacks for a map table whose values are watchers.

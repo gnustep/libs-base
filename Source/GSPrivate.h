@@ -356,13 +356,17 @@ typedef enum {
  * any thread.
  */
 - (void) addPerformer: (id)performer;
-/* Fire all pending performers in the current thread.  May only be called
- * from the runloop when the event/descriptor is triggered.
+/* Fire all pending performers matching the current threads run loop mode.
+ * Returns YES if any matching performer was found.
  */
-- (void) fire;
+- (BOOL) fire;
 /* Cancel all pending performers.
  */
 - (void) invalidate;
+/* Read event notifications from the event source. This must only be called
+ * when a run loop has determined the the source has been triggered.
+ */
+- (void) reset;
 @end
 
 /* Return (and optionally create) GSRunLoopThreadInfo for the specified
