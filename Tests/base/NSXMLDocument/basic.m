@@ -98,6 +98,29 @@ int main()
   PASS([node isEqual: node2],
        "Equal documents are equivalent");
   RELEASE(node2);
+
+  /* Copying a missing URI must not create an unterminated C string. */
+  PASS([node URI] == nil, "a document parsed from a string has no URI");
+  node2 = [node copy];
+  PASS([node2 URI] == nil, "copy preserves a missing document URI");
+  RELEASE(node2);
+
+  [node setURI: @""];
+  node2 = [node copy];
+  PASS_EQUAL([node2 URI], @"", "copy preserves an empty document URI");
+  RELEASE(node2);
+
+  [node setURI: @"file:///tmp/document.xml"];
+  node2 = [node copy];
+  PASS_EQUAL([node2 URI], @"file:///tmp/document.xml",
+    "copy preserves a nonempty document URI");
+  RELEASE(node2);
+
+  [node setURI: nil];
+  PASS([node URI] == nil, "setting a nil URI clears the document URI");
+  node2 = [node copy];
+  PASS([node2 URI] == nil, "copy preserves a cleared document URI");
+  RELEASE(node2);
   RELEASE(node);
 #endif
 
