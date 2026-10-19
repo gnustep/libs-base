@@ -52,7 +52,7 @@
 @interface GSOrderedSet : NSOrderedSet
 {
 @public
-  GSIArray_t array;
+  GSIArray_t	array;
   GSIMapTable_t	map;
 }
 @end
@@ -60,7 +60,7 @@
 @interface GSMutableOrderedSet : NSMutableOrderedSet
 {
 @public
-  GSIArray_t array;
+  GSIArray_t	array;
   GSIMapTable_t	map;
 @private
   unsigned long	_version;
@@ -69,7 +69,7 @@
 
 @interface GSOrderedSetEnumerator : NSEnumerator
 {
-  GSOrderedSet *set;
+  GSOrderedSet	*set;
   unsigned      current;
   unsigned      count;
 }
@@ -178,7 +178,8 @@ static Class	mutableSetClass;
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return AUTORELEASE([[GSOrderedSetEnumeratorReverse alloc] initWithOrderedSet: self]);
+  return AUTORELEASE([[GSOrderedSetEnumeratorReverse alloc]
+    initWithOrderedSet: self]);
 }
 
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
@@ -187,8 +188,8 @@ static Class	mutableSetClass;
 
   if (size > 0)
     {
-      NSUInteger count = [self count];
-      NSUInteger i = 0;
+      NSUInteger	count = [self count];
+      NSUInteger	i = 0;
 
       for (i = 0; i < count; i++)
 	{
@@ -311,7 +312,8 @@ static Class	mutableSetClass;
 
   _version++;
   /* Remove from the map first: removing from the array releases the object,
-   * and the map needs to hash it to find its bucket. */
+   * and the map needs to hash it to find its bucket.
+   */
   GSIMapRemoveKey(&map, (GSIMapKey)item.obj);
   GSIArrayRemoveItemAtIndex(&array, index);
   _version++;
