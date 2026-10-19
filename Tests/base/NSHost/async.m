@@ -124,7 +124,6 @@ int main(void)
   PASS([receiver result] != nil,
     "empty modes array still delivers the lookup result")
 
-testHopeful = YES;
   /*
    * Test 4: An explicitly supplied run-loop mode is honored.
    */
@@ -141,7 +140,6 @@ testHopeful = YES;
   PASS(completed, "callback is delivered in the supplied run-loop mode")
   PASS([receiver result] != nil,
     "custom-mode callback receives a result")
-testHopeful = NO;
 
   END_SET("NSHost asynchronous lookupName");
 
