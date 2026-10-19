@@ -447,50 +447,13 @@ typedef struct {
   uint64_t		commonModeMask;		/* Common modes as mask */
   NSMapTable		*contextMap;		/* Hash lookup by mode */
   GSRunLoopCtxt		*contexts[64];		/* Context for each mode */
-  NSThread		*currentThread;		/* Not retained */
-  NSString		*currentMode;		/* Not retained */
+  NSThread		*currentThread;		/* Our thread, not retained */
+  GSRunLoopCtxt		*currentContext;	/* Not retained */
+  GSRunLoopCtxt		*savedContext;		/* Not retained */
 } RunLoopInternal;
                                
 #define myvars	((RunLoopInternal*)_internal)
                                               
-typedef struct {
-  NSThread	*thread;
-  NSString	*mode;
-} RunState;
-
-static RunState
-runStart(RunLoopInternal *loop, NSString *mode)
-{
-  RunState	saved = { loop->currentThread, loop->currentMode };
-  NSThread	*thread = GSCurrentThread();
-
-  if (nil == loop->currentThread)
-    {
-      loop->currentThread = thread;
-    }
-  else if (loop->currentThread != thread)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"RunLoop used in wrong thread"];
-    }
-  if (nil == mode)
-    {
-      if (nil == (mode = loop->currentMode))
-	{
-	  mode = NSDefaultRunLoopMode;
-	}
-    }
-  loop->currentMode = mode;
-  return saved;
-}
-
-static inline void
-runRestore(RunLoopInternal *loop, RunState *saved)
-{
-  loop->currentThread = saved->thread;
-  loop->currentMode = saved->mode;
-}
-
 /* Get the context for the mode name in the current run loop.
  * Returns nil if it does not exist and was not created.
  */
@@ -500,6 +463,18 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
   unsigned	limit = (loop->modeCount < 8) ? loop->modeCount : 8;
   unsigned	index;
   GSRunLoopCtxt	*c;
+
+  if (nil == mode)
+    {
+      if (loop->currentContext)
+	{
+	  mode = loop->currentContext->mode;
+	}
+      else
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
+    }
 
   if (limit > 0)
     {
@@ -562,6 +537,56 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
   RELEASE(c);
   return c;
 }
+
+static GSRunLoopCtxt*
+runStart(RunLoopInternal *loop, NSString *mode)
+{
+  GSRunLoopCtxt	*context;
+  NSThread	*thread = GSCurrentThread();
+
+  if (nil == mode)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to run loop with nil mode"];
+    }
+  else if (NO == [mode isKindOfClass: [NSString class]]
+    || [mode isEqualToString: NSRunLoopCommonModes])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to run loop with bad mode - '%@'", mode];
+    }
+
+  if (loop->currentThread)
+    {
+      if (loop->currentThread != thread)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"NSRunLoop used in wrong thread"];
+	}
+    }
+
+  context = contextForMode(loop, mode);
+  if ([context runnable])
+    {
+      loop->savedContext = loop->savedContext;
+      loop->currentContext = context;
+      loop->currentThread = thread;
+    }
+  else
+    {
+      context = nil;
+    }
+
+  return context;
+}
+
+static inline void
+runRestore(RunLoopInternal *loop)
+{
+  loop->currentContext = loop->savedContext;
+  loop->savedContext = nil;
+}
+
 
 @interface NSRunLoop (Private)
 
@@ -674,7 +699,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
 
 /**
  * Locates a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
+ * runloop.  If the mode is nil, either the current mode is used (if the
  * loop is running) or NSDefaultRunLoopMode is used.
  */
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
@@ -741,7 +766,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
 
 /**
  * Removes a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
+ * runloop.  If the mode is nil, either the current mode is used (if the
  * loop is running) or NSDefaultRunLoopMode is used.
  */
 - (void) _removeWatcher: (void*)data
@@ -840,7 +865,7 @@ contextForMode(RunLoopInternal *loop, NSString *mode)
 {
   GSRunLoopCtxt	*context;
 
-  context = contextForMode(myvars, myvars->currentMode);
+  context = contextForMode(myvars, [self currentMode]);
   if (myvars->commonModeMask & (UINT64_C(1) << context->modeIndex))
     {
       return YES;
@@ -927,21 +952,21 @@ static GSMainQueueDrainer 	*drainer = nil;
 + (NSRunLoop*) _runLoopForThread: (NSThread*) aThread
 {
   GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(aThread);
-  NSRunLoop             *current = info->loop;
+  NSRunLoop             *loop = info->loop;
 
-  if (nil == current)
+  if (nil == loop)
     {
       NSThread	*t = GSCurrentThread();
 
-      current = info->loop = [[self alloc] _init];
+      loop = info->loop = [[self alloc] _init];
 
       /* The loop must only be used by the specified thread.
        */
-      ((RunLoopInternal*)current->_internal)->currentThread = aThread;
+      ((RunLoopInternal*)loop->_internal)->currentThread = aThread;
 
       /* If this is the main thread, set up a housekeeping timer.
        */
-      if (nil != current && [t isMainThread] == YES)
+      if (nil != loop && [t isMainThread] == YES)
         {
           NSAutoreleasePool		*arp = [NSAutoreleasePool new];
           NSNotificationCenter	        *ctr;
@@ -968,7 +993,7 @@ static GSMainQueueDrainer 	*drainer = nil;
                                            selector: NULL
                                            userInfo: nil
                                             repeats: YES];
-          [current addTimer: timer forMode: NSDefaultRunLoopMode];
+          [loop addTimer: timer forMode: NSDefaultRunLoopMode];
 	  RELEASE(timer);	// Retained in run loop until invalidated
 
           #ifdef RL_INTEGRATE_DISPATCH
@@ -979,7 +1004,7 @@ static GSMainQueueDrainer 	*drainer = nil;
 	       */
 	      drainer = [GSMainQueueDrainer new];
 	    }
-          [current addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
+          [loop addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
 #ifdef _WIN32
                        type: ET_HANDLE
 #else
@@ -992,7 +1017,7 @@ static GSMainQueueDrainer 	*drainer = nil;
           [arp drain];
         }
     }
-  return current;
+  return loop;
 }
 
 + (NSRunLoop*) currentRunLoop
@@ -1033,7 +1058,11 @@ static GSMainQueueDrainer 	*drainer = nil;
  */
 - (NSString*) currentMode
 {
-  return myvars->currentMode;
+  if (myvars->currentContext)
+    {
+      return myvars->currentContext->mode;
+    }
+  return nil;
 }
 
 
@@ -1224,7 +1253,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		  [c->timerHeap removeObjectIdenticalTo: timer];
 		}
 	      [timer fire];
-	      GSPrivateNotifyASAP(myvars->currentMode);
+	      GSPrivateNotifyASAP(context->mode);
 	      IF_NO_ARC([arp emptyPool];)
 	      if (updateTimer(timer, d, now) == YES)
 		{
@@ -1322,12 +1351,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  RunState		saved = runStart(myvars, mode);
-  GSRunLoopCtxt		*context;
+  GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSDate		*when = nil;
 
-  context = contextForMode(myvars, mode);
-  if ([context runnable])
+  if (context)
     {
       NS_DURING
 	{
@@ -1335,15 +1362,15 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	}
       NS_HANDLER
 	{
-	  runRestore(myvars, &saved);
+	  runRestore(myvars);
 	  [localException raise];
 	}
       NS_ENDHANDLER
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f in %@",
 	nil == when ? 0.0 : [when timeIntervalSinceReferenceDate], mode);
+      runRestore(myvars);
     }
-  runRestore(myvars, &saved);
   return when;
 }
 
@@ -1359,23 +1386,15 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 - (void) acceptInputForMode: (NSString*)mode
 		 beforeDate: (NSDate*)limit_date
 {
-  GSRunLoopCtxt		*context;
+  GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSTimeInterval	ti = 0;
   int			timeout_ms;
-  RunState		saved = runStart(myvars, mode);
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-  NSAssert(mode, NSInvalidArgumentException);
-  if (mode == nil)
-    {
-      mode = NSDefaultRunLoopMode;
-    }
-  context = contextForMode(myvars, mode);
-  if (NO == [context runnable])
+  if (nil == context)
     {
       return;
     }
-  myvars->currentMode = mode;
 
   [GSRunLoopInfoForThread(myvars->currentThread) fire];
   [self _checkPerformers: context];
@@ -1393,17 +1412,17 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             {
               NSDebugMLLog(@"NSRunLoop",
                 @"no inputs or timers in mode %@", mode);
-              GSPrivateNotifyASAP(myvars->currentMode);
-              GSPrivateNotifyIdle(myvars->currentMode);
+              GSPrivateNotifyASAP(context->mode);
+              GSPrivateNotifyIdle(context->mode);
               /* Pause until the limit date or until we might have
                * a method to perform in this thread.
                */
               [GSRunLoopCtxt awakenedBefore: nil];
 	      [GSRunLoopInfoForThread(myvars->currentThread) fire];
               [self _checkPerformers: context];
-              GSPrivateNotifyASAP(myvars->currentMode);
+              GSPrivateNotifyASAP(context->mode);
               [_contextStack removeObjectIdenticalTo: context];
-	      runRestore(myvars, &saved);
+	      runRestore(myvars);
               [arp drain];
               NS_VOIDRETURN;
             }
@@ -1449,7 +1468,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           done = [context pollUntil: timeout_ms within: _contextStack];
           if (NO == done)
             {
-              GSPrivateNotifyIdle(myvars->currentMode);
+              GSPrivateNotifyIdle(context->mode);
               if (nil == limit_date || [limit_date timeIntervalSinceNow] <= 0.0)
                 {
                   done = YES;
@@ -1457,7 +1476,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             }
 	  [GSRunLoopInfoForThread(myvars->currentThread) fire];
           [self _checkPerformers: context];
-          GSPrivateNotifyASAP(myvars->currentMode);
+          GSPrivateNotifyASAP(context->mode);
           [context endPoll];
 
 	  /* Once a poll has been completed on a context, we can remove that
@@ -1470,11 +1489,11 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  [_contextStack removeObjectIdenticalTo: context];
         }
 
-      runRestore(myvars, &saved);
+      runRestore(myvars);
     }
   NS_HANDLER
     {
-      runRestore(myvars, &saved);
+      runRestore(myvars);
       [context endPoll];
       [_contextStack removeObjectIdenticalTo: context];
       [localException raise];
@@ -1487,25 +1506,18 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-  RunState		saved = runStart(myvars, mode);
-  GSRunLoopCtxt		*context;
+  GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSDate		*d;
 
-  NSAssert(mode != nil, NSInvalidArgumentException);
+  if (nil == context)
+    {
+      return NO;
+    }
 
   /* Process any pending notifications.
    */
   GSPrivateNotifyASAP(mode);
 
-  /* And process any performers scheduled in the loop (eg something from
-   * another thread.
-   */
-  myvars->currentMode = mode;
-  context = contextForMode(myvars, mode);
-  if (NO == [context runnable])
-    {
-      return NO;
-    }
   [GSRunLoopInfoForThread(myvars->currentThread) fire];
   [self _checkPerformers: context];
 
@@ -1515,7 +1527,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   d = [self limitDateForMode: mode];
   if (nil == d)
     {
-      runRestore(myvars, &saved);
+      runRestore(myvars);
       [arp drain];
       return NO;
     }
@@ -1536,7 +1548,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       RELEASE(d);
     }
 
-  runRestore(myvars, &saved);
+  runRestore(myvars);
   [arp drain];
   return YES;
 }
