@@ -74,11 +74,29 @@ inline static unsigned char *XMLStringCopy(NSString *source)
   char *xmlstr;
   unsigned int len;
 
+  if (source == NULL)
+  {
+      return NULL;
+  }
+
   len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
   if (len == 0)
-    return NULL;
+    {
+      return NULL;
+    }
+
   xmlstr = malloc(len);
-  [source getCString:xmlstr maxLength:len encoding:NSUTF8StringEncoding];
+  if (xmlstr == NULL)
+    {
+      return NULL;
+    }
+
+  if (![source getCString:xmlstr maxLength:len encoding:NSUTF8StringEncoding])
+    {
+      free(xmlstr);
+      return NULL;
+    }
+
   return (unsigned char *)xmlstr;
 }
 
