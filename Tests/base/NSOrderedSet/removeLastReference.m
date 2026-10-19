@@ -43,6 +43,11 @@ static BOOL	usedAfterDealloc = NO;
   deallocated = YES;
 }
 #pragma clang diagnostic pop
+
+- (void) reallyDealloc
+{
+  [super dealloc];
+}
 @end
 
 int main(void)
@@ -58,6 +63,7 @@ int main(void)
     PASS(!usedAfterDealloc,
       "removeObjectAtIndex: doesn't use the object after releasing it");
     PASS([m count] == 0, "the set is empty");
+    [o reallyDealloc];
 
     deallocated = NO;
     usedAfterDealloc = NO;
@@ -69,6 +75,7 @@ int main(void)
     PASS(!usedAfterDealloc,
       "removeObject: doesn't use the object after releasing it");
     [m release];
+    [o reallyDealloc];
   END_SET("NSMutableOrderedSet removing the last reference")
 
   return 0;
