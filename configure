@@ -689,6 +689,7 @@ HAVE_BLOCKS
 OBJC2RUNTIME
 OBJCFASTENUMERATION
 OBJCSETFASTENUMERATION
+OBJCAUTORELEASEPOOL
 OBJCSYNC
 NX_CONST_STRING_CLASS
 NX_CONST_STRING_OBJCFLAGS
@@ -9821,6 +9822,32 @@ fi
 
 
 #--------------------------------------------------------------------
+# Check for autorelease pool support in runtime
+#--------------------------------------------------------------------
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: assuming objc_autoreleasePoolPush() on Windows MSVC" >&5
+printf '%s\n' "$as_me: assuming objc_autoreleasePoolPush() on Windows MSVC" >&6;}
+  OBJCAUTORELEASEPOOL=1
+else
+  ac_fn_c_check_func "$LINENO" "objc_autoreleasePoolPush" "ac_cv_func_objc_autoreleasePoolPush"
+if test "x$ac_cv_func_objc_autoreleasePoolPush" = xyes
+then :
+  printf '%s\n' "#define HAVE_OBJC_AUTORELEASEPOOLPUSH 1" >>confdefs.h
+
+fi
+
+  if test $ac_cv_func_objc_autoreleasePoolPush = yes ; then
+    OBJCAUTORELEASEPOOL=1
+  else
+    OBJCAUTORELEASEPOOL=0
+  fi
+fi
+
+
+#--------------------------------------------------------------------
 # Check for fast enumeration support in runtime
 #--------------------------------------------------------------------
 if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
@@ -15924,6 +15951,39 @@ then :
 
 fi
 
+  # Check for the autorelease pool hooks.  They are variables declared only in
+  # a private header, which is not normally installed, so we declare them
+  # ourselves (using the same linkage as libdispatch's public declarations).
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for libdispatch autorelease pool hooks" >&5
+printf %s "checking for libdispatch autorelease pool hooks... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <dispatch/dispatch.h>
+DISPATCH_EXPORT void *(*_dispatch_begin_NSAutoReleasePool)(void);
+DISPATCH_EXPORT void (*_dispatch_end_NSAutoReleasePool)(void *);
+int
+main (void)
+{
+return _dispatch_begin_NSAutoReleasePool != 0
+  || _dispatch_end_NSAutoReleasePool != 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+
+printf '%s\n' "#define HAVE_DISPATCH_AUTORELEASE_POOL_HOOKS 1" >>confdefs.h
+
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; } ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
 fi
 
 
