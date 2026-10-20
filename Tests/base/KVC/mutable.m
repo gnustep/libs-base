@@ -239,7 +239,7 @@ int main(void)
 
   Lists		*list = AUTORELEASE([[Lists alloc] init]);
   Observer	*observer = AUTORELEASE([Observer new]);
-  aStruct 	s = {1, 2, "3" };
+  aStruct 	s = {1, 2.0, "3" };
   id 		o;
   NSMutableArray *proxy;
   NSDictionary	*temp;
