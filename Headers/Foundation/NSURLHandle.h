@@ -228,7 +228,12 @@ GS_EXPORT_CLASS
 - (int) setDebug: (int)flag;
 
 /** GNUstep extension to turn on returning of complete http/https response
- * even when the status code is not in the 200 to 299 success range.
+ * even when the status code is not in the 200 to 299 success range.<br />
+ * In particular, this is necessary if you want to handle redirects,
+ * since this implementation (for security reasons) does not automatically
+ * handle redirects.  A redirect would be a failure, but enabling all return
+ * status codes allows you to submit a new request for the URL to which the
+ * redirect points.
  */
 - (void) setReturnAll: (BOOL)flag;
 
