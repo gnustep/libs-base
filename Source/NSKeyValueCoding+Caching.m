@@ -681,6 +681,14 @@ valueForKeyWithCaching(id obj, NSString *aKey)
       // as it is unlikely, that the return type has changed.
       slot
         = ValueForKeyLookup(cls, obj, aKey, [aKey UTF8String], [aKey length]);
+      if (slot.contents == 0)
+        {
+          return [obj valueForUndefinedKey: aKey];
+        }
+      /* The lookup leaves the key fields empty; keep the entry findable
+       * under the class and key it is stored under in the table. */
+      slot.cls = cachedSlot->cls;
+      slot.hash = cachedSlot->hash;
 
       // Update entry
       GS_MUTEX_LOCK(cacheTableLock);
