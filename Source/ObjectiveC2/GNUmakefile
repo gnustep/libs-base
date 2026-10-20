@@ -47,6 +47,11 @@ ObjectiveC2_C_FILES += caps.c runtime.c
 
 endif
 
+ifneq ($(OBJCAUTORELEASEPOOL), 1)
+ObjectiveC2_OBJC_FILES += \
+	autorelease.m
+endif
+
 ifeq ($(HAVE_BLOCKS),0)
 
 ObjectiveC2_OBJC_FILES += \

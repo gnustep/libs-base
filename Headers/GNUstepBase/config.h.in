@@ -255,6 +255,9 @@
    */
 #undef HAVE_DIRENT_H
 
+/* Define if libdispatch has the autorelease pool hooks */
+#undef HAVE_DISPATCH_AUTORELEASE_POOL_HOOKS
+
 /* Define to 1 if you have the 'dispatch_cancel' function. */
 #undef HAVE_DISPATCH_CANCEL
 
@@ -501,6 +504,9 @@
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the 'objc_autoreleasePoolPush' function. */
+#undef HAVE_OBJC_AUTORELEASEPOOLPUSH
 
 /* Define to 1 if you have the 'objc_enumerationMutation' function. */
 #undef HAVE_OBJC_ENUMERATIONMUTATION
