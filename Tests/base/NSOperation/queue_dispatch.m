@@ -98,58 +98,57 @@ int main()
 {
   START_SET("NSOperationQueue dispatch-backed behavior")
 
-#if GS_USE_LIBDISPATCH == 1
+#if GS_USE_LIBDISPATCH == 1 && __has_feature(blocks)
+  NSOperationQueue *queue;
+  void *oldUnderlying;
+  void *customUnderlying;
+
+  queue = [NSOperationQueue new];
+  oldUnderlying = [queue underlyingQueue];
+  PASS(([queue underlyingQueue] != NULL),
+    "custom operation queue exposes a non-null underlying queue");
+  PASS(([[NSOperationQueue mainQueue] underlyingQueue] != NULL),
+    "main queue exposes a non-null underlying queue");
+  PASS(([queue underlyingQueue]
+    != [[NSOperationQueue mainQueue] underlyingQueue]),
+    "custom queue and main queue use different underlying queues");
+
+  // Assigning a custom libdispatch queue succeeds and updates the value.
+  customUnderlying = dispatch_queue_create("queue-dispatch-test", NULL);
+  [queue setUnderlyingQueue: customUnderlying];
+  PASS(([queue underlyingQueue] == customUnderlying),
+    "setUnderlyingQueue accepts a non-main dispatch queue");
+  PASS(([queue underlyingQueue] != oldUnderlying),
+    "setUnderlyingQueue replaces the previous underlying queue");
+
+  // Assigning the main queue must fail.
+  PASS_EXCEPTION(
+    [queue setUnderlyingQueue: dispatch_get_main_queue()],
+    NSInvalidArgumentException,
+    "setUnderlyingQueue rejects dispatch_get_main_queue");
+
+  // Assigning while operations are enqueued must fail.
   {
-    NSOperationQueue *queue;
-    void *oldUnderlying;
-    void *customUnderlying;
+    Counter *busyCounter;
+    DelayIncrementOperation *op;
 
-    queue = [NSOperationQueue new];
-    oldUnderlying = [queue underlyingQueue];
-    PASS(([queue underlyingQueue] != NULL),
-      "custom operation queue exposes a non-null underlying queue");
-    PASS(([[NSOperationQueue mainQueue] underlyingQueue] != NULL),
-      "main queue exposes a non-null underlying queue");
-    PASS(([queue underlyingQueue] != [[NSOperationQueue mainQueue] underlyingQueue]),
-      "custom queue and main queue use different underlying queues");
-
-    // Assigning a custom libdispatch queue succeeds and updates the value.
-    customUnderlying = dispatch_queue_create("queue-dispatch-test", NULL);
-    [queue setUnderlyingQueue: customUnderlying];
-    PASS(([queue underlyingQueue] == customUnderlying),
-      "setUnderlyingQueue accepts a non-main dispatch queue");
-    PASS(([queue underlyingQueue] != oldUnderlying),
-      "setUnderlyingQueue replaces the previous underlying queue");
-
-    // Assigning the main queue must fail.
+    busyCounter = [Counter new];
+    op = [[DelayIncrementOperation alloc] initWithCounter: busyCounter
+						    delay: 0.20];
+    [queue addOperation: op];
+    [op release];
     PASS_EXCEPTION(
-      [queue setUnderlyingQueue: dispatch_get_main_queue()],
+      [queue setUnderlyingQueue: customUnderlying],
       NSInvalidArgumentException,
-      "setUnderlyingQueue rejects dispatch_get_main_queue");
-
-    // Assigning while operations are enqueued must fail.
-    {
-      Counter *busyCounter;
-      DelayIncrementOperation *op;
-
-      busyCounter = [Counter new];
-      op = [[DelayIncrementOperation alloc] initWithCounter: busyCounter
-                                                      delay: 0.20];
-      [queue addOperation: op];
-      [op release];
-      PASS_EXCEPTION(
-        [queue setUnderlyingQueue: customUnderlying],
-        NSInvalidArgumentException,
-        "setUnderlyingQueue rejects changes while operations are enqueued");
-      [queue waitUntilAllOperationsAreFinished];
-      [busyCounter release];
-    }
-
-    dispatch_release((dispatch_queue_t)customUnderlying);
-    [queue release];
+      "setUnderlyingQueue rejects changes while operations are enqueued");
+    [queue waitUntilAllOperationsAreFinished];
+    [busyCounter release];
   }
+
+  dispatch_release((dispatch_queue_t)customUnderlying);
+  [queue release];
 #else
-  PASS(YES, "underlyingQueue checks are disabled when libdispatch is unavailable");
+  PASS(YES, "underlyingQueue checks are disabled when libdispatch or blocks are unavailable");
 #endif
 
   END_SET("NSOperationQueue dispatch-backed behavior");

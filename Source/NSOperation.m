@@ -973,15 +973,23 @@ dispatchQueueExecuteOperation(void *context)
 }
 
 #if GS_USE_LIBDISPATCH == 1 && OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-- (dispatch_queue_t) underlyingQueue
-{
-  return [(GSDispatchOperationQueueImpl *)internal->queueImpl underlyingQueue];
-}
-
 - (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue
 {
   [(GSDispatchOperationQueueImpl *)internal->queueImpl
     setUnderlyingQueue: dispatchQueue];
+}
+- (dispatch_queue_t) underlyingQueue
+{
+  return [(GSDispatchOperationQueueImpl *)internal->queueImpl underlyingQueue];
+}
+#else
+- (void) setUnderlyingQueue: (void*)dispatchQueue
+{
+  return;
+}
+- (void*) underlyingQueue
+{
+  return NULL;
 }
 #endif
 
