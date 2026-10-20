@@ -74,6 +74,9 @@ else
     libgnustep-base_SUBPROJECTS = ObjectiveC2
     OBJECTIVEC2_HEADERS += blocks_runtime.h
   endif
+  ifeq ($(OBJCAUTORELEASEPOOL),0)
+    libgnustep-base_SUBPROJECTS = ObjectiveC2
+  endif
 endif
 
 libgnustep-base_SUBPROJECTS += Additions

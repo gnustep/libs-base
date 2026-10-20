@@ -2247,6 +2247,25 @@ fi
 AC_SUBST(OBJCSYNC)
 
 #--------------------------------------------------------------------
+# Check for autorelease pool support in runtime
+#--------------------------------------------------------------------
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_autoreleasePoolPush() on Windows MSVC])
+  OBJCAUTORELEASEPOOL=1
+else
+  AC_CHECK_FUNCS(objc_autoreleasePoolPush)
+  if test $ac_cv_func_objc_autoreleasePoolPush = yes ; then
+    OBJCAUTORELEASEPOOL=1
+  else
+    OBJCAUTORELEASEPOOL=0
+  fi
+fi
+AC_SUBST(OBJCAUTORELEASEPOOL)
+
+#--------------------------------------------------------------------
 # Check for fast enumeration support in runtime
 #--------------------------------------------------------------------
 if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
@@ -3943,6 +3962,20 @@ if test $HAVE_LIBDISPATCH = 1; then
   fi
   # Check for availability of functions in more recent libdispatch versions.
   AC_CHECK_FUNCS(dispatch_cancel)
+  # Check for the autorelease pool hooks.  They are variables declared only in
+  # a private header, which is not normally installed, so we declare them
+  # ourselves (using the same linkage as libdispatch's public declarations).
+  AC_MSG_CHECKING(for libdispatch autorelease pool hooks)
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <dispatch/dispatch.h>
+DISPATCH_EXPORT void *(*_dispatch_begin_NSAutoReleasePool)(void);
+DISPATCH_EXPORT void (*_dispatch_end_NSAutoReleasePool)(void *);]],
+      [[return _dispatch_begin_NSAutoReleasePool != 0
+  || _dispatch_end_NSAutoReleasePool != 0;]])],
+    [AC_MSG_RESULT(yes)
+     AC_DEFINE(HAVE_DISPATCH_AUTORELEASE_POOL_HOOKS, 1,
+       [Define if libdispatch has the autorelease pool hooks])],
+    [AC_MSG_RESULT(no)])
 fi
 AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
