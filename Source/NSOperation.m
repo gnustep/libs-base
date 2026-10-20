@@ -25,8 +25,17 @@
    */
 
 #import "common.h"
+
+/* Currently the libdispatch code here uses blocks.
+ * Until we have portable code, turn off libdispatch usage.
+ */
 #if GS_USE_LIBDISPATCH == 1
-#include "dispatch/dispatch.h"
+#  if __has_feature(blocks)
+#    include "dispatch/dispatch.h"
+#  else
+#    undef GS_USE_LIBDISPATCH
+#    define GS_USE_LIBDISPATCH 0
+#  endif
 #endif
 
 #import "Foundation/NSLock.h"

@@ -127,8 +127,12 @@
 /*
  * No-Op defintions if libdispatch is not supposed to be used.
  */
-#define DISPATCH_QUEUE_SERIAL 0
-#define DISPATCH_QUEUE_CONCURRENT 0
+#ifndef DISPATCH_QUEUE_SERIAL
+#define DISPATCH_QUEUE_SERIAL NULL
+#endif
+#ifndef DISPATCH_QUEUE_CONCURRENT
+#define DISPATCH_QUEUE_CONCURRENT NULL
+#endif
 #define dispatch_queue_attr_t int
 #define dispatch_queue_t int
 #define dispatch_group_t int
