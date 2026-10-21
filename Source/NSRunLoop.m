@@ -427,29 +427,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 @end
 
-#if	GS_USE_LIBDISPATCH_RUNLOOP
-
-@interface GSMainQueueDrainer : NSObject <RunLoopEvents>
-+ (void*) mainQueueFileDescriptor;
-@end
-
-@implementation GSMainQueueDrainer
-+ (void*) mainQueueFileDescriptor
-{
-  return GSPrivateDispatchHandle();
-}
-
-- (void) receivedEvent: (void*)data
-		  type: (RunLoopEventType)type
-		 extra: (void*)extra
-	       forMode: (NSString*)mode
-{
-  GSPrivateDispatchDrain(data);
-}
-@end
-
-#endif
-
 /* See GSRunLoopCtxt.h
  */
 #define myvars	((GSRLInternal*)_internal)
@@ -578,6 +555,13 @@ runStart(GSRLInternal *loop, NSString *mode)
 	{
 	  loop->currentThread = thread;
   	  loop->threadInfo = GSRunLoopInfoForThread(thread);
+	  loop->isMainThread = [thread isMainThread];
+#if	GS_USE_LIBDISPATCH_RUNLOOP
+	  if (loop->isMainThread)
+	    {
+	      loop->dispatchHandle = GSPrivateDispatchHandle();
+	    }
+#endif
 	}
     }
   else
@@ -950,13 +934,6 @@ runRestore(GSRLInternal *loop)
     }
 }
 
-/* Declare the drainer at file scope so that the clang analyzer will not
- * report it as leaked.
- */
-#if	GS_USE_LIBDISPATCH_RUNLOOP
-static GSMainQueueDrainer 	*drainer = nil;
-#endif
-
 + (NSRunLoop*) _runLoopForThread: (NSThread*) aThread
 {
   GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(aThread);
@@ -984,6 +961,11 @@ static GSMainQueueDrainer 	*drainer = nil;
           NSTimer                       *timer;
           SEL			        sel;
 
+	  ((GSRLInternal*)loop->_internal)->isMainThread = YES;
+#if	GS_USE_LIBDISPATCH_RUNLOOP
+	  ((GSRLInternal*)loop->_internal)->dispatchHandle
+	    = GSPrivateDispatchHandle();
+#endif
           ctr = [NSNotificationCenter defaultCenter];
           not = [NSNotification notificationWithName: @"GSHousekeeping"
                                               object: nil
@@ -1004,25 +986,6 @@ static GSMainQueueDrainer 	*drainer = nil;
                                             repeats: YES];
           [loop addTimer: timer forMode: NSDefaultRunLoopMode];
 	  RELEASE(timer);	// Retained in run loop until invalidated
-
-#if	GS_USE_LIBDISPATCH_RUNLOOP
-	  if (nil == drainer)
-	    {
-	      /* We leak the queue drainer, because it's integral part of RL
-	       * operations
-	       */
-	      drainer = [GSMainQueueDrainer new];
-	    }
-          [loop addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
-#ifdef _WIN32
-                       type: ET_HANDLE
-#else
-                       type: ET_RDESC
-#endif
-                    watcher: drainer
-                    forMode: NSDefaultRunLoopMode];
-
-#endif
           [arp drain];
         }
     }

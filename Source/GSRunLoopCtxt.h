@@ -53,6 +53,8 @@
 typedef struct {
   void                  *sharedContextInfo;
   uint8_t               modeCount;              /* Number of known modes */
+  BOOL			isMainThread;		/* Loop is in main thread */
+  void			*dispatchHandle;	/* NULL or libdispatch info */
   uint64_t              commonModeMask;         /* Common modes as mask */
   NSMapTable            *contextMap;            /* Hash lookup by mode */
   GSRunLoopCtxt         *contexts[64];          /* Context for each mode */
