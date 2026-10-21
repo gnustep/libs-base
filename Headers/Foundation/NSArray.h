@@ -289,7 +289,8 @@ GS_NON_PORTABLE(use fast enumeration instead);
  * order of objects.
  */
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingComparator:
-    (NSComparator)comparator;
+    (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /** Returns a sorted array using the block to determine the order of objects.
  *
@@ -299,7 +300,8 @@ GS_NON_PORTABLE(use fast enumeration instead);
  */
 - (GS_GENERIC_CLASS(NSArray, ElementT) *)
     sortedArrayWithOptions: (NSSortOptions)options
-           usingComparator: (NSComparator)comparator;
+           usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Performs a binary search of the array within the specified range for the
@@ -310,7 +312,8 @@ GS_NON_PORTABLE(use fast enumeration instead);
 - (NSUInteger) indexOfObject: (id)key
                inSortedRange: (NSRange)range
                      options: (NSBinarySearchingOptions)options
-             usingComparator: (NSComparator)comparator;
+             usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 #endif
 /**
  * Accessor for subscripting.  This is called by the compiler when you write
@@ -413,13 +416,15 @@ GS_EXPORT_CLASS
 /**
  * Sorts the array using the specified comparator block.
  */
-- (void) sortUsingComparator: (NSComparator)comparator;
+- (void) sortUsingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Sorts the array using the specified comparator block and options.
  */
 - (void) sortWithOptions: (NSSortOptions)options
-         usingComparator: (NSComparator)comparator;
+         usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 /** Set method called by the compiler with array subscripting.<br />

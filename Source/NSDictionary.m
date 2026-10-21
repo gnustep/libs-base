@@ -970,8 +970,11 @@ compareIt(id o1, id o2, void* context)
 
 - (NSArray *) keysSortedByValueUsingComparator: (NSComparator)cmptr
 {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self keysSortedByValueWithOptions: 0
 			    usingComparator: cmptr];
+#pragma GCC diagnostic pop 
 }
 
 - (NSArray *) keysSortedByValueWithOptions: (NSSortOptions)opts
@@ -982,8 +985,11 @@ compareIt(id o1, id o2, void* context)
   NSMutableArray	*result;
 
   ENTER_POOL
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   sortedValues = [[self allValues] sortedArrayWithOptions: opts
 					  usingComparator: cmptr];
+#pragma GCC diagnostic pop 
   noDuplicates = [[NSOrderedSet orderedSetWithArray: sortedValues] array];
   result = [[NSMutableArray alloc] initWithCapacity: [sortedValues count]];
   GS_FOR_IN(NSObject*, value, noDuplicates)

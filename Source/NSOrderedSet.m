@@ -1223,16 +1223,22 @@ static SEL	remSel;
 
 - (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self sortedArrayWithOptions: 0
 		      usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 
 - (NSArray *)
     sortedArrayWithOptions: (NSSortOptions)options
            usingComparator: (NSComparator)comparator
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [[self array] sortedArrayWithOptions: options
 			      usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 
 // Filtering Ordered Sets
@@ -1650,7 +1656,10 @@ static SEL	remSel;
 
 - (void) sortUsingComparator: (NSComparator)comparator
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self sortWithOptions: 0 usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 
 - (void) sortWithOptions: (NSSortOptions)options
@@ -1658,9 +1667,12 @@ static SEL	remSel;
 {
   NSUInteger count = [self count];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self sortRange: NSMakeRange(0, count)
           options: options
         usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 
 - (void) sortRange: (NSRange)range
