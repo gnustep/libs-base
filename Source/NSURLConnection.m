@@ -37,6 +37,7 @@
   NSError		*_error;
   NSURLResponse		*_response;
   BOOL			_done;
+  uint8_t		_redirects;
 }
 
 - (NSData*) data;
@@ -114,6 +115,26 @@
      didReceiveData: (NSData *)data
 {
   [_data appendData: data];
+}
+
+- (NSURLRequest*)connection: (NSURLConnection*)connection
+            willSendRequest: (NSURLRequest*)request
+           redirectResponse: (NSURLResponse*)response
+{
+  if (response)
+    {
+      _redirects++;
+      if (_redirects > 16)
+	{
+	  if (nil == _error)
+	    {
+	      _error = RETAIN([NSError errorWithDomain: NSURLErrorDomain
+		code: NSURLErrorHTTPTooManyRedirects userInfo: nil]);
+	    }
+	  return nil;
+	}
+    }
+  return request;
 }
 
 @end
