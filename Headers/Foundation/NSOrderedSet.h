@@ -246,7 +246,8 @@ GS_EXPORT_CLASS
 - (NSUInteger) indexOfObject: (id)key
 	       inSortedRange: (NSRange)range
 		     options: (NSBinarySearchingOptions)options
-	     usingComparator: (NSComparator)comparator;
+	     usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Returns the index of objects at indexSet that pass the test in predicate with enumeration options opts.
@@ -358,7 +359,8 @@ GS_EXPORT_CLASS
  * Returns an NSArray instance containing the elements from the receiver sorted using comparator.
  */
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingComparator:
-    (NSComparator)comparator;
+    (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Returns an NSArray instance containing the elements from the receiver using options, sorted
@@ -366,7 +368,8 @@ GS_EXPORT_CLASS
  */
 - (GS_GENERIC_CLASS(NSArray, ElementT) *)
     sortedArrayWithOptions: (NSSortOptions)options
-	   usingComparator: (NSComparator)comparator;
+	   usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 // Filtering Ordered Sets
 /**
@@ -534,20 +537,23 @@ GS_EXPORT_CLASS
 /**
  * Sort using comparator
  */
-- (void) sortUsingComparator: (NSComparator)comparator;
+- (void) sortUsingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Sort with options and comparator.
  */
 - (void) sortWithOptions: (NSSortOptions)options
-	 usingComparator: (NSComparator)comparator;
+	 usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * Sort the given range using options and comparator.
  */
 - (void) sortRange: (NSRange)range
 	   options: (NSSortOptions)options
-   usingComparator: (NSComparator)comparator;
+   usingComparator: (NSComparator)comparator
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /**
  * This method leaves only objects that interesect with ordered set aSet in the receiver.

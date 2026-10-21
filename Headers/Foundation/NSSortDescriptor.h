@@ -47,10 +47,10 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSSortDescriptor)
 @private
-  NSString *_key;
-  BOOL	_ascending;
-  SEL	_selector;
-  NSComparator _comparator;
+  NSString	*_key;
+  BOOL		_ascending;
+  SEL		_selector;
+  NSComparator 	_comparator;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -82,7 +82,7 @@ GS_EXPORT_CLASS
  *
  * <p>See also -initWithKey:ascending:.</p>
  */
-+ (id) sortDescriptorWithKey: (NSString *)aKey ascending: (BOOL)ascending;
++ (id) sortDescriptorWithKey: (NSString*)aKey ascending: (BOOL)ascending;
 
 /** <p>Returns an autoreleased sort descriptor initialized to perform 
  * comparisons in the specified order using aSelector to compare the property 
@@ -90,7 +90,7 @@ GS_EXPORT_CLASS
  *
  * <p>See also -initWithKey:ascending:selector:.</p>
  */
-+ (id) sortDescriptorWithKey: (NSString *)aKey 
++ (id) sortDescriptorWithKey: (NSString*)aKey 
                    ascending: (BOOL)ascending 
                     selector: (SEL)aSelector;
 
@@ -100,9 +100,10 @@ GS_EXPORT_CLASS
  *
  * <p>See also -initWithKey:ascending:selector:.</p>
  */
-+ (id)sortDescriptorWithKey: (NSString *)key 
-                  ascending: (BOOL)ascending 
-                 comparator: (NSComparator)cmptr;
++ (id) sortDescriptorWithKey: (NSString*)key 
+                   ascending: (BOOL)ascending 
+                  comparator: (NSComparator)cmptr
+  GS_NON_PORTABLE(sort using a function or selector);
 
 /** <init />
  * Initialises the receiver to perform comparisons in the specified order
@@ -110,7 +111,8 @@ GS_EXPORT_CLASS
  */
 - (id) initWithKey: (NSString *)key
          ascending: (BOOL)ascending
-        comparator: (NSComparator)cmptr;
+        comparator: (NSComparator)cmptr
+  GS_NON_PORTABLE(sort using a function or selector);
 #endif
 
 /** Initialises the receiver for comparisons using the 'compare:' selector

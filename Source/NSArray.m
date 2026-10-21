@@ -1159,14 +1159,20 @@ compare(id elem1, id elem2, void* context)
 
   sortedArray = AUTORELEASE([[NSMutableArrayClass allocWithZone:
     NSDefaultMallocZone()] initWithArray: self copyItems: NO]);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [sortedArray sortWithOptions: options usingComparator: comparator];
+#pragma GCC diagnostic pop
 
   return GS_IMMUTABLE(sortedArray);
 }
 
 - (NSArray*) sortedArrayUsingComparator: (NSComparator)comparator
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [self sortedArrayWithOptions: 0 usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 
 - (NSUInteger) indexOfObject: (id)key
@@ -2699,7 +2705,10 @@ compare(id elem1, id elem2, void* context)
 
 - (void) sortUsingComparator: (NSComparator)comparator
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self sortWithOptions: 0 usingComparator: comparator];
+#pragma GCC diagnostic pop
 }
 @end
 
