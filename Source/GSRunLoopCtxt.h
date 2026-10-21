@@ -122,4 +122,13 @@ typedef struct {
 
 @end
 
+#if GS_USE_LIBDISPATCH_RUNLOOP
+/* Function to drain/run libdispatch queue when an event is signalled for it.
+ */
+void GSPrivateDispatchDrain(void *handle) GS_ATTRIB_PRIVATE;
+/* Function to return libdispatch main queue handle.
+ */
+void * GSPrivateDispatchHandle() GS_ATTRIB_PRIVATE;
+#endif
+
 #endif /* __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE */
