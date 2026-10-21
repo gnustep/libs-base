@@ -155,9 +155,12 @@ static NSMutableDictionary *__presenterIdDict = nil;
     {
       NSBlockOperation *op;
 
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       op = [NSBlockOperation
 	blockOperationWithBlock: (GSBlockOperationBlock)accessor];
       [queue addOperation: op];
+#pragma GCC diagnostic pop 
     }
 }
 
