@@ -337,7 +337,7 @@
   count = num_handles - special;
   if (count > 0)
     {
-      i = speacial + (fairStart++ % count);
+      i = special + (fairStart++ % count);
       hEnum = NSEnumerateMapTable(handleMap);
       while (count-- > 0
 	&& NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
