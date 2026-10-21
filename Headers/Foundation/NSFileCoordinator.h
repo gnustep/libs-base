@@ -85,47 +85,55 @@ GS_EXPORT_CLASS
 
 - (void) setPurposeIdentifier: (NSString *)ident;  // copy
                  
-- (void)cancel;
+- (void) cancel;
                  
-- (void)coordinateAccessWithIntents: (NSArray *)intents
-                              queue: (NSOperationQueue *)queue
-                         byAccessor: (GSAccessorCallbackHandler)accessor;
+- (void) coordinateAccessWithIntents: (NSArray*)intents
+                               queue: (NSOperationQueue*)queue
+                          byAccessor: (GSAccessorCallbackHandler)accessor
+  GS_NON_PORTABLE(do not use);
                  
-- (void)coordinateReadingItemAtURL: (NSURL *)readingURL
-                           options: (NSFileCoordinatorReadingOptions)readingOptions
-                  writingItemAtURL: (NSURL *)writingURL
-                           options: (NSFileCoordinatorWritingOptions)writingOptions
-                             error: (NSError **)outError
-                        byAccessor: (GSNoEscapeReadWriteHandler)readerWriter;
+- (void) coordinateReadingItemAtURL: (NSURL*)readingURL
+  options: (NSFileCoordinatorReadingOptions)readingOptions
+  writingItemAtURL: (NSURL *)writingURL
+  options: (NSFileCoordinatorWritingOptions)writingOptions
+  error: (NSError **)outError
+  byAccessor: (GSNoEscapeReadWriteHandler)readerWriter
+  GS_NON_PORTABLE(do not use);
                  
-- (void)coordinateReadingItemAtURL: (NSURL *)url
-                           options: (NSFileCoordinatorReadingOptions)options
-                             error: (NSError **)outError
-                        byAccessor: (GSNoEscapeNewURLHandler)reader;
+- (void) coordinateReadingItemAtURL: (NSURL *)url
+                            options: (NSFileCoordinatorReadingOptions)options
+                              error: (NSError **)outError
+                         byAccessor: (GSNoEscapeNewURLHandler)reader
+  GS_NON_PORTABLE(do not use);
                  
-- (void)coordinateWritingItemAtURL: (NSURL *)url
-                           options: (NSFileCoordinatorWritingOptions)options error:(NSError **)outError
-                        byAccessor: (GSNoEscapeNewURLHandler)writer;
+- (void) coordinateWritingItemAtURL: (NSURL *)url
+  options: (NSFileCoordinatorWritingOptions)options
+  error: (NSError **)outError
+  byAccessor: (GSNoEscapeNewURLHandler)writer
+  GS_NON_PORTABLE(do not use);
 
-- (void)coordinateWritingItemAtURL: (NSURL *)url1
-                           options: (NSFileCoordinatorWritingOptions)options1
-                  writingItemAtURL: (NSURL *)url2
-                           options: (NSFileCoordinatorWritingOptions)options2
-                             error: (NSError **)outError
-                        byAccessor: (GSDualWriteURLCallbackHandler)writer;
+- (void) coordinateWritingItemAtURL: (NSURL *)url1
+                            options: (NSFileCoordinatorWritingOptions)options1
+                   writingItemAtURL: (NSURL *)url2
+                            options: (NSFileCoordinatorWritingOptions)options2
+                              error: (NSError **)outError
+                         byAccessor: (GSDualWriteURLCallbackHandler)writer
+  GS_NON_PORTABLE(do not use);
 
-- (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL;
+- (void) itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL;
 
-- (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL; 
+- (void) itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL; 
 
-- (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes;
+- (void) itemAtURL: (NSURL *)url
+  didChangeUbiquityAttributes: (NSSet *)attributes;
 
-- (void)prepareForReadingItemsAtURLs: (NSArray *)readingURLs
-                             options: (NSFileCoordinatorReadingOptions)readingOptions
-                  writingItemsAtURLs: (NSArray *)writingURLs
-                             options: (NSFileCoordinatorWritingOptions)writingOptions
-                               error: (NSError **)outError
-                          byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor;                 
+- (void) prepareForReadingItemsAtURLs: (NSArray *)readingURLs
+  options: (NSFileCoordinatorReadingOptions)readingOptions
+  writingItemsAtURLs: (NSArray *)writingURLs
+  options: (NSFileCoordinatorWritingOptions)writingOptions
+  error: (NSError **)outError
+  byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor
+  GS_NON_PORTABLE(do not use);                 
 @end
  
 #endif
