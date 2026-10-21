@@ -8,7 +8,7 @@
 
 const NSTimeInterval kDelay = 0.01;
 
-#if GS_USE_LIBDISPATCH_RUNLOOP && __has_feature(blocks)
+#if GS_USE_LIBDISPATCH_RUNLOOP
 #  define DISPATCH_RL_INTEGRATION 1
 #  if __has_include(<dispatch.h>)
 #    include <dispatch.h>
@@ -52,6 +52,13 @@ const NSTimeInterval kDelay = 0.01;
 }
 @end
 
+static void
+incrementer(void *ctxt)
+{
+  Counter	*c = (Counter*)ctxt;
+  [c increment];
+}
+
 @implementation Queuer
 
 - (void)worker: (Counter*)counter
@@ -61,9 +68,7 @@ const NSTimeInterval kDelay = 0.01;
   for (i  = 0; i < 5; i++)
   {
 #   ifdef DISPATCH_RL_INTEGRATION
-      dispatch_async(dispatch_get_main_queue(), ^ {
-        [counter increment];
-      });
+      dispatch_async_f(dispatch_get_main_queue(), counter, incrementer);
 #   endif
     NSDate *d  = [NSDate dateWithTimeIntervalSinceNow: kDelay];
     while ([d timeIntervalSinceNow] > 0)
@@ -77,7 +82,7 @@ const NSTimeInterval kDelay = 0.01;
 
 - (void)timeout: (NSTimer*)t
 {
-  PASS(NO, "Timeout while trying to run blocks on main thread");
+  PASS(NO, "Timeout while trying to run libdispatch on main thread");
 }
 
 - (void) run

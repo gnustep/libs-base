@@ -119,7 +119,7 @@ typedef struct {
 	  ASSIGN(inst->bodyStream, this->bodyStream);
 	  ASSIGN(inst->method, this->method);
 	  inst->shouldHandleCookies = this->shouldHandleCookies;
-    inst->assumesHTTP3Capable = this->assumesHTTP3Capable;
+    	  inst->assumesHTTP3Capable = this->assumesHTTP3Capable;
 	  inst->debug = this->debug;
 	  inst->ioDelegate = this->ioDelegate;
 	  inst->headers = [this->headers mutableCopy];

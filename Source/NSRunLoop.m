@@ -59,8 +59,57 @@
 #include <time.h>
 
 #if GS_USE_LIBDISPATCH_RUNLOOP
-#  define RL_INTEGRATE_DISPATCH 1
 #  import "GSDispatch.h"
+
+#pragma GCC diagnostic push
+/* We have no declarations for libdispatch private functions, so we ignore
+ * warnings here, knowing that we are using an undocumented feature which
+ * may go away in later releases (in which case we will use another library)
+ */
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+
+#if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
+extern void dispatch_main_queue_drain_np();
+#elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
+extern uintptr_t _dispatch_get_main_queue_handle_4CF();
+extern void _dispatch_main_queue_callback_4CF(void *);
+#if     defined(HAVE_SYS_EVENTFD_H)
+#  include <sys/eventfd.h>
+#elif defined(__linux__)
+extern int eventfd_read(int, uint64_t*);
+#endif  // HAVE_SYS_EVENTFD_H
+#endif
+
+void GSPrivateDispatchDrain(void *handle)
+{
+#if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
+  dispatch_main_queue_drain_np();
+#elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
+#if defined(__linux__)
+  uint64_t value;
+  int fd = (int)(intptr_t)handle;
+  int n = eventfd_read(fd, &value);
+  (void) n;
+#endif
+  _dispatch_main_queue_callback_4CF(NULL);
+#else
+#error libdispatch missing main queue callback function
+#endif
+  return;
+}
+
+void * GSPrivateDispatchHandle()
+{
+#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
+  return (void*)(uintptr_t)dispatch_get_main_queue_handle_np();
+#elif HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
+  return (void*)(uintptr_t)_dispatch_get_main_queue_handle_4CF();
+#else
+#error libdispatch missing main queue handle function
+#endif
+}
+
+#pragma GCC diagnostic pop
 #endif
 
 NSRunLoopMode const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
@@ -378,41 +427,16 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 @end
 
-#ifdef RL_INTEGRATE_DISPATCH
-
-#pragma clang diagnostic push
-/* We have no declarations for libdispatch private functions, so we ignore
- * warnings here, knowing that we are using an undocumented feature which
- * may go away in later releases (in which case we will use another library)
- */
-#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
+#if	GS_USE_LIBDISPATCH_RUNLOOP
 
 @interface GSMainQueueDrainer : NSObject <RunLoopEvents>
 + (void*) mainQueueFileDescriptor;
 @end
 
-#if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
-extern void dispatch_main_queue_drain_np();
-#elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
-extern uintptr_t _dispatch_get_main_queue_handle_4CF();
-extern void _dispatch_main_queue_callback_4CF(void *);
-#if     defined(HAVE_SYS_EVENTFD_H)
-#  include <sys/eventfd.h>
-#elif defined(__linux__)
-extern int eventfd_read(int, uint64_t*);
-#endif  // HAVE_SYS_EVENTFD_H
-#endif
-
 @implementation GSMainQueueDrainer
 + (void*) mainQueueFileDescriptor
 {
-#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
-  return (void*)(uintptr_t)dispatch_get_main_queue_handle_np();
-#elif HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
-  return (void*)(uintptr_t)_dispatch_get_main_queue_handle_4CF();
-#else
-#error libdispatch missing main queue handle function
-#endif
+  return GSPrivateDispatchHandle();
 }
 
 - (void) receivedEvent: (void*)data
@@ -420,23 +444,9 @@ extern int eventfd_read(int, uint64_t*);
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
-  dispatch_main_queue_drain_np();
-#elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
-#if defined(__linux__)
-  uint64_t value;
-  int fd = (int)(intptr_t)data;
-  int n = eventfd_read(fd, &value);
-  (void) n;
-#endif
-  _dispatch_main_queue_callback_4CF(NULL);
-#else
-#error libdispatch missing main queue callback function
-#endif
+  GSPrivateDispatchDrain(data);
 }
 @end
-
-#pragma clang diagnostic pop
 
 #endif
 
@@ -943,7 +953,7 @@ runRestore(GSRLInternal *loop)
 /* Declare the drainer at file scope so that the clang analyzer will not
  * report it as leaked.
  */
-#ifdef RL_INTEGRATE_DISPATCH
+#if	GS_USE_LIBDISPATCH_RUNLOOP
 static GSMainQueueDrainer 	*drainer = nil;
 #endif
 
@@ -995,7 +1005,7 @@ static GSMainQueueDrainer 	*drainer = nil;
           [loop addTimer: timer forMode: NSDefaultRunLoopMode];
 	  RELEASE(timer);	// Retained in run loop until invalidated
 
-          #ifdef RL_INTEGRATE_DISPATCH
+#if	GS_USE_LIBDISPATCH_RUNLOOP
 	  if (nil == drainer)
 	    {
 	      /* We leak the queue drainer, because it's integral part of RL
@@ -1012,7 +1022,7 @@ static GSMainQueueDrainer 	*drainer = nil;
                     watcher: drainer
                     forMode: NSDefaultRunLoopMode];
 
-          #endif
+#endif
           [arp drain];
         }
     }
