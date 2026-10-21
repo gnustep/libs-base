@@ -1,3 +1,10 @@
+2026-10-21 Rupert Daniel <rupert@cancelmonday.com>
+
+	* Source/NSSortDescriptor.m: Copy the comparator block instead of
+	retaining it, so a descriptor created with a stack block does not
+	keep a dangling pointer to the caller's stack frame now that
+	objc_retain() no longer copies stack blocks.
+
 2026-10-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
