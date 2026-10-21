@@ -214,7 +214,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
  */
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   int		poll_return;
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
@@ -255,10 +255,16 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   pollfds_count = 0;
   ((pollextra*)loop->sharedContextInfo)->limit = 0;
 
-  /* Watch for signals from other threads.
+  /* Watch for signals from other threads or libdispatch.
    */
   setPollfd(threadInfo->inputFd, POLLIN, self);
-  NSDebugMLLog(@"NSRunLoop", @"Thread handle monitor %d", threadInfo->inputFd);
+#if GS_USE_LIBDISPATCH_RUNLOOP
+  if (loop->isMainThread && loop->dispatchHandle != NULL
+    && (loop->commonModeMask & (UINT64_C(1) << modeIndex)))
+    {
+      setPollfd((int)(intptr_t)loop->dispatchHandle, POLLIN, self);
+    }
+#endif
 
   while (i-- > 0)
     {
@@ -548,6 +554,14 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
                   [threadInfo fire];
                   watcher = nil;
                 }
+#if GS_USE_LIBDISPATCH_RUNLOOP
+	      else if (loop->isMainThread && loop->dispatchHandle != NULL
+		&& (fd == (int)(intptr_t)loop->dispatchHandle))
+		{
+		  GSPrivateDispatchDrain(loop->dispatchHandle);
+                  watcher = nil;
+		}
+#endif
               else
                 {
                   watcher = (GSRunLoopWatcher*)
@@ -624,7 +638,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   struct timeval	timeout;
   void			*select_timeout;
   int			select_return;
@@ -684,6 +698,16 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (fd > fdEnd)
     fdEnd = fd;
   FD_SET (fd, &read_fds);
+#if GS_USE_LIBDISPATCH_RUNLOOP
+  if (loop->isMainThread && loop->dispatchHandle != NULL
+    && (loop->commonModeMask & (UINT64_C(1) << modeIndex)))
+    {
+      fd = (int)(intptr_t)loop->dispatchHandle;
+      if (fd > fdEnd)
+	fdEnd = fd;
+      FD_SET (fd, &read_fds);
+    }
+#endif
 
   while (i-- > 0)
     {
@@ -955,6 +979,14 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
               [threadInfo fire];
               watcher = nil;
             }
+#if GS_USE_LIBDISPATCH_RUNLOOP
+	  else if (loop->isMainThread && loop->dispatchHandle != NULL
+	    && (fdIndex == (int)(intptr_t)loop->dispatchHandle))
+	    {
+	      GSPrivateDispatchDrain(loop->dispatchHandle);
+	      watcher = nil;
+	    }
+#endif
           else
             {
               watcher = (GSRunLoopWatcher*)
@@ -1005,7 +1037,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
 + (BOOL) awakenedBefore: (NSDate*)when
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
   int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
   struct timeval	timeout;

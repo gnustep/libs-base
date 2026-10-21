@@ -197,7 +197,7 @@
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   NSMapEnumerator	hEnum;
   GSRunLoopWatcher	*watcher;
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
@@ -206,6 +206,8 @@
   unsigned		count;
   unsigned		i;
   void			*handle;
+  void			*dispatch = NULL;
+  int			special;
   int			wait_timeout;
   DWORD			wait_return;
   BOOL			immediate = NO;
@@ -225,8 +227,18 @@
   NSResetMapTable(winMsgMap);
   GSIArrayRemoveAllItems(_trigger);
 
+#if GS_USE_LIBDISPATCH_RUNLOOP
+  if (loop->isMainThread && loop->dispatchHandle != NULL
+    && (loop->commonModeMask & (UINT64_C(1) << modeIndex)))
+    {
+      dispatch = loop->dispatchHandle;
+    }
+#endif
+  // One handle for signals from other threads, possibly a libdispatch one too.
+  special = 1 + (dispatch ? 1 : 0);
+
   i = GSIArrayCount(watchers);
-  num_handles = 1;              // One handle for signals from other threads
+  num_handles = special;
   num_winMsgs = 0;
 
   while (i-- > 0)
@@ -310,24 +322,29 @@
     }
 
   handleArray[0] = threadInfo->event; // Signal from other thread
-  num_handles = NSCountMapTable(handleMap) + 1;
+  if (dispatch)
+    {
+      handleArray[1] = dispatch;
+    }
+
+  num_handles = NSCountMapTable(handleMap) + special;
   if (num_handles >= MAXIMUM_WAIT_OBJECTS)
     {
       NSLog(@"Too many handles to wait for ... only using %d of %d",
         MAXIMUM_WAIT_OBJECTS-1, num_handles);
       num_handles = MAXIMUM_WAIT_OBJECTS-1;
     }
-  count = num_handles - 1;	// Count of handles excluding thread event
+  count = num_handles - special;
   if (count > 0)
     {
-      i = 1 + (fairStart++ % count);
+      i = speacial + (fairStart++ % count);
       hEnum = NSEnumerateMapTable(handleMap);
       while (count-- > 0
 	&& NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
 	{
 	  if (i >= num_handles)
 	    {
-	      i = 1;
+	      i = special;
 	    }
 	  handleArray[i++] = (HANDLE)handle;
 	}
@@ -486,6 +503,13 @@
 	  [threadInfo reset];	// consume event
 	  [threadInfo fire];
 	}
+#if GS_USE_LIBDISPATCH_RUNLOOP
+      else if (dispatch && handle == dispatch)
+	{
+	  GSPrivateDispatchDrain(dispatch);
+	  watcher = nil;
+	}
+#endif
       else
 	{
 	  watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
