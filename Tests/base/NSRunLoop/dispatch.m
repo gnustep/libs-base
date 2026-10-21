@@ -108,7 +108,7 @@ incrementer(void *ctxt)
           break;
         }
     }
-  PASS([c counter] == 5, "Dispatch blocks execute on main queue");
+  PASS([c counter] == 5, "Dispatch functions execute on main queue");
 }
 
 @end
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
   NSAutoreleasePool *pool = [NSAutoreleasePool new];
   START_SET("NSRunLoop libdispatch integration")
 # ifndef DISPATCH_RL_INTEGRATION
-  SKIP("No libdispatch, no blocks support or no runloop integration hooks in libdispatch")
+  SKIP("No libdispatch, or no runloop integration hooks in libdispatch")
 # else
   [[[Queuer new] autorelease] run];
 # endif
