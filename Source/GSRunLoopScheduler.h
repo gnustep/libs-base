@@ -46,6 +46,14 @@
  */
 - (void) unscheduleFromRunLoop: (NSRunLoop*)loop forMode: (NSString*)mode;
 
+/** Return the loops.
+ */
+- (NSArray*) loops;
+
+/** Return the modes for the specified loop.
+ */
+- (NSArray*) modes: (NSRunLoop*)loop;
+
 /** Remove the receiver from all the recorded loop/mode combinations.
  */
 - (void) remove: (id)receiver;
