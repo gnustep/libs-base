@@ -815,6 +815,21 @@ runRestore(GSRLInternal *loop)
     }
 }
 
+- (NSArray*) allModes
+{
+  NSString	*modes[64];
+  NSUInteger	i;
+
+  modes[0] = NSDefaultRunLoopMode;
+  /* Start at 2, skipping the common modes group at 1
+   */
+  for (i = 2; i < myvars->modeCount; i++)
+    {
+      modes[i-1] = myvars->contexts[i]->mode;
+    }
+  return [NSArray arrayWithObjects: modes count: i - 1];
+}
+
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher
@@ -851,18 +866,6 @@ runRestore(GSRLInternal *loop)
       [self _addWatcher: info forMode: mode];
       RELEASE(info);		/* Now held in array.	*/
     }
-}
-
-- (BOOL) currentModeIsCommon
-{
-  GSRunLoopCtxt	*context;
-
-  context = contextForMode(myvars, [self currentMode]);
-  if (myvars->commonModeMask & (UINT64_C(1) << context->modeIndex))
-    {
-      return YES;
-    }
-  return NO;
 }
 
 - (void) removeEvent: (void*)data
@@ -902,6 +905,20 @@ runRestore(GSRLInternal *loop)
     }
 }
 
+@end
+
+@implementation	NSRunLoop (modes)
+- (BOOL) _currentModeIsCommon
+{
+  GSRunLoopCtxt	*context;
+
+  context = contextForMode(myvars, [self currentMode]);
+  if (myvars->commonModeMask & (UINT64_C(1) << context->modeIndex))
+    {
+      return YES;
+    }
+  return NO;
+}
 @end
 
 /**
