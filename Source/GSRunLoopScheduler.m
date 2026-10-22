@@ -83,6 +83,25 @@
     }
 }
 
+- (NSArray*) loops
+{
+  NSUInteger	count = [_scheduled count];
+  NSRunLoop	*keys[count];
+
+  count = 0;
+  GS_FOR_IN(NSRunLoop*, key, _scheduled)
+    keys[count++] = key;
+  GS_END_FOR(_scheduled)
+  return [NSArray arrayWithObjects: keys count: count];
+}
+
+- (NSArray*) modes: (NSRunLoop*)loop
+{
+  NSMutableArray	*modes = [_scheduled objectForKey: loop];
+
+  return AUTORELEASE([modes copy]);
+}
+
 - (void) remove: (id)receiver
 {
   GS_FOR_IN(NSRunLoop*, loop, _scheduled)

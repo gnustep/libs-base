@@ -30,6 +30,7 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSSet.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/NSValue.h"
 
 #if     GS_HAVE_NSURLSESSION
@@ -44,6 +45,7 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
+#import "GNUstepBase/NSHost+GNUstepBase.h"
 #import "GNUstepBase/NSStream+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
@@ -823,6 +825,126 @@ typedef struct {
   [super dealloc];
 }
 
+- (void) _gotHost: (NSHost*)host
+{
+  if (_isLoading)
+    {
+      NSURL	*url = [this->request URL];
+      int	port = [[url port] intValue];
+
+      _parseOffset = 0;
+      DESTROY(_parser);
+      if (port == 0)
+        {
+	  // default if not specified
+	  port = [[url scheme] isEqualToString: @"https"] ? 443 : 80;
+	}
+
+      if (nil == host)
+	{
+	  [self stopLoading];
+	  [this->client URLProtocol: self didFailWithError:
+	    [NSError errorWithDomain: @"host not found" code: 0 userInfo: 
+	      [NSDictionary dictionaryWithObjectsAndKeys: 
+		url, @"NSErrorFailingURLKey",
+		host, @"NSErrorFailingURLStringKey",
+		@"can't find host", @"NSLocalizedDescription",
+		nil]]];
+	  return;
+	}
+      [NSStream getStreamsToHost: host
+			    port: port
+		     inputStream: &this->input
+		    outputStream: &this->output];
+      if (!this->input || !this->output)
+	{
+	  if (_debug == YES)
+	    {
+	      NSLog(@"%@ did not create streams for %@:%@",
+		self, host, [url port]);
+	    }
+	  [self stopLoading];		// breaks retain loops
+	  [this->client URLProtocol: self didFailWithError:
+	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
+	      [NSDictionary dictionaryWithObjectsAndKeys: 
+		url, @"NSErrorFailingURLKey",
+		host, @"NSErrorFailingURLStringKey",
+		@"can't find host", @"NSLocalizedDescription",
+		nil]]];
+	  return;
+	}
+      [this->input retain];
+      [this->output retain];
+      if ([[url scheme] isEqualToString: @"https"] == YES)
+        {
+          static NSArray        *keys;
+          NSUInteger            count;
+	  NSString		*key;
+	  NSString		*val;
+
+          [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                            forKey: NSStreamSocketSecurityLevelKey];
+          [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                             forKey: NSStreamSocketSecurityLevelKey];
+          if (nil == keys)
+            {
+              keys = [[NSArray alloc] initWithObjects:
+                GSTLSCAFile,
+                GSTLSCertificateFile,
+                GSTLSCertificateKeyFile,
+                GSTLSCertificateKeyPassword,
+                GSTLSDebug,
+                GSTLSIssuers,
+                GSTLSOwners,
+                GSTLSPriority,
+                GSTLSRemoteHosts,
+                GSTLSRevokeFile,
+                GSTLSServerName,
+                GSTLSVerify,
+                nil];
+            }
+          /* If there is no value set for the server name, and the host in the
+           * URL is a domain name rather than an address, we use that.
+           */
+	  key = GSTLSServerName;
+	  if (nil == (val = [this->request _propertyForKey: key]))
+            {
+              NSString  *host = [url host];
+              unichar   c;
+
+              c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
+              if (c != 0 && c != ':' && !isdigit(c))
+                {
+                  [this->output setProperty: host forKey: key];
+                }
+            }
+	  else
+	    {
+	      [this->output setProperty: val forKey: key];
+	    }
+          count = [keys count];
+          while (count-- > 0)
+            {
+              key = [keys objectAtIndex: count];
+              val = [this->request _propertyForKey: key];
+
+              if (nil != val)
+                {
+                  [this->output setProperty: val forKey: key];
+                }
+            }
+          if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
+        }
+      [this->input setDelegate: self];
+      [this->output setDelegate: self];
+      [this->sched schedule: this->input];
+      [this->sched schedule: this->output];
+
+      [this->input open];
+      [this->output open];
+    }
+}
+
 - (void) startLoading
 {
   static NSSet	*methods = nil;
@@ -949,128 +1071,35 @@ typedef struct {
   else
     {
       NSURL	*url = [this->request URL];
-      NSHost	*host = [NSHost hostWithName: [url host]];
-      int	port = [[url port] intValue];
+      NSString	*name = [url host];
+      NSHost	*host;
 
-      _parseOffset = 0;
-      DESTROY(_parser);
-
-      if (host == nil)
-        {
-	  host = [NSHost hostWithAddress: [url host]];	// try dotted notation
-	}
-      if (host == nil)
-        {
-	  host = [NSHost hostWithAddress: @"127.0.0.1"];	// final default
-	}
-      if (port == 0)
-        {
-	  // default if not specified
-	  port = [[url scheme] isEqualToString: @"https"] ? 443 : 80;
-	}
-
-      if (nil == host)
+      if ([name length] == 0)
 	{
-	  [self stopLoading];
-	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"host not found" code: 0 userInfo: 
-	      [NSDictionary dictionaryWithObjectsAndKeys: 
-		url, @"NSErrorFailingURLKey",
-		host, @"NSErrorFailingURLStringKey",
-		@"can't find host", @"NSLocalizedDescription",
-		nil]]];
-	  return;
+	  name = @"localhost";
 	}
-      [NSStream getStreamsToHost: host
-			    port: port
-		     inputStream: &this->input
-		    outputStream: &this->output];
-      if (!this->input || !this->output)
+      host = [NSHost cachedHostWithName: name];
+      if (host)
 	{
-	  if (_debug == YES)
-	    {
-	      NSLog(@"%@ did not create streams for %@:%@",
-		self, host, [url port]);
-	    }
-	  [self stopLoading];		// breaks retain loops
-	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
-	      [NSDictionary dictionaryWithObjectsAndKeys: 
-		url, @"NSErrorFailingURLKey",
-		host, @"NSErrorFailingURLStringKey",
-		@"can't find host", @"NSLocalizedDescription",
-		nil]]];
-	  return;
+	  [self _gotHost: host];
 	}
-      [this->input retain];
-      [this->output retain];
-      if ([[url scheme] isEqualToString: @"https"] == YES)
-        {
-          static NSArray        *keys;
-          NSUInteger            count;
-	  NSString		*key;
-	  NSString		*val;
+      else
+	{
+	  NSRunLoop	*loop;
+	  NSArray	*modes;
 
-          [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
-                            forKey: NSStreamSocketSecurityLevelKey];
-          [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
-                             forKey: NSStreamSocketSecurityLevelKey];
-          if (nil == keys)
-            {
-              keys = [[NSArray alloc] initWithObjects:
-                GSTLSCAFile,
-                GSTLSCertificateFile,
-                GSTLSCertificateKeyFile,
-                GSTLSCertificateKeyPassword,
-                GSTLSDebug,
-                GSTLSIssuers,
-                GSTLSOwners,
-                GSTLSPriority,
-                GSTLSRemoteHosts,
-                GSTLSRevokeFile,
-                GSTLSServerName,
-                GSTLSVerify,
-                nil];
-            }
-          /* If there is no value set for the server name, and the host in the
-           * URL is a domain name rather than an address, we use that.
-           */
-	  key = GSTLSServerName;
-	  if (nil == (val = [this->request _propertyForKey: key]))
-            {
-              NSString  *host = [url host];
-              unichar   c;
-
-              c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
-              if (c != 0 && c != ':' && !isdigit(c))
-                {
-                  [this->output setProperty: host forKey: key];
-                }
-            }
-	  else
+	  loop = [NSRunLoop currentRunLoop];
+	  modes = [this->sched modes: loop];
+	  if (nil == modes)
 	    {
-	      [this->output setProperty: val forKey: key];
+	      modes = [NSArray arrayWithObject: NSDefaultRunLoopMode];
 	    }
-          count = [keys count];
-          while (count-- > 0)
-            {
-              key = [keys objectAtIndex: count];
-              val = [this->request _propertyForKey: key];
-
-              if (nil != val)
-                {
-                  [this->output setProperty: val forKey: key];
-                }
-            }
-          if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
-        }
-      [this->input setDelegate: self];
-      [this->output setDelegate: self];
-      [this->sched schedule: this->input];
-      [this->sched schedule: this->output];
-
-      [this->input open];
-      [this->output open];
+	  [NSHost lookupName: name
+		      thread: [NSThread currentThread]
+		      target: self
+		    selector: @selector(_gotHost:)
+		       modes: modes];
+	}
     }
 }
 
