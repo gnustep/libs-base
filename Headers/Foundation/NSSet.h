@@ -39,7 +39,7 @@ extern "C" {
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
 @class GS_GENERIC_CLASS(NSEnumerator, ElementT);
-@class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
+@class GS_GENERIC_CLASS(NSDictionary, KeyT, ValT);
 @class NSString;
 
 NS_ASSUME_NONNULL_BEGIN

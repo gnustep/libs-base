@@ -40,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSDictionary,
-  __covariant KeyT:id<NSCopying>, __covariant ValT)
+  __covariant KeyT, __covariant ValT)
   : NSObject <NSCoding, NSSecureCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (instancetype) dictionary;
 + (instancetype _Nullable) dictionaryWithContentsOfFile: (NSString*)path;
@@ -49,13 +49,13 @@ GS_EXPORT_CLASS
 #endif
 + (instancetype) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (instancetype) dictionaryWithObject: (GS_GENERIC_TYPE(ValT))object
-                               forKey: (GS_GENERIC_TYPE(KeyT))key;
+                               forKey: (GS_GENERIC_TYPE_F(KeyT <NSCopying>, id))key;
 + (instancetype) dictionaryWithObjects: (GS_GENERIC_CLASS(NSArray,ValT)*)objects
                                forKeys: (GS_GENERIC_CLASS(NSArray,KeyT)*)keys;
 + (instancetype) dictionaryWithObjects:
   (const GS_GENERIC_TYPE(ValT) _Nonnull [])objects
   forKeys:
-  (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nonnull [])keys
+  (const GS_GENERIC_TYPE_F(KeyT <NSCopying>, id<NSCopying>) _Nonnull [])keys
   count: (NSUInteger)count;
 + (instancetype) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
@@ -71,7 +71,7 @@ GS_EXPORT_CLASS
 			     indent: (NSUInteger)level;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE(KeyT), GS_GENERIC_TYPE(ValT), BOOL*);
 - (void) enumerateKeysAndObjectsUsingBlock:
   (GSKeysAndObjectsEnumeratorBlock)aBlock
 GS_NON_PORTABLE(use fast enumeration instead);
@@ -83,7 +83,7 @@ GS_NON_PORTABLE(use fast enumeration instead);
 - (void) getObjects:
   (__unsafe_unretained GS_GENERIC_TYPE(ValT) _Nullable [])objects
   andKeys:
-  (__unsafe_unretained GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nullable [])keys;
+  (__unsafe_unretained GS_GENERIC_TYPE(KeyT) _Nullable [])keys;
 - (instancetype) init;
 - (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
 
@@ -100,14 +100,14 @@ GS_NON_PORTABLE(use fast enumeration instead);
 - (id) initWithObjectsAndKeys: (GS_GENERIC_TYPE(ValT))firstObject, ...;
 - (id) initWithObjects: (const GS_GENERIC_TYPE(ValT) _Nonnull [])objects
 	       forKeys:
-  (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>) _Nonnull [])keys
+  (const GS_GENERIC_TYPE_F(KeyT <NSCopying>, id<NSCopying>) _Nonnull [])keys
 		 count: (NSUInteger)count; // Primitive
 - (BOOL) isEqualToDictionary: (GS_GENERIC_CLASS(NSDictionary,KeyT, ValT)*)other;
 
 - (GS_GENERIC_CLASS(NSEnumerator,KeyT)*) keyEnumerator;	// Primitive
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE(KeyT), GS_GENERIC_TYPE(ValT), BOOL*);
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesPassingTest:
     (GSKeysAndObjectsPredicateBlock)aPredicate
 GS_NON_PORTABLE(use fast enumeration instead);
@@ -146,7 +146,7 @@ GS_NON_PORTABLE(use fast enumeration instead);
 @end
 
 GS_EXPORT_CLASS
-@interface  GS_GENERIC_CLASS(NSMutableDictionary, KeyT:id<NSCopying>, ValT) :
+@interface  GS_GENERIC_CLASS(NSMutableDictionary, KeyT, ValT) :
   GS_GENERIC_CLASS(NSDictionary, KeyT, ValT)
 
 + (instancetype) dictionaryWithCapacity: (NSUInteger)numItems;
@@ -162,7 +162,7 @@ GS_EXPORT_CLASS
 - (void) removeObjectForKey: (GS_GENERIC_TYPE(KeyT))aKey;
 - (void) removeObjectsForKeys: (GS_GENERIC_CLASS(NSArray, KeyT) *)keyArray;
 - (void) setObject: (GS_GENERIC_TYPE(ValT))anObject
-            forKey: (GS_GENERIC_TYPE(KeyT))aKey; // Primitive
+            forKey: (GS_GENERIC_TYPE_F(KeyT <NSCopying>, id))aKey; // Primitive
 - (void) setDictionary:
     (GS_GENERIC_CLASS(NSDictionary, KeyT, ValT)*)otherDictionary;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -177,7 +177,7 @@ GS_EXPORT_CLASS
  * Method called by array subscripting.
  */
 - (void) setObject: (GS_GENERIC_TYPE(ValT) _Nullable)anObject
- forKeyedSubscript: (GS_GENERIC_TYPE(KeyT))aKey;
+ forKeyedSubscript: (GS_GENERIC_TYPE_F(KeyT <NSCopying>, id))aKey;
 
 @end
 
