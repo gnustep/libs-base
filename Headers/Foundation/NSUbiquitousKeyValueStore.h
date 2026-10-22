@@ -31,7 +31,7 @@
 #import <Foundation/NSObject.h>
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
-@class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
+@class GS_GENERIC_CLASS(NSDictionary, KeyT, ValT);
 @class NSData;
 @class NSString;
 

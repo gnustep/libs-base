@@ -880,7 +880,7 @@ static SEL	appSel;
 }
 
 - (void) getObjects: (__unsafe_unretained id[])objects
-            andKeys: (__unsafe_unretained id<NSCopying>[])keys
+            andKeys: (__unsafe_unretained id[])keys
 {
   NSUInteger i = 0;
   GS_FOR_IN(id, key, self)
