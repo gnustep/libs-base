@@ -1972,6 +1972,10 @@ lockInfoErr(NSString *str)
 
 
 
+@interface NSRunLoop (modes)
+- (BOOL) _currentModeIsCommon;
+@end
+
 @implementation GSRunLoopThreadInfo
 - (void) addPerformer: (id)performer
 {
@@ -2068,7 +2072,7 @@ lockInfoErr(NSString *str)
   NSMutableArray	*toDo = nil;
   NSRunLoop		*cLoop = [NSRunLoop currentRunLoop];
   NSString		*mode = [cLoop currentMode];
-  BOOL			common = [cLoop currentModeIsCommon];
+  BOOL			common = [cLoop _currentModeIsCommon];
 
   [lock lock];
   GS_FOR_IN(GSPerformHolder*, h, performers)
