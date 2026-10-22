@@ -95,8 +95,8 @@ GS_NON_PORTABLE(use fast enumeration instead);
     (GS_GENERIC_CLASS(NSDictionary,KeyT, ValT)*)otherDictionary;
 - (id) initWithDictionary: (GS_GENERIC_CLASS(NSDictionary,KeyT, ValT)*)other
                 copyItems: (BOOL)shouldCopy;
-- (id) initWithObjects: (GS_GENERIC_CLASS(NSArray,KeyT)*)objects
-               forKeys: (GS_GENERIC_CLASS(NSArray,ValT)*)keys;
+- (id) initWithObjects: (GS_GENERIC_CLASS(NSArray,ValT)*)objects
+               forKeys: (GS_GENERIC_CLASS(NSArray,KeyT)*)keys;
 - (id) initWithObjectsAndKeys: (GS_GENERIC_TYPE(ValT))firstObject, ...;
 - (id) initWithObjects: (const GS_GENERIC_TYPE(ValT) _Nonnull [])objects
 	       forKeys:
@@ -117,10 +117,10 @@ GS_NON_PORTABLE(use fast enumeration instead);
 GS_NON_PORTABLE(use fast enumeration instead);
 #endif
 
-- (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingSelector: (SEL)comp;
-- (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingComparator: (NSComparator)cmptr
+- (GS_GENERIC_CLASS(NSArray,KeyT)*) keysSortedByValueUsingSelector: (SEL)comp;
+- (GS_GENERIC_CLASS(NSArray,KeyT)*) keysSortedByValueUsingComparator: (NSComparator)cmptr
   GS_NON_PORTABLE(sort using a function or selector);
-- (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueWithOptions: (NSSortOptions)opts usingComparator: (NSComparator)cmptr
+- (GS_GENERIC_CLASS(NSArray,KeyT)*) keysSortedByValueWithOptions: (NSSortOptions)opts usingComparator: (NSComparator)cmptr
   GS_NON_PORTABLE(sort using a function or selector);  
 - (GS_GENERIC_CLASS(NSEnumerator,ValT)*) objectEnumerator;	// Primitive
 - (GS_GENERIC_TYPE(ValT) _Nullable) objectForKey:
