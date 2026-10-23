@@ -239,16 +239,26 @@ typedef	enum {
 		 all: (BOOL)removeAll;
 @end
 
+/** Adds a mode to the set of common run loop modes.<br />
+ * Use this in conjunction with the -getCFRunLoop method.
+ */
+GS_EXPORT void
+CFRunLoopAddCommonMode(CFRunLoopRef loop, CFStringRef mode);
+
+/** C API for Apple compatibility; returns all the modes for the
+ * specified run loop.
+ */
+GS_EXPORT CFArrayRef
+CFRunLoopCopyAllModes(CFRunLoopRef loop);
+
+/** C API for Apple compatibility; returns the current mode for the
+ * specified run loop.
+ */
+GS_EXPORT CFStringRef
+CFRunLoopCopyCurrentMode(CFRunLoopRef loop);
+
 #if	defined(__cplusplus)
 }
 #endif
-
-
-GS_EXPORT void
-CFRunLoopAddCommonMode(CFRunLoopRef loop, CFStringRef mode);
-GS_EXPORT CFArrayRef
-CFRunLoopCopyAllModes(CFRunLoopRef loop);
-GS_EXPORT CFStringRef
-CFRunLoopCopyCurrentMode(CFRunLoopRef loop);
 
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */
