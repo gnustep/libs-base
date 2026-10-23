@@ -198,6 +198,7 @@
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
+  GSRunLoopCtxtBase     *common = nil;
   NSMapEnumerator	hEnum;
   GSRunLoopWatcher	*watcher;
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
@@ -205,6 +206,8 @@
   int			num_winMsgs;
   unsigned		count;
   unsigned		i;
+  unsigned      	modeWatchersCount;
+  unsigned      	commonWatchersCount;
   void			*handle;
   void			*dispatch = NULL;
   int			special;
@@ -237,7 +240,18 @@
   // One handle for signals from other threads, possibly a libdispatch one too.
   special = 1 + (dispatch ? 1 : 0);
 
-  i = GSIArrayCount(watchers);
+  if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
+    {
+      common = loop->contexts[1];
+      commonWatchersCount = GSIArrayCount(common->watchers);
+    }
+  else
+    {
+      commonWatchersCount = 0;
+    }
+  modeWatchersCount = GSIArrayCount(watchers);
+  i = modeWatchersCount + commonWatchersCount;
+
   num_handles = special;
   num_winMsgs = 0;
 
@@ -245,11 +259,21 @@
     {
       GSRunLoopWatcher	*info;
       BOOL		trigger;
-      
-      info = GSIArrayItemAtIndex(watchers, i).obj;
+      GSIArray          table;
+
+      if (i >= modeWatchersCount)
+        {
+          table = common->watchers;
+        }
+      else
+        {
+          table = watchers;
+        }
+      info = GSIArrayItemAtIndex(table, i).obj;
+
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(watchers, i);
+	  GSIArrayRemoveItemAtIndex(table, i);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
