@@ -162,8 +162,11 @@ static BOOL     initialized = NO;
     }
   else
     {
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
       copy = [[NSSortDescriptor allocWithZone: zone]
 	initWithKey: _key ascending: _ascending comparator: _comparator];
+#pragma GCC diagnostic pop 
     }
   return copy;
 }
