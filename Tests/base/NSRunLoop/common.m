@@ -1,6 +1,9 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSData.h>
+#import <Foundation/NSDate.h>
 #import <Foundation/NSRunLoop.h>
+#import <Foundation/NSStream.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSTimer.h>
 
@@ -23,6 +26,51 @@
 }
 @end
 
+
+@interface CommonModesStreamDelegate : NSObject
+{
+  unsigned bytesAvailable;
+}
+- (void) stream: (NSStream *)stream
+   handleEvent: (NSStreamEvent)event;
+- (unsigned) bytesAvailable;
+@end
+
+@implementation CommonModesStreamDelegate
+- (void) stream: (NSStream *)stream
+   handleEvent: (NSStreamEvent)event
+{
+  if (event == NSStreamEventHasBytesAvailable)
+    {
+      bytesAvailable++;
+    }
+}
+
+- (unsigned) bytesAvailable
+{
+  return bytesAvailable;
+}
+@end
+
+/*
+ * Run the current run loop until a bytes-available event arrives
+ * or the deadline expires.
+ */
+static void
+runUntilBytesAvailable(
+  NSRunLoop *loop,
+  NSString *mode,
+  CommonModesStreamDelegate *delegate,
+  NSTimeInterval timeout)
+{
+  NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow: timeout];
+
+  while ([delegate bytesAvailable] == 0
+    && [deadline timeIntervalSinceNow] > 0)
+    {
+      [loop runMode: mode beforeDate: deadline];
+    }
+}
 
 int main()
 {
@@ -122,6 +170,64 @@ int main()
   RELEASE(target);
 
   END_SET("common mode timers")
+
+  START_SET("common mode streams")
+
+  NSRunLoop		*loop = [NSRunLoop currentRunLoop];
+  NSInputStream		*stream;
+  CommonModesStreamDelegate *delegate;
+  NSData 		*data;
+
+  data = [NSData dataWithBytes: "test" length: 4];
+
+  /*
+   * A stream scheduled in common modes receives events in default mode.
+   */
+  stream = [[NSInputStream alloc] initWithData: data];
+  delegate = [CommonModesStreamDelegate new];
+
+  [stream setDelegate: delegate];
+  [stream scheduleInRunLoop: loop forMode: NSRunLoopCommonModes];
+  [stream open];
+
+  runUntilBytesAvailable(loop, NSDefaultRunLoopMode, delegate, 0.2);
+
+  PASS([delegate bytesAvailable] > 0,
+    "Common-mode input stream receives bytes-available event in default mode")
+
+  [stream close];
+  [stream setDelegate: nil];
+  [stream removeFromRunLoop: loop forMode: NSRunLoopCommonModes];
+  RELEASE(stream);
+  RELEASE(delegate);
+
+  /*
+   * A stream scheduled in a private mode is not serviced in default mode.
+   */
+  stream = [[NSInputStream alloc] initWithData: data];
+  delegate = [CommonModesStreamDelegate new];
+
+  [stream setDelegate: delegate];
+  [stream scheduleInRunLoop: loop forMode: @"TestPrivateRunLoopMode"];
+  [stream open];
+
+  runUntilBytesAvailable(loop, NSDefaultRunLoopMode, delegate, 0.05);
+
+  PASS([delegate bytesAvailable] == 0, "Mode-specific input stream"
+    " does not receive bytes-available event in default mode")
+
+  runUntilBytesAvailable(loop, @"TestPrivateRunLoopMode", delegate, 0.2);
+
+  PASS([delegate bytesAvailable] > 0, "Mode-specific input stream"
+    " receives bytes-available event in its registered mode")
+
+  [stream close];
+  [stream setDelegate: nil];
+  [stream removeFromRunLoop: loop forMode: @"TestPrivateRunLoopMode"];
+  RELEASE(stream);
+  RELEASE(delegate);
+
+  END_SET("common mode streams")
 
   return 0;
 }
