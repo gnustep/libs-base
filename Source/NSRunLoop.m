@@ -1459,7 +1459,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           else
             {
               /* Wait until the LIMIT_DATE. */
-              if (ti >= INT64_MAX / 1000000.0)
+              if (ti >= ((double)INT64_MAX) / 1000000.0)
                 {
                   timeout_us = INT64_MAX;	// Far future.
                 }
