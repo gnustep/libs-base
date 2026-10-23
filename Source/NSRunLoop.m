@@ -830,6 +830,29 @@ runRestore(GSRLInternal *loop)
   return [NSArray arrayWithObjects: modes count: i - 1];
 }
 
+- (CFRunLoopRef) getCFRunLoop
+{
+  return (CFRunLoopRef)self;
+}
+
+void      
+CFRunLoopAddCommonMode(CFRunLoopRef loop, CFStringRef mode)
+{
+  [(NSRunLoop*)loop addCommonMode: (NSString*)mode];
+}
+
+CFArrayRef
+CFRunLoopCopyAllModes(CFRunLoopRef loop)
+{
+  return (CFArrayRef)[[(NSRunLoop*)loop allModes] copy];
+}
+
+CFStringRef
+CFRunLoopCopyCurrentMode(CFRunLoopRef loop)
+{
+  return (CFStringRef)[[(NSRunLoop*)loop currentMode] copy];
+}
+
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher

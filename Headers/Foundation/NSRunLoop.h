@@ -27,6 +27,16 @@
 
 #import	<Foundation/NSMapTable.h>
 
+#ifdef __has_include
+#  if __has_include(<CoreFoundation/CFRunLoop.h>)
+#    include <CoreFoundation/CFRunLoop.h>
+#  else
+typedef const struct __CFString *CFStringRef;
+typedef struct __CFRunLoop *CFRunLoopRef;
+typedef const struct __CFArray *CFArrayRef;
+#  endif
+#endif
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -201,9 +211,9 @@ typedef	enum {
  */
 - (NSArray*) allModes;
 
-#define	CFRunLoopAddCommonMode(L,M) [L addCommonMode: M]
-#define	CFRunLoopCopyAllModes(L) [L allModes]
-#define	CFRunLoopCopyCurrentMode(L) [L currentMode]
+/** Method to get a value to pass to CFRunLoopAddCommonMode()
+ */
+- (CFRunLoopRef) getCFRunLoop;
 
 /** Adds a watcher to the receiver ... the watcher is used to monitor events
  * of the specified type which are associted with the event handle data and
@@ -232,5 +242,13 @@ typedef	enum {
 #if	defined(__cplusplus)
 }
 #endif
+
+
+GS_EXPORT void
+CFRunLoopAddCommonMode(CFRunLoopRef loop, CFStringRef mode);
+GS_EXPORT CFArrayRef
+CFRunLoopCopyAllModes(CFRunLoopRef loop);
+GS_EXPORT CFStringRef
+CFRunLoopCopyCurrentMode(CFRunLoopRef loop);
 
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */

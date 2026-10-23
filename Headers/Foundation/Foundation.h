@@ -192,8 +192,11 @@
 #import <Foundation/NSXPCConnection.h>
 #import	<Foundation/NSZone.h>
 
-#if	GS_USE_LIBDISPATCH
-#  ifdef __has_include
+#ifdef __has_include
+#  if __has_include(<CoreFoundation/CoreFoundation.h>)
+#    include <CoreFoundation/CoreFoundation.h>
+#  endif
+#  if	GS_USE_LIBDISPATCH
 #    if __has_include(<dispatch/dispatch.h>)
 #      include <dispatch/dispatch.h>
 #    endif
