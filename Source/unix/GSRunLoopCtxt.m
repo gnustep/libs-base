@@ -215,16 +215,29 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
+  GSRunLoopCtxtBase	*common = nil;
   int		poll_return;
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
   int		fdFinish;
   unsigned	count;
-  unsigned int	i;
+  unsigned	i;
+  unsigned	modeWatchersCount;
+  unsigned	commonWatchersCount;
   BOOL		immediate = NO;
   BOOL		debug = GSDebugSet(@"NSRunLoop");
 
-  i = GSIArrayCount(watchers);
+  if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
+    {
+      common = loop->contexts[1];
+      commonWatchersCount = GSIArrayCount(common->watchers);
+    }
+  else
+    {
+      commonWatchersCount = 0;
+    }
+  modeWatchersCount = GSIArrayCount(watchers);
+  i = modeWatchersCount + commonWatchersCount;
 
   /*
    * Get ready to listen to file descriptors.
@@ -270,11 +283,20 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     {
       GSRunLoopWatcher	*info;
       BOOL		trigger;
+      GSIArray		table;
 
-      info = GSIArrayItemAtIndex(watchers, i).obj;
+      if (i >= modeWatchersCount)
+	{
+	  table = common->watchers;
+	}
+      else
+	{
+	  table = watchers;
+	}
+      info = GSIArrayItemAtIndex(table, i).obj;
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(watchers, i);
+	  GSIArrayRemoveItemAtIndex(table, i);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
@@ -639,6 +661,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
+  GSRunLoopCtxtBase	*common = nil;
   struct timeval	timeout;
   void			*select_timeout;
   int			select_return;
@@ -651,9 +674,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   int			fdEnd = -1;
   unsigned		count;
   unsigned		i;
+  unsigned		modeWatchersCount;
+  unsigned		commonWatchersCount;
   BOOL			immediate = NO;
 
-  i = GSIArrayCount(watchers);
+  if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
+    {
+      common = loop->contexts[1];
+      commonWatchersCount = GSIArrayCount(common->watchers);
+    }
+  else
+    {
+      commonWatchersCount = 0;
+    }
+  modeWatchersCount = GSIArrayCount(watchers);
+  i = modeWatchersCount + commonWatchersCount;
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
   if (milliseconds == 0)
@@ -714,11 +749,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       GSRunLoopWatcher	*info;
       int		fd;
       BOOL		trigger;
+      GSIArray		table;
 
-      info = GSIArrayItemAtIndex(watchers, i).obj;
+      if (i >= modeWatchersCount)
+	{
+	  table = common->watchers;
+	}
+      else
+	{
+	  table = watchers;
+	}
+
+      info = GSIArrayItemAtIndex(table, i).obj;
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(watchers, i);
+	  GSIArrayRemoveItemAtIndex(table, i);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
