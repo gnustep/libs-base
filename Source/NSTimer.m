@@ -307,9 +307,16 @@ static Class	NSDate_class;
     {
       if ((id)_block != nil)
         {
+          GSTimerBlock	block;
+
+          /* We retain the block so it won't be deallocated while we are
+           * calling it (if this timer gets invalidated while we are firing).
+           */
+          block = (GSTimerBlock)RETAIN((id)_block);
+
           NS_DURING
             {
-              CALL_NON_NULL_BLOCK(_block, self);
+              CALL_NON_NULL_BLOCK(block, self);
             }
           NS_HANDLER
             {
@@ -318,6 +325,7 @@ static Class	NSDate_class;
                 [localException name], [localException reason]);
             }
           NS_ENDHANDLER
+          RELEASE((id)block);
         }
       else
         {
