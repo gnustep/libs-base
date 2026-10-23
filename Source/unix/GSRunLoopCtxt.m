@@ -212,10 +212,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
  * and this method must tell those outer contexts not to handle events
  * which are handled by this context.
  */
-- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
+- (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   GSRunLoopCtxtBase	*common = nil;
+  int		milliseconds;
   int		poll_return;
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
@@ -376,19 +377,36 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
    */
   if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
-      milliseconds = 0;
+      microseconds = 0;
     }
 
 #if 0
 {
   unsigned int i;
-  fprintf(stderr, "poll %d %d:", milliseconds, pollfds_count);
+  fprintf(stderr, "poll %"PRId64" %d:", microseconds, pollfds_count);
   for (i = 0; i < pollfds_count; i++)
     fprintf(stderr, " %d,%x", pollfds[i].fd, pollfds[i].events);
   fprintf(stderr, "\n");
 }
 #endif
-  poll_return = poll (pollfds, pollfds_count, milliseconds);
+  if (microseconds > 0)
+    {
+      /* Round up to a millisecond boundary.
+       */
+      if (0 == (microseconds % 1000))
+	{
+	  milliseconds = (int)(microseconds / 1000);
+	}
+      else
+	{
+	  milliseconds = (int)(microseconds / 1000 + 1);
+	}
+    }
+  else
+    {
+      milliseconds = 0;
+    }
+  poll_return = poll(pollfds, pollfds_count, milliseconds);
 #if 0
 {
   unsigned int i;
@@ -658,7 +676,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
 #else
 
-- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
+- (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   GSRunLoopCtxtBase	*common = nil;
@@ -691,7 +709,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   i = modeWatchersCount + commonWatchersCount;
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-  if (milliseconds == 0)
+  if (0 == microseconds)
     {
       /* Don't wait at all. */
       timeout.tv_sec = 0;
@@ -700,8 +718,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     }
   else if (milliseconds > 0)
     {
-      timeout.tv_sec = milliseconds/1000;
-      timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
+      timeout.tv_sec = (int)(microseconds/1000000);
+      timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
       select_timeout = &timeout;
     }
   else 

@@ -116,7 +116,7 @@ typedef struct {
 
 - (void) endPoll;
 - (id) initWithMode: (NSString*)theMode for: (GSRLInternal*)l;
-- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
+- (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts;
 
 /* Callbacks for a map table whose values are watchers.
  */
