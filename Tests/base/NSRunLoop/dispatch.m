@@ -82,7 +82,7 @@ incrementer(void *ctxt)
 
 - (void)timeout: (NSTimer*)t
 {
-  PASS(NO, "Timeout while trying to run libdispatch on main thread");
+  PASS(NO, "Timeout while trying to run libdispatch on main thread")
 }
 
 - (void) run
@@ -108,21 +108,19 @@ incrementer(void *ctxt)
           break;
         }
     }
-  PASS([c counter] == 5, "Dispatch functions execute on main queue");
+  PASS([c counter] == 5, "Dispatch functions execute on main queue")
 }
 
 @end
 
 int main(int argc, char *argv[])
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
   START_SET("NSRunLoop libdispatch integration")
 # ifndef DISPATCH_RL_INTEGRATION
   SKIP("No libdispatch, or no runloop integration hooks in libdispatch")
 # else
-  [[[Queuer new] autorelease] run];
+  [AUTORELEASE([Queuer new]) run];
 # endif
   END_SET("NSRunLoop libdispatch integration")
-  [pool release];
   return 0;
 }

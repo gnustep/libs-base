@@ -40,7 +40,7 @@
 
 - (void) thread1: (id)o
 {
-  NSAutoreleasePool     *pool = [NSAutoreleasePool new];
+  ENTER_POOL
   NSNotificationCenter	*nc;
   NSRunLoop             *loop;
   NSFileHandle          *fh;
@@ -129,12 +129,12 @@
   else
     blockForInput = 'Y';
   [nc removeObserver: self];
-  [pool release];
+  LEAVE_POOL
 }
 
 - (void) thread2: (id)o
 {
-  NSAutoreleasePool     *pool = [NSAutoreleasePool new];
+  ENTER_POOL
   NSRunLoop             *loop;
   NSDate                *end;
  
@@ -151,7 +151,7 @@
     {
       [loop runUntilDate: end];
     }
-  [pool release];
+  LEAVE_POOL
 }
 
 - (void) threadEvent: (id)ignored
@@ -187,26 +187,26 @@
       [[NSRunLoop currentRunLoop] runUntilDate: until];
     }
 
-  PASS(acceptEmptyBlocks == 'N', "Accept with no inputs or timers will exit");
-  PASS(acceptTimerBlocks == 'Y', "Accept with timers will not exit");
-  PASS(blockForEmpty == 'N', "A loop with no inputs or timers will exit");
-  PASS(blockForInput == 'Y', "A loop with an input source will block");
-  PASS(blockForTimer == 'Y', "A loop with a timer will block");
-  PASS(limitForEmpty == 'N', "A loop with no inputs or timers has no limit");
-  PASS(limitForInput == 'Y', "A loop with an input source has distant future");
-  PASS(limitForTimer == 'Y', "A loop with a timer has timer fire date");
-  PASS(moreForEmpty == 'N', "A loop with no inputs or timers has no more");
-  PASS(moreForInput == 'Y', "A loop with an input source has more");
-  PASS(moreForTimer == 'Y', "A loop with a timer has more");
-  PASS(performed == 'Y', "Methods will be performed in a loop without inputs");
+  PASS(acceptEmptyBlocks == 'N', "Accept with no inputs or timers will exit")
+  PASS(acceptTimerBlocks == 'Y', "Accept with timers will not exit")
+  PASS(blockForEmpty == 'N', "A loop with no inputs or timers will exit")
+  PASS(blockForInput == 'Y', "A loop with an input source will block")
+  PASS(blockForTimer == 'Y', "A loop with a timer will block")
+  PASS(limitForEmpty == 'N', "A loop with no inputs or timers has no limit")
+  PASS(limitForInput == 'Y', "A loop with an input source has distant future")
+  PASS(limitForTimer == 'Y', "A loop with a timer has timer fire date")
+  PASS(moreForEmpty == 'N', "A loop with no inputs or timers has no more")
+  PASS(moreForInput == 'Y', "A loop with an input source has more")
+  PASS(moreForTimer == 'Y', "A loop with a timer has more")
+  PASS(performed == 'Y', "Methods will be performed in a loop without inputs")
 }
 
 @end
 
 int main(int argc, char *argv[])
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-  [[[ThreadTest new] autorelease] run];
-  [pool release];
+  ENTER_POOL
+  [AUTORELEASE([ThreadTest new]) run];
+  LEAVE_POOL
   return 0;
 }
