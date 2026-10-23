@@ -182,7 +182,7 @@ typedef	enum {
  * the run loop if tit should immediately trigger a received event for the
  * watcher.
  */
-- (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger;
+- (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger GS_DEPRECATED;
 @end
 
 /**

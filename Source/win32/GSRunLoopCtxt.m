@@ -195,7 +195,7 @@
   return handled;
 }
 
-- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
+- (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
   GSRunLoopCtxtBase     *common = nil;
@@ -217,9 +217,20 @@
   BOOL			existingMessages = NO;
 
   // Set timeout how much time should wait
-  if (milliseconds >= 0)
+  if (microseconds >= 0)
     {
-      wait_timeout = milliseconds;
+      if (microseconds % 1000 == 0)
+	{
+	  wait_timeout = (int)(microseconds/1000);
+	}
+      else
+	{
+	  wait_timeout = (int)(microseconds/1000 + 1);
+	}
+    }
+  else if (0 == microseconds)
+    {
+      wait_timeout = 0;
     }
   else
     {

@@ -170,7 +170,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   return self;
 }
 
-- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
+- (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts
 {
   return NO;
 }

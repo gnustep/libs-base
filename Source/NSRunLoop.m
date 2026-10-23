@@ -1400,7 +1400,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
   GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSTimeInterval	ti = 0;
-  int			timeout_ms;
+  int64_t		timeout_us;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (nil == context)
@@ -1454,30 +1454,30 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           if (nil == when || (ti = [when timeIntervalSinceNow]) <= 0.0)
             {
               /* Don't wait at all. */
-              timeout_ms = 0;
+              timeout_us = 0;
             }
           else
             {
               /* Wait until the LIMIT_DATE. */
-              if (ti >= INT_MAX / 1000.0)
+              if (ti >= INT64_MAX / 1000000.0)
                 {
-                  timeout_ms = INT_MAX;	// Far future.
+                  timeout_us = INT64_MAX;	// Far future.
                 }
               else
                 {
-                  timeout_ms = (int)ceil(ti * 1000.0);
+                  timeout_us = (int)ceil(ti * 1000000.0);
                 }
             }
 
           NSDebugMLLog(@"NSRunLoop",
-            @"accept I/P before %d millisec from now in %@",
-            timeout_ms, mode);
+            @"accept I/P before %"PRId64" millisec from now in %@",
+            timeout_us, mode);
 
 	  if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
 	    {
 	      [_contextStack addObject: context];
 	    }
-          done = [context pollUntil: timeout_ms within: _contextStack];
+          done = [context pollUntil: timeout_us within: _contextStack];
           if (NO == done)
             {
               GSPrivateNotifyIdle(context->mode);
