@@ -1560,6 +1560,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       RELEASE(d);
     }
 
+  /* See if any timers should have fired while we were accepting input.
+   */
+  [self limitDateForMode: mode];
+
   runRestore(myvars);
   [arp drain];
   return YES;
