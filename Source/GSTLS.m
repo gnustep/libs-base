@@ -132,13 +132,14 @@ GSTLSLog(int level, const char *msg)
   NSLog(@"%s", msg);
 }
 
-/* The caFile variable holds the location of the file containing the default
- * certificate authorities to be used by our system.
- * The hard-coded value is the GNUTLS system default set, with a fallback to
- * a file in the GSTLS folder of the base library resource bundle,
- * but this can be overridden by the GS_TLS_CA_FILE
- * environment variable, which in turn will be overridden by the GSTLSCAFile
- * user default string.
+/* The caFile variable holds the location of the file containing the
+ * certificate authorities to be used when validating host certificates.
+ * The default is the system-wide database provided for GNUTLS, but this
+ * may be overridden by the GS_TLS_CA_FILE environment variable, which
+ * in turn will be overridden by the GSTLSCAFile user default string.
+ * If these are set to the value 'GNUstep' rather than a path, we use
+ * the ca-certificates.crt file in the GSTLS folder of the base library
+ * resource bundle,
  */
 static NSString *caFile = nil;          // GSTLS/ca-certificates.crt
 
@@ -249,6 +250,13 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
           str = [env objectForKey: @"SSL_CERT_FILE"];
         }
     }
+  if (str != nil
+    && [str caseInsensitiveCompare: @"GNUstep"] == NSOrderedSame)
+    {
+      str = [bundle pathForResource: @"ca-certificates"
+			     ofType: @"crt"
+			inDirectory: @"GSTLS"];
+    }
   str = standardizedPath(str);
   ASSIGN(caFile, str);
 
@@ -263,11 +271,16 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
        */
       str = [env objectForKey: @"GS_TLS_REVOKE"];
       if (nil == str)
-        {
-          str = [bundle pathForResource: @"revoke"
-                                 ofType: @"crl"
-                            inDirectory: @"GSTLS"];
-        }
+	{
+	  str = @"GNUstep";	// Allwasy have a fallback for revocation
+	}
+    }
+  if (nil != str
+    && [str caseInsensitiveCompare: @"GNUstep"] == NSOrderedSame)
+    {
+      str = [bundle pathForResource: @"revoke"
+			     ofType: @"crl"
+			inDirectory: @"GSTLS"];
     }
   str = standardizedPath(str);
   ASSIGN(revokeFile, str);
@@ -1238,35 +1251,15 @@ static GSTLSDHParams            *paramsCurrent = nil;
         }
       else
 	{
-          const char    *path;
-          int           ret;
+          int	ret;
 
-	  /* Try system sertificates, and if those fail, try base library ones.
+	  /* Try system sertificates
 	   */
 	  ret = gnutls_certificate_set_x509_system_trust(c->certcred);
 	  if (ret < 0)
 	    {
-	      NSBundle	*bundle = [NSBundle bundleForClass: [NSObject class]];
-	      NSString	*str;
-
-	      str = [bundle pathForResource: @"ca-certificates"
-				     ofType: @"crt"
-				inDirectory: @"GSTLS"];
-	      str = standardizedPath(str);
-	      path = [str gnutlsFileSystemRepresentation];
-	      ret = gnutls_certificate_set_x509_trust_file(c->certcred,
-		path, GNUTLS_X509_FMT_PEM);
-	      if (ret >= 0)
-		{
-		  if (debug)
-		    {
-		      NSLog(@"Default trusted authorities (from base) %d", ret);
-		    }
-		  if (ret > 0)
-		    {
-		      c->trust = YES;   // Loaded at least one trusted CA
-		    }
-		}
+              NSLog(@"Problem loading trusted authorities (from O/S): %s",
+                gnutls_strerror(ret));
 	    }
 	  else
 	    {

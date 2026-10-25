@@ -248,7 +248,10 @@ notice and this notice are preserved.
 		which in turn overrides the SSL_CERT_FILE environment
 		variable (used by OPENSSL) and the default location.<br />
 		An option of this name set for an individual connection
-		takes precedence over this setting.
+		takes precedence over this setting.<br />
+		If you set this to 'GNUstep' rather than a file path, the
+		code will use GSTLS/ca-certificates.crt in the resource
+		bundle of the gnustep-base library.
 	      </p>
 	    </desc>
 	    <term>GSTLSDebug</term>

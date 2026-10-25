@@ -5,11 +5,16 @@ To find the certificate authority certificates the system looks in:
 The path specified by GSTLSCAFile (if that user default is defined),
 otherwise the path specified in the GS_TLS_CA_FILE environment variable if
 it is defined, otherwise the path specified in the SSL_CERT_FILE environment
-variable if it is defined, otherwise the file GSTLS/ca-certificates.crt in the
-base library resource bundle.
+variable if it is defined.
+If the defined value is 'GNUstep' rather than the path of an authority file,
+then the file GSTLS/ca-certificates.crt in the base library resource bundle
+is used.
+If none of those overrides is specified, the certificate authrities are looked
+up in the operating system standard location·
 
-Similarly to find the revoke file, the order of precedence of configuration
-is GSTLSRevokeFile, GS_TLS_REVOKE_FILE, GSTLS/revoke.crl
+To find the revoke file, the order of precedence of configuration
+is GSTLSRevokeFile, GS_TLS_REVOKE_FILE, and an automatic lookup in
+GSTLS/revoke.crl in the base library resource bundle.
 
 ca-certificates.crt
         a list of PEM encoded certificates of trusted authorities
