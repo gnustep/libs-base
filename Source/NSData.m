@@ -1192,9 +1192,12 @@ failure:
     }
   if ([data isKindOfClass: [NSData class]] == NO)
     {
-      NSLog(@"-initWithData: passed a non-data object");
+      Class	cls = [self class];
+
       DESTROY(self);
-      return nil;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-[%s %s] passed a non-data object",
+	class_getName(cls), sel_getName(_cmd)];
     }
   return [self initWithBytes: [data bytes] length: [data length]];
 }
@@ -3518,11 +3521,15 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       if (data == 0)
 	{
-	  NSLog(@"attempt to deserialize to a null pointer");
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-[%s %s] passed a null data pointer",
+	    class_getName([self class]), sel_getName(_cmd)];
 	}
       if (type == 0)
 	{
-            NSLog(@"attempt to deserialize with a null type encoding");
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-[%s %s] passed a null type encoding",
+	    class_getName([self class]), sel_getName(_cmd)];
 	}
       return;
     }

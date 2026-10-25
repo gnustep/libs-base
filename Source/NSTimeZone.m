@@ -43,15 +43,16 @@
    eventually have to change the implementation to prevent the year
    2038 problem.)
 
-   The local time zone can be specified (with the ones listed first
+   The local time zone name can be specified (with the ones listed first
    having precedence) by:
 
     1) the user defaults database
     2) the GNUSTEP_TZ environment variable
-    3) the file LOCAL_TIME_FILE in _time_zone_path()
+    3) the file LOCAL_TIME_FILE in the gnustep-base timezone directory
+    4) the ICU timezone information
 
-   Failing that, the time zone may be guessed from system dependent sources
-   such as:
+   Failing that, the time zone name may be guessed from system dependent
+   sources such as:
 
     the windows registry
     the /etc/timezone file
@@ -60,7 +61,7 @@
     the TZ environment variable
     tzset() & tznam[]/daylight
 
-    If all else faile, the fallback time zone (which is GMT/UTC)
+    If all else fails, the fallback time zone (which is GMT/UTC)
 
    Any time zone must be a file name in ZONES_DIR.
 
@@ -145,13 +146,15 @@
    whitespace, and each line must not be longer than 80 characters. */
 #define REGIONS_FILE @"regions"
 
-/* Name of the file that contains the name of the local time zone. */
+/* Name of the file (within the gnustep base library resources) that
+ * contains the name of the local time zone.
+ */
 #define LOCAL_TIME_FILE @"localtime"
 
 /* Directory that contains the actual time zones. */
 #define ZONES_DIR @"zones"
 
-/* Many systems have this file */
+/* Many systems have this file as a link to (or copy of) time zone data. */
 #define SYSTEM_TIME_FILE @"/etc/localtime"
 
 /* Include public domain code (modified for use here) to parse standard
@@ -1433,6 +1436,7 @@ static int		uninitialisedOffset = 100000;
       NSFileManager *dflt = [NSFileManager defaultManager];
       NSString	*localZoneString = nil;
       NSString	*localZoneSource = nil;
+      BOOL	isDir;
 
       /*
        * setup default value in case something goes wrong.
@@ -1557,7 +1561,9 @@ static int		uninitialisedOffset = 100000;
 
       if (localZoneString == nil)
 	{
-	  if (YES == [dflt isReadableFileAtPath: @"/etc/timezone"])
+	  if ([dflt fileExistsAtPath: @"/etc/timezone"
+			 isDirectory: &isDir] && NO == isDir
+	    && [dflt isReadableFileAtPath: @"/etc/timezone"])
 	    {
 	      NSString	*s;
 
@@ -1573,7 +1579,9 @@ static int		uninitialisedOffset = 100000;
 
       if (localZoneString == nil)
 	{
-	  if (YES == [dflt isReadableFileAtPath: @"/etc/sysconfig/clock"])
+	  if ([dflt fileExistsAtPath: @"/etc/sysconfig/clock"
+			 isDirectory: &isDir] && NO == isDir
+	    && [dflt isReadableFileAtPath: @"/etc/sysconfig/clock"])
 	    {
 	      NSString		*s;
 	      NSEnumerator	*e;
