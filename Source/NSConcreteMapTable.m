@@ -582,12 +582,17 @@ NSMapGet(NSMapTable *table, const void *key)
     }
   if (object_getClass(table) == concreteClass)
     {
-      GSIMapNode	n;
+      NSConcreteMapTable	*m = (NSConcreteMapTable*)table;
+      GSIMapNode		n;
 
       n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
-      if (n == 0)
+      if (0 == n)
 	{
 	  return 0;
+	}
+      else if (IS_WEAK_VALUE(m))
+	{
+	  return objc_loadWeak(&n->value.obj);
 	}
       else
 	{
