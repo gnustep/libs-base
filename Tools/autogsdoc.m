@@ -1455,6 +1455,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE_NO_ARGS"];
+	  [wm setObject: @"" forKey: @"DISPATCH_EXPORT"];
 	  [wm setObject: @"" forKey: @"GS_DECLARE"];
 	  [wm setObject: @"" forKey: @"GS_DEPRECATED"];
 	  [wm setObject: @"" forKey: @"GS_DEPRECATED_FUNC"];
@@ -1484,6 +1485,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"NS_REPLACES_RECEIVER"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
+	  [wm setObject: @"" forKey: @"OBJC_EXPORT"];
 	  [wm setObject: @"" forKey: @"_Nonnull"];
 	  [wm setObject: @"" forKey: @"_Null_unspecified"];
 	  [wm setObject: @"" forKey: @"_Nullable"];
