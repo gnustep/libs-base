@@ -280,6 +280,8 @@ typedef struct {
 static NSTimeZone	*defaultTimeZone = nil;
 static NSTimeZone	*localTimeZone = nil;
 static NSTimeZone	*systemTimeZone = nil;
+/* Incremented when the system time zone is reset. */
+static unsigned		systemTimeZoneGeneration = 0;
 
 /* Dictionary for time zones.  Each time zone must have a unique
    name. */
@@ -293,6 +295,12 @@ static NSMutableDictionary *abbreviationMap = nil;
 static NSArray *namesArray = nil;
 static NSArray *regionsArray = nil;
 
+/* Directory of the time zone files installed with the library, and whether
+ * it was looked up (it is nil if the files are not installed).
+ */
+static NSString *zonesDir = nil;
+static BOOL	zonesDirLookedUp = NO;
+
 /* Lock for creating time zones. */
 static gs_mutex_t zone_mutex;
 
@@ -300,7 +308,12 @@ static Class	NSTimeZoneClass;
 static Class	GSPlaceholderTimeZoneClass;
 
 
-/* Return path to a TimeZone directory file */
+/* Return path to a TimeZone directory file.
+ * The bundle lookup reads the user defaults, so don't call this with
+ * zone_mutex locked: NSUserDefaults holds its own lock while parsing a
+ * defaults file, and a date in that file needs the default time zone, so
+ * the two threads would deadlock.
+ */
 static NSString *_time_zone_path(NSString *subpath, NSString *type)
 {
   NSBundle *gbundle;
@@ -310,6 +323,35 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return [gbundle pathForResource: subpath
 		           ofType: type
 		      inDirectory: TIME_ZONE_DIR];
+}
+
+/* Return the directory of the time zone files installed with the library.
+ * The result (even nil) is cached, so after +systemTimeZone has looked it
+ * up (before locking zone_mutex), time zones can be created with zone_mutex
+ * locked without going through _time_zone_path().
+ */
+static NSString *_zones_dir(void)
+{
+  NSString	*dir;
+  BOOL		lookedUp;
+
+  GS_MUTEX_LOCK(zone_mutex);
+  dir = zonesDir;
+  lookedUp = zonesDirLookedUp;
+  GS_MUTEX_UNLOCK(zone_mutex);
+  if (NO == lookedUp)
+    {
+      dir = _time_zone_path(ZONES_DIR, nil);
+      GS_MUTEX_LOCK(zone_mutex);
+      if (NO == zonesDirLookedUp)
+	{
+	  ASSIGN(zonesDir, dir);
+	  zonesDirLookedUp = YES;
+	}
+      dir = zonesDir;
+      GS_MUTEX_UNLOCK(zone_mutex);
+    }
+  return dir;
 }
 
 @interface GSPlaceholderTimeZone : NSTimeZone
@@ -985,17 +1027,20 @@ static int		uninitialisedOffset = 100000;
  */
 + (NSDictionary*) abbreviationDictionary
 {
+  NSString	*path;
+
   if (abbreviationDictionary != nil)
     {
       return abbreviationDictionary;
     }
+  /* Find the file before locking zone_mutex (see _time_zone_path()).
+   */
+  path = _time_zone_path(ABBREV_DICT, @"plist");
   GS_MUTEX_LOCK(zone_mutex);
   if (abbreviationDictionary == nil)
     {
       NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-      NSString		*path;
 
-      path = _time_zone_path(ABBREV_DICT, @"plist");
       if (path != nil)
 	{
 	  /*
@@ -1060,10 +1105,15 @@ static int		uninitialisedOffset = 100000;
      initialized, we create it when we first need it, since the
      dictionary can be potentially very large, considering that it's
      almost never used. */
+  NSString	*path;
+
   if (abbreviationMap != nil)
     {
       return abbreviationMap;
     }
+  /* Find the file before locking zone_mutex (see _time_zone_path()).
+   */
+  path = _time_zone_path(ABBREV_MAP, nil);
   GS_MUTEX_LOCK(zone_mutex);
   if (abbreviationMap == nil)
     {
@@ -1075,14 +1125,12 @@ static int		uninitialisedOffset = 100000;
       FILE			*file;
       char			abbrev[80];
       char			name[80];
-      NSString			*path;
 
       /*
        * Read dictionary from file... fast mechanism because we don't have
        * to create all timezoneas and parse all their data files.
        */
       md = [NSMutableDictionary dictionaryWithCapacity: 100];
-      path = _time_zone_path (ABBREV_MAP, nil);
       if (path != nil)
 	{
 #if	defined(_WIN32)
@@ -1200,24 +1248,28 @@ static int		uninitialisedOffset = 100000;
 + (NSArray*) knownTimeZoneNames
 {
   /* We create the array only when we need it to reduce overhead. */
+  NSArray	*regions;
+
   if (namesArray != nil)
     {
       return namesArray;
     }
 
+  /* +timeZoneArray reads its file, so get it before locking zone_mutex
+   * (see _time_zone_path()).
+   */
+  regions = [self timeZoneArray];
   GS_MUTEX_LOCK(zone_mutex);
   if (namesArray == nil && NO == [NSObject isExiting])
     {
       unsigned		i;
       NSMutableArray	*ma;
-      NSArray		*regionsArray;
 
       ma = [NSMutableArray new];
-      regionsArray = [self timeZoneArray];
 
-      for (i = 0; i < [regionsArray count]; i++)
+      for (i = 0; i < [regions count]; i++)
 	{
-	  NSArray *names = [regionsArray objectAtIndex: i];
+	  NSArray *names = [regions objectAtIndex: i];
 
 	  [ma addObjectsFromArray: names];
 	}
@@ -1312,6 +1364,7 @@ static int		uninitialisedOffset = 100000;
   DESTROY(absolutes);
   DESTROY(namesArray);
   DESTROY(regionsArray);
+  DESTROY(zonesDir);
 
   o = defaultPlaceholderTimeZone;
   defaultPlaceholderTimeZone = nil;
@@ -1326,15 +1379,15 @@ static int		uninitialisedOffset = 100000;
   NSTimeZone	*zone;
 
   GS_MUTEX_LOCK(zone_mutex);
-  if (defaultTimeZone == nil)
+  zone = AUTORELEASE(RETAIN(defaultTimeZone));
+  GS_MUTEX_UNLOCK(zone_mutex);
+  /* +systemTimeZone must not be called with zone_mutex locked, as it may
+   * need to read the user defaults first.
+   */
+  if (zone == nil)
     {
       zone = [self systemTimeZone];
     }
-  else
-    {
-      zone = AUTORELEASE(RETAIN(defaultTimeZone));
-    }
-  GS_MUTEX_UNLOCK(zone_mutex);
   return zone;
 }
 
@@ -1393,6 +1446,7 @@ static int		uninitialisedOffset = 100000;
 {
   GS_MUTEX_LOCK(zone_mutex);
   DESTROY(systemTimeZone);
+  systemTimeZoneGeneration++;
   GS_MUTEX_UNLOCK(zone_mutex);
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSSystemTimeZoneDidChangeNotification
@@ -1426,13 +1480,38 @@ static int		uninitialisedOffset = 100000;
 + (NSTimeZone*) systemTimeZone
 {
   NSTimeZone	*zone = nil;
+  NSString	*defaultsZoneString = nil;
+  NSString	*localTimeFile = nil;
+  unsigned	generation;
 
   GS_MUTEX_LOCK(zone_mutex);
+  while (systemTimeZone == nil)
+    {
+      /* Read the user defaults and find the time zone files before locking
+       * zone_mutex (see _time_zone_path()).  If the system time zone was
+       * reset in the meantime, the defaults may be stale, so read again.
+       */
+      generation = systemTimeZoneGeneration;
+      GS_MUTEX_UNLOCK(zone_mutex);
+      defaultsZoneString = [[NSUserDefaults standardUserDefaults]
+	stringForKey: LOCALDBKEY];
+      localTimeFile = _time_zone_path(LOCAL_TIME_FILE, nil);
+      _zones_dir();
+      GS_MUTEX_LOCK(zone_mutex);
+      if (generation == systemTimeZoneGeneration)
+	{
+	  break;
+	}
+    }
   if (systemTimeZone == nil)
     {
       NSFileManager *dflt = [NSFileManager defaultManager];
       NSString	*localZoneString = nil;
       NSString	*localZoneSource = nil;
+
+      /* The source descriptions are not localized with _(), since that
+       * reads the user defaults (see _time_zone_path()).
+       */
 
       /*
        * setup default value in case something goes wrong.
@@ -1444,15 +1523,14 @@ static int		uninitialisedOffset = 100000;
        */
       localZoneSource = [NSString stringWithFormat:
 	@"NSUserDefaults: '%@'", LOCALDBKEY];
-      localZoneString = [[NSUserDefaults standardUserDefaults]
-	stringForKey: LOCALDBKEY];
+      localZoneString = defaultsZoneString;
 
       /*
        * Try to get timezone from GNUSTEP_TZ environment variable.
        */
       if (localZoneString == nil)
 	{
-          localZoneSource = _(@"environment variable: 'GNUSTEP_TZ'");
+          localZoneSource = @"environment variable: 'GNUSTEP_TZ'";
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
@@ -1472,7 +1550,7 @@ static int		uninitialisedOffset = 100000;
 	  len = ucal_getDefaultTimeZone(buf, sizeof(buf)/sizeof(*buf), &err);
 	  if (U_SUCCESS(err) && len > 0)
 	    {
-	      localZoneSource = _(@"ICU");
+	      localZoneSource = @"ICU";
 	      localZoneString = [NSString stringWithCharacters: (unichar*)buf
 							length: (NSUInteger)len];
 	    }
@@ -1484,7 +1562,7 @@ static int		uninitialisedOffset = 100000;
        */
       if (localZoneString == nil)
 	{
-	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE, nil);
+	  NSString	*f = localTimeFile;
 
           localZoneSource = [NSString stringWithFormat: @"file: '%@'", f];
 	  if (f != nil)
@@ -1565,7 +1643,7 @@ static int		uninitialisedOffset = 100000;
 	      s = [s stringByTrimmingSpaces];
 	      if (0 != [s length])
 		{
-		  localZoneSource = _(@"/etc/timezone file");
+		  localZoneSource = @"/etc/timezone file";
 		  localZoneString = s;
 		}
 	    }
@@ -1608,7 +1686,7 @@ static int		uninitialisedOffset = 100000;
 			  s = [s stringByTrimmingSpaces];
 			  if ([s length] > 0)
 			    {
-			      localZoneSource = _(@"/etc/sysconfig/clock file");
+			      localZoneSource = @"/etc/sysconfig/clock file";
 			      localZoneString = s;
 			    }
 			}
@@ -1678,7 +1756,7 @@ static int		uninitialisedOffset = 100000;
        */
       if (localZoneString == nil)
 	{
-          localZoneSource = _(@"environment variable: 'TZ'");
+          localZoneSource = @"environment variable: 'TZ'";
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
@@ -1790,7 +1868,7 @@ zoneName, LOCALDBKEY, LOCALDBKEY, zoneName);
 @"eg \"defaults write NSGlobalDomain '%@' 'Africa/Nairobi'\"\n"
 @"See '%@'\n"
 @"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
-LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+LOCALDBKEY, LOCALDBKEY, _zones_dir());
 	      zone = [self timeZoneWithAbbreviation: localZoneString];
 	      if (zone != nil)
 		{
@@ -1843,10 +1921,15 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 + (NSArray*) timeZoneArray
 {
   /* We create the array only when we need it to reduce overhead. */
+  NSString	*path;
+
   if (regionsArray != nil)
     {
       return regionsArray;
     }
+  /* Find the file before locking zone_mutex (see _time_zone_path()).
+   */
+  path = _time_zone_path(REGIONS_FILE, nil);
   GS_MUTEX_LOCK(zone_mutex);
   if (regionsArray == nil && NO == [NSObject isExiting])
     {
@@ -1855,7 +1938,6 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
       NSInteger		 index;
       NSInteger		 i;
       NSString		*name;
-      NSString		*path;
       NSString		*contents;
       NSScanner		*scanner;
       NSCharacterSet	*newLineSet;
@@ -1866,7 +1948,6 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	  temp_array[i] = [NSMutableArray array];
 	}
 
-      path = _time_zone_path(REGIONS_FILE, nil);
       if (path != nil)
 	{
 	  contents = [NSString stringWithContentsOfFile: path
@@ -2567,7 +2648,7 @@ static NSString *zoneDirs[] = {
     }
   if (dir == nil)
     {
-      dir = _time_zone_path(ZONES_DIR, nil);
+      dir = _zones_dir();
     }
   return [dir stringByAppendingPathComponent: name];
 }
