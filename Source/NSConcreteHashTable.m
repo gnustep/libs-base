@@ -413,12 +413,17 @@ NSHashGet(NSHashTable *table, const void *element)
     }
   if (object_getClass(table) == concreteClass)
     {
-      GSIMapNode	n;
+      NSConcreteHashTable	*t = (NSConcreteHashTable*)table;
+      GSIMapNode		n;
 
       n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
-      if (n == 0)
+      if (0 == n)
 	{
 	  return 0;
+	}
+      else if (IS_WEAK(t))
+	{
+	  return objc_loadWeak(&n->key.obj);
 	}
       else
 	{
