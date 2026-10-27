@@ -63,6 +63,9 @@ enum
 }; 
 typedef NSInteger NSItemProviderFileOptions;
 
+/** This protocol is a non-functional stub to allow compilation of Apple code
+ * while porting.
+ */
 @protocol NSItemProviderWriting <NSObject>
 
 - (NSArray *) writableTypeIdentifiersForItemProvider;
@@ -73,11 +76,16 @@ typedef NSInteger NSItemProviderFileOptions;
 - (NSItemProviderRepresentationVisibility) itemProviderVisibilityForRepresentationWithTypeIdentifier: (NSString *)typeIdentifier;
 
 - (NSProgress *) loadDataWithTypeIdentifier: (NSString *)typeIdentifier
-           forItemProviderCompletionHandler: (GSProviderCompletionHandler)completionHandler;
+           forItemProviderCompletionHandler:
+  (GSProviderCompletionHandler)completionHandler
+GS_NON_PORTABLE(non-functional - do not use this);
 
 @end
 
 
+/** This protocol is a non-functional stub to allow compilation of Apple code
+ * while porting.
+ */
 @protocol NSItemProviderReading <NSObject>
 
 - (NSArray *) readableTypeIdentifiersForItemProvider;
@@ -89,74 +97,102 @@ typedef NSInteger NSItemProviderFileOptions;
 
 @end
 
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.  The class is non-portable by design.
+ */
 GS_EXPORT_CLASS
 @interface NSItemProvider : NSObject <NSCopying>
 
 - (instancetype) init;
 
-- (void) registerDataRepresentationForTypeIdentifier: (NSString *)typeIdentifier
-                                          visibility: (NSItemProviderRepresentationVisibility)visibility
-                                         loadHandler: (GSProgressHandler)loadHandler;
+- (void) registerDataRepresentationForTypeIdentifier:
+  (NSString *)typeIdentifier
+  visibility: (NSItemProviderRepresentationVisibility)visibility
+  loadHandler: (GSProgressHandler)loadHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
-- (void) registerFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
-                                         fileOptions: (NSItemProviderFileOptions)fileOptions
-                                          visibility: (NSItemProviderRepresentationVisibility)visibility
-                                         loadHandler: (GSProgressURLBOOLHandler)loadHandler;
+- (void) registerFileRepresentationForTypeIdentifier:
+  (NSString *)typeIdentifier
+  fileOptions: (NSItemProviderFileOptions)fileOptions
+  visibility: (NSItemProviderRepresentationVisibility)visibility
+  loadHandler: (GSProgressURLBOOLHandler)loadHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
 - (NSArray *) registeredTypeIdentifiers;
 
-- (NSArray *) registeredTypeIdentifiersWithFileOptions: (NSItemProviderFileOptions)fileOptions;
+- (NSArray *) registeredTypeIdentifiersWithFileOptions:
+  (NSItemProviderFileOptions)fileOptions;
 
 - (BOOL) hasItemConformingToTypeIdentifier: (NSString *)typeIdentifier;
 
 - (BOOL) hasRepresentationConformingToTypeIdentifier: (NSString *)typeIdentifier
-                                         fileOptions: (NSItemProviderFileOptions)fileOptions;
+  fileOptions: (NSItemProviderFileOptions)fileOptions;
 
-- (NSProgress *) loadDataRepresentationForTypeIdentifier: (NSString *)typeIdentifier
-                                       completionHandler: (GSProviderCompletionHandler)completionHandler;
+- (NSProgress *) loadDataRepresentationForTypeIdentifier:
+  (NSString *)typeIdentifier
+  completionHandler: (GSProviderCompletionHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
-- (NSProgress *) loadFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
-                                       completionHandler: (GSProviderURLCompletionHandler)completionHandler;
+- (NSProgress *) loadFileRepresentationForTypeIdentifier:
+  (NSString *)typeIdentifier
+  completionHandler: (GSProviderURLCompletionHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
-- (NSProgress *) loadInPlaceFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
-                                              completionHandler: (GSProviderURLBOOLCompletionHandler)completionHandler;
+- (NSProgress *) loadInPlaceFileRepresentationForTypeIdentifier:
+  (NSString *)typeIdentifier
+  completionHandler: (GSProviderURLBOOLCompletionHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
 - (NSString *) suggestedName;
 - (void) setSuggestedName: (NSString *)suggestedName;
 
 - (instancetype) initWithObject: (id<NSItemProviderWriting>)object;
 
-- (void) registerObject: (id<NSItemProviderWriting>)object visibility: (NSItemProviderRepresentationVisibility)visibility;
+- (void) registerObject: (id<NSItemProviderWriting>)object
+  visibility: (NSItemProviderRepresentationVisibility)visibility;
 
-- (void) registerObjectOfClass: (Class<NSItemProviderWriting>)aClass  // NSItemProviderWriting conforming class...
-                    visibility: (NSItemProviderRepresentationVisibility)visibility
-                   loadHandler: (GSItemProviderWritingHandler)loadHandler;
+- (void) registerObjectOfClass: (Class<NSItemProviderWriting>)aClass
+  visibility: (NSItemProviderRepresentationVisibility)visibility
+  loadHandler: (GSItemProviderWritingHandler)loadHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
 - (BOOL) canLoadObjectOfClass: (Class<NSItemProviderReading>)aClass;
 
-- (NSProgress *) loadObjectOfClass: (Class<NSItemProviderReading>)aClass // NSItemProviderReading conforming class...
-                 completionHandler: (GSItemProviderReadingHandler)completionHandler;
+- (NSProgress *) loadObjectOfClass: (Class<NSItemProviderReading>)aClass
+  completionHandler: (GSItemProviderReadingHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
-- (instancetype) initWithItem: (id<NSSecureCoding>)item typeIdentifier: (NSString *)typeIdentifier; // designated init
+- (instancetype) initWithItem: (id<NSSecureCoding>)item
+  typeIdentifier: (NSString *)typeIdentifier; // designated init
 - (instancetype) initWithContentsOfURL: (NSURL *)fileURL;
 
-- (void) registerItemForTypeIdentifier: (NSString *)typeIdentifier loadHandler: (NSItemProviderLoadHandler)loadHandler;
+- (void) registerItemForTypeIdentifier: (NSString *)typeIdentifier
+  loadHandler: (NSItemProviderLoadHandler)loadHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
 - (void)loadItemForTypeIdentifier: (NSString *)typeIdentifier
-                          options: (NSDictionary *)options
-                completionHandler: (NSItemProviderCompletionHandler)completionHandler;
+  options: (NSDictionary *)options
+  completionHandler: (NSItemProviderCompletionHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 @end
 
 // Preview support
 GS_EXPORT NSString * const NSItemProviderPreferredImageSizeKey;
 
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.
+ */
 @interface NSItemProvider (NSPreviewSupport)
 
-- (NSItemProviderLoadHandler) previewImageHandler;
-- (void) setPreviewImageHandler: (NSItemProviderLoadHandler) previewImageHandler;
+- (NSItemProviderLoadHandler) previewImageHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
+- (void) setPreviewImageHandler:
+  (NSItemProviderLoadHandler) previewImageHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
   
 - (void) loadPreviewImageWithOptions: (NSDictionary *)options
-                   completionHandler: (NSItemProviderCompletionHandler)completionHandler;
+  completionHandler: (NSItemProviderCompletionHandler)completionHandler
+  GS_NON_PORTABLE(non-functional - do not use this);
 
 @end
 

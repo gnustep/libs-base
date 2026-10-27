@@ -52,6 +52,9 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSXPCInterruptionHandler, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSXPCInvalidationHandler, void);
 
 
+/** This protocol is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 @protocol NSXPCProxyCreating
 
 - (id) remoteObjectProxy;
@@ -70,6 +73,9 @@ enum
 };
 typedef NSUInteger NSXPCConnectionOptions; 
   
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 GS_EXPORT_CLASS
 @interface NSXPCConnection : NSObject <NSXPCProxyCreating>
 
@@ -127,6 +133,9 @@ GS_NON_PORTABLE(do not use);
 @end
 
 
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 @interface NSXPCListener : NSObject
 
 + (NSXPCListener *) serviceListener;
@@ -149,6 +158,9 @@ GS_NON_PORTABLE(do not use);
 
 @end
 
+/** This protocol is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 @protocol NSXPCListenerDelegate <NSObject>
 
 - (BOOL) listener: (NSXPCListener *)listener
@@ -156,6 +168,9 @@ GS_NON_PORTABLE(do not use);
 
 @end
 
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 @interface NSXPCInterface : NSObject
 
 + (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol;
@@ -183,6 +198,9 @@ GS_NON_PORTABLE(do not use);
 
 @end
 
+/** This class is a non-functional stub to allow compilation of Apple code
+ * while porting.  Please use Distributed Objects rather than XPC.
+ */
 GS_EXPORT_CLASS
 @interface NSXPCListenerEndpoint : NSObject <NSCoding>  // NSSecureCoding
 @end
