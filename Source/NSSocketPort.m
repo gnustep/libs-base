@@ -2453,7 +2453,12 @@ static Class		tcpPortClass;
 #endif
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
-	  NSLog(@"No handle for event %s on descriptor %lld", t, (long long)desc);
+	  NSDebugMLLog(@"NSSocketPort",
+	    @"No handle for event %s on descriptor %lld", t, (long long)desc);
+          [[NSRunLoop currentRunLoop] removeEvent: (void*)(uintptr_t)desc
+                                             type: type
+                                          forMode: mode
+                                              all: NO];
 	}
       else
 	{

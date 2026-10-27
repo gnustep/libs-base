@@ -1702,7 +1702,12 @@ typedef	struct {
 	  else if (type == ET_WDESC) t = "wdesc";
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
-	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
+	  NSDebugMLLog(@"NSMessagePort",
+	    @"No handle for event %s on descriptor %d", t, desc);
+	  [[NSRunLoop currentRunLoop] removeEvent: (void*)(uintptr_t)desc
+					     type: type
+					  forMode: mode
+					      all: NO];
 	}
       else
 	{
