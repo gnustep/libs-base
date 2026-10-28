@@ -55,7 +55,9 @@
 #import <Foundation/Foundation.h>
 
 #ifdef WIN32
-#define alloca(x) _alloca(x)
+# ifndef	alloca
+#   define alloca(x) _alloca(x)
+# endif
 #endif
 
 #if defined(__OBJC2__) && !defined(NSKVO_FORCE_PORTABLE)
