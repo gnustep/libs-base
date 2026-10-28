@@ -27,6 +27,7 @@
 
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSError.h"
+#import "Foundation/NSRunLoop.h"
 
 @class	_GSInsensitiveDictionary;
 @class	_GSMutableInsensitiveDictionary;
@@ -333,9 +334,12 @@ typedef enum {
 - (void) _setObject: (NSObject*)anObject forKey: (NSString*)aKey;
 @end
 
-@class  NSRunLoop;
 @class  NSLock;
 @class  NSThread;
+
+@interface	NSRunLoop (Internal)
++ (NSString*) nameOfEventType: (RunLoopEventType)type;
+@end
 
 /* Used to handle events performed in one thread from another.
  */

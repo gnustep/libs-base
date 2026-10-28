@@ -535,9 +535,9 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"NSMessagePort_details",
-    @"received %s event on 0x%"PRIxPTR,
-    type != ET_WDESC ? "read" : "write", (NSUInteger)self);
+  NSDebugMLLog(@"NSPort", @"received %@ event %p on %@ in %@",
+    [NSRunLoop nameOfEventType: type], extra, self, mode);
+
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -1655,6 +1655,9 @@ typedef	struct {
   int		desc = (int)(uintptr_t)extra;
   GSMessageHandle	*handle;
 
+  NSDebugMLLog(@"NSPort", @"received %@ event %p on %@ in %@",
+    [NSRunLoop nameOfEventType: type], extra, self, mode);
+
   if (desc == lDesc)
     {
       struct sockaddr_un	sockAddr;
@@ -1696,18 +1699,14 @@ typedef	struct {
       M_UNLOCK(myLock);
       if (handle == nil)
 	{
-	  const char	*t;
-
-	  if (type == ET_RDESC) t = "rdesc";
-	  else if (type == ET_WDESC) t = "wdesc";
-	  else if (type == ET_RPORT) t = "rport";
-	  else t = "unknown";
-	  NSDebugMLLog(@"NSMessagePort",
-	    @"No handle for event %s on descriptor %d", t, desc);
-	  [[NSRunLoop currentRunLoop] removeEvent: (void*)(uintptr_t)desc
+	  NSLog( @"No handle found for event %@ on descriptor %d",
+	    [NSRunLoop nameOfEventType: type], desc);
+/*
+	  [[NSRunLoop currentRunLoop] removeEvent: data
 					     type: type
 					  forMode: mode
 					      all: NO];
+*/
 	}
       else
 	{

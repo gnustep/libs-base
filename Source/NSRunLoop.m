@@ -1601,6 +1601,26 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
 @end
 
+/* For internal use by base library.
+ */
+@implementation	NSRunLoop (Internal)
++ (NSString*) nameOfEventType: (RunLoopEventType)type
+{
+  NSString	*t;
+
+#if	defined(_WIN32)
+  if (type == ET_HANDLE) t = @"winhandle";
+#else
+  if (type == ET_RDESC) t = @"rdesc";
+  else if (type == ET_WDESC) t = @"wdesc";
+  else if (type == ET_EDESC) t = @"edesc";
+#endif
+  else if (type == ET_RPORT) t = @"rport";
+  else t = @"unknown";
+
+  return t;
+}
+@end
 
 
 /**

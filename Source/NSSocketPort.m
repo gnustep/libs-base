@@ -1449,7 +1449,12 @@ static Class	runLoopClass;
 {
 #if	defined(_WIN32)
   WSANETWORKEVENTS ocurredEvents;
+#endif
 
+  NSDebugMLLog(@"NSPort", @"received %@ event %p on %@ in %@",
+    [NSRunLoop nameOfEventType: type], extra, self, mode);
+
+#if	defined(_WIN32)
   /* If we have been invalidated then we should ignore this event.
    */
   if (NO == valid)
@@ -2372,8 +2377,8 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event %p on %p",
-    type == ET_RPORT ? "read" : "write", extra, self);
+  NSDebugMLLog(@"NSPort", @"received %@ event %p on %@ in %@",
+    [NSRunLoop nameOfEventType: type], extra, self, mode);
 
 #if	defined(_WIN32)
   if (event == eventListener)
@@ -2442,23 +2447,14 @@ static Class		tcpPortClass;
       M_UNLOCK(myLock);
       if (handle == nil)
 	{
-	  const char	*t;
-
-#if	defined(_WIN32)
-	  if (type == ET_HANDLE) t = "winhandle";
-#else
-	  if (type == ET_RDESC) t = "rdesc";
-	  else if (type == ET_WDESC) t = "wdesc";
-	  else if (type == ET_EDESC) t = "edesc";
-#endif
-	  else if (type == ET_RPORT) t = "rport";
-	  else t = "unknown";
-	  NSDebugMLLog(@"NSSocketPort",
-	    @"No handle for event %s on descriptor %lld", t, (long long)desc);
-          [[NSRunLoop currentRunLoop] removeEvent: (void*)(uintptr_t)desc
+	  NSLog(@"No handle found for event %s on descriptor %lld",
+	    [NSRunLoop nameOfEventType: type], (long long)desc);
+/*
+          [[NSRunLoop currentRunLoop] removeEvent: data
                                              type: type
                                           forMode: mode
                                               all: NO];
+*/
 	}
       else
 	{
