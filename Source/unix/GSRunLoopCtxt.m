@@ -591,7 +591,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
               if (fd == threadInfo->inputFd)
                 {
 	          NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-                  [threadInfo fire];
+		  [threadInfo reset];	// consume event
+		  [threadInfo fire];
                   watcher = nil;
                 }
 #if GS_USE_LIBDISPATCH_RUNLOOP
@@ -668,6 +669,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (poll(&pollfds, 1, milliseconds) == 1)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo reset];	// consume event
       [threadInfo fire];
       return YES;
     }

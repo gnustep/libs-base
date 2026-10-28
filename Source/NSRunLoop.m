@@ -1470,7 +1470,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             }
 
           NSDebugMLLog(@"NSRunLoop",
-            @"accept I/P before %"PRId64" millisec from now in %@",
+            @"accept I/P before %"PRId64" microsec from now in %@",
             timeout_us, mode);
 
 	  if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
