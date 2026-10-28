@@ -317,30 +317,57 @@ static NSDictionary *_kvoSettingChange = nil;
   GS_MUTEX_UNLOCK(_changeLock);
 }
 
-- (void) pushChangeSet: (NSArray *)set
+- (void) pushChangeSet: (NSArray *)set forKey: (NSString *)key
 {
   if (nil == _changeSets)
     {
       _changeSets = [[NSMutableArray alloc] initWithCapacity: 2];
+      _changeKeys = [[NSMutableArray alloc] initWithCapacity: 2];
     }
   /* A key with no observers still needs an entry, so that the didChange pops
    * what this willChange pushed. */
   [_changeSets addObject: (nil == set) ? (NSArray *)[NSArray array] : set];
+  [_changeKeys addObject: (nil == key) ? @"" : key];
 }
 
-/* Borrowed: the stack holds it until -popChangeSet. */
-- (NSArray *) currentChangeSet
+/* The most recent entry for the key.  Changes of different keys may overlap
+ * without being nested (willChange A, willChange B, didChange A), so this is
+ * not necessarily the top of the stack, though it usually is.
+ */
+- (NSUInteger) indexOfChangeSetForKey: (NSString *)key
 {
-  NSUInteger	count = [_changeSets count];
+  NSUInteger	index = [_changeKeys count];
 
-  return (0 == count) ? nil : [_changeSets objectAtIndex: count - 1];
-}
-
-- (void) popChangeSet
-{
-  if ([_changeSets count] > 0)
+  if (nil == key)
     {
-      [_changeSets removeLastObject];
+      key = @"";
+    }
+  while (index-- > 0)
+    {
+      if ([[_changeKeys objectAtIndex: index] isEqualToString: key])
+	{
+	  return index;
+	}
+    }
+  return NSNotFound;
+}
+
+/* Borrowed: the stack holds it until -popChangeSetForKey:. */
+- (NSArray *) changeSetForKey: (NSString *)key
+{
+  NSUInteger	index = [self indexOfChangeSetForKey: key];
+
+  return (NSNotFound == index) ? nil : [_changeSets objectAtIndex: index];
+}
+
+- (void) popChangeSetForKey: (NSString *)key
+{
+  NSUInteger	index = [self indexOfChangeSetForKey: key];
+
+  if (NSNotFound != index)
+    {
+      [_changeSets removeObjectAtIndex: index];
+      [_changeKeys removeObjectAtIndex: index];
     }
 }
 
@@ -369,6 +396,7 @@ static NSDictionary *_kvoSettingChange = nil;
   [_keyObserverMap release];
   [_existingDependentKeys release];
   [_changeSets release];
+  [_changeKeys release];
 
   GS_MUTEX_DESTROY(_lock);
   GS_MUTEX_DESTROY(_changeLock);
@@ -1235,7 +1263,7 @@ _dispatchWillChange(_NSKVOObservationInfo *observationInfo,
    * array.  Registering or removing an observer replaces the array rather
    * than changing it, so what is locked here cannot be added to or taken
    * away from before it is unlocked. */
-  [observationInfo pushChangeSet: observers];
+  [observationInfo pushChangeSet: observers forKey: key];
   for (_NSKVOKeyObserver *keyObserver in observers)
     {
       _NSKVOKeypathObserver *keypathObserver;
@@ -1306,7 +1334,7 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
   /* Exactly what _dispatchWillChange locked, so that an observer registered
    * or removed while the change was in progress cannot leave a key path
    * observer locked, or unlock one that was never locked. */
-  observers = [observationInfo currentChangeSet];
+  observers = [observationInfo changeSetForKey: key];
   index = [observers count];
   if (index > sizeof(held) / sizeof(held[0]))
     {
@@ -1352,7 +1380,7 @@ _dispatchDidChange(_NSKVOObservationInfo *observationInfo,
         }
       [keypathObserver unlockChange];
     }
-  [observationInfo popChangeSet];
+  [observationInfo popChangeSetForKey: key];
   [observationInfo unlockChange];
 
   for (index = 0; index < count; index++)

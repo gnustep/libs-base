@@ -173,6 +173,7 @@
   NSMutableSet          *_existingDependentKeys;
   NSMutableSet          *_dependencyAncestorKeys;
   NSMutableArray        *_changeSets;
+  NSMutableArray        *_changeKeys;
   gs_mutex_t            _lock;
   gs_mutex_t            _changeLock;
 }
@@ -184,11 +185,12 @@
 /* The key observers a willChange locked, kept until the matching didChange
  * unlocks exactly those.  Registration may change while a change is in
  * progress, so the set cannot be worked out a second time.  The change lock is
- * held across the pair, so only the thread holding it uses this.
+ * held across the pair, so only the thread holding it uses this.  Each set
+ * is kept with its key, because the pairs of different keys need not nest.
  */
-- (void) pushChangeSet: (NSArray *)set;
-- (NSArray *) currentChangeSet;
-- (void) popChangeSet;
+- (void) pushChangeSet: (NSArray *)set forKey: (NSString *)key;
+- (NSArray *) changeSetForKey: (NSString *)key;
+- (void) popChangeSetForKey: (NSString *)key;
 
 /* Held from a willChange to the matching didChange.  The change depth and the
  * pending change of each key path observer are reachable from both, so a
