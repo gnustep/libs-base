@@ -2240,10 +2240,6 @@ lockInfoErr(NSString *str)
 
 - (void) reset
 {
-  NSArray	*toDo;
-  unsigned int	i;
-  unsigned int	c;
-
   [lock lock];
 #if defined(_WIN32)
   if (event != INVALID_HANDLE_VALUE)
@@ -2279,31 +2275,7 @@ lockInfoErr(NSString *str)
 	;
     }
 #endif
-
-  c = [performers count];
-  if (0 == c)
-    {
-      /* We deal with all available performers each time we fire, so
-       * it's likely that we will fire when we have no performers left.
-       * In that case we can skip the copying and emptying of the array.
-       */
-      [lock unlock];
-      return;
-    }
-  toDo = [NSArray arrayWithArray: performers];
-  [performers removeAllObjects];
   [lock unlock];
-
-  for (i = 0; i < c; i++)
-    {
-      GSPerformHolder	*h = [toDo objectAtIndex: i];
-
-      [loop performSelector: @selector(fire)
-		     target: h
-		   argument: nil
-		      order: 0
-		      modes: [h modes]];
-    }
 }
 @end
 
