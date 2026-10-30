@@ -3326,7 +3326,7 @@ done:
   free(start);
   if (err)
     {
-NSLog(@"%@", err);
+      NSDebugLLog(@"NSURL", @"%@, parsing %@", err, URLString);
       md = nil;
     }
 
