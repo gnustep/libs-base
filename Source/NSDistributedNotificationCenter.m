@@ -172,6 +172,14 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
   return [self notificationCenterForType: NSLocalNotificationCenterType];
 }
 
+/* Extension for internal use by NSUserDefaults to let other cooperating
+ * processes know about changes to the global domain.
+ */
++ (id) _defaultCenterIfExists
+{
+  return locCenter;
+}
+
 + (void) initialize
 {
   [self registerAtExit];
@@ -215,6 +223,12 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 	      NS_ENDHANDLER
 	    }
 	  GS_MUTEX_UNLOCK(classLock);
+	  /* Take note when another process signals that defaults changed.
+	   */
+	  [locCenter addObserver: [NSUserDefaults standardUserDefaults]
+			selector: @selector(_globalDefaultsChanged:)
+			    name: NSUserDefaultsDidChangeNotification
+			  object: @"NSGlobralDomain"];
 	}
       return locCenter;
     }

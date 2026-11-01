@@ -38,6 +38,7 @@
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSDistributedNotificationCenter.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSLock.h"
@@ -72,6 +73,10 @@
 #endif
 
 #import "GSPrivate.h"
+
+@interface NSDistributedNotificationCenter (Private)
++ (NSDistributedNotificationCenter*) _defaultCenterIfExists;
+@end
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
@@ -1229,6 +1234,13 @@ newLanguages(NSArray *oldNames)
   RELEASE(dict);
 }
 
+/* Refresh form database when global defaults have changed.
+ */
+- (void) _globalDefaultsChanged: (NSNotification*)n
+{
+  [self synchronize];
+}
+
 - (id) init
 {
   return [self initWithUser: NSUserName()];
@@ -1986,6 +1998,7 @@ static BOOL isPlistObject(id o)
   BOOL			wasLocked = NO;
   BOOL			result = YES;
   BOOL			haveChange = NO;
+  BOOL			global = NO;
 
   [_lock lock];
   saved = _lastSync;
@@ -2050,7 +2063,13 @@ static BOOL isPlistObject(id o)
                           domain = [_persDomains objectForKey: domainName];
                           if (domain != nil)	// Domain was added or changed
                             {
-                              [domain synchronize];
+                              if ([domain synchronize])
+				{
+				  if ([domainName isEqual: @"NSGlobalDomain"])
+				    {
+				      global = YES;
+				    }
+				}
                             }
                           else			// Domain was removed
                             {
@@ -2059,7 +2078,14 @@ static BOOL isPlistObject(id o)
                               path = [[_defaultsDatabase
                                 stringByAppendingPathComponent: domainName]
                                 stringByAppendingPathExtension: @"plist"];
-                              [mgr removeFileAtPath: path handler: nil];
+			      if ([mgr fileExistsAtPath: path])
+				{
+				  [mgr removeFileAtPath: path handler: nil];
+				  if ([domainName isEqual: @"NSGlobalDomain"])
+				    {
+				      global = YES;
+				    }
+				}
                             }
                         }
                     }
@@ -2128,6 +2154,15 @@ static BOOL isPlistObject(id o)
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
 		      object: self];
+    }
+  if (global)
+    {
+      /* If this process uses distributed notifications, let other cooperating
+       * processes know that the global defaults changed.
+       */
+      [[NSDistributedNotificationCenter _defaultCenterIfExists]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+                      object: @"NSGlobalDomain"];
     }
   return result;
 }
