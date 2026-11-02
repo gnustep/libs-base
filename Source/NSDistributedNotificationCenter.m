@@ -173,7 +173,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 }
 
 /* Extension for internal use by NSUserDefaults to let other cooperating
- * processes know about changes to the global domain.
+ * processes know about changes to the persistent domains.
  */
 + (id) _defaultCenterIfExists
 {
@@ -226,9 +226,9 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 	  /* Take note when another process signals that defaults changed.
 	   */
 	  [locCenter addObserver: [NSUserDefaults standardUserDefaults]
-			selector: @selector(_globalDefaultsChanged:)
+			selector: @selector(_distributedDefaultsChanged:)
 			    name: NSUserDefaultsDidChangeNotification
-			  object: @"NSGlobralDomain"];
+			  object: @"DistributedDefaults"];
 	}
       return locCenter;
     }
