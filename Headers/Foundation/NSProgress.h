@@ -163,7 +163,9 @@ GS_NSProgress_IVARS;
 
 /**
  * Receiver resigns the role of the current progress. The receiver is popped
- * from the thread-local current progress stack.
+ * from the thread-local current progress stack.  If no child was created
+ * since the receiver became current, the pending unit count is added to the
+ * completed unit count.
  *
  * If the receiver is not the current progress, an exception will be thrown.
  */
@@ -171,7 +173,8 @@ GS_NSProgress_IVARS;
 
 /**
  * Adds the progress to the receiver as a child.  The pending unit count is
- * added to the receiver upon completion of the child progress.
+ * added to the receiver whenever the child progress finishes.  Raises an
+ * NSInvalidArgumentException if the child already has a parent.
  *
  * The pending unit count should not exceed the receivers total unit count.
  * However, this is not enforced in Apple's NSProgress implementation.
@@ -244,46 +247,92 @@ GS_NSProgress_IVARS;
 /**
  * Cancels tracking by the receiver (so subsequent calls to -isCancelled will
  * return YES), and also cancels unfinished children.
- * If a cancellation handler is set, it will be called before cancelling child
- * progresses.
+ * If a cancellation handler is set, it is called asynchronously (or
+ * synchronously if GNUstep was built without libdispatch), even if the
+ * receiver was already cancelled.
  */
 - (void) cancel;
 
 /**
- * Sets a cancellation handler that is called when a progress gets cancelled.
+ * Returns the cancellation handler.
+ */
+- (GSProgressCancellationHandler) cancellationHandler;
+
+/**
+ * Sets a cancellation handler that is called when the receiver gets
+ * cancelled.  If the receiver is already cancelled, the handler is
+ * scheduled immediately.
  */
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler;
 
 /**
- * Pausation of a progress is not implemented. This method always returns 'NO'.
+ * Indicates whether the underlying work whose progress is being tracked
+ * can be paused.  This has no effect on whether the receiver can be
+ * paused.  By default, a progress instance is not pausable.
  */
 - (BOOL) isPausable;
+- (void) setPausable: (BOOL) pausable;
 
 /**
- * Pausation of a progress is not implemented. Therefore a progress is never
- * paused and this method always returns 'NO'.
+ * Returns YES if the receiver has been paused and not resumed since.
  */
 - (BOOL) isPaused;
 
 /**
- * Pausation of a progress is not implemented. This method will throw an
- * exception.
+ * Pauses the receiver (so subsequent calls to -isPaused will return YES),
+ * and also pauses unfinished children.
+ * If a pausing handler is set, it is called like the cancellation handler,
+ * even if the receiver was already paused.
  */
 - (void) pause;
 
+/**
+ * Returns the pausing handler.
+ */
+- (GSProgressPausingHandler) pausingHandler;
+
+/**
+ * Sets a pausing handler that is called when the receiver gets paused.  If
+ * the receiver is already paused, the handler is scheduled immediately.
+ */
 - (void) setPausingHandler: (GSProgressPausingHandler) handler;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
+/**
+ * Resumes the receiver (so subsequent calls to -isPaused will return NO),
+ * and also resumes unfinished children.
+ * If a resuming handler is set, it is called like the cancellation handler,
+ * even if the receiver was not paused.
+ */
 - (void) resume;
 
+/**
+ * Returns the resuming handler.
+ */
+- (GSProgressResumingHandler) resumingHandler;
+
+/**
+ * Sets a resuming handler that is called when the receiver gets resumed.
+ */
 - (void) setResumingHandler: (GSProgressResumingHandler) handler;
+#endif
 
 - (BOOL) isIndeterminate;
 
 - (void) setKind: (NSProgressKind)k;
 - (NSProgressKind) kind;
 
+/**
+ * Sets an object in the user info, or removes it if obj is nil.
+ */
 - (void) setUserInfoObject: (id)obj
 		    forKey: (NSProgressUserInfoKey)key;
+
+/**
+ * Returns the user info, which also reflects later changes.  The file
+ * related properties and the estimated time remaining and throughput are
+ * stored in it.  Copy it to read several entries while it may change.
+ */
 - (NSDictionary *) userInfo;
 
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
@@ -313,6 +362,12 @@ GS_NSProgress_IVARS;
  */
 - (void) publish;
 - (void) unpublish;
+
+/**
+ * Makes the receiver the current progress with the pending unit count while
+ * performing the block, as -becomeCurrentWithPendingUnitCount: and
+ * -resignCurrent do.
+ */
 - (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount
   usingBlock: (GSProgressPendingUnitCountBlock)work;
 

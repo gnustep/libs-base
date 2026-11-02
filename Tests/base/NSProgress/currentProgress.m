@@ -72,6 +72,62 @@ int main(void)
 
 
     
+    /* Like on macOS, the pending unit count is completed if no child used it */
+    NSProgress *p = [NSProgress progressWithTotalUnitCount: 100];
+    [p becomeCurrentWithPendingUnitCount: 30];
+    [p resignCurrent];
+    PASS([p completedUnitCount] == 30, "resignCurrent without a child completes the pending unit count");
+    [p becomeCurrentWithPendingUnitCount: 20];
+    NSProgress *implicitChild = [NSProgress progressWithTotalUnitCount: 10];
+    [p resignCurrent];
+    PASS([p completedUnitCount] == 30, "resignCurrent with a child does not complete the pending unit count");
+    [implicitChild setCompletedUnitCount: 10];
+    PASS([p completedUnitCount] == 50, "the implicit child adds the pending unit count");
+
+    /* An explicit child neither needs a current parent nor takes the pending
+     * unit count of a current parent.
+     */
+    NSProgress *explicitParent = [NSProgress progressWithTotalUnitCount: 100];
+    NSProgress *explicitChild = [NSProgress progressWithTotalUnitCount: 10 parent: explicitParent pendingUnitCount: 50];
+    [explicitChild setCompletedUnitCount: 10];
+    PASS([explicitParent completedUnitCount] == 50, "explicit child of a parent that is not current");
+    [explicitParent becomeCurrentWithPendingUnitCount: 30];
+    explicitChild = [NSProgress progressWithTotalUnitCount: 10 parent: explicitParent pendingUnitCount: 20];
+    implicitChild = [NSProgress progressWithTotalUnitCount: 10];
+    [explicitParent resignCurrent];
+    [explicitChild setCompletedUnitCount: 10];
+    PASS([explicitParent completedUnitCount] == 70, "explicit child of a current parent");
+    [implicitChild setCompletedUnitCount: 10];
+    PASS([explicitParent completedUnitCount] == 100, "implicit child takes the pending unit count");
+
+#if __has_feature(blocks)
+    NSProgress *performing = [NSProgress progressWithTotalUnitCount: 100];
+    NSProgress * __block currentInBlock = nil;
+    NSProgress * __block childInBlock = nil;
+    [performing performAsCurrentWithPendingUnitCount: 40 usingBlock: ^{
+        currentInBlock = [NSProgress currentProgress];
+    }];
+    PASS(currentInBlock == performing, "receiver is current while performing the block");
+    PASS([NSProgress currentProgress] == nil, "receiver is no longer current after the block");
+    PASS([performing completedUnitCount] == 40, "pending unit count is completed without a child");
+    [performing performAsCurrentWithPendingUnitCount: 20 usingBlock: ^{
+        childInBlock = [NSProgress progressWithTotalUnitCount: 10];
+    }];
+    PASS([performing completedUnitCount] == 40, "pending unit count is not completed with a child");
+    [childInBlock setCompletedUnitCount: 10];
+    PASS([performing completedUnitCount] == 60, "child created in the block adds the pending unit count");
+#endif
+
+    /* Like on macOS, only the current progress can resign */
+    NSProgress *other = [NSProgress progressWithTotalUnitCount: 10];
+    PASS_EXCEPTION([other resignCurrent], NSInvalidArgumentException, "resigning a progress that is not current raises");
+    [other becomeCurrentWithPendingUnitCount: 5];
+    [p becomeCurrentWithPendingUnitCount: 5];
+    PASS_EXCEPTION([other resignCurrent], NSInvalidArgumentException, "resigning a progress that is not the top one raises");
+    [p resignCurrent];
+    [other resignCurrent];
+    PASS_EQUAL([NSProgress currentProgress], nil, "currentProgress is nil again");
+
     RELEASE(parent);
     RELEASE(parent1);
 
