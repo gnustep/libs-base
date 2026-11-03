@@ -304,6 +304,12 @@ static BOOL	zonesDirLookedUp = NO;
 /* Lock for creating time zones. */
 static gs_mutex_t zone_mutex;
 
+/* Set while this thread is reading the system time zone's settings outside
+ * zone_mutex, so that a nested +systemTimeZone (e.g. from NSLog) doesn't
+ * recurse.
+ */
+static gs_thread_key_t	resolvingSystemTimeZoneKey;
+
 static Class	NSTimeZoneClass;
 static Class	GSPlaceholderTimeZoneClass;
 
@@ -1400,6 +1406,7 @@ static int		uninitialisedOffset = 100000;
       beenHere = YES;
       NSTimeZoneClass = self;
       GS_MUTEX_INIT_RECURSIVE(zone_mutex);
+      GS_THREAD_KEY_INIT(resolvingSystemTimeZoneKey, NULL);
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
 
@@ -1484,6 +1491,11 @@ static int		uninitialisedOffset = 100000;
   NSString	*localTimeFile = nil;
   unsigned	generation;
 
+  if (GS_THREAD_KEY_GET(resolvingSystemTimeZoneKey) != NULL)
+    {
+      return [NSTimeZoneClass timeZoneForSecondsFromGMT: 0];
+    }
+
   GS_MUTEX_LOCK(zone_mutex);
   while (systemTimeZone == nil)
     {
@@ -1493,10 +1505,12 @@ static int		uninitialisedOffset = 100000;
        */
       generation = systemTimeZoneGeneration;
       GS_MUTEX_UNLOCK(zone_mutex);
+      GS_THREAD_KEY_SET(resolvingSystemTimeZoneKey, (void*)1);
       defaultsZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
       localTimeFile = _time_zone_path(LOCAL_TIME_FILE, nil);
       _zones_dir();
+      GS_THREAD_KEY_SET(resolvingSystemTimeZoneKey, NULL);
       GS_MUTEX_LOCK(zone_mutex);
       if (generation == systemTimeZoneGeneration)
 	{
