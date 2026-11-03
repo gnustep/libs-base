@@ -1212,8 +1212,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
 - (NSDate*) _limitDateForContext: (GSRunLoopCtxt *)context
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSDate		*when = nil;
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   uint64_t		contextModeMask = ~(UINT64_C(1)<<context->modeIndex);
   GSMinHeap		*timerHeap;
   NSTimeInterval	now;
@@ -1304,7 +1304,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	}
     }
 
-  [arp drain];
+  DESTROY(arp);
 
   /* The earliest date of a valid timeout is retained in 'when'
    * and used as our limit date.
@@ -1398,13 +1398,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 - (void) acceptInputForMode: (NSString*)mode
 		 beforeDate: (NSDate*)limit_date
 {
+  CREATE_AUTORELEASE_POOL(arp);
   GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSTimeInterval	ti = 0;
   int64_t		timeout_us;
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (nil == context)
     {
+      RELEASE(arp);
       return;
     }
 
@@ -1459,13 +1460,13 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           else
             {
               /* Wait until the LIMIT_DATE. */
-              if (ti >= ((double)INT64_MAX) / 1000000.0)
+              if (ti >= INT64_MAX / 1000000)
                 {
                   timeout_us = INT64_MAX;	// Far future.
                 }
               else
                 {
-                  timeout_us = (int)ceil(ti * 1000000.0);
+                  timeout_us = (int64_t)ceil(ti * 1000000.0);
                 }
             }
 
@@ -1512,24 +1513,24 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     }
   NS_ENDHANDLER
   NSDebugMLLog(@"NSRunLoop", @"accept I/P completed in %@", mode);
-  [arp drain];
+  RELEASE(arp);
 }
 
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(arp);
   GSRunLoopCtxt		*context = runStart(myvars, mode);
   NSDate		*d;
 
   if (nil == context)
     {
+      RELEASE(arp);
       return NO;
     }
 
   /* Process any pending notifications.
    */
   GSPrivateNotifyASAP(mode);
-
   [myvars->threadInfo fire];
   [self _checkPerformers: context];
 
@@ -1540,7 +1541,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   if (nil == d)
     {
       runRestore(myvars);
-      [arp drain];
+      RELEASE(arp);
       return NO;
     }
 
@@ -1565,7 +1566,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   [self limitDateForMode: mode];
 
   runRestore(myvars);
-  [arp drain];
+  RELEASE(arp);
   return YES;
 }
 
