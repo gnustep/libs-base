@@ -745,7 +745,7 @@ static SEL	rlSel;
       id	array;
 
       array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
-						@"NS.objects"];
+	@"NS.objects"];
       if (array == nil)
 	{
 	  NSUInteger	i = 0;
@@ -760,7 +760,8 @@ static SEL	rlSel;
 	    {
 	      [array addObject: val];
 	      i++;
-	      key = [NSString stringWithFormat: @"NS.object.%lu", (unsigned long)i];
+	      key = [NSString stringWithFormat:
+		@"NS.object.%lu", (unsigned long)i];
 	      val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
 	    }
 	}

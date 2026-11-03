@@ -47,7 +47,7 @@ static NSNull	*null = 0;
 {
   if (null == 0)
     {
-      null = (NSNull*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      null = [(NSNull*)NSAllocateObject(self, 0, NSDefaultMallocZone()) init];
     }
 }
 
@@ -83,6 +83,15 @@ static NSNull	*null = 0;
 - (NSString*) description
 {
   return @"<null>";
+}
+
+- (instancetype) init
+{
+  if (self != null)
+    {
+      self = [super init];
+    }
+  return self;
 }
 
 - (id) valueForUndefinedKey: (NSString*)aKey
