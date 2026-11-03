@@ -98,7 +98,7 @@ static void tls_create_keys(void)
     tls_current_progress_destroy))
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to initialise thread keyes"];
+		  format: @"Unable to initialise thread keys"];
     }
 }
 

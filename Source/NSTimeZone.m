@@ -1406,7 +1406,10 @@ static int		uninitialisedOffset = 100000;
       beenHere = YES;
       NSTimeZoneClass = self;
       GS_MUTEX_INIT_RECURSIVE(zone_mutex);
-      GS_THREAD_KEY_INIT(resolvingSystemTimeZoneKey, NULL);
+      if (!GS_THREAD_KEY_INIT(resolvingSystemTimeZoneKey, NULL))
+	{
+	  fprintf(stderr, "unable to create resolvingSystemTimeZoneKey\n");
+	}
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
 
