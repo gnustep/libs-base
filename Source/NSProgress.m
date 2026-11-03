@@ -28,8 +28,15 @@
 #include <math.h>
 #include <string.h>
 
-#if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
-#  include "dispatch/dispatch.h"
+/* The libdispatch code here uses blocks, so without them it is not used.
+ */
+#if GS_USE_LIBDISPATCH == 1
+#  if __has_feature(blocks)
+#    include "dispatch/dispatch.h"
+#  else
+#    undef GS_USE_LIBDISPATCH
+#    define GS_USE_LIBDISPATCH 0
+#  endif
 #endif
 
 #define	GS_NSProgress_IVARS	 \
@@ -62,7 +69,8 @@
   NSUInteger _changeDepth; \
   NSMutableArray *_pendingActions; \
   NSThread *_actionsThread; \
-  NSMutableArray *_runningActions;
+  NSMutableArray *_runningActions; \
+  id _delegate;
 
 @class GSProgressUserInfo;
 @class NSThread;
@@ -81,7 +89,9 @@
 #import	"Foundation/NSProgress.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSKeyValueObserving.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSProgress+GNUstepBase.h"
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
@@ -200,6 +210,8 @@ GSProgressFraction(int64_t total, int64_t completed, int64_t credited,
   SEL		selector;
   NSArray	*children;
   id		handler;
+  id		delegate;
+  SEL		delegateSelector;
 }
 @end
 
@@ -208,6 +220,7 @@ GSProgressFraction(int64_t total, int64_t completed, int64_t credited,
 {
   RELEASE(children);
   RELEASE(handler);
+  RELEASE(delegate);
   DEALLOC
 }
 @end
@@ -624,6 +637,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
       RELEASE(internal->_pendingActions);
 
       objc_destroyWeak(&internal->_parent);
+      objc_destroyWeak(&internal->_delegate);
       GS_MUTEX_DESTROY(internal->_lock);
       GS_MUTEX_DESTROY(internal->_changeLock);
 
@@ -766,13 +780,49 @@ static NSSet	*manuallyNotifiedKeys = nil;
   update->finished = update->finished || finished;
 }
 
+/* Sends the message to the delegate like a handler is called, but without
+ * needing blocks.
+ */
+- (void) _scheduleDelegate: (id)delegate selector: (SEL)selector
+{
+  if ([delegate respondsToSelector: selector])
+    {
+#if (GS_USE_LIBDISPATCH == 1)
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
+	0), ^{
+	  ENTER_POOL
+	  NS_DURING
+	    {
+	      [delegate performSelector: selector withObject: self];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"Exception in delegate %@ of progress: %@",
+		delegate, localException);
+	    }
+	  NS_ENDHANDLER
+	  LEAVE_POOL
+	});
+#else
+      [delegate performSelector: selector withObject: self];
+#endif
+    }
+}
+
+- (void) _scheduleCallbacks: (GSProgressPropagation *)propagation
+{
+  [self _scheduleHandler: propagation->handler];
+  [self _scheduleDelegate: propagation->delegate
+		 selector: propagation->delegateSelector];
+}
+
 /* Calls the handler asynchronously, or synchronously without libdispatch.
  */
 - (void) _scheduleHandler: (id)handler
 {
   if (handler != nil)
     {
-#if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+#if GS_USE_LIBDISPATCH == 1
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
 	0), (dispatch_block_t)handler);
 #else
@@ -864,9 +914,9 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	  GSProgressPropagation	*propagation = action;
 	  NSArray		*children = propagation->children;
 
-	  [self _send: @selector(_scheduleHandler:)
+	  [self _send: @selector(_scheduleCallbacks:)
 		   to: self
-		 with: propagation->handler
+		 with: propagation
 	      failure: &failure];
 	  GS_FOR_IN(NSProgress*, child, children)
 	    {
@@ -1348,6 +1398,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	     toValue: (BOOL)value
 	      forKey: (NSString *)key
 	     handler: (id *)handlerSlot
+    delegateSelector: (SEL)delegateSelector
        childSelector: (SEL)childSelector
 {
   GSProgressPropagation	*propagation;
@@ -1365,9 +1416,11 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
     propagation = AUTORELEASE([GSProgressPropagation new]);
     propagation->selector = childSelector;
+    propagation->delegateSelector = delegateSelector;
     GS_MUTEX_LOCK(internal->_lock);
     *flag = value;
     propagation->handler = RETAIN(*handlerSlot);
+    propagation->delegate = objc_loadWeakRetained(&internal->_delegate);
     propagation->children = [internal->_children allObjects];
     RETAIN(propagation->children);
     GS_MUTEX_UNLOCK(internal->_lock);
@@ -1447,6 +1500,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	    toValue: YES
 	     forKey: @"cancelled"
 	    handler: (id *)&internal->_cancellationHandler
+   delegateSelector: @selector(progressCancelled:)
       childSelector: @selector(cancel)];
 }
 
@@ -1515,6 +1569,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	    toValue: YES
 	     forKey: @"paused"
 	    handler: (id *)&internal->_pausingHandler
+   delegateSelector: @selector(progressPaused:)
       childSelector: @selector(pause)];
 }
 
@@ -1561,6 +1616,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	    toValue: NO
 	     forKey: @"paused"
 	    handler: (id *)&internal->_resumingHandler
+   delegateSelector: @selector(progressResumed:)
       childSelector: @selector(resume)];
 }
 
@@ -1580,6 +1636,47 @@ static NSSet	*manuallyNotifiedKeys = nil;
   [self _setHandler: (id)handler
 		 to: (id *)&internal->_resumingHandler
 	    forFlag: NULL];
+}
+
+- (id<GSProgressDelegate>) delegate
+{
+  return objc_loadWeak(&internal->_delegate);
+}
+
+- (void) setDelegate: (id<GSProgressDelegate>)delegate
+{
+  id	handlers[3];
+  BOOL	cancelled;
+  BOOL	paused;
+
+  /* Like with the handlers it replaces, the delegate is sent a message if
+   * the receiver is already cancelled or paused.
+   */
+  GS_MUTEX_LOCK(internal->_lock);
+  objc_storeWeak(&internal->_delegate, delegate);
+  handlers[0] = internal->_cancellationHandler;
+  handlers[1] = internal->_pausingHandler;
+  handlers[2] = internal->_resumingHandler;
+  internal->_cancellationHandler = nil;
+  internal->_pausingHandler = nil;
+  internal->_resumingHandler = nil;
+  cancelled = internal->_cancelled;
+  paused = internal->_paused;
+  GS_MUTEX_UNLOCK(internal->_lock);
+  RELEASE(handlers[0]);
+  RELEASE(handlers[1]);
+  RELEASE(handlers[2]);
+
+  if (cancelled)
+    {
+      [self _scheduleDelegate: delegate
+		     selector: @selector(progressCancelled:)];
+    }
+  if (paused)
+    {
+      [self _scheduleDelegate: delegate
+		     selector: @selector(progressPaused:)];
+    }
 }
 
 - (BOOL) isIndeterminate

@@ -2,6 +2,9 @@
  * The expected behaviour was verified on macOS 26.6.2 (25G83).
  */
 
+/* These test the block-based API */
+#define GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS 1
+
 #import <Foundation/NSObject.h>
 #import <Foundation/NSKeyValueObserving.h>
 #import <Foundation/NSProgress.h>

@@ -256,14 +256,16 @@ GS_NSProgress_IVARS;
 /**
  * Returns the cancellation handler.
  */
-- (GSProgressCancellationHandler) cancellationHandler;
+- (GSProgressCancellationHandler) cancellationHandler
+  GS_NON_PORTABLE(use -setDelegate: to handle cancellation);
 
 /**
  * Sets a cancellation handler that is called when the receiver gets
  * cancelled.  If the receiver is already cancelled, the handler is
  * scheduled immediately.
  */
-- (void) setCancellationHandler: (GSProgressCancellationHandler) handler;
+- (void) setCancellationHandler: (GSProgressCancellationHandler) handler
+  GS_NON_PORTABLE(use -setDelegate: to handle cancellation);
 
 /**
  * Indicates whether the underlying work whose progress is being tracked
@@ -289,13 +291,15 @@ GS_NSProgress_IVARS;
 /**
  * Returns the pausing handler.
  */
-- (GSProgressPausingHandler) pausingHandler;
+- (GSProgressPausingHandler) pausingHandler
+  GS_NON_PORTABLE(use -setDelegate: to handle pausing);
 
 /**
  * Sets a pausing handler that is called when the receiver gets paused.  If
  * the receiver is already paused, the handler is scheduled immediately.
  */
-- (void) setPausingHandler: (GSProgressPausingHandler) handler;
+- (void) setPausingHandler: (GSProgressPausingHandler) handler
+  GS_NON_PORTABLE(use -setDelegate: to handle pausing);
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
 /**
@@ -309,12 +313,14 @@ GS_NSProgress_IVARS;
 /**
  * Returns the resuming handler.
  */
-- (GSProgressResumingHandler) resumingHandler;
+- (GSProgressResumingHandler) resumingHandler
+  GS_NON_PORTABLE(use -setDelegate: to handle resuming);
 
 /**
  * Sets a resuming handler that is called when the receiver gets resumed.
  */
-- (void) setResumingHandler: (GSProgressResumingHandler) handler;
+- (void) setResumingHandler: (GSProgressResumingHandler) handler
+  GS_NON_PORTABLE(use -setDelegate: to handle resuming);
 #endif
 
 - (BOOL) isIndeterminate;
@@ -369,11 +375,15 @@ GS_NSProgress_IVARS;
  * -resignCurrent do.
  */
 - (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount
-  usingBlock: (GSProgressPendingUnitCountBlock)work;
+  usingBlock: (GSProgressPendingUnitCountBlock)work
+  GS_NON_PORTABLE(use -becomeCurrentWithPendingUnitCount: and
+    -resignCurrent instead);
 
 + (id) addSubscriberForFileURL: (NSURL *)url
-	 withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
-+ (void) removeSubscriber: (id)subscriber;
+	 withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
+  GS_NON_PORTABLE(use key-value observing of the progress instead);
++ (void) removeSubscriber: (id)subscriber
+  GS_NON_PORTABLE(use key-value observing of the progress instead);
 
 @end
 
@@ -386,6 +396,10 @@ GS_NSProgress_IVARS;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSProgress+GNUstepBase.h>
 #endif
 
 #endif	/* GS_API_MACOSX */

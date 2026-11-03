@@ -1,6 +1,9 @@
 /* Test correct behaviour of setting the current progress and implicitly adding
  * children. */
 
+/* These test the block-based API */
+#define GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS 1
+
 #include "Foundation/NSException.h"
 #include "GNUstepBase/GNUstep.h"
 #import <Foundation/NSProgress.h>

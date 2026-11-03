@@ -1,9 +1,16 @@
 2026-11-02 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSProgress.h:
+	* Headers/GNUstepBase/Additions.h:
+	* Headers/GNUstepBase/NSProgress+GNUstepBase.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/NSProgress+GNUstepBase.m:
+	* Source/DocMakefile:
+	* Source/GNUmakefile:
 	* Source/NSProgress.m:
 	* Tests/base/NSProgress/cancellation.m:
 	* Tests/base/NSProgress/currentProgress.m:
+	* Tests/base/NSProgress/delegate.m:
 	* Tests/base/NSProgress/indeterminate.m:
 	* Tests/base/NSProgress/locking.m:
 	* Tests/base/NSProgress/pausing.m:
@@ -37,6 +44,10 @@
 	not leave locks held or lose updates of the parent and children when
 	observers raise, and do not divide by a total unit count of 0.
 	Declare -resume and the resuming handler for macOS 10.11 and later.
+	Add -delegate and -setDelegate: with the GSProgressDelegate protocol
+	as a portable alternative to the cancellation, pausing and resuming
+	handlers, implemented in the additions for macOS, and mark the block
+	based methods as non-portable.
 
 2026-10-21 Rupert Daniel <rupert@cancelmonday.com>
 

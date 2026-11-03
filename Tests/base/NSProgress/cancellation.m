@@ -1,5 +1,8 @@
 /* Test propragation of progress cancellation to children */
 
+/* These test the block-based API */
+#define GS_SUPPRESS_NON_PORTABLE_CODE_WARNINGS 1
+
 #import <Foundation/NSObject.h>
 #import <Foundation/NSKeyValueObserving.h>
 #import <Foundation/NSProgress.h>
