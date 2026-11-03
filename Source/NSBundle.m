@@ -2212,7 +2212,7 @@ loadLanguageMaps(void)
 
 	      if (nil == ver)
 		{
-		  NSLog(@"Warning: [%@+%@] unable to determine version"
+		  NSDebugLLog(debugKey, @"[%@+%@] unable to determine version"
 		    @" of library '%@' containing '%@' for executable '%@'",
 		    NSStringFromClass(self), NSStringFromSelector(_cmd),
 		    path, NSStringFromClass(aClass), exep);
