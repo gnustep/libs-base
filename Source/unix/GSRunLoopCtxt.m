@@ -20,6 +20,10 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
+//#undef	HAVE_POLL_F
+//#undef	HAVE_POLL
+
 #ifdef HAVE_POLL_F
 #include <poll.h>
 #endif
@@ -718,7 +722,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       timeout.tv_usec = 0;
       select_timeout = &timeout;
     }
-  else if (milliseconds > 0)
+  else if (microseconds > 0)
     {
       timeout.tv_sec = (int)(microseconds/1000000);
       timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
@@ -1102,7 +1106,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
 + (BOOL) awakenedBefore: (NSDate*)when
 {
-  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
   int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
   struct timeval	timeout;
