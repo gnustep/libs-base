@@ -862,12 +862,13 @@ static NSSet	*manuallyNotifiedKeys = nil;
       else
 	{
 	  GSProgressPropagation	*propagation = action;
+	  NSArray		*children = propagation->children;
 
 	  [self _send: @selector(_scheduleHandler:)
 		   to: self
 		 with: propagation->handler
 	      failure: &failure];
-	  GS_FOR_IN(NSProgress*, child, propagation->children)
+	  GS_FOR_IN(NSProgress*, child, children)
 	    {
 	      if (![child isFinished])
 		{
@@ -877,7 +878,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 		      failure: &failure];
 		}
 	    }
-	  GS_END_FOR(propagation->children)
+	  GS_END_FOR(children)
 	}
 
       /* Only this thread appends to the actions */
