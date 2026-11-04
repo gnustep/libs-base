@@ -215,6 +215,13 @@
   DWORD			wait_return;
   BOOL			immediate = NO;
   BOOL			existingMessages = NO;
+  BOOL			debug = GSDebugSet(@"NSRunLoop");
+
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u entered.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
 
   // Set timeout how much time should wait
   if (microseconds >= 0)
@@ -322,8 +329,10 @@
                       port_hd_array = malloc(sizeof(NSInteger)*port_hd_size);
                       [port getFds: port_hd_array count: &port_hd_count];
                     }
-		  NSDebugMLLog(@"NSRunLoop", @"listening to %ld port handles",
-		    (long)port_hd_count);
+		  if (debug)
+		    {
+		      NSLog(@"listening to %ld port handles", (long)port_hd_count);
+		    }
 		  while (port_hd_count--)
 		    {
 		      NSMapInsert(handleMap, 
@@ -351,8 +360,28 @@
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks())
     {
+      if (debug)
+	{
+	  NSLog(@"GSPrivateCheckTasks() says: no need to wait (timeout set to zero)");
+	}
+      wait_timeout = 0;
+    }
+  if (GSPrivateNotifyMore(mode))
+    {
+      if (debug)
+	{
+	  NSLog(@"GSPrivateBotifyMore() says: no need to wait (timeout set to zero)");
+	}
+      wait_timeout = 0;
+    }
+  if (immediate == YES)
+    {
+      if (debug)
+	{
+	  NSLog(@"trigger set to immediate says: no need to wait (timeout set to zero)");
+	}
       wait_timeout = 0;
     }
 
@@ -393,7 +422,10 @@
    */
   if ([self processAllWindowsMessages: num_winMsgs within: contexts] == YES)
     {
-      // Processed something ... no need to wait.
+      if (debug)
+	{
+	  NSLog(@"processes windows messages: no need to wait (timeout set to zero)");
+	}
       wait_timeout = 0;
       num_winMsgs = 0;
       existingMessages = YES;
@@ -401,10 +433,11 @@
 
   if (num_winMsgs > 0)
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for messages and %d handles for %d milliseconds",
-	num_handles, wait_timeout);
-	
+      if (debug)
+	{
+	  NSLog(@"wait for messages and %d handles for %d milliseconds",
+	    num_handles, wait_timeout);
+	}
       /*
        * Wait for signalled events or window messages.
        */
@@ -413,8 +446,10 @@
     }
   else if (num_handles > 0)
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for %d handles for %d milliseconds", num_handles, wait_timeout);
+      if (debug)
+	{
+	  NSLog(@"wait for %d handles for %d milliseconds", num_handles, wait_timeout);
+	}
 
       /*
        * We are not interested in windows messages ... just wait for
@@ -425,8 +460,10 @@
     }
   else
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for %d milliseconds", wait_timeout);
+      if (debug)
+	{
+	  NSLog(@"wait for %d milliseconds", wait_timeout);
+	}
       SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_TIMEOUT;
     }
@@ -439,8 +476,11 @@
       int	i;
       BOOL	found = NO;
 
-      NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-pollUntil:within: %@", [NSError _last]);
+      if (debug)
+	{
+	  NSLog(@"WaitForMultipleObjects() error in "
+	    @"-pollUntil:within: %@", [NSError _last]);
+	}
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -478,7 +518,10 @@
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
       if (watcher->_invalidated == NO)
 	{
-	  NSDebugMLLog(@"NSRunLoop", @"trigger watcher %@", watcher);
+	  if (debug)
+	    {
+	      NSLog(@"trigger watcher %@", watcher);
+	    }
 	  i = [contexts count];
 	  while (i-- > 0)
 	    {
@@ -506,19 +549,33 @@
       // there is no event to handle
       if (existingMessages)
 	{
-	  NSDebugMLLog(@"NSRunLoop", @"processed windows messages");
+	  if (debug)
+	    {
+	      NSLog(@"processed windows messages");
+	    }
 	}
       else
 	{
-	  NSDebugMLLog(@"NSRunLoop", @"timeout without events");
+	  if (debug)
+	    {
+	      NSLog(@"timeout without events");
+	    }
 	  completed = YES;
+	  if (debug)
+	    {
+	      NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+		microseconds, (unsigned)[contexts count]);
+	    }
 	  return NO;        
 	}
     }
   else if (WAIT_OBJECT_0 + num_handles == wait_return)
     {
       // one or more windows message
-      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
+      if (debug)
+	{
+	  NSLog(@"processing windows messages");
+	}
       [self processAllWindowsMessages: num_winMsgs within: contexts];
     }
   else if ((i = wait_return - WAIT_OBJECT_0) >= 0 && i < num_handles)
@@ -527,14 +584,20 @@
        * get the corresponding fd for that handle event and notify
        * the corresponding object for the ready fd.
        */
-      NSDebugMLLog(@"NSRunLoop", @"Handle signalled %d", i);
+      if (debug)
+	{
+	  NSLog(@"Handle signalled %d", i);
+	}
       
       handle = handleArray[i];
 
       if (handle == threadInfo->event)
 	{
 	  watcher = nil;
-	  NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+	  if (debug)
+	    {
+	      NSLog(@"Fire perform on thread");
+	    }
 	  [threadInfo reset];	// consume event
 	  [threadInfo fire];
 	}
@@ -548,7 +611,10 @@
       else
 	{
 	  watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
-	  NSDebugMLLog(@"NSRunLoop", @"Fire watcher %@", watcher);
+	  if (debug)
+	    {
+	      NSLog(@"Fire watcher %@", watcher);
+	    }
 	}
       if (watcher != nil && watcher->_invalidated == NO)
 	{
@@ -574,14 +640,27 @@
     }
   else
     {
-      NSDebugMLLog(@"NSRunLoop", @"unexpected result %lu", wait_return);
+      if (debug)
+	{
+	  NSLog(@"unexpected result %lu", wait_return);
+	}
       GSPrivateNotifyASAP(mode);
       completed = NO;
+      if (debug)
+	{
+	  NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+	    microseconds, (unsigned)[contexts count]);
+	}
       return NO;        
     }
 
   GSPrivateNotifyASAP(mode);
   completed = YES;
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u returns YES.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
   return YES;
 }
 
