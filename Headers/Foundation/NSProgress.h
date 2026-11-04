@@ -104,7 +104,8 @@ GS_NSProgress_IVARS;
  * information dictionary.
  *
  * The parent progress must either be the current progress object of the current
- * thread, or nil.
+ * thread, or nil.  With the current progress, the new progress becomes its
+ * implicit child if it expects one.  With nil, it has no parent.
  */
 - (instancetype) initWithParent: (NSProgress *)parent
 		       userInfo: (NSDictionary *)userInfo;

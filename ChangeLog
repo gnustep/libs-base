@@ -33,6 +33,8 @@
 	not the current progress.  A child created with
 	+progressWithTotalUnitCount:parent:pendingUnitCount: needs no current
 	parent.
+	- Only a progress created with the current progress as its parent
+	becomes an implicit child, not one created with a nil parent or -init.
 	- KVO observers are only notified of changes, in the order of macOS.
 	The file related properties are stored in userInfo, which reflects
 	later changes, can be used from any thread, cannot be changed directly

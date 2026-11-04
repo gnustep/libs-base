@@ -420,10 +420,6 @@ static NSSet	*manuallyNotifiedKeys = nil;
 @end
 
 @interface NSProgress (Private)
-- (instancetype) initWithParent: (NSProgress *)parent
-                       userInfo: (NSDictionary *)userInfo
-                  implicitChild: (BOOL) implicitChild;
-
 - (void) _setTotalUnitCount: (int64_t) count;
 
 - (BOOL) _attachToParent: (NSProgress *)parent
@@ -535,16 +531,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 - (instancetype) initWithParent: (NSProgress *)parent
                        userInfo: (NSDictionary *)userInfo
 {
-  return [self initWithParent: parent userInfo: userInfo implicitChild: YES];
-}
-
-- (instancetype) initWithParent: (NSProgress *)parent
-                       userInfo: (NSDictionary *)userInfo
-                  implicitChild: (BOOL) implicitChild
-{
-  NSProgress *current = tls_current_progress_get();
-
-  if (parent != nil && ![parent isEqual: current])
+  if (parent != nil && ![parent isEqual: tls_current_progress_get()])
     {
       RELEASE(self);
       [NSException raise: NSInvalidArgumentException
@@ -592,13 +579,14 @@ static NSSet	*manuallyNotifiedKeys = nil;
       GS_MUTEX_INIT_RECURSIVE(internal->_lock);
       GS_MUTEX_INIT_RECURSIVE(internal->_changeLock);
 
-      if (implicitChild && current)
+      /* Like on macOS, it is a child only if the parent is passed */
+      if (parent != nil)
 	{
 	  int64_t	pendingUnitCount;
 
-	  if ([current _takeImplicitChildPendingUnitCount: &pendingUnitCount])
+	  if ([parent _takeImplicitChildPendingUnitCount: &pendingUnitCount])
 	    {
-	      [current addChild: self withPendingUnitCount: pendingUnitCount];
+	      [parent addChild: self withPendingUnitCount: pendingUnitCount];
 	    }
 	}
     }
@@ -631,8 +619,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 + (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount
 {
-  NSProgress *p = [[NSProgress alloc] initWithParent: nil
-    userInfo: nil implicitChild: NO];
+  NSProgress *p = [[NSProgress alloc] initWithParent: nil userInfo: nil];
 
   [p _setTotalUnitCount: unitCount];
 
@@ -641,8 +628,8 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 + (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount
 {
-  NSProgress *p = [[NSProgress alloc] initWithParent: nil
-    userInfo: nil];
+  NSProgress *p = [[NSProgress alloc]
+    initWithParent: tls_current_progress_get() userInfo: nil];
 
   [p _setTotalUnitCount: unitCount];
 
@@ -653,11 +640,10 @@ static NSSet	*manuallyNotifiedKeys = nil;
   parent: (NSProgress *)parent
   pendingUnitCount: (int64_t)portionOfParentTotalUnitCount
 {
-  /* Like on macOS, the parent need not be current, and does not hand its
-   * pending unit count to the child if it is.
+  /* Unlike with -initWithParent:userInfo:, the parent need not be current.
+   * If it is, its pending unit count is left for its next implicit child.
    */
-  NSProgress *p = [[NSProgress alloc] initWithParent: nil
-    userInfo: nil implicitChild: NO];
+  NSProgress *p = [[NSProgress alloc] initWithParent: nil userInfo: nil];
 
   [p _setTotalUnitCount: unitCount];
   [parent addChild: p withPendingUnitCount: portionOfParentTotalUnitCount];

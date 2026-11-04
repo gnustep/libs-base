@@ -103,6 +103,25 @@ int main(void)
     [implicitChild setCompletedUnitCount: 10];
     PASS([explicitParent completedUnitCount] == 100, "implicit child takes the pending unit count");
 
+    /* Like on macOS, only a progress created with the current progress as its
+     * parent becomes an implicit child.
+     */
+    NSProgress *current = [NSProgress progressWithTotalUnitCount: 100];
+    [current becomeCurrentWithPendingUnitCount: 10];
+    [[[NSProgress alloc] initWithParent: nil userInfo: nil] release];
+    [[[NSProgress alloc] init] release];
+    [NSProgress discreteProgressWithTotalUnitCount: 10];
+    [current resignCurrent];
+    PASS([current completedUnitCount] == 10, "progress created with a nil parent, -init or as discrete is not an implicit child");
+    [current becomeCurrentWithPendingUnitCount: 20];
+    [[[NSProgress alloc] initWithParent: nil userInfo: nil] release];
+    implicitChild = [[[NSProgress alloc] initWithParent: [NSProgress currentProgress] userInfo: nil] autorelease];
+    [current resignCurrent];
+    PASS([current completedUnitCount] == 10, "progress created with the current progress as its parent is an implicit child");
+    [implicitChild setTotalUnitCount: 1];
+    [implicitChild setCompletedUnitCount: 1];
+    PASS([current completedUnitCount] == 30, "the implicit child adds the pending unit count");
+
 #if __has_feature(blocks)
     NSProgress *performing = [NSProgress progressWithTotalUnitCount: 100];
     NSProgress * __block currentInBlock = nil;
