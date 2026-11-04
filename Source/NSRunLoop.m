@@ -1400,8 +1400,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 {
   CREATE_AUTORELEASE_POOL(arp);
   GSRunLoopCtxt		*context = runStart(myvars, mode);
+  NSTimeInterval	start = 0;
   NSTimeInterval	ti = 0;
   int64_t		timeout_us;
+  BOOL          	debug;
 
   if (nil == context)
     {
@@ -1409,99 +1411,103 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       return;
     }
 
+  debug = GSDebugSet(@"NSRunLoop");
+  if (debug)
+    {
+      NSLog(@"-[%s %s] entered in %@.\n",
+	class_getName(object_getClass(self)), sel_getName(_cmd), mode);
+      start = [NSDate timeIntervalSinceReferenceDate];
+    }
+
   [myvars->threadInfo fire];
   [self _checkPerformers: context];
 
   NS_DURING
     {
-      BOOL      done = NO;
       NSDate    *when;
 
-      while (NO == done)
-        {
-          [arp emptyPool];
-          when = [self _limitDateForContext: context];
-          if (nil == when)
-            {
-              NSDebugMLLog(@"NSRunLoop",
-                @"no inputs or timers in mode %@", mode);
-              GSPrivateNotifyASAP(context->mode);
-              GSPrivateNotifyIdle(context->mode);
-              /* Pause until the limit date or until we might have
-               * a method to perform in this thread.
-               */
-              [GSRunLoopCtxt awakenedBefore: nil];
-	      [myvars->threadInfo fire];
-              [self _checkPerformers: context];
-              GSPrivateNotifyASAP(context->mode);
-              [_contextStack removeObjectIdenticalTo: context];
-	      runRestore(myvars);
-              [arp drain];
-              NS_VOIDRETURN;
-            }
-          else
-            {
-              if (nil == limit_date)
-                {
-                  when = nil;
-                }
-              else
-                {
-                  when = [when earlierDate: limit_date];
-                }
-            }
-
-          /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-          if (nil == when || (ti = [when timeIntervalSinceNow]) <= 0.0)
-            {
-              /* Don't wait at all. */
-              timeout_us = 0;
-            }
-          else
-            {
-              /* Wait until the LIMIT_DATE. */
-              if (ti >= INT64_MAX / 1000000)
-                {
-                  timeout_us = INT64_MAX;	// Far future.
-                }
-              else
-                {
-                  timeout_us = (int64_t)ceil(ti * 1000000.0);
-                }
-            }
-
-          NSDebugMLLog(@"NSRunLoop",
-            @"accept I/P before %"PRId64" microsec from now in %@",
-            timeout_us, mode);
-
-	  if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
-	    {
-	      [_contextStack addObject: context];
-	    }
-          done = [context pollUntil: timeout_us within: _contextStack];
-          if (NO == done)
-            {
-              GSPrivateNotifyIdle(context->mode);
-              if (nil == limit_date || [limit_date timeIntervalSinceNow] <= 0.0)
-                {
-                  done = YES;
-                }
-            }
-	  [myvars->threadInfo fire];
-          [self _checkPerformers: context];
-          GSPrivateNotifyASAP(context->mode);
-          [context endPoll];
-
-	  /* Once a poll has been completed on a context, we can remove that
-	   * context from the stack even if it is actually polling at an outer
-	   * level of re-entrancy ... since the poll we have just done will
-	   * have handled any events that the outer levels would have wanted
-	   * to handle, and the polling for this context will be marked as
-	   * ended.
+      when = [self _limitDateForContext: context];
+      if (nil == when)
+	{
+	  NSDebugMLLog(@"NSRunLoop",
+	    @"no inputs or timers in mode %@", mode);
+	  GSPrivateNotifyASAP(context->mode);
+	  GSPrivateNotifyIdle(context->mode);
+	  /* Pause until the limit date or until we might have
+	   * a method to perform in this thread.
 	   */
+	  [GSRunLoopCtxt awakenedBefore: nil];
+	  [myvars->threadInfo fire];
+	  [self _checkPerformers: context];
+	  GSPrivateNotifyASAP(context->mode);
 	  [_contextStack removeObjectIdenticalTo: context];
-        }
+	  runRestore(myvars);
+	  [arp drain];
+	  NS_VOIDRETURN;
+	}
+      else
+	{
+	  if (nil == limit_date)
+	    {
+	      when = nil;
+	    }
+	  else
+	    {
+	      when = [when earlierDate: limit_date];
+	    }
+	}
 
+      /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
+      if (nil == when || (ti = [when timeIntervalSinceNow]) <= 0.0)
+	{
+	  /* Don't wait at all. */
+	  timeout_us = 0;
+	}
+      else
+	{
+	  /* Wait until the LIMIT_DATE. */
+	  if (ti >= INT64_MAX / 1000000)
+	    {
+	      timeout_us = INT64_MAX;	// Far future.
+	    }
+	  else
+	    {
+	      timeout_us = (int64_t)ceil(ti * 1000000.0);
+	    }
+	}
+
+      if (debug)
+	{
+	  NSLog(@"-[%s %s] accept I/P before %"PRId64" microsec from now in %@",
+	    class_getName(object_getClass(self)), sel_getName(_cmd),
+	    timeout_us, mode);
+	}
+
+      if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
+	{
+	  [_contextStack addObject: context];
+	}
+      if (NO == [context pollUntil: timeout_us within: _contextStack])
+	{
+	  GSPrivateNotifyIdle(context->mode);
+	}
+      [myvars->threadInfo fire];
+      [self _checkPerformers: context];
+      GSPrivateNotifyASAP(context->mode);
+      [context endPoll];
+
+      /* Once a poll has been completed on a context, we can remove that
+       * context from the stack even if it is actually polling at an outer
+       * level of re-entrancy ... since the poll we have just done will
+       * have handled any events that the outer levels would have wanted
+       * to handle, and the polling for this context will be marked as
+       * ended.
+       */
+      [_contextStack removeObjectIdenticalTo: context];
+
+      /* See if any timers should have fired while we were accepting input.
+       */
+      [self _limitDateForContext: context];
       runRestore(myvars);
     }
   NS_HANDLER
@@ -1512,7 +1518,16 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       [localException raise];
     }
   NS_ENDHANDLER
-  NSDebugMLLog(@"NSRunLoop", @"accept I/P completed in %@", mode);
+
+  if (debug)
+    {
+      NSTimeInterval	end = [NSDate timeIntervalSinceReferenceDate];
+
+      NSLog(@"-[%s %s] completed duration %fs.\n",
+	class_getName(object_getClass(self)), sel_getName(_cmd),
+	end - start);
+    }
+  
   RELEASE(arp);
 }
 
@@ -1560,10 +1575,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       [self acceptInputForMode: mode beforeDate: d];
       RELEASE(d);
     }
-
-  /* See if any timers should have fired while we were accepting input.
-   */
-  [self limitDateForMode: mode];
 
   runRestore(myvars);
   RELEASE(arp);

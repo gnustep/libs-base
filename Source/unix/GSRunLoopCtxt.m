@@ -232,6 +232,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   BOOL		immediate = NO;
   BOOL		debug = GSDebugSet(@"NSRunLoop");
 
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u entered.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
+
   if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
     {
       common = loop->contexts[1];
@@ -421,7 +427,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 }
 #endif
 
-  NSDebugMLLog(@"NSRunLoop", @"poll returned %d\n", poll_return);
+  if (debug) NSLog(@"poll returned %d\n", poll_return);
 
   if (poll_return < 0)
     {
@@ -485,6 +491,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (poll_return == 0)
     {
       completed = YES;
+      if (debug)
+	{
+	  NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+	    microseconds, (unsigned)[contexts count]);
+	}
       return NO;
     }
 
@@ -655,6 +666,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	}
     }
   completed = YES;
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u returns YES.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
   return YES;
 }
 
@@ -701,6 +717,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   unsigned		modeWatchersCount;
   unsigned		commonWatchersCount;
   BOOL			immediate = NO;
+  BOOL			debug = GSDebugSet(@"NSRunLoop");
+
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u entered.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
 
   if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
     {
@@ -882,7 +905,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   select_return = select (fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);
 
-  NSDebugMLLog(@"NSRunLoop", @"select returned %d", select_return);
+  if (debug) NSLog(@"select returned %d", select_return);
 
   if (select_return < 0)
     {
@@ -946,6 +969,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (select_return == 0)
     {
       completed = YES;
+      if (debug)
+	{
+	  NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+	    microseconds, (unsigned)[contexts count]);
+	}
       return NO;
     }
 
@@ -1101,6 +1129,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	}
     }
   completed = YES;
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u returns YES.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
   return YES;
 }
 
