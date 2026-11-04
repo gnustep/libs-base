@@ -229,13 +229,14 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 /* The userInfo of a progress, which may be used from any thread.  Like on
  * macOS, it is returned by -userInfo, changes are visible through it, and it
- * cannot be changed through it.  It notifies observers of its keys itself,
- * without holding its own lock.
+ * cannot be changed through it.  Each change replaces the immutable dictionary
+ * it holds, so methods reading several entries use one of them as a snapshot.
+ * It notifies observers of its keys itself, without holding its own lock.
  */
 @interface GSProgressUserInfo : NSDictionary
 {
-  NSMutableDictionary	*_storage;
-  gs_mutex_t		_lock;
+  NSDictionary	*_dictionary;
+  gs_mutex_t	_lock;
 }
 - (void) _storeObject: (id)anObject forKey: (id)aKey;
 @end
@@ -256,70 +257,50 @@ static NSSet	*manuallyNotifiedKeys = nil;
 	       forKeys: (const id <NSCopying>[])keys
 		 count: (NSUInteger)count
 {
-  _storage = [[NSMutableDictionary alloc] initWithObjects: objects
-						  forKeys: keys
-						    count: count];
+  _dictionary = [[NSDictionary alloc] initWithObjects: objects
+					      forKeys: keys
+						count: count];
   GS_MUTEX_INIT_RECURSIVE(_lock);
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(_storage);
+  RELEASE(_dictionary);
   GS_MUTEX_DESTROY(_lock);
   DEALLOC
 }
 
-- (id) copyWithZone: (NSZone *)zone
+- (NSDictionary *) _snapshot
 {
-  id	copy;
+  NSDictionary	*dictionary;
 
   GS_MUTEX_LOCK(_lock);
-  copy = [_storage copyWithZone: zone];
+  dictionary = RETAIN(_dictionary);
   GS_MUTEX_UNLOCK(_lock);
 
-  return copy;
+  return AUTORELEASE(dictionary);
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return RETAIN([self _snapshot]);
 }
 
 - (id) mutableCopyWithZone: (NSZone *)zone
 {
-  id	copy;
-
-  GS_MUTEX_LOCK(_lock);
-  copy = [_storage mutableCopyWithZone: zone];
-  GS_MUTEX_UNLOCK(_lock);
-
-  return copy;
-}
-
-- (NSDictionary *) _snapshot
-{
-  return AUTORELEASE([self copy]);
+  return [[self _snapshot] mutableCopyWithZone: zone];
 }
 
 - (NSUInteger) count
 {
-  NSUInteger	count;
-
-  GS_MUTEX_LOCK(_lock);
-  count = [_storage count];
-  GS_MUTEX_UNLOCK(_lock);
-
-  return count;
+  return [[self _snapshot] count];
 }
 
 - (id) objectForKey: (id)aKey
 {
-  id	object;
-
-  GS_MUTEX_LOCK(_lock);
-  object = RETAIN([_storage objectForKey: aKey]);
-  GS_MUTEX_UNLOCK(_lock);
-
-  return AUTORELEASE(object);
+  return [[self _snapshot] objectForKey: aKey];
 }
-
-/* Everything that reads several entries works on a snapshot */
 
 - (NSString *) descriptionWithLocale: (id)locale indent: (NSUInteger)level
 {
@@ -373,9 +354,7 @@ static NSSet	*manuallyNotifiedKeys = nil;
 - (void) getObjects: (__unsafe_unretained id[])objects
 	    andKeys: (__unsafe_unretained id[])keys
 {
-  GS_MUTEX_LOCK(_lock);
-  [_storage getObjects: objects andKeys: keys];
-  GS_MUTEX_UNLOCK(_lock);
+  [[self _snapshot] getObjects: objects andKeys: keys];
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState *)state
@@ -410,7 +389,8 @@ static NSSet	*manuallyNotifiedKeys = nil;
 /* Sets the object, or removes it if it is nil */
 - (void) _storeObject: (id)anObject forKey: (id)aKey
 {
-  id	old;
+  NSMutableDictionary	*changed;
+  NSDictionary		*old;
 
   if (aKey == nil)
     {
@@ -420,16 +400,19 @@ static NSSet	*manuallyNotifiedKeys = nil;
   aKey = AUTORELEASE([aKey copy]);
   [self willChangeValueForKey: aKey];
   GS_MUTEX_LOCK(_lock);
-  old = RETAIN([_storage objectForKey: aKey]);
+  old = _dictionary;
+  changed = [old mutableCopy];
   if (anObject == nil)
     {
-      [_storage removeObjectForKey: aKey];
+      [changed removeObjectForKey: aKey];
     }
   else
     {
-      [_storage setObject: anObject forKey: aKey];
+      [changed setObject: anObject forKey: aKey];
     }
+  _dictionary = [changed copy];
   GS_MUTEX_UNLOCK(_lock);
+  RELEASE(changed);
   RELEASE(old);
   [self didChangeValueForKey: aKey];
 }
