@@ -1336,13 +1336,23 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       /* If there is no value set for the server name, and the host in the
        * URL is a domain name rather than an address, we use that.
+       * An address can't be sent as a server name, so we use an empty string
+       * (no server name) to stop the file handle looking for a name for the
+       * remote end, and verify against the address in the URL.
        */
       if (nil == [opts objectForKey: GSTLSServerName])
         {
           NSString      *host = [u host];
-          unichar       c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
 
-          if (c != 0 && c != ':' && !isdigit(c))
+          if (GSPrivateIsAddress(host))
+            {
+              [opts setObject: @"" forKey: GSTLSServerName];
+              if (nil == [opts objectForKey: GSTLSRemoteHosts])
+                {
+                  [opts setObject: host forKey: GSTLSRemoteHosts];
+                }
+            }
+          else if ([host length] > 0)
             {
               [opts setObject: host forKey: GSTLSServerName];
             }

@@ -277,6 +277,32 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   }
 }
 
+BOOL
+GSPrivateIsAddress(NSString *host)
+{
+  const char		*str = [host UTF8String];
+  struct in_addr	v4;
+#if     defined(AF_INET6)
+  struct in6_addr	v6;
+#endif
+
+  if (NULL == str)
+    {
+      return NO;
+    }
+  if (inet_pton(AF_INET, str, &v4) == 1)
+    {
+      return YES;
+    }
+#if     defined(AF_INET6)
+  if (inet_pton(AF_INET6, str, &v6) == 1)
+    {
+      return YES;
+    }
+#endif
+  return NO;
+}
+
 NSString *
 GSPrivateSockaddrHost(struct sockaddr *addr)
 {

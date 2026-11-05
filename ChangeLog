@@ -1,3 +1,15 @@
+2026-11-04 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSPrivate.h:
+	* Source/GSSocketStream.m:
+	* Source/NSURLProtocol.m:
+	* Tests/base/NSURLConnection/addressTLS.m:
+	* Tests/base/NSURLConnection/addressTLS/:
+	Verify the certificate of an https URL with an address as its host
+	against that address.  Recognise addresses by parsing them rather
+	than by their first character.
+
 2026-10-21 Rupert Daniel <rupert@cancelmonday.com>
 
 	* Source/NSSortDescriptor.m: Copy the comparator block instead of
