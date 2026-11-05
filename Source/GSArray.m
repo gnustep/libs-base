@@ -576,7 +576,7 @@ else
     {
       self = [super initWithCoder: aCoder];
     }
-  else if (nil != (self = [super init]))
+  else
     {
       unsigned    count;
 

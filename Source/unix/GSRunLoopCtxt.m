@@ -20,6 +20,10 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
+//#undef	HAVE_POLL_F
+//#undef	HAVE_POLL
+
 #ifdef HAVE_POLL_F
 #include <poll.h>
 #endif
@@ -228,6 +232,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   BOOL		immediate = NO;
   BOOL		debug = GSDebugSet(@"NSRunLoop");
 
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u entered.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
+
   if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
     {
       common = loop->contexts[1];
@@ -375,7 +385,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks())
+    {
+      microseconds = 0;
+    }
+  if (GSPrivateNotifyMore(mode))
+    {
+      microseconds = 0;
+    }
+  if (immediate == YES)
     {
       microseconds = 0;
     }
@@ -391,15 +409,22 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 #endif
   if (microseconds > 0)
     {
-      /* Round up to a millisecond boundary.
-       */
-      if (0 == (microseconds % 1000))
+      if (microseconds / 1000 >= INT_MAX)
 	{
-	  milliseconds = (int)(microseconds / 1000);
+	  milliseconds = INT_MAX;
 	}
       else
 	{
-	  milliseconds = (int)(microseconds / 1000 + 1);
+	  /* Round up to a millisecond boundary.
+	   */
+	  if (0 == (microseconds % 1000))
+	    {
+	      milliseconds = (int)(microseconds / 1000);
+	    }
+	  else
+	    {
+	      milliseconds = (int)(microseconds / 1000 + 1);
+	    }
 	}
     }
   else
@@ -417,7 +442,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 }
 #endif
 
-  NSDebugMLLog(@"NSRunLoop", @"poll returned %d\n", poll_return);
+  if (debug) NSLog(@"poll returned %d\n", poll_return);
 
   if (poll_return < 0)
     {
@@ -481,6 +506,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (poll_return == 0)
     {
       completed = YES;
+      if (debug)
+	{
+	  NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+	    microseconds, (unsigned)[contexts count]);
+	}
       return NO;
     }
 
@@ -651,6 +681,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	}
     }
   completed = YES;
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u returns YES.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
   return YES;
 }
 
@@ -697,6 +732,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   unsigned		modeWatchersCount;
   unsigned		commonWatchersCount;
   BOOL			immediate = NO;
+  BOOL			debug = GSDebugSet(@"NSRunLoop");
+
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u entered.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
 
   if (loop->commonModeMask & (UINT64_C(1) << modeIndex))
     {
@@ -709,27 +751,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     }
   modeWatchersCount = GSIArrayCount(watchers);
   i = modeWatchersCount + commonWatchersCount;
-
-  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-  if (0 == microseconds)
-    {
-      /* Don't wait at all. */
-      timeout.tv_sec = 0;
-      timeout.tv_usec = 0;
-      select_timeout = &timeout;
-    }
-  else if (milliseconds > 0)
-    {
-      timeout.tv_sec = (int)(microseconds/1000000);
-      timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
-      select_timeout = &timeout;
-    }
-  else 
-    {
-      timeout.tv_sec = -1;
-      timeout.tv_usec = -1;
-      select_timeout = NULL;
-    }
 
   /*
    * Get ready to listen to file descriptors.
@@ -860,25 +881,35 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     }
   fdEnd++;
 
-  /*
-   * If there are notifications in the 'idle' queue, we try an
-   * instantaneous select so that, if there is no input pending,
-   * we can service the queue.  Similarly, if a task has completed,
-   * we need to deliver its notifications.
+  /* If there are task completions or notifications in the 'idle' queue,
+   * we try an instantaneous select so that, if there is no input pending,
+   * we can service the queue.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode)) || immediate)
     {
+      microseconds = 0;
+    }
+
+  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
+  if (microseconds <= 0)
+    {
+      /* Don't wait at all. */
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
-      select_timeout = &timeout;
     }
+  else
+    {
+      timeout.tv_sec = (int)(microseconds/1000000);
+      timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
+    }
+  select_timeout = &timeout;
 
   // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 
   select_return = select (fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);
 
-  NSDebugMLLog(@"NSRunLoop", @"select returned %d", select_return);
+  if (debug) NSLog(@"select returned %d", select_return);
 
   if (select_return < 0)
     {
@@ -942,6 +973,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   if (select_return == 0)
     {
       completed = YES;
+      if (debug)
+	{
+	  NSLog(@"-pollUntil: %"PRId64"us within: %u returns NO.\n",
+	    microseconds, (unsigned)[contexts count]);
+	}
       return NO;
     }
 
@@ -1097,12 +1133,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	}
     }
   completed = YES;
+  if (debug)
+    {
+      NSLog(@"-pollUntil: %"PRId64"us within: %u returns YES.\n",
+	microseconds, (unsigned)[contexts count]);
+    }
   return YES;
 }
 
 + (BOOL) awakenedBefore: (NSDate*)when
 {
-  GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
   int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
   struct timeval	timeout;

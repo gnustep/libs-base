@@ -798,16 +798,15 @@ static Class NSFileHandle_ssl_class = nil;
       if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
 	{
 	  NSDate		*final;
-	  NSDate		*when;
 	  NSTimeInterval	last = 0.0;
 	  NSTimeInterval	limit = 0.1;
 
 	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-	  when = [NSDate alloc];
 
 	  while (NO == [self sslHandshakeEstablished: &result outgoing: NO]
 	    && [final timeIntervalSinceNow] > 0.0)
 	    {
+	      NSDate		*when;
 	      NSTimeInterval	tmp = limit;
 
 	      limit += last;
@@ -817,10 +816,10 @@ static Class NSFileHandle_ssl_class = nil;
 		  limit = 0.1;
 		  last = 0.1;
 		}
-	      when = [when initWithTimeIntervalSinceNow: limit];
+	      when = [[NSDate alloc] initWithTimeIntervalSinceNow: limit];
 	      [loop runUntilDate: when];
+	      RELEASE(when);
 	    }
-	  RELEASE(when);
 	  RELEASE(final);
 	}
       DESTROY(self);
@@ -842,16 +841,15 @@ static Class NSFileHandle_ssl_class = nil;
       if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
 	{
 	  NSDate		*final;
-	  NSDate		*when;
 	  NSTimeInterval	last = 0.0;
 	  NSTimeInterval	limit = 0.1;
 
 	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-	  when = [NSDate alloc];
 
 	  while (NO == [self sslHandshakeEstablished: &result outgoing: YES]
 	    && [final timeIntervalSinceNow] > 0.0)
 	    {
+	      NSDate		*when;
 	      NSTimeInterval	tmp = limit;
 
 	      limit += last;
@@ -861,10 +859,10 @@ static Class NSFileHandle_ssl_class = nil;
 		  limit = 0.1;
 		  last = 0.1;
 		}
-	      when = [when initWithTimeIntervalSinceNow: limit];
+	      when = [[NSDate alloc] initWithTimeIntervalSinceNow: limit];
 	      [loop runUntilDate: when];
+	      RELEASE(when);
 	    }
-	  RELEASE(when);
 	  RELEASE(final);
 	}
       DESTROY(self);
@@ -1138,22 +1136,6 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
    */
   if (nil == session)
     {
-      /* If no value is specified for GSTLSServerName, try to use any name of
-       * the remote host in case the remote server requres a name.
-       */
-      if (nil == [opts objectForKey: GSTLSServerName])
-        {
-          NSHost        *host = [NSHost hostWithAddress: [self socketAddress]];
-          NSString      *name = [host name];
-
-          if (name)
-            {
-              NSMutableDictionary   *d = AUTORELEASE([opts mutableCopy]);
-
-              [d setObject: name forKey: GSTLSRemoteHosts];
-              ASSIGNCOPY(opts, d);
-            }
-        }
       [self setNonBlocking: YES];
       session = [[GSTLSSession alloc] initWithOptions: opts
                                             direction: isOutgoing

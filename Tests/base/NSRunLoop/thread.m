@@ -108,6 +108,7 @@
   
   [timer invalidate];
 
+ // [[[NSProcessInfo processInfo] debugSet] addObject: @"NSRunLoop"];
   fh = [[NSPipe pipe] fileHandleForReading];
   [nc addObserver: self selector:@selector(notified:) 
   	     name: nil object:fh];
@@ -129,6 +130,7 @@
   else
     blockForInput = 'Y';
   [nc removeObserver: self];
+//  [[[NSProcessInfo processInfo] debugSet] removeObject: @"NSRunLoop"];
   LEAVE_POOL
 }
 
@@ -190,7 +192,15 @@
   PASS(acceptEmptyBlocks == 'N', "Accept with no inputs or timers will exit")
   PASS(acceptTimerBlocks == 'Y', "Accept with timers will not exit")
   PASS(blockForEmpty == 'N', "A loop with no inputs or timers will exit")
+#if	defined(_WIN32)
+  /* Currently the test for input uses read from a pipe, which is not a blocking
+   * function on windows so doesn't work.  We should write a new testcase which
+   * puts a blocking input source on the loop for windows.
+   */
+testHopeful = YES;
+#endif
   PASS(blockForInput == 'Y', "A loop with an input source will block")
+testHopeful = NO;
   PASS(blockForTimer == 'Y', "A loop with a timer will block")
   PASS(limitForEmpty == 'N', "A loop with no inputs or timers has no limit")
   PASS(limitForInput == 'Y', "A loop with an input source has distant future")

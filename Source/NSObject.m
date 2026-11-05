@@ -468,6 +468,7 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 typedef struct {
   BOOL	hadWeakReference: 1;	// if the instance ever had a weak reference
   BOOL	hadAssociations: 1;	// if the instance ever had associated objects
+  BOOL	hadInit: 1;		// if the root -init method has been called
 } gsinstinfo_t;
 #endif
 
@@ -1423,7 +1424,17 @@ static id gs_weak_load(id obj)
  */
 - (void) dealloc
 {
+#ifndef OBJC_CAP_ARC
+  /* We only count the deallocation of the instance if we first counted its
+   * allocation/initialisation in the -init method.
+   */
+  if (((obj)self)[-1].extra.hadInit)
+    {
+      GSDebugAllocationRemove(object_getClass(self), self);
+    }
+#else
   GSDebugAllocationRemove(object_getClass(self), self);
+#endif
   NSDeallocateObject(self);
 }
 
@@ -1508,7 +1519,23 @@ static id gs_weak_load(id obj)
  */
 - (id) init
 {
+#ifdef OBJC_CAP_ARC
   GSDebugAllocationAdd(object_getClass(self), self);
+#else
+  if (((obj)self)[-1].extra.hadInit)
+    {
+      NSLog(@"Warning: called -init more than once for %p (instance of %s)",
+	self, class_getName(object_getClass(self)));
+    }
+  else
+    {
+      /* Record that the -init method has been called and count the instance
+       * as having been allocated (for memory usage tracking).
+       */
+      ((obj)self)[-1].extra.hadInit = YES;
+      GSDebugAllocationAdd(object_getClass(self), self);
+    }
+#endif
   return self;
 }
 

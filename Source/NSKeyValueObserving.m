@@ -2172,14 +2172,22 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
 
 + (NSSet*) keyPathsForValuesAffectingValueForKey: (NSString*)dependentKey
 {
-  NSString *selString = [NSString stringWithFormat: @"keyPathsForValuesAffecting%@",
-                                  [dependentKey capitalizedString]];
-  SEL sel = NSSelectorFromString(selString);
+  NSString *selString;
+  SEL sel;
   NSMapTable *affectingKeys;
   NSEnumerator *enumerator;
   NSString *affectingKey;
   NSMutableSet *keyPaths;
 
+  /* Not -capitalizedString, which lowercases the other letters */
+  selString = @"keyPathsForValuesAffecting";
+  if ([dependentKey length] > 0)
+    {
+      selString = [NSString stringWithFormat: @"%@%@%@", selString,
+	[[dependentKey substringToIndex: 1] uppercaseString],
+	[dependentKey substringFromIndex: 1]];
+    }
+  sel = NSSelectorFromString(selString);
   if ([self respondsToSelector: sel])
     {
       return [self performSelector: sel];

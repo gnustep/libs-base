@@ -905,15 +905,22 @@ typedef struct {
             }
           /* If there is no value set for the server name, and the host in the
            * URL is a domain name rather than an address, we use that.
+           * An address can't be sent as a server name, and the stream's own
+           * value is a name found by looking the address up, which says
+           * nothing about the server, so we replace it with an empty string
+           * (no server name) and verify against the address in the URL.
            */
 	  key = GSTLSServerName;
 	  if (nil == (val = [this->request _propertyForKey: key]))
             {
               NSString  *host = [url host];
-              unichar   c;
 
-              c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
-              if (c != 0 && c != ':' && !isdigit(c))
+              if (GSPrivateIsAddress(host))
+                {
+                  [this->output setProperty: @"" forKey: key];
+                  [this->output setProperty: host forKey: GSTLSRemoteHosts];
+                }
+              else if ([host length] > 0)
                 {
                   [this->output setProperty: host forKey: key];
                 }

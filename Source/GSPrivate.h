@@ -693,5 +693,9 @@ void GSWeakInit() GS_ATTRIB_PRIVATE;
 BOOL objc_delete_weak_refs(id obj);
 #endif
 
+/* Returns YES if the host string of a URL is an IP address, not a name.
+ */
+BOOL GSPrivateIsAddress(NSString *host) GS_ATTRIB_PRIVATE;
+
 #endif /* _GSPrivate_h_ */
 

@@ -1234,9 +1234,10 @@ newLanguages(NSArray *oldNames)
   RELEASE(dict);
 }
 
-/* Refresh form database when global defaults have changed.
+/* Refresh form database when persistent defaults not owned by the
+ * current process have changed.
  */
-- (void) _globalDefaultsChanged: (NSNotification*)n
+- (void) _distributedDefaultsChanged: (NSNotification*)n
 {
   [self synchronize];
 }
@@ -1998,7 +1999,7 @@ static BOOL isPlistObject(id o)
   BOOL			wasLocked = NO;
   BOOL			result = YES;
   BOOL			haveChange = NO;
-  BOOL			global = NO;
+  BOOL			distributed = NO;
 
   [_lock lock];
   saved = _lastSync;
@@ -2065,9 +2066,9 @@ static BOOL isPlistObject(id o)
                             {
                               if ([domain synchronize])
 				{
-				  if ([domainName isEqual: @"NSGlobalDomain"])
+				  if (![domainName isEqual: bundleIdentifier])
 				    {
-				      global = YES;
+				      distributed = YES;
 				    }
 				}
                             }
@@ -2081,9 +2082,9 @@ static BOOL isPlistObject(id o)
 			      if ([mgr fileExistsAtPath: path])
 				{
 				  [mgr removeFileAtPath: path handler: nil];
-				  if ([domainName isEqual: @"NSGlobalDomain"])
+				  if (![domainName isEqual: bundleIdentifier])
 				    {
-				      global = YES;
+				      distributed = YES;
 				    }
 				}
                             }
@@ -2155,14 +2156,15 @@ static BOOL isPlistObject(id o)
 	postNotificationName: NSUserDefaultsDidChangeNotification
 		      object: self];
     }
-  if (global)
+  if (distributed)
     {
-      /* If this process uses distributed notifications, let other cooperating
-       * processes know that the global defaults changed.
+      /* Let other applications know that a persistent domain (other than
+       * the one owned by the current application) has been updated, so
+       * can synchronise with the changes.
        */
       [[NSDistributedNotificationCenter _defaultCenterIfExists]
 	postNotificationName: NSUserDefaultsDidChangeNotification
-                      object: @"NSGlobalDomain"];
+                      object: @"DistributedDefaults"];
     }
   return result;
 }
