@@ -2447,7 +2447,7 @@ static Class		tcpPortClass;
       M_UNLOCK(myLock);
       if (handle == nil)
 	{
-	  NSLog(@"No handle found for event %s on descriptor %lld",
+	  NSLog(@"No handle found for event %@ on descriptor %lld",
 	    [NSRunLoop nameOfEventType: type], (long long)desc);
 /*
           [[NSRunLoop currentRunLoop] removeEvent: data
