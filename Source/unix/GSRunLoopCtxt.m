@@ -401,15 +401,22 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 #endif
   if (microseconds > 0)
     {
-      /* Round up to a millisecond boundary.
-       */
-      if (0 == (microseconds % 1000))
+      if (microseconds / 1000 >= INT_MAX)
 	{
-	  milliseconds = (int)(microseconds / 1000);
+	  milliseconds = INT_MAX;
 	}
       else
 	{
-	  milliseconds = (int)(microseconds / 1000 + 1);
+	  /* Round up to a millisecond boundary.
+	   */
+	  if (0 == (microseconds % 1000))
+	    {
+	      milliseconds = (int)(microseconds / 1000);
+	    }
+	  else
+	    {
+	      milliseconds = (int)(microseconds / 1000 + 1);
+	    }
 	}
     }
   else

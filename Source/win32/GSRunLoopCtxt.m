@@ -226,13 +226,20 @@
   // Set timeout how much time should wait
   if (microseconds >= 0)
     {
-      if (microseconds % 1000 == 0)
+      if (microseconds / 1000 >= INT_MAX)
 	{
-	  wait_timeout = (int)(microseconds/1000);
+	  wait_timeout = INFINITE;
 	}
       else
 	{
-	  wait_timeout = (int)(microseconds/1000 + 1);
+	  if (microseconds % 1000 == 0)
+	    {
+	      wait_timeout = (int)(microseconds/1000);
+	    }
+	  else
+	    {
+	      wait_timeout = (int)(microseconds/1000 + 1);
+	    }
 	}
     }
   else if (0 == microseconds)
@@ -331,7 +338,8 @@
                     }
 		  if (debug)
 		    {
-		      NSLog(@"listening to %ld port handles", (long)port_hd_count);
+		      NSLog(@"listening to %ld port handles",
+			(long)port_hd_count);
 		    }
 		  while (port_hd_count--)
 		    {
@@ -364,7 +372,8 @@
     {
       if (debug)
 	{
-	  NSLog(@"GSPrivateCheckTasks() says: no need to wait (timeout set to zero)");
+	  NSLog(@"GSPrivateCheckTasks() says: no need to wait"
+	    @" (timeout set to zero)");
 	}
       wait_timeout = 0;
     }
@@ -372,7 +381,8 @@
     {
       if (debug)
 	{
-	  NSLog(@"GSPrivateBotifyMore() says: no need to wait (timeout set to zero)");
+	  NSLog(@"GSPrivateBotifyMore() says: no need to wait"
+	    @" (timeout set to zero)");
 	}
       wait_timeout = 0;
     }
@@ -380,7 +390,8 @@
     {
       if (debug)
 	{
-	  NSLog(@"trigger set to immediate says: no need to wait (timeout set to zero)");
+	  NSLog(@"trigger set to immediate says: no need to wait"
+	    @" (timeout set to zero)");
 	}
       wait_timeout = 0;
     }
@@ -424,7 +435,8 @@
     {
       if (debug)
 	{
-	  NSLog(@"processes windows messages: no need to wait (timeout set to zero)");
+	  NSLog(@"processes windows messages: no need to wait"
+	    @" (timeout set to zero)");
 	}
       wait_timeout = 0;
       num_winMsgs = 0;
