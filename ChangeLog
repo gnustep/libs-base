@@ -1,3 +1,21 @@
+2026-11-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStream.m:
+	* Tests/base/NSStream/socket.m:
+	* Tests/base/NSURLConnection/addressTLS.m:
+	Implement check for GSTLSServerName erroneously set to an address in
+	the GSTLS session so it deals with all the higher-level code paths.
+	Revert the 'usability' tweak of automatically setting it for streams,
+	so applications need to explicitly set the host name they are opening
+	a TLS stream (or file handle) to.
+	Extend Daniel's testcases to include lower level NSStream tests as
+	well as NSURLConnection/NSURLHandle tests.
+
 2026-11-04 Daniel Boyd <danieljboyd@icloud.com>
 
 	* Source/GSHTTPURLHandle.m:

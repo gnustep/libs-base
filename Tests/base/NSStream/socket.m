@@ -181,6 +181,10 @@ int main()
 		       forKey: NSStreamSocketSecurityLevelKey];
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
+    /* A TLS host may require us to have specified its name.
+     */
+    [defaultInput setProperty: name forKey: GSTLSServerName];
+    [defaultOutput setProperty: name forKey: GSTLSServerName];
 
 /* Our getStreamsToHost:port:inputStream:outputStream: does this using some
  * randomly selected name fo the host.  To use a specific name we may want

@@ -385,7 +385,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks())
+    {
+      microseconds = 0;
+    }
+  if (GSPrivateNotifyMore(mode))
+    {
+      microseconds = 0;
+    }
+  if (immediate == YES)
     {
       microseconds = 0;
     }
@@ -744,27 +752,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   modeWatchersCount = GSIArrayCount(watchers);
   i = modeWatchersCount + commonWatchersCount;
 
-  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-  if (0 == microseconds)
-    {
-      /* Don't wait at all. */
-      timeout.tv_sec = 0;
-      timeout.tv_usec = 0;
-      select_timeout = &timeout;
-    }
-  else if (microseconds > 0)
-    {
-      timeout.tv_sec = (int)(microseconds/1000000);
-      timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
-      select_timeout = &timeout;
-    }
-  else 
-    {
-      timeout.tv_sec = -1;
-      timeout.tv_usec = -1;
-      select_timeout = NULL;
-    }
-
   /*
    * Get ready to listen to file descriptors.
    * Initialize the set of FDS we'll pass to select(), and make sure we
@@ -894,18 +881,28 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     }
   fdEnd++;
 
-  /*
-   * If there are notifications in the 'idle' queue, we try an
-   * instantaneous select so that, if there is no input pending,
-   * we can service the queue.  Similarly, if a task has completed,
-   * we need to deliver its notifications.
+  /* If there are task completions or notifications in the 'idle' queue,
+   * we try an instantaneous select so that, if there is no input pending,
+   * we can service the queue.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode)) || immediate)
     {
+      microseconds = 0;
+    }
+
+  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
+  if (microseconds <= 0)
+    {
+      /* Don't wait at all. */
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
-      select_timeout = &timeout;
     }
+  else
+    {
+      timeout.tv_sec = (int)(microseconds/1000000);
+      timeout.tv_usec = (int)(microseconds - 1000000 * timeout.tv_sec);
+    }
+  select_timeout = &timeout;
 
   // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 

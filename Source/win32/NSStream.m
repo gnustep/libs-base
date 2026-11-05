@@ -941,7 +941,6 @@
              outputStream: (NSOutputStream **)outputStream
 {
   NSString	*address = host ? (id)[host address] : (id)@"127.0.0.1";
-  NSString	*name = [host name];
   GSSocketStream *ins = nil;
   GSSocketStream *outs = nil;
   int sock;
@@ -960,11 +959,6 @@
       outs = AUTORELEASE([[GSInet6OutputStream alloc]
         initToAddr: address port: port]);
 #endif
-    }
-  if (name)
-    {
-      if (ins) [ins setProperty: name forKey: GSTLSServerName];
-      if (outs) [outs setProperty: name forKey: GSTLSServerName];
     }
 
   /*

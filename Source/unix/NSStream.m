@@ -403,7 +403,6 @@
              outputStream: (NSOutputStream **)outputStream
 {
   NSString	*address = host ? (id)[host address] : (id)@"127.0.0.1";
-  NSString	*name = [host name];
   id 		ins = nil;
   id 		outs = nil;
 
@@ -421,11 +420,6 @@
 	initToAddr: address port: port]);
 #endif
     }  
-  if (name)
-    {
-      if (ins) [ins setProperty: name forKey: GSTLSServerName];
-      if (outs) [outs setProperty: name forKey: GSTLSServerName];
-    }
 
   if (inputStream)
     {

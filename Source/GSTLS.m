@@ -40,6 +40,7 @@
 #import "Foundation/NSUUID.h"
 
 #import "GNUstepBase/GSTLS.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -1703,6 +1704,33 @@ retrieve_callback(gnutls_session_t session,
           verify = [str boolValue];
         }
 
+      if (nil != (str = [opts objectForKey: GSTLSServerName]))
+	{
+	  /* The GSTLSServerName may not be an address.
+	   * So an addres is moved to GSTLSRemoteHosts.
+	   */
+	  str = [str stringByTrimmingSpaces];
+	  if (GSPrivateIsAddress(str))
+	    {
+	      NSMutableDictionary	*m = [opts mutableCopy];
+	      NSString			*hosts;
+
+	      hosts = [opts objectForKey: GSTLSRemoteHosts];
+	      if ([hosts length] > 0)
+		{
+		  hosts = [hosts stringByAppendingFormat: @",%@", str];
+		}
+	      else
+		{
+		  hosts = str;
+		}
+	      [m setObject: hosts forKey: GSTLSRemoteHosts];
+	      [m removeObjectForKey: GSTLSServerName];
+	      ASSIGNCOPY(opts, m);
+	      RELEASE(m);
+	    }
+	}
+
       debug = (globalDebug > 0) ? YES : NO;
       if (NO == debug)
         {
@@ -1956,7 +1984,7 @@ retrieve_callback(gnutls_session_t session,
     {
       return YES;       // Handshake completed or impossible.
     }
-
+if (outgoing) NSLog(@"Handshake %p with %@", self, opts);
   handshake = YES;
   ret = gnutls_handshake(session);
   if (ret < 0)
@@ -2046,7 +2074,8 @@ retrieve_callback(gnutls_session_t session,
        */
       if (globalDebug > 1)
         {
-          NSLog(@"%p trying verify:\n%@", handle, [self sessionInfo]);
+          NSLog(@"%p trying verify (required %s):\n%@",
+	    handle, (requireVerified ? "yes" : "no"), [self sessionInfo]);
         }
       ret = [self verify];
       if (ret < 0)
@@ -2061,10 +2090,18 @@ retrieve_callback(gnutls_session_t session,
             }
           if (requireVerified)
             {
+	      if (globalDebug > 1)
+		{
+		  NSLog(@"%p disconnecting after verify failure.", handle);
+		}
               [self disconnect: NO];
             }
-	  else if (outgoing && nil == [opts objectForKey: GSTLSVerify])
+	  else
 	    {
+	      if (globalDebug > 1)
+		{
+		  NSLog(@"%p continuing after verify failure.", handle);
+		}
 	      /* We notify about verification failure on outgoing connections
 	       * if the failure was ignored, unless it was specifically turned
 	       * off by the app (GSTLSVerify set to NO). That is to say, if
@@ -2073,9 +2110,12 @@ retrieve_callback(gnutls_session_t session,
 	       * to catch connection attempts which would have failed if the
 	       * default setting had been to use strict verification.
 	       */
-              [[NSNotificationCenter defaultCenter]
-                postNotificationName: GSTLSVerifyFailedNotification
-                  object: self];
+	      if (outgoing && nil == [opts objectForKey: GSTLSVerify])
+		{
+		  [[NSNotificationCenter defaultCenter]
+		    postNotificationName: GSTLSVerifyFailedNotification
+		      object: self];
+		}
 	    }
         }
       else
@@ -2241,8 +2281,20 @@ retrieve_callback(gnutls_session_t session,
 
   if (outgoing)
     {
-      [str appendFormat: @"- Outgoing session: %p to '%@'\n",
-	self, [self hostName]];
+      NSString	*s;
+
+      [str appendFormat: @"- Outgoing session: %p", self];
+      s = [opts objectForKey: GSTLSRemoteHosts];
+      if ([s length])
+	{
+	  [str appendFormat: @" remote hosts (%@)", s];
+	}
+      s = [opts objectForKey: GSTLSServerName];
+      if ([s length])
+	{
+          [str appendFormat: @" server name (%@)", s];
+	}
+      [str appendString: @"\n"];
     }
   else
     {
