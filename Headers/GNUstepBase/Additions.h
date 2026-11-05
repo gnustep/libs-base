@@ -55,6 +55,7 @@
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>
 #import	<GNUstepBase/NSObject+GNUstepBase.h>
 #import	<GNUstepBase/NSProcessInfo+GNUstepBase.h>
+#import	<GNUstepBase/NSProgress+GNUstepBase.h>
 #import	<GNUstepBase/NSStream+GNUstepBase.h>
 #import	<GNUstepBase/NSString+GNUstepBase.h>
 #import	<GNUstepBase/NSTask+GNUstepBase.h>

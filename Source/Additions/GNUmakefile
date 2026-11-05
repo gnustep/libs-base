@@ -62,6 +62,7 @@ Additions_OBJC_FILES =\
 	NSObject+GNUstepBase.m \
 	NSPropertyList+GNUstepBase.m \
 	NSProcessInfo+GNUstepBase.m \
+	NSProgress+GNUstepBase.m \
 	NSStream+GNUstepBase.m \
 	NSString+GNUstepBase.m \
 	NSTask+GNUstepBase.m \

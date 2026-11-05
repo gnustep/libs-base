@@ -4,7 +4,25 @@
 #include "GNUstepBase/GNUstep.h"
 #import <Foundation/NSProgress.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSKeyValueObserving.h>
 #import "ObjectTesting.h"
+
+@interface Observer : NSObject
+{
+  @public
+  int observations;
+}
+@end
+
+@implementation Observer
+- (void) observeValueForKeyPath: (NSString *)keyPath
+                       ofObject: (id)object
+                         change: (NSDictionary *)change
+                        context: (void *)context
+{
+  observations += 1;
+}
+@end
 
 int main(void)
 {
@@ -30,6 +48,24 @@ int main(void)
   PASS([negativeCompleted isIndeterminate] == YES, "negative completedUnitCount is indeterminate");
   PASS([negativeCompleted fractionCompleted] == 0.0, "indeterminate fractionCompleted is 0.0 (negative completed)");
   PASS([negativeCompleted isFinished] == NO, "indeterminate progress is not finished (negative completed)");
+
+  NSProgress *wasIndeterminate = [NSProgress progressWithTotalUnitCount: 0];
+  Observer *o = [[Observer alloc] init];
+  [wasIndeterminate addObserver: o forKeyPath: @"finished" options: 0 context: NULL];
+  [wasIndeterminate setCompletedUnitCount: 1];
+  PASS([wasIndeterminate isFinished], "1/0 progress is finished");
+  PASS([wasIndeterminate fractionCompleted] == 1.0, "1/0 fractionCompleted is 1.0");
+  PASS(o->observations == 1, "received KVO notification for finished");
+  [wasIndeterminate setCompletedUnitCount: 0];
+  PASS([wasIndeterminate isFinished] == NO, "returning to 0/0 unfinishes the progress");
+  PASS(o->observations == 2, "received KVO notification for unfinished");
+  [wasIndeterminate setTotalUnitCount: 1];
+  [wasIndeterminate setCompletedUnitCount: 1];
+  PASS([wasIndeterminate isFinished], "progress finishes after being indeterminate");
+  PASS([wasIndeterminate fractionCompleted] == 1.0, "fractionCompleted is 1.0 after being indeterminate");
+  PASS(o->observations == 3, "received KVO notification for finished again");
+  [wasIndeterminate removeObserver: o forKeyPath: @"finished"];
+  [o release];
 
   LEAVE_POOL
   return 0;
