@@ -83,7 +83,7 @@
   return thread;
 }
 
-- (void) release
+- (oneway void) release
 {
   // NSLog(@"Will release %@ at %@", self, [NSThread callStackSymbols]);
   [super release];

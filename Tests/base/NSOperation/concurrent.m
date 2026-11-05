@@ -184,7 +184,8 @@ int main()
 	}
     }
   PASS((ran == want), "many operations, all were performed")
-  NSLog(@"Duration for %d concurrent operations %g seconds.", want, (f - s));
+  NSLog(@"Duration for %u concurrent operations %g seconds.",
+    (unsigned)want, (f - s));
 
   // multiple concurrent operations
   [q setMaxConcurrentOperationCount: 5];
