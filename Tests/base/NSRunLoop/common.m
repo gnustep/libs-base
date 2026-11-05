@@ -79,6 +79,7 @@ int main()
   NSRunLoop			*loop = [NSRunLoop currentRunLoop];
   CommonModesTimerTarget	*target;
   NSTimer 			*timer;
+  NSDate			*limit;
 
   /* A common-mode timer fires in the default mode. */
   target = [CommonModesTimerTarget new];
@@ -89,11 +90,13 @@ int main()
                                  repeats: NO];
   [loop addTimer: timer forMode: NSRunLoopCommonModes];
 
-  [loop runMode: NSDefaultRunLoopMode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
 
-  PASS([target count] == 1,
-       "Common-mode timer fires in default mode");
+  PASS([target count] == 1, "Common-mode timer fires in default mode")
 
   [timer invalidate];
   RELEASE(target);
@@ -109,17 +112,21 @@ int main()
 
   [loop addTimer: timer forMode: @"TestPrivateRunLoopMode"];
 
-  [loop runMode: NSDefaultRunLoopMode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.05]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
 
-  PASS([target count] == 0,
-       "Mode-specific timer does not fire in default mode");
+  PASS([target count] == 0, "Mode-specific timer does not fire in default mode")
 
-  [loop runMode: @"TestPrivateRunLoopMode"
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: @"TestPrivateRunLoopMode" beforeDate: limit];
+    }
 
-  PASS([target count] == 1,
-       "Mode-specific timer fires in its registered mode");
+  PASS([target count] == 1, "Mode-specific timer fires in its registered mode")
 
   RELEASE(target);
 
@@ -133,17 +140,23 @@ int main()
 
   [loop addTimer: timer forMode: NSRunLoopCommonModes];
 
-  [loop runMode: @"TestUnrelatedRunLoopMode"
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: @"TestUnrelatedRunLoopMode" beforeDate: limit];
+    }
 
   PASS([target count] == 0,
-       "Common-mode timer does not fire in an unrelated private mode");
+    "Common-mode timer does not fire in an unrelated private mode")
 
-  [loop runMode: NSDefaultRunLoopMode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
 
   PASS([target count] == 1,
-       "Common-mode timer subsequently fires in default mode");
+    "Common-mode timer subsequently fires in default mode")
 
   [timer invalidate];
   RELEASE(target);
@@ -158,13 +171,18 @@ int main()
 
   [loop addTimer: timer forMode: NSRunLoopCommonModes];
 
-  [loop runMode: NSDefaultRunLoopMode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
-  [loop runMode: NSDefaultRunLoopMode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 0 == [target count])
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.015];
+  while ([limit timeIntervalSinceNow] > 0 && 1 == [target count])
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
 
-  PASS([target count] > 1,
-       "Repeating common-mode timer fires more than once");
+  PASS([target count] > 1, "Repeating common-mode timer fires more than once")
 
   [timer invalidate];
   RELEASE(target);
