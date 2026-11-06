@@ -794,24 +794,72 @@ static SEL	appSel;
   count = [self count];
   if (count == [other count])
     {
-      if (count > 0)
+      if (0 == count)
 	{
-	  NSEnumerator	*e = [self keyEnumerator];
-	  IMP		nxtObj = [e methodForSelector: nxtSel];
-	  IMP		myObj = [self methodForSelector: objSel];
-	  IMP		otherObj = [other methodForSelector: objSel];
-	  id		k;
+	  return YES;	// No contents to compare: dictionaries are equal.
+	}
+      if (count <= 8)
+	{
+	  /* For small dictionaries the overhead of hash table lookups are
+	   * significant and it's quicker to just compare the dictionary
+	   * contents in arrays on the stack.
+	   * The threshold for performance switchover is a bit of a guess.
+	   */
+	  int	i;
+	  id	mk[count];
+	  id	mo[count];
+	  id	ok[count];
+	  id	oo[count];
 
-	  while ((k = (*nxtObj)(e, @selector(nextObject))) != nil)
+	  [self getObjects: mo andKeys: mk count: count];
+	  [other getObjects: oo andKeys: ok count: count];
+
+	  for (i = 0; i < count; i++)
+	    {
+	      int	j;
+	      id	k = mk[i];
+	      BOOL	(*eqObj)(id, SEL, id);
+
+	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
+	      for (j = 0; j < count; j++)
+		{
+		  if ((*eqObj)(k, eqSel, ok[j]))
+		    {
+		      break;	// Found matching key in other dictionary
+		    }
+		}
+	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
+		{
+		  /* Either the key was not present in the other dictionary
+		   * or it was present but the matching values were not equal,
+		   * so the dictionaries are not equal.
+		   */
+		  return NO;
+		}
+	    }
+	}
+      else
+	{
+	  /* For larger dictionaries we need to use the hash table lookup
+	   * to find dictionary vvalues matching keys, so we use fast
+	   * enumeration to go through all the keys in one dictionary and
+	   * we cache the lookup method implementations to avoid message
+	   * overhead and have after lookup.
+	   */
+	  IMP	myObj = [self methodForSelector: objSel];
+	  IMP	otherObj = [other methodForSelector: objSel];
+
+	  GS_FOR_IN(id, k, self)
 	    {
 	      id o1 = (*myObj)(self, objSel, k);
 	      id o2 = (*otherObj)(other, objSel, k);
 
-	      if (o1 == o2)
-		continue;
-	      if ([o1 isEqual: o2] == NO)
-		return NO;
+	      if (o1 != o2 && [o1 isEqual: o2] == NO)
+		{
+		  return NO;
+		}
 	    }
+	  GS_END_FOR(self)
 	}
       return YES;
     }

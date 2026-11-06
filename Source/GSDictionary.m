@@ -76,6 +76,7 @@
 
 @implementation GSDictionary
 
+static SEL	eqSel;
 static SEL	nxtSel;
 static SEL	objSel;
 
@@ -99,6 +100,7 @@ static SEL	objSel;
 {
   if (self == [GSDictionary class])
     {
+      eqSel = @selector(isEqual:);
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
     }
@@ -359,7 +361,51 @@ static SEL	objSel;
   count = map.nodeCount;
   if (count == [other count])
     {
-      if (count > 0)
+      if (0 == count)
+	{
+	  return YES;
+	}
+      if (count <= 8)
+	{
+	  /* For small dictionaries the overhead of hash table lookups are
+	   * significant and it's quicker to just compare the dictionary
+	   * contents in arrays on the stack.
+	   * The threshold for performance switchover is a bit of a guess.
+	   */
+	  int	i;
+	  id	mk[count];
+	  id	mo[count];
+	  id	ok[count];
+	  id	oo[count];
+
+	  [self getObjects: mo andKeys: mk count: count];
+	  [other getObjects: oo andKeys: ok count: count];
+
+	  for (i = 0; i < count; i++)
+	    {
+	      int	j;
+	      id	k = mk[i];
+	      BOOL	(*eqObj)(id, SEL, id);
+
+	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
+	      for (j = 0; j < count; j++)
+		{
+		  if ((*eqObj)(k, eqSel, ok[j]))
+		    {
+		      break;	// Found matching key in other dictionary
+		    }
+		}
+	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
+		{
+		  /* Either the key was not present in the other dictionary
+		   * or it was present but the matching values were not equal,
+		   * so the dictionaries are not equal.
+		   */
+		  return NO;
+		}
+	    }
+	}
+      else
 	{
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
