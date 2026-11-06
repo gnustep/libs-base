@@ -390,9 +390,10 @@ static SEL	objSel;
 	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
 	      for (j = 0; j < count; j++)
 		{
-		  if ((*eqObj)(k, eqSel, ok[j]))
+		  if (ok[j] && (*eqObj)(k, eqSel, ok[j]))
 		    {
-		      break;	// Found matching key in other dictionary
+                      ok[j] = nil;      // Don't check this slot again.
+                      break;            // Found matching key in other.
 		    }
 		}
 	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
