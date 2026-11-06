@@ -83,7 +83,14 @@ GS_NON_PORTABLE(use fast enumeration instead);
 - (void) getObjects:
   (__unsafe_unretained GS_GENERIC_TYPE(ValT) _Nullable [])objects
   andKeys:
+  (__unsafe_unretained GS_GENERIC_TYPE(KeyT) _Nullable [])keys
+  count: (NSUInteger)max;
+
+- (void) getObjects:
+  (__unsafe_unretained GS_GENERIC_TYPE(ValT) _Nullable [])objects
+  andKeys:
   (__unsafe_unretained GS_GENERIC_TYPE(KeyT) _Nullable [])keys;
+
 - (instancetype) init;
 - (instancetype _Nullable) initWithContentsOfFile: (NSString*)path;
 

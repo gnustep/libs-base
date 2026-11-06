@@ -881,13 +881,75 @@ static SEL	appSel;
 
 - (void) getObjects: (__unsafe_unretained id[])objects
             andKeys: (__unsafe_unretained id[])keys
+	      count: (NSUInteger)max
 {
-  NSUInteger i = 0;
-  GS_FOR_IN(id, key, self)
-    if (keys != NULL) keys[i] = key;
-    if (objects != NULL) objects[i] = [self objectForKey: key];
-    i++;
-  GS_END_FOR(self)
+  NSUInteger	i = 0;
+
+  if (NULL == objects)
+    {
+      if (NULL == keys)
+	{
+	  return;
+	}
+      GS_FOR_IN(id, key, self)
+	{
+	  if (i >= max)
+	    {
+	      return;
+	    }
+	  keys[i++] = key;
+	}
+      GS_END_FOR(self)
+      while (i < max)
+	{
+	  keys[i++] = nil;
+	}
+    }
+  else
+    {
+      IMP	oImp = [self methodForSelector: objSel];
+
+      if (NULL == keys)
+	{
+	  GS_FOR_IN(id, key, self)
+	    {
+	      if (i >= max)
+		{
+		  return;
+		}
+	      objects[i++] = (*oImp)(self, objSel, key);
+	    }
+	  GS_END_FOR(self)
+	  while (i < max)
+	    {
+	      objects[i++] = nil;
+	    }
+	}
+      else
+	{
+	  GS_FOR_IN(id, key, self)
+	    {
+	      if (i >= max)
+		{
+		  return;
+		}
+	      keys[i] = key;
+	      objects[i++] = (*oImp)(self, objSel, key);
+	    }
+	  GS_END_FOR(self)
+	  while (i < max)
+	    {
+	      keys[i] = nil;
+	      objects[i++] = nil;
+	    }
+	}
+    }
+}
+
+- (void) getObjects: (__unsafe_unretained id[])objects
+            andKeys: (__unsafe_unretained id[])keys
+{
+  [self getObjects: objects andKeys: keys count: [self count]];
 }
 
 /**
