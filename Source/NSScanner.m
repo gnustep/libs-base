@@ -958,6 +958,7 @@ typedef GSString	*ivars;
   unsigned      shift = 0;
   int           mantissaLength;
   int           dotPos = -1;
+  int           ignored = 0;
   int           hi = 0;
   int           lo = 0;
   BOOL		mantissaDigit = NO;
@@ -1012,7 +1013,7 @@ typedef GSString	*ivars;
 	  if (_decimal == c
 	    || (_decimal > 127 && _decimal == myCharacter(_scanLocation)))
 	    {
-	      dotPos = mantissaLength;
+	      dotPos = mantissaLength + ignored;
 	    }
 	  else
 	    {
@@ -1033,6 +1034,10 @@ typedef GSString	*ivars;
 	    {
 	      mantissa[mantissaLength++] = c;
 	    }
+	  else if (dotPos < 0)
+	    {
+	      ignored++;	// Excess integer digit; still sets the magnitude
+	    }
         }
     }
   if (NO == mantissaDigit)
@@ -1040,15 +1045,15 @@ typedef GSString	*ivars;
       _scanLocation = saveScanLocation;
       return NO;
     }
+  if (dotPos < 0)
+    {
+      dotPos = mantissaLength + ignored;
+    }
   if (mantissaLength > 18)
     {
       /* Mantissa too long ... ignore excess.
        */
       mantissaLength = 18;
-    }
-  if (dotPos < 0)
-    {
-      dotPos = mantissaLength;
     }
   dotPos -= mantissaLength;
  

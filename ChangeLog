@@ -1,3 +1,10 @@
+2026-11-06 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/NSScanner.m (-scanDouble:): Count integer digits beyond the
+	mantissa's limit, so that an integer longer than 18 digits keeps its
+	magnitude.  -[NSString doubleValue] scans with this method.
+	* Tests/base/NSScanner/scanDoubleLong.m: New test.
+
 2026-11-02 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSProgress.h:
