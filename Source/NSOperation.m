@@ -330,9 +330,11 @@ static const NSInteger GSOperationFinishedCondition = 1;
       [object removeObserver: self forKeyPath: @"isFinished"];
 
       /* Concurrent operations: Call completion block and set internal finished
-       * state so we don't try removing the observer again in -dealloc. */
+       * state so we don't try removing the observer again in -dealloc.
+       */
       if ([self isConcurrent])
         {
+GSPrintf(stderr, @"Finish concurrent with weak ref %p\n", internal->delegate);
           internal->finished = YES;
 	  if (internal->delegate)
 	    {
@@ -340,6 +342,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 	      if ([del respondsToSelector: @selector(operationCompleted)])
 		{
+GSPrintf(stderr, @"Calling completion with %p\n", del);
 		  [del operationCompleted];
 		}
 	    }
@@ -549,12 +552,14 @@ static const NSInteger GSOperationFinishedCondition = 1;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
+GSPrintf(stderr, @"Finish synchronous with weak ref %p\n", internal->delegate);
       if (internal->delegate)
 	{
 	  id	del = [self delegate];
 
 	  if ([del respondsToSelector: @selector(operationCompleted)])
 	    {
+GSPrintf(stderr, @"Calling completion with %p\n", del);
 	      [del operationCompleted];
 	    }
 	}
@@ -619,10 +624,10 @@ static const NSInteger GSOperationFinishedCondition = 1;
 
 - (id<GSOperationCompletion>) delegate
 {
-//  void  *ref = internal->delegate;
+  void  *ref = internal->delegate;
   id    obj = objc_loadWeak(&internal->delegate);
    
-//GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
+GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
   return (id<GSOperationCompletion>)obj;
 }
 
@@ -630,7 +635,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
 {
   DESTROY(internal->completionBlock);
   objc_storeWeak(&internal->delegate, (id)anObject);
-//GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
+GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
 }
 
 @end
