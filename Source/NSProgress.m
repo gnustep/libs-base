@@ -320,15 +320,21 @@ static NSSet	*manuallyNotifiedKeys = nil;
 - (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
   usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [[self _snapshot] enumerateKeysAndObjectsWithOptions: opts
 					    usingBlock: aBlock];
+#pragma GCC diagnostic pop
 }
 
 - (NSSet *) keysOfEntriesWithOptions: (NSEnumerationOptions)opts
   passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   return [[self _snapshot] keysOfEntriesWithOptions: opts
 					passingTest: aPredicate];
+#pragma GCC diagnostic pop
 }
 
 - (NSEnumerator *) keyEnumerator
@@ -778,13 +784,6 @@ static NSSet	*manuallyNotifiedKeys = nil;
     }
 }
 
-- (void) _scheduleCallbacks: (GSProgressPropagation *)propagation
-{
-  [self _scheduleHandler: propagation->handler];
-  [self _scheduleDelegate: propagation->delegate
-		 selector: propagation->delegateSelector];
-}
-
 /* Calls the handler asynchronously, or synchronously without libdispatch.
  */
 - (void) _scheduleHandler: (id)handler
@@ -801,6 +800,13 @@ static NSSet	*manuallyNotifiedKeys = nil;
       CALL_BLOCK_NO_ARGS(block);
 #endif
     }
+}
+
+- (void) _scheduleCallbacks: (GSProgressPropagation *)propagation
+{
+  [self _scheduleHandler: propagation->handler];
+  [self _scheduleDelegate: propagation->delegate
+		 selector: propagation->delegateSelector];
 }
 
 /* Sends the message, keeping the first exception it raises in failure */
@@ -1475,13 +1481,13 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 - (GSProgressCancellationHandler) cancellationHandler
 {
-  GSProgressCancellationHandler handler;
+  id	handler;
 
   GS_MUTEX_LOCK(internal->_lock);
-  handler = RETAIN(internal->_cancellationHandler);
+  handler = [(id)internal->_cancellationHandler copy];
   GS_MUTEX_UNLOCK(internal->_lock);
 
-  return AUTORELEASE(handler);
+  return (GSProgressCancellationHandler)AUTORELEASE(handler);
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
@@ -1544,13 +1550,13 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 - (GSProgressPausingHandler) pausingHandler
 {
-  GSProgressPausingHandler handler;
+  id	handler;
 
   GS_MUTEX_LOCK(internal->_lock);
-  handler = RETAIN(internal->_pausingHandler);
+  handler = [(id)internal->_pausingHandler copy];
   GS_MUTEX_UNLOCK(internal->_lock);
 
-  return AUTORELEASE(handler);
+  return (GSProgressPausingHandler)AUTORELEASE(handler);
 }
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
@@ -1591,13 +1597,13 @@ static NSSet	*manuallyNotifiedKeys = nil;
 
 - (GSProgressResumingHandler) resumingHandler
 {
-  GSProgressResumingHandler handler;
+  id	handler;
 
   GS_MUTEX_LOCK(internal->_lock);
-  handler = RETAIN(internal->_resumingHandler);
+  handler = [(id)internal->_resumingHandler copy];
   GS_MUTEX_UNLOCK(internal->_lock);
 
-  return AUTORELEASE(handler);
+  return (GSProgressResumingHandler)AUTORELEASE(handler);
 }
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
@@ -1623,12 +1629,12 @@ static NSSet	*manuallyNotifiedKeys = nil;
    */
   GS_MUTEX_LOCK(internal->_lock);
   objc_storeWeak(&internal->_delegate, delegate);
-  handlers[0] = internal->_cancellationHandler;
-  handlers[1] = internal->_pausingHandler;
-  handlers[2] = internal->_resumingHandler;
-  internal->_cancellationHandler = nil;
-  internal->_pausingHandler = nil;
-  internal->_resumingHandler = nil;
+  handlers[0] = (id)internal->_cancellationHandler;
+  handlers[1] = (id)internal->_pausingHandler;
+  handlers[2] = (id)internal->_resumingHandler;
+  internal->_cancellationHandler = NULL;
+  internal->_pausingHandler = NULL;
+  internal->_resumingHandler = NULL;
   cancelled = internal->_cancelled;
   paused = internal->_paused;
   GS_MUTEX_UNLOCK(internal->_lock);
