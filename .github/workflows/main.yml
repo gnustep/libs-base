@@ -195,18 +195,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Windows x64 MinGW GCC
+          - name: Windows x64 MSYS2 (UCRT64) GCC
             os: windows-2025
             arch: x86_64
-            msystem: MINGW64
+            msystem: UCRT64
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Windows x64 MinGW Clang gnustep-2.2
+          - name: Windows x64 MSYS2 (UCRT64) Clang gnustep-2.2
             os: windows-2025
             arch: x86_64
-            msystem: MINGW64
+            msystem: UCRT64
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.2
             CC: clang
@@ -239,7 +239,7 @@ jobs:
       SRC_PATH: ${{ github.workspace }}\source
       DEPS_PATH: ${{ github.workspace }}\dependencies
       INSTALL_PATH: ${{ github.workspace }}\build
-      IS_WINDOWS_MINGW: ${{ startsWith(matrix.msystem, 'MINGW') }}
+      IS_WINDOWS_UCRT64: ${{ startsWith(matrix.msystem, 'UCRT64') }}
       IS_WINDOWS_MSVC: ${{ endsWith(matrix.host, '-pc-windows') }}
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
@@ -266,9 +266,9 @@ jobs:
         with:
           path: ${{ env.SRC_PATH }}
 
-      - name: Set up MSYS2 (MinGW)
+      - name: Set up MSYS2 (UCRT64)
         uses: msys2/setup-msys2@v2
-        if: env.IS_WINDOWS_MINGW == 'true'
+        if: env.IS_WINDOWS_UCRT64 == 'true'
         with:
           update: true
           msystem: ${{ matrix.msystem }}
@@ -282,28 +282,28 @@ jobs:
             libgnutls-devel
             libcurl-devel
             icu-devel
-            mingw-w64-${{matrix.arch}}-pkg-config
-            mingw-w64-${{matrix.arch}}-libxml2
-            mingw-w64-${{matrix.arch}}-libxslt
-            mingw-w64-${{matrix.arch}}-libffi
-            mingw-w64-${{matrix.arch}}-gnutls
-            mingw-w64-${{matrix.arch}}-curl
-            mingw-w64-${{matrix.arch}}-icu
+            mingw-w64-ucrt-${{matrix.arch}}-pkg-config
+            mingw-w64-ucrt-${{matrix.arch}}-libxml2
+            mingw-w64-ucrt-${{matrix.arch}}-libxslt
+            mingw-w64-ucrt-${{matrix.arch}}-libffi
+            mingw-w64-ucrt-${{matrix.arch}}-gnutls
+            mingw-w64-ucrt-${{matrix.arch}}-curl
+            mingw-w64-ucrt-${{matrix.arch}}-icu
 
       - name: Set up MSYS2 (gcc)
         if: env.CC == 'gcc'
         shell: msys2 {0}
         run: |
-          pacman -S --noconfirm mingw-w64-${{matrix.arch}}-gcc-objc
+          pacman -S --noconfirm mingw-w64-ucrt-${{matrix.arch}}-gcc-objc
 
       - name: Set up MSYS2 (clang)
-        if: (env.CC == 'clang') && (env.MSYSTEM == 'MINGW64')
+        if: (env.CC == 'clang') && (env.MSYSTEM == 'UCRT64')
         shell: msys2 {0}
         run: |
           pacman -S --noconfirm \
-            mingw-w64-${{matrix.arch}}-libobjc2 \
-            mingw-w64-${{matrix.arch}}-clang \
-            mingw-w64-${{matrix.arch}}-lld
+            mingw-w64-ucrt-${{matrix.arch}}-libobjc2 \
+            mingw-w64-ucrt-${{matrix.arch}}-clang \
+            mingw-w64-ucrt-${{matrix.arch}}-lld
 
       - name: Set up MSYS2 (MSVC)
         uses: msys2/setup-msys2@v2
