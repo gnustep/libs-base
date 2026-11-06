@@ -145,6 +145,61 @@ static SEL	objSel;
     }
 }
 
+- (void) getObjects: (__unsafe_unretained id[])objects
+            andKeys: (__unsafe_unretained id[])keys
+	      count: (NSUInteger)max
+{
+  NSUInteger		i = 0;
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
+
+  if (NULL == objects)
+    {
+      if (NULL == keys)
+	{
+	  return;
+	}
+      while (node && i < max)
+	{
+	  keys[i++] = node->key.obj;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
+	}
+      while (i < max)
+	{
+	  keys[i++] = nil;
+	}
+    }
+  else
+    {
+      if (NULL == keys)
+	{
+	  while (node && i < max)
+	    {
+	      objects[i++] = node->value.obj;
+	      node = GSIMapEnumeratorNextNode(&enumerator);
+	    }
+	  while (i < max)
+	    {
+	      objects[i++] = nil;
+	    }
+	}
+      else
+	{
+	  while (node && i < max)
+	    {
+	      keys[i] = node->key.obj;
+	      objects[i++] = node->value.obj;
+	      node = GSIMapEnumeratorNextNode(&enumerator);
+	    }
+	  while (i < max)
+	    {
+	      keys[i] = nil;
+	      objects[i++] = nil;
+	    }
+	}
+    }
+}
+
 - (NSUInteger) hash
 {
   return map.nodeCount;
