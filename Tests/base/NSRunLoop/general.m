@@ -79,20 +79,20 @@ int main()
 
   [dly invalidate];
 
-  /* We run in a custom mode to ensure there are no other timers or
-   * input sources.
-   */
-  tim = [NSTimer timerWithTimeInterval: 2.0
+  tim = [NSTimer timerWithTimeInterval: 1.0
                             invocation: inv
                                repeats: NO];
   [run addTimer: tim forMode: customMode];
+  /* Loop repeatedly in case some system event causes the loop to return.
+   */
   ti = [NSDate timeIntervalSinceReferenceDate]; 
-  PASS_RUNS(date = [NSDate dateWithTimeIntervalSinceNow: 5.0];
+  PASS_RUNS(date = [NSDate dateWithTimeIntervalSinceNow: 2.0];
+    while (1 == counter && [date timeIntervalSinceNow] > 0.0)
     [run acceptInputForMode: customMode beforeDate: date];,
      "-acceptInputForMode:beforeDate: works with a timer");
   ti = [NSDate timeIntervalSinceReferenceDate] - ti;
-  PASS(ti >= 2.0 && ti < 2.5,
-    "-acceptInputForMode:beforeDate: should be 2 sec (was %f)", ti)
+  PASS(ti >= 0.5 && ti < 1.5,
+    "-acceptInputForMode:beforeDate: should be 1 sec (was %f)", ti)
   PASS(2 == counter, "-acceptInputForMode:beforeDate: fires timer")
 
   LEAVE_POOL
