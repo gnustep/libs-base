@@ -7,6 +7,7 @@
 #import <Foundation/Foundation.h>
 #import <GNUstepBase/GNUstep.h>
 #import <GNUstepBase/GSOperation.h>
+#import <GNUstepBase/NSProcessInfo+GNUstepBase.h>
 #import <ObjectTesting.h>
 
 
@@ -1604,7 +1605,6 @@ testOperationIsFinishedAfterStart(void)
   [target release];
 }
 
-
 /*
  * --------------------------------------------------------------------------
  * Main
@@ -1677,7 +1677,9 @@ main(void)
    * NSOperationQueue integration.
    */
   testQueueExecution();
+  [[[NSProcessInfo processInfo] debugSet] addObject: @"NSOperation"];
   testQueuedOperationWithDelegate();
+  [[[NSProcessInfo processInfo] debugSet] removeObject: @"NSOperation"];
 
   /*
    * NSOperation lifecycle.

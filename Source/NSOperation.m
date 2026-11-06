@@ -51,6 +51,7 @@
   BOOL finished; \
   BOOL blocked; \
   BOOL ready; \
+  BOOL debug; \
   NSMutableArray *dependencies; \
   id delegate; \
   GSOperationCompletionBlock completionBlock;
@@ -274,6 +275,7 @@ static const NSInteger GSOperationFinishedCondition = 1;
              forKeyPath: @"isFinished"
                 options: NSKeyValueObservingOptionNew
                 context: isFinishedCtxt];
+      internal->debug = GSDebugSet(@"NSOperation");
     }
   return self;
 }
@@ -334,7 +336,10 @@ static const NSInteger GSOperationFinishedCondition = 1;
        */
       if ([self isConcurrent])
         {
-GSPrintf(stderr, @"Finish concurrent with weak ref %p\n", internal->delegate);
+	  if (internal->debug)
+	    {
+	      NSLog(@"Finish concurrent with weak ref %p", internal->delegate);
+	    }
           internal->finished = YES;
 	  if (internal->delegate)
 	    {
@@ -342,7 +347,10 @@ GSPrintf(stderr, @"Finish concurrent with weak ref %p\n", internal->delegate);
 
 	      if ([del respondsToSelector: @selector(operationCompleted)])
 		{
-GSPrintf(stderr, @"Calling completion with %p\n", del);
+		  if (internal->debug)
+		    {
+		      NSLog(@"Calling completion with %p", del);
+		    }
 		  [del operationCompleted];
 		}
 	    }
@@ -552,14 +560,20 @@ GSPrintf(stderr, @"Calling completion with %p\n", del);
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-GSPrintf(stderr, @"Finish synchronous with weak ref %p\n", internal->delegate);
+      if (internal->debug)
+	{
+	  NSLog(@"Finish synchronous with weak ref %p", internal->delegate);
+	}
       if (internal->delegate)
 	{
 	  id	del = [self delegate];
 
 	  if ([del respondsToSelector: @selector(operationCompleted)])
 	    {
-GSPrintf(stderr, @"Calling completion with %p\n", del);
+	      if (internal->debug)
+		{
+		  NSLog(@"Calling completion with %p", del);
+		}
 	      [del operationCompleted];
 	    }
 	}
@@ -627,7 +641,10 @@ GSPrintf(stderr, @"Calling completion with %p\n", del);
   void  *ref = internal->delegate;
   id    obj = objc_loadWeak(&internal->delegate);
    
-GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
+  if (internal->debug)
+    {
+      NSLog(@"-delegate %p weak %p", obj, ref);
+    }
   return (id<GSOperationCompletion>)obj;
 }
 
@@ -635,7 +652,10 @@ GSPrintf(stderr, @"-delegate %p weak %p\n", obj, ref);
 {
   DESTROY(internal->completionBlock);
   objc_storeWeak(&internal->delegate, (id)anObject);
-GSPrintf(stderr, @"-setDelegate: %p weak %p\n", anObject, internal->delegate);
+  if (internal->debug)
+    {
+      NSLog(@"-setDelegate: %p weak %p", anObject, internal->delegate);
+    }
 }
 
 @end
