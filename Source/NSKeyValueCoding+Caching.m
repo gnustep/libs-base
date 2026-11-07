@@ -506,7 +506,7 @@ ValueForKeyLookup(Class cls, NSObject *self, NSString *boxedKey,
   memcpy(&buf[4], key, size);
   buf[size + 4] = '\0';
   lo = buf[4];
-  hi = islower(lo) ? toupper(lo) : lo;
+  hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
   buf[4] = hi;
 
   // 1.1 Check if the _get<key> accessor method exists

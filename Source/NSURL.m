@@ -551,11 +551,12 @@ static BOOL legal_bounded(const char *str, const char *end, const char *extras)
       while (str < end)
 	{
 	  if (*str == '%' && str + 2 < end
-	    && isxdigit(str[1]) && isxdigit(str[2]))
+	    && isxdigit(((const uint8_t*)str)[1])
+	    && isxdigit(((const uint8_t*)str)[2]))
 	    {
 	      str += 3;
 	    }
-	  else if (isalnum(*str))
+	  else if (isalnum(*(const uint8_t*)str))
 	    {
 	      str++;
 	    }
@@ -599,7 +600,7 @@ static char *unescape(const char *from, char * to)
 	  unsigned char	c;
 
 	  from++;
-	  if (isxdigit(*from))
+	  if (isxdigit(*(const uint8_t*)from))
 	    {
 	      if (*from <= '9')
 		{
@@ -622,7 +623,7 @@ static char *unescape(const char *from, char * to)
 			  format: @"Bad percent escape sequence in URL string"];
 	    }
 	  c <<= 4;
-	  if (isxdigit(*from))
+	  if (isxdigit(*(const uint8_t*)from))
 	    {
 	      if (*from <= '9')
 		{
@@ -957,10 +958,11 @@ static NSUInteger	urlAlign;
        * Parse the scheme if possible.
        */
       ptr = start;
-      if (isalpha(*ptr))
+      if (isalpha(*(const uint8_t*)ptr))
 	{
 	  ptr++;
-	  while (isalnum(*ptr) || *ptr == '+' || *ptr == '-' || *ptr == '.')
+	  while (isalnum(*(const uint8_t*)ptr)
+	    || *ptr == '+' || *ptr == '-' || *ptr == '.')
 	    {
 	      ptr++;
 	    }
@@ -974,9 +976,9 @@ static NSUInteger	urlAlign;
 	       */
 	      while (--ptr > start)
 		{
-		  if (isupper(*ptr))
+		  if (isupper(*(const uint8_t*)ptr))
 		    {
-		      *ptr = tolower(*ptr);
+		      *ptr = tolower(*(const uint8_t*)ptr);
 		    }
 		}
 	    }
@@ -1147,7 +1149,8 @@ static NSUInteger	urlAlign;
 		      ptr = start + 1;
 		      while (*ptr != ']')
 			{
-			  if (*ptr != ':' && *ptr != '.' && !isxdigit(*ptr))
+			  if (*ptr != ':' && *ptr != '.'
+			    && !isxdigit(*(const uint8_t*)ptr))
 			    {
 			      [NSException raise: NSInvalidArgumentException
 				format: @"[%@ %@](%@, %@) "
@@ -1174,7 +1177,9 @@ static NSUInteger	urlAlign;
 		  str = buf->port;
 		  while (*str != 0)
 		    {
-		      if (*str == '%' && isxdigit(str[1]) && isxdigit(str[2]))
+		      if (*str == '%'
+			&& isxdigit(((const uint8_t*)str)[1])
+			&& isxdigit(((const uint8_t*)str)[2]))
 			{
 			  unsigned char	c;
 
@@ -1220,7 +1225,7 @@ static NSUInteger	urlAlign;
                                 aUrlString, aBaseUrl];
 			    }
 			}
-		      else if (isdigit(*str))
+		      else if (isdigit(*(const uint8_t*)str))
 			{
 			  str++;
 			}
@@ -2700,12 +2705,12 @@ hexToByte(char u, char l)
 {
   uint8_t	byte;
 
-  if (isupper(u))
+  if (isupper((uint8_t)u))
     byte = u - 'A' + 10;
   else
     byte = u - '0';
   byte <<= 4;
-  if (isupper(u))
+  if (isupper((uint8_t)u))
     byte |= l - 'A' + 10;
   else
     byte |= l - '0';
@@ -3260,7 +3265,7 @@ parseURL(NSString *URLString, URanges *r, BOOL encodingInvalidCharacters)
 
 	      for (i = 0; i < r->port.length; i++)
 		{
-		  if (!isdigit(p[i]))
+		  if (!isdigit(((const uint8_t*)p)[i]))
 		    {
 		      ERR(@"Bad Authority Port component - non digit found");
 		    }

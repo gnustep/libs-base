@@ -1036,7 +1036,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
       SEL 			sel;
 
       memcpy(selectorName, sc_prefix, sc_prefixLength);
-      selectorName[sc_prefixLength] = toupper(rawKey[0]);
+      selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
       memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1],
              keyLength); // copy keyLength characters to include terminating
                          // NULL from rawKey
@@ -1095,7 +1095,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 	  strncpy(selectorName, "keyPathsForValuesAffecting", sc_prefixLength);
 
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
           // Copy the rest of the key, including the null terminator
           memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], rawKeyLength);
           sel = sel_registerName(selectorName);
@@ -1111,7 +1111,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           selectorName = (char *) malloc(bufferSize);
           memcpy(selectorName, sc_prefix, sc_prefixLength);
 
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
           // Copy the rest of the key, including the null terminator
           memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], keyLength);
 

@@ -1009,8 +1009,8 @@ extern char **__libc_argv;
  * function to be called would be a compiler/linker issue (eg 'weak' not
  * supported).
  */
-int gnustep_base_user_main () __attribute__((weak));
-int gnustep_base_user_main (int argc, char *argv[], char *env[])
+int gnustep_base_user_main(int, char *[], char *[]) __attribute__((weak));
+int gnustep_base_user_main(int argc, char *argv[], char *env[])
 {
   fprintf(stderr, "\nGNUSTEP Internal Error:\n"
 "The GNUstep function to establish the argv and environment variables could\n"
@@ -1978,7 +1978,7 @@ GSPrivateEnvironmentFlag(const char *name, BOOL def)
 	{
 	  a = YES;
 	}
-      else if (isdigit(c[0]) && c[0] != '0')
+      else if (isdigit((uint8_t)c[0]) && c[0] != '0')
 	{
 	  a = YES;
 	}

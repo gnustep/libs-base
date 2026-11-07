@@ -492,15 +492,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      buf[3] = 1;	// Address type (IPV4)
 	      ptr = [address lossyCString];
 	      buf[4] = atoi(ptr);
-	      while (isdigit(*ptr))
+	      while (isdigit(*(const uint8_t*)ptr))
 		ptr++;
 	      ptr++;
 	      buf[5] = atoi(ptr);
-	      while (isdigit(*ptr))
+	      while (isdigit(*(const uint8_t*)ptr))
 		ptr++;
 	      ptr++;
 	      buf[6] = atoi(ptr);
-	      while (isdigit(*ptr))
+	      while (isdigit(*(const uint8_t*)ptr))
 		ptr++;
 	      ptr++;
 	      buf[7] = atoi(ptr);

@@ -1117,7 +1117,7 @@ scalarSize(char type)
 
 	  typeCheck(*type, _GSC_ARY_B);
 	  count = atoi(++type);
-	  while (isdigit(*type))
+	  while (isdigit(*(const uint8_t*)type))
 	    {
 	      type++;
 	    }

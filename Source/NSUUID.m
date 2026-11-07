@@ -204,7 +204,7 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
 	}
       else
 	{
-	  if (!isxdigit(c))
+	  if (!isxdigit((uint8_t)c))
 	    {
 	      return -1;
 	    }
