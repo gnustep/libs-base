@@ -451,7 +451,10 @@ static NSMapTable	*attrNames = 0;
 
 - (void) dealloc
 {
-  RELEASE(_extra);
+  if (_xslt)
+    {
+      xsltFreeStylesheet(_xslt);
+    }
   if (_ownsLib == YES && lib != NULL)
     {
       xmlFreeDoc(lib);
@@ -4334,22 +4337,6 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 - (GSXMLDocument*) doc { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self document]; }
 @end
 
-@interface GSXSLT : NSObject
-{
-@public
-  xsltStylesheetPtr	ss;
-}
-@end
-@implementation	GSXSLT
-- (void) dealloc
-{
-  if (ss)
-    {
-      xsltFreeStylesheet(ss);
-    }
-  DEALLOC
-}
-@end
 
 @implementation GSXMLDocument (XSLT)
 #ifdef HAVE_LIBXSLT
@@ -4496,7 +4483,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
     {
       return nil;
     }
-  if (nil == xsltStylesheet->_extra)
+  if (nil == xsltStylesheet->_xslt)
     {
       xmlDocPtr 	doc = xmlCopyDoc((xmlDocPtr)[xsltStylesheet lib], 1);
 
@@ -4507,10 +4494,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       ss = xsltParseStylesheetDoc(doc);
       if (ss)
 	{
-	  GSXSLT	*s = [GSXSLT new];
-
-	  s->ss = ss;
-	  xsltStylesheet->_extra = s;
+	  xsltStylesheet->_xslt = ss;
 	}
       else
 	{
@@ -4518,7 +4502,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	  return nil;
 	}
     }
-  ss = ((GSXSLT*)xsltStylesheet->_extra)->ss;	// The compiled style sheet
+  ss = (xsltStylesheetPtr)xsltStylesheet->_xslt; // The compiled style sheet
 
   NS_DURING
     {
