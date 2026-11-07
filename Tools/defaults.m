@@ -43,7 +43,7 @@ static NSString *input(char **ptr)
   char		*tmp = *ptr;
   char		*start;
 
-  while (*tmp != '\0' && isspace(*tmp))
+  while (*tmp != '\0' && isspace(*(const uint8_t*)tmp))
     {
       tmp++;
     }
@@ -71,7 +71,7 @@ static NSString *input(char **ptr)
     }
   else
     {
-      while (*tmp != '\0' && !isspace(*tmp))
+      while (*tmp != '\0' && !isspace(*(const uint8_t*)tmp))
 	{
 	  tmp++;
 	}
@@ -89,7 +89,7 @@ static void output(const char *ptr)
 
   for (tmp = ptr; *tmp; tmp++)
     {
-      if (isspace(*tmp))
+      if (isspace(*(const uint8_t*)tmp))
 	{
 	  break;
 	}
@@ -649,7 +649,7 @@ main(int argc, char** argv, char **env)
 	      /*
 	       *	Expect domain name as a space delimited string.
 	       */
-	      while (isspace(*ptr))
+	      while (isspace(*(const uint8_t*)ptr))
 		{
 		  ptr++;
 		}
@@ -826,7 +826,7 @@ main(int argc, char** argv, char **env)
 
 	  for (;;)
 	    {
-	      while (*ptr && isspace(*ptr))
+	      while (*ptr && isspace(*(const uint8_t*)ptr))
 		{
 		  ptr++;
 		}

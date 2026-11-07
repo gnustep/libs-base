@@ -1536,7 +1536,7 @@ load_iface(const char* from)
       /*
        *	Strip leading white space.
        */
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  ptr++;
 	}
@@ -1560,7 +1560,7 @@ load_iface(const char* from)
 	{
 	  ptr++;
 	}
-      while (ptr > buf && isspace(ptr[-1]))
+      while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 	{
 	  ptr--;
 	}
@@ -1608,7 +1608,7 @@ load_iface(const char* from)
       /*
        *	Strip leading white space.
        */
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  ptr++;
 	}
@@ -1632,7 +1632,7 @@ load_iface(const char* from)
 	{
 	  ptr++;
 	}
-      while (ptr > buf && isspace(ptr[-1]))
+      while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 	{
 	  ptr--;
 	}
@@ -1646,26 +1646,26 @@ load_iface(const char* from)
 	}
 
       ptr = buf;
-      while (*ptr && (isdigit(*ptr) || (*ptr == '.')))
+      while (*ptr && (isdigit(*(const uint8_t*)ptr) || (*ptr == '.')))
 	{
 	  ptr++;
 	}
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  *ptr++ = '\0';
 	}
       msk = ptr;
-      while (*ptr && (isdigit(*ptr) || (*ptr == '.')))
+      while (*ptr && (isdigit(*(const uint8_t*)ptr) || (*ptr == '.')))
 	{
 	  ptr++;
 	}
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  *ptr++ = '\0';
 	}
       addr[interfaces].s_addr = inet_addr(buf);
       mask[interfaces].s_addr = inet_addr(msk);
-      if (isdigit(*ptr))
+      if (isdigit(*(const uint8_t*)ptr))
 	{
 	  bcok[interfaces] = 1;
 	  bcst[interfaces].s_addr = inet_addr(ptr);
@@ -4642,7 +4642,7 @@ quoteArg(const char *arg)
    */
   for (in = 0; in < len; in++)
     {
-      if (isspace(arg[in]))
+      if (isspace(((const uint8_t*)arg)[in]))
 	{
 	  quote = 1;
 	  break;
@@ -4940,7 +4940,7 @@ printf(
 		  /*
 		   *	Strip leading white space.
 		   */
-		  while (isspace(*ptr))
+		  while (isspace(*(const uint8_t*)ptr))
 		    {
 		      ptr++;
 		    }
@@ -4964,7 +4964,7 @@ printf(
 		    {
 		      ptr++;
 		    }
-		  while (ptr > buf && isspace(ptr[-1]))
+		  while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 		    {
 		      ptr--;
 		    }
