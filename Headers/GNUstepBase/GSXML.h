@@ -90,6 +90,7 @@ GS_EXPORT_CLASS
   void	*lib;	// pointer to xmllib pointer of xmlDoc struct
   id	_parent;
   BOOL	_ownsLib;
+  id	_extra;
 }
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 

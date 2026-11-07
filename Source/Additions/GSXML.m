@@ -451,6 +451,7 @@ static NSMapTable	*attrNames = 0;
 
 - (void) dealloc
 {
+  RELEASE(_extra);
   if (_ownsLib == YES && lib != NULL)
     {
       xmlFreeDoc(lib);
@@ -4333,6 +4334,23 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 - (GSXMLDocument*) doc { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self document]; }
 @end
 
+@interface GSXSLT : NSObject
+{
+@public
+  xsltStylesheetPtr	ss;
+}
+@end
+@implementation	GSXSLT
+- (void) dealloc
+{
+  if (ss)
+    {
+      xsltFreeStylesheet(ss);
+    }
+  DEALLOC
+}
+@end
+
 @implementation GSXMLDocument (XSLT)
 #ifdef HAVE_LIBXSLT
 /**
@@ -4472,14 +4490,42 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
                           params: (NSDictionary*)params
 {
   GSXMLDocument		*newdoc = nil;
+  xsltStylesheetPtr	ss;
+
+  if (NULL == xsltStylesheet || NULL == xsltStylesheet->lib || NULL == lib)
+    {
+      return nil;
+    }
+  if (nil == xsltStylesheet->_extra)
+    {
+      xmlDocPtr 	doc = xmlCopyDoc((xmlDocPtr)[xsltStylesheet lib], 1);
+
+      if (NULL == doc)
+	{
+	  return nil;
+	}
+      ss = xsltParseStylesheetDoc(doc);
+      if (ss)
+	{
+	  GSXSLT	*s = [GSXSLT new];
+
+	  s->ss = ss;
+	  xsltStylesheet->_extra = s;
+	}
+      else
+	{
+	  xmlFreeDoc(doc);
+	  return nil;
+	}
+    }
+  ss = ((GSXSLT*)xsltStylesheet->_extra)->ss;	// The compiled style sheet
 
   NS_DURING
     {
-      xsltStylesheetPtr ss = NULL;
-      xmlDocPtr		ssXml = (xmlDocPtr)[xsltStylesheet lib];
       int		pSize = params == nil ? 1 : ([params count] * 2) + 1;
       int		pNum = 0;
       const char	*parameters[pSize];
+      xmlDocPtr		res;
 
       if (params != nil)
 	{
@@ -4498,26 +4544,15 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	}
       parameters[pNum] = NULL;
 
-      ss = xsltParseStylesheetDoc(ssXml);
-      if (xsltStylesheet != NULL)
+      res = xsltApplyStylesheet(ss, lib, parameters);
+      if (res != NULL)
 	{
-	  xmlDocPtr	res = NULL;
-
-	  res = xsltApplyStylesheet(ss, lib, parameters);
-	  if (res != NULL)
-	    {
-	      newdoc = [GSXMLDocument alloc];
-	      newdoc = [newdoc _initFrom: res
-				  parent: self
-				 ownsLib: YES];
-	      IF_NO_ARC([newdoc autorelease];)
-	    }
+	  newdoc = [GSXMLDocument alloc];
+	  newdoc = [newdoc _initFrom: res
+			      parent: self
+			     ownsLib: YES];
+	  IF_NO_ARC([newdoc autorelease];)
 	}
-      /*
-       * N.B. We don't want to call xsltFreeStylesheet() to free the
-       * stylesheet xmlDocPtr because that will destroy the lib which
-       * is owned by the xsltStylesheet object.
-       */
       xsltCleanupGlobals();
     }
   NS_HANDLER
