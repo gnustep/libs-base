@@ -896,12 +896,6 @@ NSReturnAddress(NSUInteger offset)
   return env->addr;
 }
 
-#ifdef	__clang__
-#pragma clang diagnostic pop
-#else
-#pragma GCC diagnostic pop
-#endif
-
 unsigned
 GSPrivateReturnAddresses(NSUInteger **returns)
 {
@@ -1107,6 +1101,12 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 #endif
   return numReturns;
 }
+
+#ifdef	__clang__
+#pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
 
 
 @implementation GSStackTrace : NSObject

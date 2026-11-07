@@ -79,8 +79,8 @@ static const char *
 skip_offset(const char *ptr)
 {
   if (*ptr == '+' || *ptr == '-') ptr++;
-  while (isdigit(*ptr)) ptr++;
-  return ptr;
+  while (isdigit(*(const uint8_t*)ptr)) ptr++;
+  return (const char*)ptr;
 }
 
 #define ROUND(V, A) \
@@ -250,7 +250,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	{
 	  int	length = atoi(typePtr);
 
-	  while (isdigit(*typePtr))
+	  while (isdigit(*(const uint8_t*)typePtr))
 	    {
 	      typePtr++;
 	    }
@@ -401,7 +401,11 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
         {
           const char	*p = typePtr + 1;
 
-          while (isdigit(*p)) p++;	/* skip the starting bit position */
+	  /* skip the starting bit position */
+          while (isdigit(*(const uint8_t*)p))
+	    {
+	      p++;
+	    }
           switch (*p)
             {
               case _C_CHR: case _C_UCHR:
@@ -540,7 +544,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
    *	this argument.
    */
   info->offset = 0;
-  while (isdigit(*typePtr))
+  while (isdigit(*(const uint8_t*)typePtr))
     {
       info->offset = info->offset * 10 + (*typePtr++ - '0');
     }

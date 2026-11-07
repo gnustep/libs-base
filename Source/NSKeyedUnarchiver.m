@@ -1002,7 +1002,7 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 	{
 	  int		count = atoi(++type);
 
-	  while (isdigit(*type))
+	  while (isdigit(*(const uint8_t*)type))
 	    {
 	      type++;
 	    }

@@ -97,9 +97,9 @@
   [aKey getCString: keybuf
          maxLength: size + 1
           encoding: NSUTF8StringEncoding];
-  if (islower(*keybuf))
+  if (islower(*(uint8_t*)keybuf))
     {
-      *keybuf = toupper(*keybuf);
+      *keybuf = toupper(*(uint8_t*)keybuf);
     }
 
 
