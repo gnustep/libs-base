@@ -301,8 +301,12 @@ foundIgnorableWhitespace: (NSString *)string
 
       if ([value hasSuffix: @"Z"] == YES && [value length] == 20)
 	{
-	  result = [NSCalendarDate dateWithString: value
-				   calendarFormat: @"%Y-%m-%dT%H:%M:%SZ"];
+	  NSString	*s = [value substringToIndex: 19];
+
+	  s = [NSString stringWithFormat: @"%@+0000", s];
+	  result = [NSCalendarDate dateWithString: s
+				   calendarFormat: @"%Y-%m-%dT%H:%M:%S%z"];
+	  [result setCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
 	}
       else
 	{
@@ -369,7 +373,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if (inDictionary == YES)
     {
-      if (key == nil)
+      if (key == nil || plist == nil)
         {
 	  [parser abortParsing];
 	  return;
