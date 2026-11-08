@@ -1984,7 +1984,7 @@ retrieve_callback(gnutls_session_t session,
     {
       return YES;       // Handshake completed or impossible.
     }
-if (outgoing) NSLog(@"Handshake %p with %@", self, opts);
+
   handshake = YES;
   ret = gnutls_handshake(session);
   if (ret < 0)
