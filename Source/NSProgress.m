@@ -28,8 +28,12 @@
 #include <math.h>
 #include <string.h>
 
-/* The libdispatch code here uses blocks, so without them it is not used.
+/* FIXME ... functionality should not depend on libdispatch,
+ * and use of libdispatch should be unrelated to blocks.
  */
+#    undef GS_USE_LIBDISPATCH
+#    define GS_USE_LIBDISPATCH 0
+
 #if GS_USE_LIBDISPATCH == 1
 #  if __has_feature(blocks)
 #    include "dispatch/dispatch.h"
