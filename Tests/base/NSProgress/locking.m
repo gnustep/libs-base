@@ -130,7 +130,8 @@
 @end
 
 /* Runs two loops on separate threads, which start at the same time so that
- * they overlap.
+ * they overlap.  A loop is done once its autorelease pool is drained, so that
+ * the test does not exit while the thread still deallocates objects.
  */
 @interface Worker : NSObject
 {
@@ -174,8 +175,8 @@
     {
       [progress setCompletedUnitCount: i % 100];
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 - (void) setProperties: (NSProgress *)progress
@@ -189,8 +190,8 @@
       [progress setLocalizedAdditionalDescription: (i % 2) ? @"a" : @"b"];
       [progress setTotalUnitCount: 1000 + i % 2];
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 - (void) changeUserInfo: (NSProgress *)progress
@@ -204,8 +205,8 @@
       [progress setUserInfoObject: (i % 2) ? @"a" : nil
 	forKey: [NSString stringWithFormat: @"key%d", i % 10]];
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 - (void) setFileTotalCount: (NSProgress *)progress
@@ -218,8 +219,8 @@
     {
       [progress setFileTotalCount: [NSNumber numberWithInt: i]];
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 - (void) copyUserInfo: (NSProgress *)progress
@@ -244,8 +245,8 @@
 	}
       LEAVE_POOL
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 - (void) replaceProgress: (NSArray *)args
@@ -259,8 +260,8 @@
     {
       [holder setProgress: [args objectAtIndex: 1 + i % 2]];
     }
-  __sync_add_and_fetch(&done, 1);
   LEAVE_POOL
+  __sync_add_and_fetch(&done, 1);
 }
 
 @end
