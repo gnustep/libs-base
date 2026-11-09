@@ -424,6 +424,9 @@ void checkResumingWhilePausing(void) {
 }
 
 static volatile int threadsStarted = 0;
+/* Counted once a thread's autorelease pool is drained, so that the test does
+ * not exit while the thread still deallocates objects.
+ */
 static volatile int threadsDone = 0;
 
 @interface Worker : NSObject
@@ -450,8 +453,8 @@ static volatile int threadsDone = 0;
         [progress pause];
         [progress resume];
     }
-    __sync_add_and_fetch(&threadsDone, 1);
     [pool release];
+    __sync_add_and_fetch(&threadsDone, 1);
 }
 
 - (void) updateCompletedUnitCount: (NSProgress *)progress {
@@ -462,8 +465,8 @@ static volatile int threadsDone = 0;
     for (i = 0; i < 20000; i++) {
         [progress setCompletedUnitCount: i % 100];
     }
-    __sync_add_and_fetch(&threadsDone, 1);
     [pool release];
+    __sync_add_and_fetch(&threadsDone, 1);
 }
 
 @end
