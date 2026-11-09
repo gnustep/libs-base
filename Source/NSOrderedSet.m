@@ -1395,37 +1395,49 @@ static SEL	remSel;
 
 - (void) insertObjects: (NSArray *)array atIndexes: (NSIndexSet *)indexes
 {
-  NSUInteger	count = [self count];
-  NSUInteger	inserted = 0;
-  NSUInteger	index = [indexes firstIndex];
-  NSEnumerator	*enumerator = [array objectEnumerator];
-  id		object = [enumerator nextObject];
+  NSUInteger	count = [array count];
+  NSUInteger	index;
+  NSUInteger	previous = 0;
+  NSUInteger	position = 0;
+  NSUInteger	i = 0;
 
-  /* Check all indexes before changing anything, as if every object were
-   * inserted.
-   */
-  while (object != nil && index != NSNotFound)
+  if ([indexes count] != count)
     {
-      if (index > count + inserted)
-	{
-	  [self _raiseRangeExceptionWithIndex: index from: _cmd];
-	}
-      inserted++;
-      object = [enumerator nextObject];
-      index = [indexes indexGreaterThanIndex: index];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: count of array (%"PRIuPTR") differs"
+	@" from count of index set (%"PRIuPTR")",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	count, [indexes count]];
+    }
+  if (0 == count)
+    {
+      return;
+    }
+  index = [indexes indexGreaterThanIndex: [self count] + count - 1];
+  if (index != NSNotFound)
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
 
-  /* Objects already in the set are skipped, which leaves fewer objects
-   * than the later indexes assume, so those are capped at the end.
+  /* As on macOS, each run of consecutive indexes inserts its objects one
+   * after another from the first index of the run, skipping objects already
+   * in the set.  Later indexes are not adjusted for skipped objects.
    */
   index = [indexes firstIndex];
-  enumerator = [array objectEnumerator];
-  object = [enumerator nextObject];
-  while (object != nil && index != NSNotFound)
+  while (index != NSNotFound)
     {
-      count = [self count];
-      [self insertObject: object atIndex: (index > count ? count : index)];
-      object = [enumerator nextObject];
+      id	object = [array objectAtIndex: i];
+
+      if (0 == i || index != previous + 1)
+	{
+	  position = index;
+	}
+      previous = index;
+      i++;
+      if (NO == [self containsObject: object])
+	{
+	  [self insertObject: object atIndex: position++];
+	}
       index = [indexes indexGreaterThanIndex: index];
     }
 }
