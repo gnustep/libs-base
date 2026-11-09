@@ -43,6 +43,7 @@
 
 #import "../Tools/gdomap.h"
 #import "../GSPrivate.h"
+#import "../GSPThread.h"
 #import "../GSNetwork.h"
 
 #if	defined(HAVE_SYS_FCNTL_H)
@@ -101,6 +102,10 @@
 static GSFileHandle     *fh_stdin = nil;
 static GSFileHandle     *fh_stdout = nil;
 static GSFileHandle     *fh_stderr = nil;
+/* Protects creating the shared handles, which threads may do at the
+ * same time.
+ */
+static gs_mutex_t       fh_lock = GS_MUTEX_INIT_STATIC;
 
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
@@ -1072,59 +1077,77 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithStandardError
 {
+  GSFileHandle	*unused = nil;
+
+  GS_MUTEX_LOCK(fh_lock);
   if (fh_stderr != nil)
     {
-      ASSIGN(self, fh_stderr);
+      unused = self;
+      self = RETAIN(fh_stderr);
     }
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      ASSIGN(fh_stderr, self);
       if (self)
         {
           readOK = NO;
           isStandardStream = YES;
+          fh_stderr = RETAIN(self);
         }
     }
+  GS_MUTEX_UNLOCK(fh_lock);
+  RELEASE(unused);
   return self;
 }
 
 - (id) initWithStandardInput
 {
+  GSFileHandle	*unused = nil;
+
+  GS_MUTEX_LOCK(fh_lock);
   if (fh_stdin != nil)
     {
-      ASSIGN(self, fh_stdin);
+      unused = self;
+      self = RETAIN(fh_stdin);
     }
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      ASSIGN(fh_stdin, self);
       if (self)
         {
           writeOK = NO;
           isStandardStream = YES;
           isStandardInput = YES;
+          fh_stdin = RETAIN(self);
         }
     }
+  GS_MUTEX_UNLOCK(fh_lock);
+  RELEASE(unused);
   return self;
 }
 
 - (id) initWithStandardOutput
 {
+  GSFileHandle	*unused = nil;
+
+  GS_MUTEX_LOCK(fh_lock);
   if (fh_stdout != nil)
     {
-      ASSIGN(self, fh_stdout);
+      unused = self;
+      self = RETAIN(fh_stdout);
     }
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      ASSIGN(fh_stdout, self);
       if (self)
         {
           readOK = NO;
           isStandardStream = YES;
+          fh_stdout = RETAIN(self);
         }
     }
+  GS_MUTEX_UNLOCK(fh_lock);
+  RELEASE(unused);
   return self;
 }
 
