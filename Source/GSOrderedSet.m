@@ -67,6 +67,10 @@
 }
 @end
 
+@interface NSOrderedSet (Private)
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel;
+@end
+
 @interface GSOrderedSetEnumerator : NSEnumerator
 {
   GSOrderedSet	*set;
@@ -222,7 +226,13 @@ static Class	mutableSetClass;
 
 - (id) objectAtIndex: (NSUInteger)index
 {
-  GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
+  GSIArrayItem item;
+
+  if (index >= GSIArrayCount(&array))
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  item = GSIArrayItemAtIndex(&array, index);
   return item.obj;
 }
 
@@ -291,6 +301,10 @@ static Class	mutableSetClass;
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to set"];
     }
+  else if (index > GSIArrayCount(&array))
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
   else
     {
       if ([self containsObject: object] == NO)
@@ -308,8 +322,13 @@ static Class	mutableSetClass;
 
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
-  GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
+  GSIArrayItem item;
 
+  if (index >= GSIArrayCount(&array))
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  item = GSIArrayItemAtIndex(&array, index);
   _version++;
   /* Remove from the map first: removing from the array releases the object,
    * and the map needs to hash it to find its bucket.

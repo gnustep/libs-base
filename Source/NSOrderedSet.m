@@ -1395,13 +1395,36 @@ static SEL	remSel;
 
 - (void) insertObjects: (NSArray *)array atIndexes: (NSIndexSet *)indexes
 {
+  NSUInteger	count = [self count];
+  NSUInteger	inserted = 0;
   NSUInteger	index = [indexes firstIndex];
   NSEnumerator	*enumerator = [array objectEnumerator];
   id		object = [enumerator nextObject];
 
+  /* Check all indexes before changing anything, as if every object were
+   * inserted.
+   */
   while (object != nil && index != NSNotFound)
     {
-      [self insertObject: object atIndex: index];
+      if (index > count + inserted)
+	{
+	  [self _raiseRangeExceptionWithIndex: index from: _cmd];
+	}
+      inserted++;
+      object = [enumerator nextObject];
+      index = [indexes indexGreaterThanIndex: index];
+    }
+
+  /* Objects already in the set are skipped, which leaves fewer objects
+   * than the later indexes assume, so those are capped at the end.
+   */
+  index = [indexes firstIndex];
+  enumerator = [array objectEnumerator];
+  object = [enumerator nextObject];
+  while (object != nil && index != NSNotFound)
+    {
+      count = [self count];
+      [self insertObject: object atIndex: (index > count ? count : index)];
       object = [enumerator nextObject];
       index = [indexes indexGreaterThanIndex: index];
     }
