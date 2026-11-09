@@ -35,6 +35,7 @@
 #import "Foundation/NSInvocation.h"
 
 #import "NSDatePrivate.h"
+#import "GSPrivate.h"
 
 static Class	NSDate_class;
 
@@ -429,14 +430,19 @@ static Class	NSDate_class;
 
 /**
  * Change the fire date for the receiver.<br />
- * NB. You should <em>NOT</em> use this method for a timer which has
- * been added to a run loop.  The only time when it is safe to modify
- * the fire date of a timer in a run loop is for a repeating timer
- * when the timer is actually in the process of firing.
+ * If the timer is scheduled in a run loop, it is moved to the position
+ * matching its new fire date, so that it fires at that date.<br />
+ * NB. Run loops are not thread-safe, so for a scheduled timer this
+ * method must be called from the thread whose run loop the timer is
+ * scheduled in.
  */
 - (void) setFireDate: (NSDate*)fireDate
 {
   ASSIGN(_date, fireDate);
+  if (_modeMask != 0 && NO == _invalidated)
+    {
+      [NSRunLoop _repositionTimer: self];
+    }
 }
 
 /**

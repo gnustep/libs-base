@@ -336,9 +336,11 @@ typedef enum {
 
 @class  NSLock;
 @class  NSThread;
+@class  NSTimer;
 
 @interface	NSRunLoop (Internal)
 + (NSString*) nameOfEventType: (RunLoopEventType)type;
++ (void) _repositionTimer: (NSTimer*)timer;
 @end
 
 /* Used to handle events performed in one thread from another.
