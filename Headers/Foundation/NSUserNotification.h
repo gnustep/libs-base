@@ -56,6 +56,14 @@ typedef NSInteger NSUserNotificationActivationType;
 GS_EXPORT_CLASS
 @interface NSUserNotification : NSObject <NSCopying>
 {
+  NSDate *_actualDeliveryDate;
+  
+  BOOL _presented;
+  BOOL _remote;
+  NSString *_soundName;
+  NSUserNotificationActivationType _activationType;
+  NSAttributedString *_response;
+
 #if	GS_EXPOSE(NSUserNotification)
   @public
   id _uniqueId;
@@ -70,11 +78,12 @@ GS_EXPORT_CLASS
 @property (copy) NSDate *deliveryDate;
 @property (copy) NSTimeZone *deliveryTimeZone;
 @property (copy) NSDateComponents *deliveryRepeatInterval;
-@property (readonly) NSDate *actualDeliveryDate;
-@property (readonly, getter=isPresented) BOOL presented;
+@property (copy, nullable) NSDate *actualDeliveryDate;
 
+@property (readonly, getter=isPresented) BOOL presented;
 @property (readonly, getter=isRemote) BOOL remote;
-@property (copy) NSString *soundName;
+@property (copy, nullable) NSString *soundName;
+
 @property BOOL hasActionButton;
 @property (readonly) NSUserNotificationActivationType activationType;
 @property (copy) NSString *otherButtonTitle;
@@ -85,7 +94,7 @@ GS_EXPORT_CLASS
 @property (copy) NSImage *contentImage;
 @property BOOL hasReplyButton;
 @property (copy) NSString *responsePlaceholder;
-@property (readonly) NSAttributedString *response;
+@property (copy, readonly, nullable) NSAttributedString *response;
 
 #endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) */
 
@@ -110,7 +119,7 @@ GS_EXPORT_CLASS
 - (void) scheduleNotification: (NSUserNotification *)notification;
 - (void) removeScheduledNotification: (NSUserNotification *)notification;
 
-@property (readonly) NSArray *deliveredNotifications;
+@property (copy, readonly) NSArray *deliveredNotifications;
 
 - (void) deliverNotification: (NSUserNotification *)notification;
 - (void) removeDeliveredNotification: (NSUserNotification *)notification;

@@ -304,6 +304,8 @@ static int	log_priority = 0;
 static void
 gdomap_log (int prio)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   if (in_config)
     {
 #ifndef __MINGW__
@@ -324,13 +326,13 @@ gdomap_log (int prio)
     }
   else if (prio == LOG_INFO)
     {
-      write (1, ebuf, strlen (ebuf));
-      write (1, "\n", 1);
+      (void) write (1, ebuf, strlen (ebuf));
+      (void) write (1, "\n", 1);
     }
   else
     {
-      write (2, ebuf, strlen (ebuf));
-      write (2, "\n", 1);
+      (void) write (2, ebuf, strlen (ebuf));
+      (void) write (2, "\n", 1);
     }
 
   if (prio == LOG_CRIT)
@@ -346,6 +348,7 @@ gdomap_log (int prio)
 	}
       exit(EXIT_FAILURE);
     }
+#pragma GCC diagnostic pop
 }
 #else
 
@@ -5312,7 +5315,11 @@ printf(
 	  gdomap_log(LOG_CRIT);
 	  exit(EXIT_FAILURE);
 	}
-      chdir("/");
+      if (chdir("/") < 0)
+        {
+          snprintf(ebuf, sizeof(ebuf), "Unable to change directory to /");
+          gdomap_log(LOG_CRIT);
+        }
     }
 #endif /* __MINGW__ */
 #endif /* __svr4__ */

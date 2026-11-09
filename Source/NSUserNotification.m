@@ -37,15 +37,19 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 
+// override to allow read-write of read-only properties
 @interface NSUserNotification ()
-@property (readwrite) NSDate *actualDeliveryDate;
 @property (readwrite, getter=isPresented) BOOL presented;
-@property (readwrite, getter=isRemote) BOOL remote;
-@property (readwrite) NSUserNotificationActivationType activationType;
-@property (readwrite) NSAttributedString *response;
 @end
 
 @implementation NSUserNotification
+
+@synthesize actualDeliveryDate = _actualDeliveryDate;
+@synthesize response = _response;
+@synthesize presented = _presented;
+@synthesize remote = _remote;
+@synthesize soundName = _soundName;
+@synthesize activationType = _activationType;
 
 - (id) init
 {
@@ -88,7 +92,7 @@
 @end
 
 @interface NSUserNotificationCenter ()
-@property (readwrite) NSArray *deliveredNotifications;
+//@property (copy, readwrite) NSArray *deliveredNotifications;
 @end
 
 @interface NSUserNotificationCenter (Private)
@@ -101,6 +105,7 @@
 @implementation NSUserNotificationCenter
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
+
 
 + (Class) defaultUserNotificationCenterClass
 {
@@ -193,6 +198,12 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 {
   [un setPresented: YES];
   NSLog(@"NOTE: %@", un);
+}
+
+// not-synthesized so it can use a NSMutableArray
+- (NSArray *) deliveredNotiviations
+{
+  return [_deliveredNotifications copy];
 }
 
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
