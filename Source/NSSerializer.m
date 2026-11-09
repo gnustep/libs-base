@@ -885,7 +885,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 {
   _NSDeserializerInfo	info;
   unsigned int	cursor = 0;
-  id		o;
+  id		o = nil;
 
   if (data == nil || [data isKindOfClass: [NSData class]] == NO)
     {

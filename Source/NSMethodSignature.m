@@ -689,7 +689,7 @@ signatureSlotFor(const char *types)
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
   GSIMapNode node;
-  NSMethodSignature	*sig;
+  NSMethodSignature	*sig = nil;
   struct signature_slot	*slot;
   unsigned		index;
 

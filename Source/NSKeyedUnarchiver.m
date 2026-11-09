@@ -859,7 +859,7 @@ GSNSErrorFromUnarchiverException(NSException *exception)
 - (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)key
 {
   NSSet	*saved = _allowedClasses;
-  id	o;
+  id	o = nil;
 
   /* Restrict the allowed classes for this key's subtree, restoring the
    * enclosing set afterwards (the enforcement itself is in -_decodeObject:
