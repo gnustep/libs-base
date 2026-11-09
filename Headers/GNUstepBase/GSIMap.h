@@ -422,7 +422,7 @@ struct	_GSIMapTable {
   uintptr_t	chunkCount;	/* Number of chunks in array.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
   uint32_t	increment;	/* Size for large chunks.	*/
-  uint8_t	small;		/* Size for single bucket map.	*/
+  uint8_t	smallMap;	/* Size for single bucket map.	*/
   uint8_t	reserved1;
   uint8_t	reserved2;
   uint8_t	reserved3;
@@ -1009,7 +1009,7 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
   /* For a small map the cost of hashing may outweigh the cost of comparison
    * so we use a single bucket and skip the hashing when we are finding nodes.
    */
-  if (capacity <= map->small)
+  if (capacity <= map->smallMap)
     {
       GSIMapResize(map, 1);
       return;

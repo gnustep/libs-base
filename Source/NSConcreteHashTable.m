@@ -61,7 +61,7 @@ typedef GSIMapNode_t *GSIMapNode;
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
   uint32_t	increment;	/* Amount to grow by.		*/
-  uint8_t	small;
+  uint8_t	smallMap;
   uint8_t	reserved1;
   uint8_t	reserved2;
   uint8_t	reserved3;
