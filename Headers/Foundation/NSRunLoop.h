@@ -179,10 +179,11 @@ typedef	enum {
 @interface NSObject (RunLoopEvents)
 /** Called by the run loop to find out whether it needs to block to wait
  * for events for this watcher.  The shouldTrigger flag is used to inform
- * the run loop if tit should immediately trigger a received event for the
+ * the run loop if it should immediately trigger a received event for the
  * watcher.
+ * This may be removed in the next release!
  */
-- (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger GS_DEPRECATED;
+- (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger;
 @end
 
 /**
