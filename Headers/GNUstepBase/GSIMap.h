@@ -1026,6 +1026,47 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
     }
 }
 
+/* Sets (and returns the old value of) the map increment.<br />
+ * This is the size threshold (number of nodes) at which we start allocating
+ * chunks of memory for nodes in a fixed increment, and also the number of
+ * nodes allocated in a chunk at that increment.  Maps below this size have
+ * chunks of nodes allocated in gradually increasing sizes.<br />
+ * Setting a value of zero has no effect, but returns the current value.
+ */
+GS_STATIC_INLINE uint32_t
+GSIMapSetIncrement(GSIMapTable map, uint32_t newValue)
+{
+  uint32_t	old = map->increment;
+
+  if (newValue > 0)
+    {
+      map->increment = newValue;
+    } 
+  return old;
+}
+
+
+/* Sets (and returns the old value of) the small map threshold.<br />
+ * This is the size threshold (number of nodes) above which we consider
+ * the mmap to no longer be small.  A small map uses a single bucket and
+ * avoids calculating hashes, performing lookup purely by comparing each
+ * node key to a supplied key in order.  This is only a performance gain
+ * if the number of nodes is small enough so that the CPU cost of a hash
+ * calculation is larger than the CPU cost of an average number of
+ * equality checks.
+ */
+GS_STATIC_INLINE uint8_t
+GSIMapSetSmall(GSIMapTable map, uint8_t newValue)
+{
+  uint8_t	old = map->smallMap;
+
+  if (newValue > 0)
+    {
+      map->smallMap = newValue;
+    } 
+  return old;
+}
+
 /** Enumerating **/
 
 /* IMPORTANT WARNING: Enumerators have a wonderous property.
@@ -1563,7 +1604,8 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
   map->nodeChunks = 0;
   map->freeNodes = 0;
   map->chunkCount = 0;
-  map->increment = 300000;   // choosen so the chunksize will be less than 4Mb
+  map->increment = 300000;	// choosen for chunksize to be less than 4Mb
+  map->smallMap = 2;		// good if cost-of-hash is like cost-of-equality
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map, capacity);
 }
