@@ -492,7 +492,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
             &pw, buf, sizeof(buf), &p) == 0)
 	    {
 	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 	      (void)chown(lpath, -1, pw.pw_gid);
+#pragma GCC diagnostic pop
 	    }
 #else
 #if     defined(HAVE_GETPWNAM)
@@ -503,7 +506,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 	      (void)chown(lpath, -1, pw->pw_gid);
+#pragma GCC diagnostic pop
 	    }
           GS_MUTEX_UNLOCK(classLock);
 #endif
