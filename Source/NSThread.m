@@ -2226,13 +2226,16 @@ lockInfoErr(NSString *str)
   if (inputFd >= 0)
     {
       close(inputFd);
-      inputFd = -1;
     }
-  if (outputFd >= 0)
+  /* With eventfd both are the same descriptor, and closing it twice could
+   * close a descriptor another thread has opened in the meantime.
+   */
+  if (outputFd >= 0 && outputFd != inputFd)
     {
       close(outputFd);
-      outputFd = -1;
     }
+  inputFd = -1;
+  outputFd = -1;
 #endif
   [lock unlock];
   [p makeObjectsPerformSelector: @selector(invalidate)];
