@@ -59,7 +59,11 @@ typedef GSIMapNode_t *GSIMapNode;
   GSIMapNode	freeNodes;	/* List of unused nodes.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
-  size_t	increment;	/* Amount to grow by.		*/
+  uint32_t	increment;	/* Amount to grow by.		*/
+  uint8_t	small;
+  uint8_t	reserved1;
+  uint8_t	reserved2;
+  uint8_t	reserved3;
   unsigned long	version;	/* For fast enumeration.	*/
   BOOL		legacy;		/* old style callbacks?		*/
   union {

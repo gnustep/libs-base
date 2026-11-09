@@ -794,11 +794,16 @@ static SEL	appSel;
   count = [self count];
   if (count == [other count])
     {
+      IMP	otherObj;
+
       if (0 == count)
 	{
 	  return YES;	// No contents to compare: dictionaries are equal.
 	}
-      if (count <= 8)
+
+      otherObj = [other methodForSelector: objSel];
+
+      if (count <= 4)
 	{
 	  /* For small dictionaries the overhead of hash table lookups are
 	   * significant and it's quicker to just compare the dictionary
@@ -806,35 +811,18 @@ static SEL	appSel;
 	   * The threshold for performance switchover is a bit of a guess.
 	   */
 	  int	i;
-	  id	mk[count];
-	  id	mo[count];
-	  id	ok[count];
-	  id	oo[count];
+	  id	keys[count];
+	  id	values[count];
 
-	  [self getObjects: mo andKeys: mk count: count];
-	  [other getObjects: oo andKeys: ok count: count];
+	  [self getObjects: values andKeys: keys count: count];
 
 	  for (i = 0; i < count; i++)
 	    {
-	      int	j;
-	      id	k = mk[i];
-	      BOOL	(*eqObj)(id, SEL, id);
+	      id	key = keys[i];
+	      id	value = (*otherObj)(other, objSel, key);
 
-	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
-	      for (j = 0; j < count; j++)
+	      if (nil == value || NO == [value isEqual: values[i]])
 		{
-		  if (ok[j] && (*eqObj)(k, eqSel, ok[j]))
-		    {
-		      ok[j] = nil;	// Don't check this slot again.
-		      break;		// Found matching key in other.
-		    }
-		}
-	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
-		{
-		  /* Either the key was not present in the other dictionary
-		   * or it was present but the matching values were not equal,
-		   * so the dictionaries are not equal.
-		   */
 		  return NO;
 		}
 	    }
@@ -842,13 +830,12 @@ static SEL	appSel;
       else
 	{
 	  /* For larger dictionaries we need to use the hash table lookup
-	   * to find dictionary vvalues matching keys, so we use fast
+	   * to find dictionary values matching keys, so we use fast
 	   * enumeration to go through all the keys in one dictionary and
 	   * we cache the lookup method implementations to avoid message
 	   * overhead and have after lookup.
 	   */
 	  IMP	myObj = [self methodForSelector: objSel];
-	  IMP	otherObj = [other methodForSelector: objSel];
 
 	  GS_FOR_IN(id, k, self)
 	    {

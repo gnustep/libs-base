@@ -361,10 +361,18 @@ static SEL	objSel;
   count = map.nodeCount;
   if (count == [other count])
     {
+      IMP	otherObj;
+
       if (0 == count)
 	{
 	  return YES;
 	}
+
+      /* We assume that the other dictionary has optimised lookup so that
+       * finding an object matching our key is as efficient as possible.
+       */
+      otherObj = [other methodForSelector: objSel];
+
       if (count <= 8)
 	{
 	  /* For small dictionaries the overhead of hash table lookups are
@@ -373,35 +381,18 @@ static SEL	objSel;
 	   * The threshold for performance switchover is a bit of a guess.
 	   */
 	  int	i;
-	  id	mk[count];
-	  id	mo[count];
-	  id	ok[count];
-	  id	oo[count];
+	  id	keys[count];
+	  id	values[count];
 
-	  [self getObjects: mo andKeys: mk count: count];
-	  [other getObjects: oo andKeys: ok count: count];
+	  [self getObjects: values andKeys: keys count: count];
 
 	  for (i = 0; i < count; i++)
 	    {
-	      int	j;
-	      id	k = mk[i];
-	      BOOL	(*eqObj)(id, SEL, id);
+	      id	key = keys[i];
+	      id	value = (*otherObj)(other, objSel, key);
 
-	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
-	      for (j = 0; j < count; j++)
+	      if (nil == value || NO == [value isEqual: values[i]])
 		{
-		  if (ok[j] && (*eqObj)(k, eqSel, ok[j]))
-		    {
-                      ok[j] = nil;      // Don't check this slot again.
-                      break;            // Found matching key in other.
-		    }
-		}
-	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
-		{
-		  /* Either the key was not present in the other dictionary
-		   * or it was present but the matching values were not equal,
-		   * so the dictionaries are not equal.
-		   */
 		  return NO;
 		}
 	    }
@@ -410,7 +401,6 @@ static SEL	objSel;
 	{
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
-	  IMP			otherObj = [other methodForSelector: objSel];
 
 	  enumerator = GSIMapEnumeratorForMap(&map);
 	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)

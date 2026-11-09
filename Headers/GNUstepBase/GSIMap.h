@@ -421,7 +421,11 @@ struct	_GSIMapTable {
   GSIMapNode	freeNodes;	/* List of unused nodes.	*/
   uintptr_t	chunkCount;	/* Number of chunks in array.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
-  uintptr_t	increment;
+  uint32_t	increment;	/* Size for large chunks.	*/
+  uint8_t	small;		/* Size for single bucket map.	*/
+  uint8_t	reserved1;
+  uint8_t	reserved2;
+  uint8_t	reserved3;
 #ifdef	GSI_MAP_EXTRA
   GSI_MAP_EXTRA	extra;
 #endif
@@ -455,6 +459,12 @@ GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, uintptr_t bucketCount)
 GS_STATIC_INLINE GSIMapBucket
 GSIMapBucketForKey(GSIMapTable map, GSIMapKey key)
 {
+  /* Avoid calling hash function if thewre is only one bucket
+   */
+  if (1 == map->bucketCount)
+    {
+      return map->buckets;
+    }
   return GSIMapPickBucket(GSI_MAP_HASH(map, key),
     map->buckets, map->bucketCount);
 }
@@ -942,8 +952,11 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 }
 #endif
 
+/* Resize the map to use the specified number of buckets.
+ * even values not allowed (automatically incremented).
+ */
 GS_STATIC_INLINE void
-GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
+GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
 {
   GSIMapBucket	new_buckets;
   uintptr_t	size = 1;
@@ -952,7 +965,7 @@ GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
   /*
    *	Find next size up in the fibonacci series
    */
-  while (size < new_capacity)
+  while (size < new_bucket_count)
     {
       uintptr_t	tmp = old;
 
@@ -987,14 +1000,26 @@ GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
     }
 }
 
+/* Sets the map bucket count to match desired capacity (number of items/nodes
+ * that it will contain).
+ */
 GS_STATIC_INLINE void
 GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
+  /* For a small map the cost of hashing may outweigh the cost of comparison
+   * so we use a single bucket and skip the hashing when we are finding nodes.
+   */
+  if (capacity <= map->small)
+    {
+      GSIMapResize(map, 1);
+      return;
+    }
+
   /* FIXME: Now, this is a guess, based solely on my intuition.  If anyone
    * knows of a better ratio (or other test, for that matter) and can
    * provide evidence of its goodness, please get in touch with me, Albin
-   * L. Jones <Albin.L.Jones@Dartmouth.EDU>. */
-
+   * L. Jones <Albin.L.Jones@Dartmouth.EDU>.
+   */
   if (3 * capacity >= 4 * map->bucketCount)
     {
       GSIMapResize(map, (3 * capacity)/4 + 1);
