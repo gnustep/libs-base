@@ -1632,6 +1632,33 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   return t;
 }
+
+/* Called when the fire date of a scheduled timer changes, to move the
+ * timer to its new position in the heap of each mode it is scheduled in.
+ * Run loops are not thread-safe, so this only acts on the run loop of the
+ * current thread; this also avoids using the timer's (unretained) loop
+ * pointer, which may be stale.
+ */
++ (void) _repositionTimer: (NSTimer*)timer
+{
+  NSRunLoop	*loop = GSRunLoopInfoForThread(nil)->loop;
+  GSRLInternal	*vars;
+  uint64_t	mask;
+
+  if (nil == loop || (const void*)loop != timer->_loop)
+    {
+      return;
+    }
+  vars = (GSRLInternal*)loop->_internal;
+  mask = timer->_modeMask;
+  while (mask)
+    {
+      int		modeIndex = GET_INDEX_AND_CLEAR_BIT(mask);
+      GSRunLoopCtxt	*c = vars->contexts[modeIndex];
+
+      [c->timerHeap repositionObject: timer];
+    }
+}
 @end
 
 
