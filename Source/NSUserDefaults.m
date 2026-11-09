@@ -1549,6 +1549,10 @@ newLanguages(NSArray *oldNames)
 
 - (void) removeObjectForKey: (NSString*)defaultName
 {
+  BOOL	changed = NO;
+  id	old = nil;
+  id	new = nil;
+
   [_lock lock];
   NS_DURING
     {
@@ -1557,24 +1561,17 @@ newLanguages(NSArray *oldNames)
       pd = [_persDomains objectForKey: bundleIdentifier];
       if (nil != pd)
 	{
-	  id	old = [self objectForKey: defaultName];
+	  old = [self objectForKey: defaultName];
 
 	  if ([pd setObject: nil forKey: defaultName])
 	    {
-	      id 	new;
-
 	      [self _changePersistentDomain: bundleIdentifier];
 	      new = [self objectForKey: defaultName];
 	      /* Emit only a KVO notification when the value has actually
 	       * changed, meaning -objectForKey: would return a different
 	       * value than before.
 	       */
-	      if (![new isEqual: old])
-		{
-		  [self _notifyObserversOfChangeForKey: defaultName
-					      oldValue: old
-					      newValue: new];
-		}
+	      changed = ![new isEqual: old];
 	    }
 	  else
 	    {
@@ -1592,6 +1589,16 @@ newLanguages(NSArray *oldNames)
       [localException raise];
     }
   NS_ENDHANDLER
+  /* Observers are called without the lock held, so that one which takes
+   * another lock cannot deadlock with a thread holding that lock and waiting
+   * for the defaults.
+   */
+  if (changed)
+    {
+      [self _notifyObserversOfChangeForKey: defaultName
+				  oldValue: old
+				  newValue: new];
+    }
 }
 
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
@@ -1678,6 +1685,10 @@ static BOOL isPlistObject(id o)
 
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
+  BOOL	changed = NO;
+  id	old = nil;
+  id	new = nil;
+
   if (nil == value)
     {
       [self removeObjectForKey: defaultName];
@@ -1701,7 +1712,6 @@ static BOOL isPlistObject(id o)
   NS_DURING
     {
       GSPersistentDomain	*pd;
-      id old;
 
       pd = [_persDomains objectForKey: bundleIdentifier];
       if (nil == pd)
@@ -1715,22 +1725,15 @@ static BOOL isPlistObject(id o)
       old = [self objectForKey: defaultName];
       if ([pd setObject: value forKey: defaultName])
         {
-          id new;
-          
           /* New value must be fetched from all domains, as there might be
            * a registered default if value is nil, or the value is
            * superseded by GSPrimary or NSArgumentDomain
 	   */
           new = [self objectForKey: defaultName];
           [self _changePersistentDomain: bundleIdentifier];
-	  
+
 	  // Emit only a KVO notification when the value has actually changed
-	  if (![new isEqual: old])
-	    {
-              [self _notifyObserversOfChangeForKey: defaultName
-					  oldValue: old
-					  newValue: new];
-	    }
+	  changed = ![new isEqual: old];
         }
       else
         {
@@ -1748,6 +1751,12 @@ static BOOL isPlistObject(id o)
     }
   NS_ENDHANDLER
   RELEASE(value);
+  if (changed)
+    {
+      [self _notifyObserversOfChangeForKey: defaultName
+				  oldValue: old
+				  newValue: new];
+    }
 }
 
 - (void) setValue: (id)value forKey: (NSString*)defaultName
