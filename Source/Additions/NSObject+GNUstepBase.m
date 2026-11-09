@@ -187,9 +187,10 @@ handleExit()
 
   isExiting = YES;
   /* We turn off zombies during exiting so that we don't leak deallocated
-   * objects during cleanup.
+   * objects during cleanup, nor wait for the lock of the zombie map, which
+   * a thread terminated by the exit (e.g. on Windows) may hold.
    */
-//  NSZombieEnabled = NO;
+  NSZombieEnabled = NO;
   unknownThread = GSRegisterCurrentThread();
   ENTER_POOL
 
