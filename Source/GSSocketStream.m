@@ -1979,6 +1979,16 @@ setNonBlocking(SOCKET fd)
       [self _sendEvent: event delegate: _handler];
       RELEASE(self);
     }
+  else if (_handler != nil && [self streamStatus] == NSStreamStatusError
+    && (event == NSStreamEventOpenCompleted
+      || event == NSStreamEventHasSpaceAvailable
+      || event == NSStreamEventHasBytesAvailable))
+    {
+      /* The handshake failed while this event was being dispatched (e.g.
+       * when opening the stream read the end of the connection), so the
+       * stream must not be reported as open or usable.
+       */
+    }
   else
     {
       [super _sendEvent: event];
