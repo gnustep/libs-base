@@ -328,11 +328,21 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 @end
 
 
+@interface NSUserNotificationAction ()
+@property (copy, readwrite, nullable) NSString *identifier;
+@property (copy, readwrite, nullable) NSString *title;
+@end
+
 @implementation NSUserNotificationAction
 
-+ (instancetype) actionWithIdentifier:(NSString *) identifier
-                                title:(NSString *) title
++ (instancetype) actionWithIdentifier: (NSString*)identifier
+                                title: (NSString*)title
 {
+  NSUserNotificationAction	*a = [[self alloc] init];
+
+  [a setIdentifier: identifier];
+  [a setTitle: title];
+  return AUTORELEASE(a);
 }
 
 @synthesize title = _title;
