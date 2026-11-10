@@ -794,6 +794,7 @@ static SEL	appSel;
   count = [self count];
   if (count == [other count])
     {
+      IMP	myObj;
       IMP	otherObj;
 
       if (0 == count)
@@ -801,54 +802,23 @@ static SEL	appSel;
 	  return YES;	// No contents to compare: dictionaries are equal.
 	}
 
+      /* Cache the lookup method implementations to avoid message
+       * overhead in the loop.
+       */
+      myObj = [self methodForSelector: objSel];
       otherObj = [other methodForSelector: objSel];
 
-      if (count <= 4)
+      GS_FOR_IN(id, k, self)
 	{
-	  /* For small dictionaries the overhead of hash table lookups are
-	   * significant and it's quicker to just compare the dictionary
-	   * contents in arrays on the stack.
-	   * The threshold for performance switchover is a bit of a guess.
-	   */
-	  int	i;
-	  id	keys[count];
-	  id	values[count];
+	  id o1 = (*myObj)(self, objSel, k);
+	  id o2 = (*otherObj)(other, objSel, k);
 
-	  [self getObjects: values andKeys: keys count: count];
-
-	  for (i = 0; i < count; i++)
+	  if (o1 != o2 && [o1 isEqual: o2] == NO)
 	    {
-	      id	key = keys[i];
-	      id	value = (*otherObj)(other, objSel, key);
-
-	      if (nil == value || NO == [value isEqual: values[i]])
-		{
-		  return NO;
-		}
+	      return NO;
 	    }
 	}
-      else
-	{
-	  /* For larger dictionaries we need to use the hash table lookup
-	   * to find dictionary values matching keys, so we use fast
-	   * enumeration to go through all the keys in one dictionary and
-	   * we cache the lookup method implementations to avoid message
-	   * overhead and have after lookup.
-	   */
-	  IMP	myObj = [self methodForSelector: objSel];
-
-	  GS_FOR_IN(id, k, self)
-	    {
-	      id o1 = (*myObj)(self, objSel, k);
-	      id o2 = (*otherObj)(other, objSel, k);
-
-	      if (o1 != o2 && [o1 isEqual: o2] == NO)
-		{
-		  return NO;
-		}
-	    }
-	  GS_END_FOR(self)
-	}
+      GS_END_FOR(self)
       return YES;
     }
   return NO;

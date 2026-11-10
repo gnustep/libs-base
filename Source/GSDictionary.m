@@ -76,7 +76,6 @@
 
 @implementation GSDictionary
 
-static SEL	eqSel;
 static SEL	nxtSel;
 static SEL	objSel;
 
@@ -100,7 +99,6 @@ static SEL	objSel;
 {
   if (self == [GSDictionary class])
     {
-      eqSel = @selector(isEqual:);
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
     }
@@ -152,15 +150,17 @@ static SEL	objSel;
 	      count: (NSUInteger)max
 {
   NSUInteger		i = 0;
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
+  GSIMapEnumerator_t	enumerator;
+  GSIMapNode		node;
 
+  if (NULL == objects && NULL == keys)
+    {
+      return;
+    }
+  enumerator = GSIMapEnumeratorForMap(&map);
+  node = GSIMapEnumeratorNextNode(&enumerator);
   if (NULL == objects)
     {
-      if (NULL == keys)
-	{
-	  return;
-	}
       while (node && i < max)
 	{
 	  keys[i++] = node->key.obj;
@@ -200,6 +200,7 @@ static SEL	objSel;
 	    }
 	}
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (NSUInteger) hash
@@ -361,7 +362,9 @@ static SEL	objSel;
   count = map.nodeCount;
   if (count == [other count])
     {
-      IMP	otherObj;
+      IMP			otherObj;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode		node;
 
       if (0 == count)
 	{
@@ -373,49 +376,19 @@ static SEL	objSel;
        */
       otherObj = [other methodForSelector: objSel];
 
-      if (count <= 8)
+      enumerator = GSIMapEnumeratorForMap(&map);
+      while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
 	{
-	  /* For small dictionaries the overhead of hash table lookups are
-	   * significant and it's quicker to just compare the dictionary
-	   * contents in arrays on the stack.
-	   * The threshold for performance switchover is a bit of a guess.
-	   */
-	  int	i;
-	  id	keys[count];
-	  id	values[count];
+	  id o1 = node->value.obj;
+	  id o2 = (*otherObj)(other, objSel, node->key.obj);
 
-	  [self getObjects: values andKeys: keys count: count];
-
-	  for (i = 0; i < count; i++)
+	  if (o1 != o2 && [o1 isEqual: o2] == NO)
 	    {
-	      id	key = keys[i];
-	      id	value = (*otherObj)(other, objSel, key);
-
-	      if (nil == value || NO == [value isEqual: values[i]])
-		{
-		  return NO;
-		}
+	      GSIMapEndEnumerator(&enumerator);
+	      return NO;
 	    }
 	}
-      else
-	{
-	  GSIMapEnumerator_t	enumerator;
-	  GSIMapNode		node;
-
-	  enumerator = GSIMapEnumeratorForMap(&map);
-	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
-	    {
-	      id o1 = node->value.obj;
-	      id o2 = (*otherObj)(other, objSel, node->key.obj);
-
-	      if (o1 != o2 && [o1 isEqual: o2] == NO)
-		{
-		  GSIMapEndEnumerator(&enumerator);
-		  return NO;
-		}
-	    }
-	  GSIMapEndEnumerator(&enumerator);
-	}
+      GSIMapEndEnumerator(&enumerator);
       return YES;
     }
   return NO;
