@@ -951,22 +951,3 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
 @end
 
-
-@implementation Protocol (DistributedObjectsCoding)
-
-- (Class) classForPortCoder
-{
-  return object_getClass(self);
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc;
-{
-  if ([aRmc isBycopy])
-    return self;
-  else
-    return [NSDistantObject proxyWithLocal: self
-				connection: [aRmc connection]];
-}
-
-@end
-
