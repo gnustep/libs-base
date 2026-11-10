@@ -79,6 +79,7 @@
   BOOL			opened;
   BOOL			writable;
   BOOL			failed;
+  BOOL			ended;
 }
 @end
 
@@ -124,7 +125,7 @@
 {
   NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: seconds];
 
-  while (NO == failed && [limit timeIntervalSinceNow] > 0.0)
+  while (NO == failed && NO == ended && [limit timeIntervalSinceNow] > 0.0)
     {
       [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
 			       beforeDate: limit];
@@ -148,8 +149,10 @@
 	[op write: (const uint8_t*)request maxLength: strlen(request)];
 	break;
       case NSStreamEventErrorOccurred:
-      case NSStreamEventEndEncountered:
 	failed = YES;
+	break;
+      case NSStreamEventEndEncountered:
+	ended = YES;
 	break;
       default:
 	break;
