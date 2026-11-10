@@ -1771,9 +1771,24 @@ NSObject (NSKeyValueObservingPrivate)
 
 struct _kvoNotifyContext
 {
-  id	oldValue;
-  id	newValue;
+  id		object;
+  NSString	*key;
+  id		oldValue;
+  id		newValue;
 };
+
+/* The old and new values given are those of the notified key.  An observer
+ * of another key path, one that depends on this key or goes through it, gets
+ * the values of its own key path instead, read after the change.
+ */
+static inline BOOL
+_observesNotifiedKey(_NSKVOKeypathObserver *keypathObserver,
+  struct _kvoNotifyContext *ctx)
+{
+  return keypathObserver.object == ctx->object
+    && [keypathObserver.keypath isEqualToString: ctx->key];
+}
+
 static void
 _kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
@@ -1786,12 +1801,25 @@ _kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 
   if (options & NSKeyValueObservingOptionOld)
     {
-      [change setObject: (ctx->oldValue ? ctx->oldValue : [NSNull null])
+      id oldValue;
+
+      if (_observesNotifiedKey(keypathObserver, ctx))
+	{
+	  oldValue = ctx->oldValue;
+	}
+      else
+	{
+	  /* The key has already changed, so this is the new value. */
+	  oldValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
+      [change setObject: (oldValue ? oldValue : [NSNull null])
                  forKey: NSKeyValueChangeOldKey];
     }
 
   keypathObserver.pendingChange = change;
 }
+
 static void
 _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
@@ -1803,7 +1831,18 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
       [[change objectForKey: NSKeyValueChangeKindKey] integerValue]
         != NSKeyValueChangeRemoval)
     {
-      [change setObject: (ctx->newValue ? ctx->newValue : [NSNull null])
+      id newValue;
+
+      if (_observesNotifiedKey(keypathObserver, ctx))
+	{
+	  newValue = ctx->newValue;
+	}
+      else
+	{
+	  newValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
+      [change setObject: (newValue ? newValue : [NSNull null])
                  forKey: NSKeyValueChangeNewKey];
     }
 }
@@ -1817,7 +1856,7 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 
   if (info)
     {
-      struct _kvoNotifyContext ctx = { oldValue, newValue };
+      struct _kvoNotifyContext ctx = { self, key, oldValue, newValue };
       _dispatchWillChange(info, self, key, _kvoWillNotifyChange, &ctx);
       _dispatchDidChange(info, self, key, _kvoDidNotifyChange, &ctx);
     }
