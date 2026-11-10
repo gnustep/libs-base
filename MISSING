@@ -243,18 +243,6 @@ NSHTTPCookieStorage:
 
 	- sortedCookiesUsingDescriptors:
 -------------------------------------------------------------
-NSIndexSet:
-	- indexPassingTest:
-	- indexWithOptions:passingTest:
-	- indexInRange:options:passingTest
-	- indexesPassingTest:
-	- indexesWithOptions:passingTest:
-	- indexesInRange:options:passingTest:
-	- enumerateRangesUsingBlock:
-	- enumerateRangesWithOptions:usingBlock:
-	- enumerateRangesInRange:options:usingBlock:
-
--------------------------------------------------------------
 NSKeyedArchiver:
 	<NSGeometry.h>
 

@@ -1,3 +1,18 @@
+2026-11-09 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSIndexSet.h:
+	* Source/NSIndexSet.m:
+	* Tests/base/NSIndexSet/passingTest.m:
+	* MISSING:
+	Implement -indexPassingTest:, -indexWithOptions:passingTest:,
+	-indexInRange:options:passingTest:, -indexesPassingTest:,
+	-indexesWithOptions:passingTest: and
+	-indexesInRange:options:passingTest:.
+	Fix -enumerateRangesInRange:options:usingBlock: to clip ranges to the
+	requested range and to skip ranges that do not intersect it, and stop
+	-enumerateIndexesInRange:options:usingBlock: from walking indexes
+	outside the requested range.
+
 2026-11-02 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSProgress.h:
