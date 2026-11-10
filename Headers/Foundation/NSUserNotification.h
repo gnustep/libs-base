@@ -151,6 +151,7 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSUserNotificationCenter)
   NSMutableArray *_scheduledNotifications;
   NSMutableArray *_deliveredNotifications;
+  id <NSUserNotificationCenterDelegate> _delegate;
 #endif
 }
 

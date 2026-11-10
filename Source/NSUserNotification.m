@@ -126,6 +126,8 @@
 
 @implementation NSUserNotificationCenter
 
+@synthesize delegate = _delegate;
+
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 + (Class) defaultUserNotificationCenterClass
