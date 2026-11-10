@@ -28,21 +28,6 @@
 #include <math.h>
 #include <string.h>
 
-/* FIXME ... functionality should not depend on libdispatch,
- * and use of libdispatch should be unrelated to blocks.
- */
-#    undef GS_USE_LIBDISPATCH
-#    define GS_USE_LIBDISPATCH 0
-
-#if GS_USE_LIBDISPATCH == 1
-#  if __has_feature(blocks)
-#    include "dispatch/dispatch.h"
-#  else
-#    undef GS_USE_LIBDISPATCH
-#    define GS_USE_LIBDISPATCH 0
-#  endif
-#endif
-
 #define	GS_NSProgress_IVARS	 \
   NSProgressKind _kind;  \
   int64_t _totalUnitCount; \
@@ -83,6 +68,7 @@
 
 #import "Foundation/NSException.h"
 #import "Foundation/NSObject.h"
+#import "Foundation/NSOperation.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSArray.h"
@@ -229,6 +215,54 @@ GSProgressFraction(int64_t total, int64_t completed, int64_t credited,
 }
 @end
 
+/* Calls a handler or sends a message to the delegate of a progress, on the
+ * queue running the callbacks of all progresses.
+ */
+@interface GSProgressCallback : NSOperation
+{
+@public
+  NSProgress	*progress;
+  id		handler;
+  id		delegate;
+  SEL		selector;
+}
+@end
+
+@implementation GSProgressCallback
+- (void) dealloc
+{
+  RELEASE(progress);
+  RELEASE(handler);
+  RELEASE(delegate);
+  DEALLOC
+}
+
+- (void) main
+{
+  NS_DURING
+    {
+      if (handler != nil)
+	{
+	  GSProgressCancellationHandler	block;
+
+	  block = (GSProgressCancellationHandler)handler;
+	  CALL_BLOCK_NO_ARGS(block);
+	}
+      else
+	{
+	  [delegate performSelector: selector withObject: progress];
+	}
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Exception in callback of progress %@: %@",
+	progress, localException);
+    }
+  NS_ENDHANDLER
+}
+@end
+
+static NSOperationQueue	*callbackQueue = nil;
 static NSSet	*manuallyNotifiedKeys = nil;
 
 /* The userInfo of a progress, which may be used from any thread.  Like on
@@ -482,6 +516,8 @@ static NSSet	*manuallyNotifiedKeys = nil;
     {
       /* +initialize is called in a thread-safe manner and only once */
       tls_create_keys();
+      callbackQueue = [NSOperationQueue new];
+      [callbackQueue setName: @"NSProgress callbacks"];
       manuallyNotifiedKeys = [[NSSet alloc] initWithObjects:
 	@"totalUnitCount", @"completedUnitCount", @"cancellable",
 	@"pausable", @"kind", @"estimatedTimeRemaining", @"fileOperationKind",
@@ -759,50 +795,35 @@ static NSSet	*manuallyNotifiedKeys = nil;
   update->finished = update->finished || finished;
 }
 
-/* Sends the message to the delegate like a handler is called, but without
- * needing blocks.
+/* Sends the message to the delegate asynchronously, like a handler is
+ * called.
  */
 - (void) _scheduleDelegate: (id)delegate selector: (SEL)selector
 {
   if ([delegate respondsToSelector: selector])
     {
-#if (GS_USE_LIBDISPATCH == 1)
-      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
-	0), ^{
-	  ENTER_POOL
-	  NS_DURING
-	    {
-	      [delegate performSelector: selector withObject: self];
-	    }
-	  NS_HANDLER
-	    {
-	      NSLog(@"Exception in delegate %@ of progress: %@",
-		delegate, localException);
-	    }
-	  NS_ENDHANDLER
-	  LEAVE_POOL
-	});
-#else
-      [delegate performSelector: selector withObject: self];
-#endif
+      GSProgressCallback	*callback = [GSProgressCallback new];
+
+      callback->progress = RETAIN(self);
+      callback->delegate = RETAIN(delegate);
+      callback->selector = selector;
+      [callbackQueue addOperation: callback];
+      RELEASE(callback);
     }
 }
 
-/* Calls the handler asynchronously, or synchronously without libdispatch.
+/* Calls the handler asynchronously.
  */
 - (void) _scheduleHandler: (id)handler
 {
   if (handler != nil)
     {
-#if GS_USE_LIBDISPATCH == 1
-      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,
-	0), (dispatch_block_t)handler);
-#else
-      GSProgressCancellationHandler block;
+      GSProgressCallback	*callback = [GSProgressCallback new];
 
-      block = (GSProgressCancellationHandler)handler;
-      CALL_BLOCK_NO_ARGS(block);
-#endif
+      callback->progress = RETAIN(self);
+      callback->handler = RETAIN(handler);
+      [callbackQueue addOperation: callback];
+      RELEASE(callback);
     }
 }
 
