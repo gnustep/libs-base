@@ -981,6 +981,10 @@ GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
     {
       size++;
     }
+  if (size == map->bucketCount)
+    {
+      return;
+    }
 
   /* Use the zone specified for this map.
    */
@@ -1008,10 +1012,15 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
   /* For a small map the cost of hashing may outweigh the cost of comparison
    * so we use a single bucket and skip the hashing when we are finding nodes.
+   * We only do that for a map which has no buckets yet, so we never discard
+   * buckets that were sized for a larger capacity requested by the caller.
    */
   if (capacity <= map->smallMap)
     {
-      GSIMapResize(map, 1);
+      if (0 == map->bucketCount)
+	{
+	  GSIMapResize(map, 1);
+	}
       return;
     }
 
