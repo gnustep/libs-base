@@ -2731,7 +2731,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      else if (sectionStart > 0)
 		{
 		  len -= sectionStart;
-		  memcpy(bytes, buf + sectionStart, len);
+		  memmove(bytes, buf + sectionStart, len);
 		  sectionStart = lineStart = 0;
 		  [data setLength: len];
 		  dataEnd = len;
@@ -8994,7 +8994,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
                       else
                         {
                           d = [NSData dataWithBytes: ptr length: i];
-                          memcpy(ptr, ptr + i, length - i);
+                          memmove(ptr, ptr + i, length - i);
                           length -= i;
                           [internal->rdata setLength: length];
                           ptr = [internal->rdata mutableBytes];
@@ -9055,7 +9055,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
                     }
                   if (total < wlength)
                     {
-                      memcpy(wbytes, wbytes + total, wlength - total);
+                      memmove(wbytes, wbytes + total, wlength - total);
                     }
                   [internal->wdata setLength: wlength - total];
                   internal->woffset -= total;
