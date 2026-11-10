@@ -44,12 +44,34 @@
 
 @implementation NSUserNotification
 
-@synthesize actualDeliveryDate = _actualDeliveryDate;
+@synthesize title = _title;
+@synthesize subtitle = _subtitle;
+@synthesize informativeText = _informativeText;
+@synthesize contentImage = _contentImage;
+@synthesize identifier = _identifier;
 @synthesize response = _response;
+@synthesize responsePlaceholder = _responsePlaceholder;
+
+@synthesize hasActionButton = _hasActionButton;
+@synthesize actionButtonTitle = _actionButtonTitle;
+@synthesize otherButtonTitle = _otherButtonTitle;
+@synthesize hasReplyButton = _hasReplyButton;
+
+@synthesize deliveryDate = _deliveryDate;
+@synthesize actualDeliveryDate = _actualDeliveryDate;
+@synthesize deliveryRepeatInterval = _deliveryRepeatInterval;
+@synthesize deliveryTimeZone = _deliveryTimeZone;
+
 @synthesize presented = _presented;
 @synthesize remote = _remote;
 @synthesize soundName = _soundName;
+
 @synthesize activationType = _activationType;
+@synthesize additionalActivationAction = _additionalActivationAction;
+@synthesize additionalActions = _additionalActions;
+
+@synthesize userInfo = _userInfo;
+
 
 - (id) init
 {
@@ -105,7 +127,6 @@
 @implementation NSUserNotificationCenter
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
-
 
 + (Class) defaultUserNotificationCenterClass
 {
@@ -201,9 +222,20 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 }
 
 // not-synthesized so it can use a NSMutableArray
-- (NSArray *) deliveredNotiviations
+- (NSArray *) deliveredNotifications
 {
   return [_deliveredNotifications copy];
+}
+
+// not-synthesized so it can use a NSMutableArray
+- (NSArray *) scheduledNotifications
+{
+  return [_scheduledNotifications copy];
+}
+
+- (void) setScheduledNotifications: (NSArray *)anArray
+{
+  [_scheduledNotifications setArray: anArray];
 }
 
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
@@ -294,5 +326,19 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 }
 
 @end
+
+
+@implementation NSUserNotificationAction
+
++ (instancetype) actionWithIdentifier:(NSString *) identifier
+                                title:(NSString *) title
+{
+}
+
+@synthesize title = _title;
+@synthesize identifier = _identifier;
+
+@end
+
 
 #endif /* __has_feature(objc_default_synthesize_properties) */
