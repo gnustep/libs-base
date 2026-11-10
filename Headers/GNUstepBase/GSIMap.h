@@ -953,7 +953,8 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 #endif
 
 /* Resize the map to use the specified number of buckets.
- * even values not allowed (automatically incremented).
+ * Even values are not allowed (automatically incremented).
+ * Does nothing if the map is already the right size.
  */
 GS_STATIC_INLINE void
 GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
@@ -962,8 +963,7 @@ GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
   uintptr_t	size = 1;
   uintptr_t	old = 1;
 
-  /*
-   *	Find next size up in the fibonacci series
+  /* Find next size up in the fibonacci series.
    */
   while (size < new_bucket_count)
     {
@@ -972,6 +972,7 @@ GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
       old = size;
       size += tmp;
     }
+
   /*
    *	Avoid even numbers - since hash functions frequently generate uneven
    *	distributions around powers of two -
@@ -982,21 +983,24 @@ GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
       size++;
     }
 
-  /* Use the zone specified for this map.
-   */
-  new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
-    sizeof(GSIMapBucket_t));
-
-  if (new_buckets != 0)
+  if (map->bucketCount != size)
     {
-      GSIMapRemangleBuckets(map, map->buckets, map->bucketCount, new_buckets,
-	size);
-      if (map->buckets != 0)
+      /* Use the zone specified for this map.
+       */
+      new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
+	sizeof(GSIMapBucket_t));
+
+      if (new_buckets != 0)
 	{
-	  NSZoneFree(map->zone, map->buckets);
+	  GSIMapRemangleBuckets(map, map->buckets, map->bucketCount,
+	    new_buckets, size);
+	  if (map->buckets != 0)
+	    {
+	      NSZoneFree(map->zone, map->buckets);
+	    }
+	  map->buckets = new_buckets;
+	  map->bucketCount = size;
 	}
-      map->buckets = new_buckets;
-      map->bucketCount = size;
     }
 }
 
@@ -1007,11 +1011,15 @@ GS_STATIC_INLINE void
 GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
   /* For a small map the cost of hashing may outweigh the cost of comparison
-   * so we use a single bucket and skip the hashing when we are finding nodes.
+   * so we refrain from creating more than one bucket and can skip the hashing
+   * when we are finding nodes.
    */
   if (capacity <= map->smallMap)
     {
-      GSIMapResize(map, 1);
+      if (0 == map->bucketCount)
+	{
+	  GSIMapResize(map, 1);
+	}
       return;
     }
 

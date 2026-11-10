@@ -361,44 +361,12 @@ static SEL	objSel;
   count = map.nodeCount;
   if (count == [other count])
     {
-      IMP	otherObj;
-
-      if (0 == count)
+      if (count > 0)
 	{
-	  return YES;
-	}
-
-      /* We assume that the other dictionary has optimised lookup so that
-       * finding an object matching our key is as efficient as possible.
-       */
-      otherObj = [other methodForSelector: objSel];
-
-      if (count <= 8)
-	{
-	  /* For small dictionaries the overhead of hash table lookups are
-	   * significant and it's quicker to just compare the dictionary
-	   * contents in arrays on the stack.
-	   * The threshold for performance switchover is a bit of a guess.
+	  /* We assume that the other dictionary has optimised lookup so that
+	   * finding an object matching our key is as efficient as possible.
 	   */
-	  int	i;
-	  id	keys[count];
-	  id	values[count];
-
-	  [self getObjects: values andKeys: keys count: count];
-
-	  for (i = 0; i < count; i++)
-	    {
-	      id	key = keys[i];
-	      id	value = (*otherObj)(other, objSel, key);
-
-	      if (nil == value || NO == [value isEqual: values[i]])
-		{
-		  return NO;
-		}
-	    }
-	}
-      else
-	{
+	  IMP			otherObj = [other methodForSelector: objSel];
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
 
@@ -408,7 +376,7 @@ static SEL	objSel;
 	      id o1 = node->value.obj;
 	      id o2 = (*otherObj)(other, objSel, node->key.obj);
 
-	      if (o1 != o2 && [o1 isEqual: o2] == NO)
+	      if (nil == o2 || NO == [o1 isEqual: o2])
 		{
 		  GSIMapEndEnumerator(&enumerator);
 		  return NO;

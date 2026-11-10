@@ -794,60 +794,56 @@ static SEL	appSel;
   count = [self count];
   if (count == [other count])
     {
-      IMP	otherObj;
-
-      if (0 == count)
+      if (count > 0)
 	{
-	  return YES;	// No contents to compare: dictionaries are equal.
-	}
+	  IMP	otherObj = [other methodForSelector: objSel];
 
-      otherObj = [other methodForSelector: objSel];
-
-      if (count <= 4)
-	{
-	  /* For small dictionaries the overhead of hash table lookups are
-	   * significant and it's quicker to just compare the dictionary
-	   * contents in arrays on the stack.
-	   * The threshold for performance switchover is a bit of a guess.
-	   */
-	  int	i;
-	  id	keys[count];
-	  id	values[count];
-
-	  [self getObjects: values andKeys: keys count: count];
-
-	  for (i = 0; i < count; i++)
+	  if (count <= 4)
 	    {
-	      id	key = keys[i];
-	      id	value = (*otherObj)(other, objSel, key);
+	      /* For small dictionaries the overhead of hash table lookups are
+	       * significant and it's quicker to just compare the dictionary
+	       * contents in arrays on the stack.
+	       * The threshold for performance switchover is a bit of a guess.
+	       */
+	      int	i;
+	      id	keys[count];
+	      id	objs[count];
 
-	      if (nil == value || NO == [value isEqual: values[i]])
+	      [self getObjects: objs andKeys: keys count: count];
+
+	      for (i = 0; i < count; i++)
 		{
-		  return NO;
+		  id	k = keys[i];
+		  id	o = (*otherObj)(other, objSel, k);
+
+		  if (nil == o || NO == [objs[i] isEqual: o])
+		    {
+		      return NO;
+		    }
 		}
 	    }
-	}
-      else
-	{
-	  /* For larger dictionaries we need to use the hash table lookup
-	   * to find dictionary values matching keys, so we use fast
-	   * enumeration to go through all the keys in one dictionary and
-	   * we cache the lookup method implementations to avoid message
-	   * overhead and have after lookup.
-	   */
-	  IMP	myObj = [self methodForSelector: objSel];
-
-	  GS_FOR_IN(id, k, self)
+	  else
 	    {
-	      id o1 = (*myObj)(self, objSel, k);
-	      id o2 = (*otherObj)(other, objSel, k);
+	      /* For larger dictionaries we need to use the hash table lookup
+	       * to find dictionary values matching keys, so we use fast
+	       * enumeration to go through all the keys in one dictionary and
+	       * we cache the lookup method implementations to avoid message
+	       * overhead and have after lookup.
+	       */
+	      IMP	myObj = [self methodForSelector: objSel];
 
-	      if (o1 != o2 && [o1 isEqual: o2] == NO)
+	      GS_FOR_IN(id, k, self)
 		{
-		  return NO;
+		  id o1 = (*myObj)(self, objSel, k);
+		  id o2 = (*otherObj)(other, objSel, k);
+
+		  if (nil == o2 || NO == [o1 isEqual: o2])
+		    {
+		      return NO;
+		    }
 		}
+	      GS_END_FOR(self)
 	    }
-	  GS_END_FOR(self)
 	}
       return YES;
     }
