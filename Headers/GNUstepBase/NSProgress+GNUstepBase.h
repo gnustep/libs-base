@@ -72,10 +72,8 @@ extern "C" {
  * progress uses a weak reference to the delegate, it does not retain it.<br />
  * Use this rather than the cancellation, pausing and resuming handlers,
  * which it replaces (do not attempt to use both).<br />
- * Like the handlers, the messages are sent asynchronously on another thread
- * where possible, so they may arrive after later changes of the progress.
- * Where that isn't possible, they are sent by the thread changing the
- * progress, without holding any of its locks.
+ * Like the handlers, the messages are sent asynchronously on another thread,
+ * so they may arrive after later changes of the progress.
  */
 - (void) setDelegate: (id<GSProgressDelegate>)delegate;
 

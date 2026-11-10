@@ -74,10 +74,8 @@ void checkMessages(void) {
     [progress pause];
     PASS(waitForCount(&d->paused, 1), "delegate is told about pausing");
     PASS(d->lastProgress == progress, "delegate is passed the progress");
-testHopeful = YES;
     PASS(d->lastThread != [NSThread currentThread],
       "delegate is sent messages asynchronously")
-testHopeful = NO;
     [progress pause];
     PASS(waitForCount(&d->paused, 2), "delegate is told about pausing again");
     [progress resume];
