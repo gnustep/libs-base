@@ -104,7 +104,7 @@ testClass(Class c)
 
       changed = [[m mutableCopy] autorelease];
       [changed removeObjectForKey: @"key0"];
-      [changed setObject: @0 forKey: @"other"];
+      [changed setObject: [NSNumber numberWithInt: 0] forKey: @"other"];
       PASS(NO == [d isEqual: changed] && NO == [changed isEqual: d],
 	"%s with %u entries differs when a key differs",
 	class_getName(c), count)
