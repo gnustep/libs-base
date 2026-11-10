@@ -1804,15 +1804,15 @@ _kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
       id oldValue;
 
       if (_observesNotifiedKey(keypathObserver, ctx))
-        {
-          oldValue = ctx->oldValue;
-        }
+	{
+	  oldValue = ctx->oldValue;
+	}
       else
-        {
-          /* The key has already changed, so this is the new value. */
-          oldValue = [keypathObserver.object
-            valueForKeyPath: keypathObserver.keypath];
-        }
+	{
+	  /* The key has already changed, so this is the new value. */
+	  oldValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
       [change setObject: (oldValue ? oldValue : [NSNull null])
                  forKey: NSKeyValueChangeOldKey];
     }
@@ -1834,14 +1834,14 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
       id newValue;
 
       if (_observesNotifiedKey(keypathObserver, ctx))
-        {
-          newValue = ctx->newValue;
-        }
+	{
+	  newValue = ctx->newValue;
+	}
       else
-        {
-          newValue = [keypathObserver.object
-            valueForKeyPath: keypathObserver.keypath];
-        }
+	{
+	  newValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
       [change setObject: (newValue ? newValue : [NSNull null])
                  forKey: NSKeyValueChangeNewKey];
     }
