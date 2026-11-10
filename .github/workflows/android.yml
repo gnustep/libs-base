@@ -112,10 +112,8 @@ jobs:
       with:
         name: android-test-log-api${{ matrix.api-level }}
         path: |
-          gs-run/all.txt
-          gs-run/failed.txt
-          gs-run/noresult.txt
-          gs-run/nobuild.txt
+          gs-run/*.txt
+          gs-run/logs/
           android-configure.log
           android-build.log
           android-install.log
