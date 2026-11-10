@@ -601,6 +601,8 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 {
 @public
   GSTLSSession  *session;
+  unsigned      calls;          // Calls into the session in progress
+  BOOL          byePending;     // Closed down during such a call
 }
 
 /** Populates the dictionary 'dict', copying in all the properties
@@ -785,10 +787,40 @@ static NSArray  *keys = nil;
     }
 }
 
+/* Starts a call into the session, which may send stream events (and thus
+ * call the delegate) from the push and pull callbacks.
+ */
+- (void) _beginCall
+{
+  RETAIN(self);
+  calls++;
+}
+
+/* Ends a call into the session, closing it down if that was requested
+ * while the call was in progress.
+ */
+- (void) _endCall
+{
+  if (0 == --calls && YES == byePending)
+    {
+      [self bye];
+    }
+  RELEASE(self);
+}
+
 - (void) bye
 {
   handshake = NO;
   active = NO;
+  if (calls > 0)
+    {
+      /* A delegate closed the stream on an event sent from within a call
+       * into the session, which still uses the session we would release.
+       */
+      byePending = YES;
+      return;
+    }
+  byePending = NO;
   [session disconnect: NO];
 }
 
@@ -808,13 +840,18 @@ static NSArray  *keys = nil;
 {
   if (active == NO)
     {
+      BOOL      done;
+
       if (handshake == NO)
         {
           /* Set flag to say we are now doing a handshake.
            */
           handshake = YES;
         }
-      if ([session handshake] == YES)
+      [self _beginCall];
+      done = [session handshake];
+      [self _endCall];
+      if (done == YES)
         {
           handshake = NO;               // Handshake is now complete.
           active = [session active];    // Is the TLS session now active?
@@ -941,7 +978,12 @@ static NSArray  *keys = nil;
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return [session read: buffer length: len];
+  NSInteger     result;
+
+  [self _beginCall];
+  result = [session read: buffer length: len];
+  [self _endCall];
+  return result;
 }
 
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
@@ -1029,10 +1071,16 @@ static NSArray  *keys = nil;
     {
       NSInteger	written;
 
+      [self _beginCall];
       written = [session write: buffer + offset length: len - offset];
+      [self _endCall];
       if (written > 0)
 	{
 	  offset += written;
+	}
+      else if (NO == [session active])
+	{
+	  break;	// The session was closed down.
 	}
     }
   return offset;

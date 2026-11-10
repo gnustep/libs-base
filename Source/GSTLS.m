@@ -2156,8 +2156,13 @@ retrieve_callback(gnutls_session_t session,
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
-  int   result = gnutls_record_recv(session, buf, len);
+  int   result;
 
+  if (NO == setup)
+    {
+      return 0;         // The session was closed down.
+    }
+  result = gnutls_record_recv(session, buf, len);
   if (result < 0)
     {
       NSString  *p;
@@ -2214,8 +2219,19 @@ retrieve_callback(gnutls_session_t session,
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
-  int   result = gnutls_record_send(session, buf, len);
+  int   result;
 
+  if (NO == setup)
+    {
+      /* The session was closed down.
+       */
+      errno = EBADF;
+#if	defined(_WIN32)
+      WSASetLastError(WSAEBADF);
+#endif
+      return -1;
+    }
+  result = gnutls_record_send(session, buf, len);
   if (result < 0)
     {
       if (GNUTLS_E_AGAIN == result)

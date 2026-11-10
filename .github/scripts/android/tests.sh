@@ -8,10 +8,23 @@
 # run holds the port.  Getting any of that wrong loses coverage silently rather
 # than failing, so the summary reports files that produced no result at all.
 #
+# The job log carries only the per-directory counts, the summary and the
+# output of the tests that need attention.  Every test's full output is in
+# gs-run/logs/<directory>/<test>.log, which the workflow uploads.
+#
 set -eu
-trap 'rc=$?; echo "runner stopped: rc=$rc at: $BASH_COMMAND" >&2' EXIT
+on_exit() {
+  rc=$?
+  # The whole buffer, not just this run's tests: a crash in a helper or in
+  # gdnc shows up here too.
+  [ -d "${W:-}" ] && adb logcat -d > "$W/logcat.txt" 2>/dev/null </dev/null || true
+  [ "$rc" = 0 ] || echo "runner stopped: rc=$rc at: $BASH_COMMAND" >&2
+}
+trap on_exit EXIT
+# Tracing echoes every test's output again, several times over, into the
+# job log.  Set GS_TRACE=1 to debug the script itself.
 PS4='+ [${LINENO}] '
-set -x
+[ -n "${GS_TRACE:-}" ] && set -x
 
 : "${ANDROID_NDK_HOME:?}"
 : "${GS_PREFIX:?}"
@@ -49,6 +62,9 @@ TMP=/data/local/tests/gstmp
 EXPECTED="${GS_EXPECTED:-$GS_BASE/.github/scripts/android/expected-failures.txt}"
 
 rm -rf "$W"; mkdir -p "$W"
+LOGS="$W/logs"
+mkdir -p "$LOGS"
+echo "::group::Deploy to the device"
 adb wait-for-device
 # No `adb root`: restarting adbd takes the device offline under the emulator
 # action. /data/local/tests is writable without it.
@@ -113,9 +129,17 @@ if [ -n "$GDNC" ]; then
 else
   echo "  gdnc: NOT FOUND in $ROOT"
 fi
+# Start the crash buffer empty, so what it holds after a test belongs to it.
+adb logcat -b crash -c </dev/null >/dev/null 2>&1 || true
+echo "::endgroup::"
 
-TP=0; TF_=0; TH=0; TS=0; TC=0; NB=0; NR=0; DIRS=0
-: > "$W/all.txt"; : > "$W/nobuild.txt"; : > "$W/noresult.txt"; : > "$W/failed.txt"
+TP=0; TF_=0; TH=0; TS=0; TC=0; TT=0; TL=0; NB=0; NR=0; DIRS=0
+# results.txt has one line per test file: "dir/test rc passed failed hopes
+# skipped".  attention.txt lists the test files whose output the summary
+# shows: those that failed a test, crashed, timed out or lost their exit
+# status.
+: > "$W/results.txt"; : > "$W/nobuild.txt"; : > "$W/noresult.txt"; : > "$W/failed.txt"
+: > "$W/crashed.txt"; : > "$W/attention.txt"
 
 for d in "$GS_BASE"/Tests/base/*/; do
   n=$(basename "$d")
@@ -148,8 +172,12 @@ for d in "$GS_BASE"/Tests/base/*/; do
     [ -d "$d/Helpers/obj" ] && mkdir -p "$W/$n/Helpers/obj" && \
       find "$d/Helpers/obj" -maxdepth 1 -type f ! -name '*.obj' \
         -exec cp {} "$W/$n/Helpers/obj/" \; 2>/dev/null || true
-    for b in "$d"Helpers/*.bundle; do
-      [ -d "$b" ] && cp -rL "$b" "$W/$n/Helpers/" 2>/dev/null || true
+    # bundles, and data such as NSURLConnection's Helpers/addressTLS
+    # certificates
+    for sub in "$d"Helpers/*/; do
+      [ -d "$sub" ] || continue
+      case "$(basename "$sub")" in obj|derived_src) continue ;; esac
+      cp -rL "$sub" "$W/$n/Helpers/" 2>/dev/null || true
     done
   fi
 
@@ -177,7 +205,8 @@ for d in "$GS_BASE"/Tests/base/*/; do
       built="$built $b"
     else
       NB=$((NB+1))
-      echo "$n/$b: $(grep -m1 -oE 'error: .{0,70}' "$W/$n/$b.clog")" >> "$W/nobuild.txt"
+      echo "$n/$b: $(grep -m1 'error:' "$W/$n/$b.clog" | sed -E 's|.*/Tests/base/||')" >> "$W/nobuild.txt"
+      mkdir -p "$LOGS/$n"; cp "$W/$n/$b.clog" "$LOGS/$n/$b.build.log"
     fi
   done
   [ -z "$built" ] && continue
@@ -207,23 +236,42 @@ for d in "$GS_BASE"/Tests/base/*/; do
   fi
 
   dp=0; df=0; dh=0; ds=0
+  mkdir -p "$LOGS/$n"
   for b in $built; do
-    out=$(adb shell "cd $DEV/$n && LD_LIBRARY_PATH=$DEV PATH=$DEV/Tools:\$PATH TMPDIR=$TMP \
-      GNUSTEP_CONFIG_FILE=$CONF timeout -s KILL $GS_TIMEOUT ./$b 2>&1; echo RC=\$?" \
-      </dev/null | tr -d '\r')
-    rc=$(echo "$out" | sed -n 's/^RC=//p' | tail -1)
-    fp=$(echo "$out" | grep -c "^Passed test") || true
-    ff=$(echo "$out" | grep -c "^Failed test") || true
-    fh=$(echo "$out" | grep -c "^Dashed hope") || true
-    fs=$(echo "$out" | grep -c "^Skipped set") || true
+    # Straight to a file: a test can print hundreds of megabytes (GSTLSDebug).
+    log="$LOGS/$n/$b.log"
+    adb shell "cd $DEV/$n && LD_LIBRARY_PATH=$DEV PATH=$DEV/Tools:\$PATH TMPDIR=$TMP \
+      GNUSTEP_CONFIG_FILE=$CONF timeout -s KILL $GS_TIMEOUT ./$b 2>&1; r=\$?; echo; echo RC=\$r" \
+      </dev/null 2>&1 | tr -d '\r' > "$log" || true
+    rc=$(sed -n 's/^RC=//p' "$log" | tail -1)
+    fp=$(grep -ac "^Passed test" "$log") || true
+    ff=$(grep -ac "^Failed test" "$log") || true
+    fh=$(grep -ac "^Dashed hope" "$log") || true
+    fs=$(grep -ac "^Skipped set" "$log") || true
     dp=$((dp+fp)); df=$((df+ff)); dh=$((dh+fh)); ds=$((ds+fs))
-    echo "$out" | grep "^Failed test" | sed -E "s|.*/Tests/base/||" >> "$W/failed.txt" || true
-    [ "${rc:-0}" -ge 128 ] 2>/dev/null && TC=$((TC+1))
+    grep -a "^Failed test" "$log" | sed -E "s|.*/Tests/base/||" >> "$W/failed.txt" || true
+    echo "$n/$b ${rc:-none} $fp $ff $fh $fs" >> "$W/results.txt"
+    why=""
+    [ "$ff" -gt 0 ] && why="failed $ff"
+    if [ -z "$rc" ]; then
+      # the adb connection dropped or the output stopped before the RC line
+      TL=$((TL+1)); why="${why:+$why, }no exit status"
+    elif [ "$rc" = 137 ]; then
+      TT=$((TT+1)); why="${why:+$why, }killed after ${GS_TIMEOUT}s"
+    elif [ "$rc" -ge 128 ] 2>/dev/null; then
+      TC=$((TC+1)); why="${why:+$why, }signal $((rc-128))"
+      echo "$n/$b (rc=$rc)" >> "$W/crashed.txt"
+    fi
+    if [ -z "$rc" ] || [ "$rc" -ge 128 ] 2>/dev/null; then
+      # the native crash report, with the backtrace
+      adb logcat -d -b crash </dev/null > "$LOGS/$n/$b.crash.txt" 2>&1 || true
+      adb logcat -b crash -c </dev/null >/dev/null 2>&1 || true
+    fi
+    [ -n "$why" ] && echo "$n/$b|$why" >> "$W/attention.txt"
     # A file that reports nothing looks like a pass while testing nothing.
     if [ $((fp+ff+fh+fs)) -eq 0 ]; then
-      NR=$((NR+1)); echo "$n/$b (rc=$rc)" >> "$W/noresult.txt"
+      NR=$((NR+1)); echo "$n/$b (rc=${rc:-none})" >> "$W/noresult.txt"
     fi
-    { echo "### $n/$b rc=$rc"; echo "$out"; } >> "$W/all.txt"
   done
   printf "  %-28s %5s passed %4s failed %3s hopes %3s skipped\n" "$n" "$dp" "$df" "$dh" "$ds"
   TP=$((TP+dp)); TF_=$((TF_+df)); TH=$((TH+dh)); TS=$((TS+ds))
@@ -233,24 +281,98 @@ echo
 echo "======== libs-base on Android $GS_TRIPLE API $GS_API ========"
 printf "  directories %5d\n  passed      %5d\n  failed      %5d\n" "$DIRS" "$TP" "$TF_"
 printf "  hopes       %5d\n  skipped     %5d\n  crashed     %5d\n" "$TH" "$TS" "$TC"
+printf "  timed out   %5d\n  no exit status %2d\n" "$TT" "$TL"
 printf "  no result   %5d\n  did not build %3d\n" "$NR" "$NB"
 [ -s "$W/nobuild.txt" ] && { echo; echo "  did not build:"; sed 's/^/    /' "$W/nobuild.txt"; }
 [ -s "$W/noresult.txt" ] && { echo; echo "  produced no result at all:"; sed 's/^/    /' "$W/noresult.txt"; }
+[ -s "$W/crashed.txt" ] && { echo; echo "  crashed:"; sed 's/^/    /' "$W/crashed.txt"; }
 
 # ------------------------------------------------------------------ verdict
+# A failure is tolerated only if its "dir/file.m:line" is listed.
+: > "$W/unexpected.txt"
+sed 's/^Failed test: *//; s/^ *//' "$W/failed.txt" | while read -r line; do
+  key=${line%% *}
+  [ -f "$EXPECTED" ] && grep -v '^#' "$EXPECTED" | grep -qxF "$key" && continue
+  echo "$line"
+done > "$W/unexpected.txt"
+
+# --------------------------------------------------------- what went wrong
+# Excerpts rather than whole logs: one test with GSTLSDebug on prints over
+# 200 MB.  Long lines are cut, a test can print binary.
+needs_attention() {
+  case "$2" in
+    "failed "*,*) return 0 ;;
+    "failed "*) grep -q "^${1%/*}/${1##*/}\.m:" "$W/unexpected.txt" ;;
+    *) return 0 ;;
+  esac
+}
+: > "$W/shown.txt"
+while IFS='|' read -r t why; do
+  needs_attention "$t" "$why" && echo "$t|$why" >> "$W/shown.txt"
+done < "$W/attention.txt"
+if [ -s "$W/shown.txt" ] || [ -s "$W/nobuild.txt" ]; then
+  echo; echo "  test files that need attention (every test's full output is in the artifact):"
+fi
+while IFS='|' read -r t why; do
+  echo "::group::$t: $why"
+  if grep -aq "^Failed test" "$LOGS/$t.log"; then
+    echo "--- each failure with the lines before it"
+    grep -a -B8 "^Failed test" "$LOGS/$t.log" | head -n 150 | cut -c1-300
+  fi
+  echo "--- last 20 lines of logs/$t.log ($(wc -c < "$LOGS/$t.log") bytes)"
+  tail -n 20 "$LOGS/$t.log" | cut -c1-300
+  if [ -s "$LOGS/$t.crash.txt" ]; then
+    echo "--- crash buffer (logs/$t.crash.txt)"
+    head -n 80 "$LOGS/$t.crash.txt" | cut -c1-300
+  fi
+  echo "::endgroup::"
+done < "$W/shown.txt"
+for t in $(sed 's/:.*//' "$W/nobuild.txt"); do
+  echo "::group::$t: did not build"
+  head -n 40 "$LOGS/$t.build.log" | cut -c1-300
+  echo "::endgroup::"
+done
+
 rc=0
 [ "$NB" -gt 0 ] && { echo; echo "FAIL: $NB test files did not build"; rc=1; }
+while read -r t; do
+  echo "::error file=Tests/base/${t%%:*}.m::did not build: ${t#*: }"
+done < "$W/nobuild.txt"
 if [ -s "$W/failed.txt" ]; then
   echo; echo "  failures:"; sed 's/^/    /' "$W/failed.txt"
-  if [ -f "$EXPECTED" ]; then
-    # A failure is tolerated only if its "dir:file.m:line" prefix is listed.
-    while read -r line; do
-      key=$(echo "$line" | cut -d' ' -f1)
-      grep -qF "$key" "$EXPECTED" || { echo "  UNEXPECTED: $line"; rc=1; }
-    done < <(sed 's/^Failed test: *//' "$W/failed.txt" | sed 's/^ *//')
-    [ "$rc" = 0 ] && echo "  (all listed in $(basename "$EXPECTED"))"
-  else
+  if [ -s "$W/unexpected.txt" ]; then
     rc=1
+    while read -r line; do
+      key=${line%% *}
+      echo "  UNEXPECTED: $line"
+      # an annotation on the test source, listed on the run's summary page
+      echo "::error file=Tests/base/${key%:*},line=${key##*:}::${line#* ... }"
+    done < "$W/unexpected.txt"
+  else
+    echo "  (all listed in $(basename "$EXPECTED"))"
   fi
+fi
+while IFS='|' read -r t why; do
+  case "$why" in "failed "*) ;; *) echo "::warning file=Tests/base/$t.m::$why" ;; esac
+done < "$W/shown.txt"
+
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  {
+    echo "### libs-base on Android $GS_TRIPLE API $GS_API"
+    echo
+    echo "| passed | failed | hopes | skipped | crashed | timed out | no exit status | no result | did not build |"
+    echo "|---|---|---|---|---|---|---|---|---|"
+    echo "| $TP | $TF_ | $TH | $TS | $TC | $TT | $TL | $NR | $NB |"
+    if [ -s "$W/unexpected.txt" ] || [ -s "$W/nobuild.txt" ]; then
+      echo; echo "**Unexpected failures**"; echo; echo '```'
+      cat "$W/unexpected.txt" "$W/nobuild.txt"
+      echo '```'
+    fi
+    if [ -s "$W/shown.txt" ]; then
+      echo; echo "**Needs attention**"; echo
+      sed 's/^\(.*\)|\(.*\)$/- `\1`: \2/' "$W/shown.txt"
+    fi
+    echo; echo "Every test's full output: the android-test-log artifact, logs/<directory>/<test>.log"
+  } >> "$GITHUB_STEP_SUMMARY"
 fi
 exit $rc
