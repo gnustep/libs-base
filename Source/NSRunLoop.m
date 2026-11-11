@@ -830,6 +830,45 @@ runRestore(GSRLInternal *loop)
   return [NSArray arrayWithObjects: modes count: i - 1];
 }
 
+- (BOOL) performPendingSelectorsForMode: (NSString*)mode
+{
+  GSRunLoopCtxt	*context;
+  BOOL		found = NO;
+
+  if (nil == mode)
+    {
+      mode = NSDefaultRunLoopMode;
+    }
+  context = runStart(myvars, mode);
+  if (nil == context)
+    {
+      return NO;
+    }
+  NS_DURING
+    {
+      /* As -acceptInputForMode:beforeDate: does before it polls: move the
+       * performers queued from other threads onto this loop, then perform
+       * this mode's.
+       */
+      if ([myvars->threadInfo fire])
+	{
+	  found = YES;
+	}
+      if ([self _checkPerformers: context])
+	{
+	  found = YES;
+	}
+    }
+  NS_HANDLER
+    {
+      runRestore(myvars);
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  runRestore(myvars);
+  return found;
+}
+
 - (CFRunLoopRef) getCFRunLoop
 {
   return (CFRunLoopRef)self;

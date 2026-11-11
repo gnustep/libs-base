@@ -1,3 +1,16 @@
+2026-11-11 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/NSRunLoop.m:
+	* Tests/base/NSRunLoop/performpending.m:
+	Add -[NSRunLoop performPendingSelectorsForMode:], a GNUstep extension
+	that performs a mode's pending performers (work queued from other
+	threads with -performSelectorOnMainThread:..., then work queued with
+	-performSelector:target:argument:order:modes:) without polling input
+	or firing timers, as -acceptInputForMode:beforeDate: does before it
+	polls.  For code that services the loop while something else owns the
+	thread's event queue, such as a timer in Windows' modal move/size loop.
+
 2026-11-10 Quin Gillespie <trypsynth@gmail.com>
 
 	* configure.ac:
