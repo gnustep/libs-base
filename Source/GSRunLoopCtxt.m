@@ -138,7 +138,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
           if (item.obj == (id)watcher)
             {
-              GSIArrayRemoveItemAtIndex(_trigger, i);
+              GSIArraySetItemAtIndex(_trigger, (GSIArrayItem)(id)nil, i);
               return;
             }
         }
