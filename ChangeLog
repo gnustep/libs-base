@@ -1,3 +1,14 @@
+2026-11-11 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/NSArray.m:
+	* Tests/base/NSArray/concurrent_first_use.m:
+	Set NSMutableArrayClass and GSMutableArrayClass in
+	+[NSMutableArray initialize], as NSMutableDictionary, NSMutableSet and
+	NSMutableOrderedSet do for their classes.  They were set only in
+	+[NSArray initialize], which initializes NSMutableArray before it
+	assigns them, so another thread using NSMutableArray for the first time
+	could get nil, or an abstract NSMutableArray, from +alloc.
+
 2026-11-10 Quin Gillespie <trypsynth@gmail.com>
 
 	* configure.ac:
