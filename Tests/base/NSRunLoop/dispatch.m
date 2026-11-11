@@ -63,20 +63,21 @@ incrementer(void *ctxt)
 
 - (void)worker: (Counter*)counter
 {
+  ENTER_POOL
   NSUInteger i = 0;
-  NSAutoreleasePool     *pool = [NSAutoreleasePool new];
+
   for (i  = 0; i < 5; i++)
-  {
+    {
 #   ifdef DISPATCH_RL_INTEGRATION
-      dispatch_async_f(dispatch_get_main_queue(), counter, incrementer);
+	dispatch_async_f(dispatch_get_main_queue(), counter, incrementer);
 #   endif
-    NSDate *d  = [NSDate dateWithTimeIntervalSinceNow: kDelay];
-    while ([d timeIntervalSinceNow] > 0)
-      {
-        [[NSRunLoop currentRunLoop] runUntilDate: d];
-      }
-  }
-  [pool release];
+      NSDate *d  = [NSDate dateWithTimeIntervalSinceNow: kDelay];
+      while ([d timeIntervalSinceNow] > 0)
+	{
+	  [[NSRunLoop currentRunLoop] runUntilDate: d];
+	}
+    }
+  LEAVE_POOL
 }
 
 
