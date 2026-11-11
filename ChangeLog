@@ -1,3 +1,12 @@
+2026-11-10 Quin Gillespie <trypsynth@gmail.com>
+
+	* configure.ac:
+	* configure:
+	Leave the user domain's header and library directories out of
+	gnustep-base.pc unless gnustep-base is installed into the user domain.
+	The file recorded the home directory of whoever ran configure, such as
+	/home/runneradmin on a CI machine.
+
 2026-11-09 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSIndexSet.h:
