@@ -212,6 +212,22 @@ typedef	enum {
  */
 - (NSArray*) allModes;
 
+/** Performs the receiver's pending performers for the specified mode
+ * (nil means NSDefaultRunLoopMode), without polling any input source and
+ * without firing timers: work queued from other threads with
+ * -performSelectorOnMainThread:withObject:waitUntilDone:modes: (and
+ * -performSelector:onThread:...), then work queued in this thread with
+ * -performSelector:target:argument:order:modes:.  These are the
+ * performers -acceptInputForMode:beforeDate: runs before it polls.<br />
+ * For code that services the loop while something else owns the thread's
+ * event queue, and so can't let the loop read input: on Windows, a timer
+ * running while a window is moved or sized in DefWindowProc's modal loop.
+ * <br />
+ * Returns YES if anything was performed.  Must be called in the
+ * receiver's thread.
+ */
+- (BOOL) performPendingSelectorsForMode: (NSString*)mode;
+
 /** Method to get a value to pass to CFRunLoopAddCommonMode()
  */
 - (CFRunLoopRef) getCFRunLoop;
