@@ -7,6 +7,14 @@
  */
 #import <Foundation/Foundation.h>
 #import "Testing.h"
+
+#if     defined(_WIN32)
+int main()
+{
+  return 0;
+}
+#else
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/resource.h>
@@ -174,3 +182,5 @@ int main()
   LEAVE_POOL
   return 0;
 }
+
+#endif
