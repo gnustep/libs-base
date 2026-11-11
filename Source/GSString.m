@@ -794,6 +794,10 @@ static BOOL useTinyStrings;
  * A GSTinyString is used on 64-bit platforms to store up to 8 ASCII (7-bit)
  * characters inside a pointer.  Note that a mutable version of this class is
  * not possible, because modifying the string changes the pointer value.
+ * The length field could specify up to 15 characters so we could theoretically
+ * have up to 7 implied nul characters at the end of a string, but supporting
+ * that would add code complexity (and reduce performance) without providing
+ * any real gain.
  * The layout of a tiny string is as follows:
   struct
   {
@@ -1196,20 +1200,13 @@ createTinyString(const char *str, int length)
 
   /* String too long to fit in a pointer, give up
    */
-  if (length > 9)
+  if (length > 8)
     {
       return nil;
     }
 
-  /* String would fit if the last byte was an implicit 0, but it isn't.
-   */
-  if ((length == 9) && str[8] != '\0')
-    {
-      return nil;
-    }
-  
   s |= length << TINY_STRING_LENGTH_SHIFT;
-  for (i = 0 ; i<length ; i++)
+  for (i = 0; i < length; i++)
     {
       // If this is not a 7-bit character, we can't use it.
       if (str[i] & 0x80) { return nil; }
