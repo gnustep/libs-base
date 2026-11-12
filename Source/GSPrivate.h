@@ -358,10 +358,6 @@ typedef enum {
   int                   outputFd;
 #endif	
 }
-/* Add a performer to be run in the loop's thread.  May be called from
- * any thread.
- */
-- (void) addPerformer: (id)performer;
 /* Fire all pending performers matching the current threads run loop mode.
  * Returns YES if any matching performer was found.
  */
@@ -373,6 +369,10 @@ typedef enum {
  * when a run loop has determined the the source has been triggered.
  */
 - (void) reset;
+/* May be called from any thread to wake the run loop.
+ * Optionally add a performer to be run in the loop's thread upon waking.
+ */
+- (void) wakeFor: (id)performer;
 @end
 
 /* Return (and optionally create) GSRunLoopThreadInfo for the specified

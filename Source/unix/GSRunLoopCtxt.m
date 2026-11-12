@@ -440,7 +440,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     {
       milliseconds = 0;
     }
+  if (milliseconds > 0)
+    {
+      loop->isWaiting = YES;
+    }
   poll_return = poll(pollfds, pollfds_count, milliseconds);
+  loop->isWaiting = NO;
 #if 0
 {
   unsigned int i;
@@ -952,10 +957,13 @@ selectFd(int fd, fd_set *set, int *fdEnd)
     }
   select_timeout = &timeout;
 
-  // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
-
-  select_return = select (fdEnd, &read_fds, &write_fds,
+  if (timeout.tv_usec > 0 || timeout.tv_sec > 0)
+    {
+      loop->isWaiting = YES;
+    }
+  select_return = select(fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);
+  loop->isWaiting = NO;
 
   if (debug) NSLog(@"select returned %d", select_return);
 
