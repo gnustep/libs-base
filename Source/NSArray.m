@@ -2073,6 +2073,13 @@ compare(id elem1, id elem2, void* context)
 {
   if (self == [NSMutableArray class])
     {
+      /* +allocWithZone: relies on these.  Set them here rather than only
+       * in +[NSArray initialize]: when that method's [NSMutableArray class]
+       * initializes this class, other threads can use NSMutableArray
+       * before +[NSArray initialize] has assigned them.
+       */
+      NSMutableArrayClass = self;
+      GSMutableArrayClass = [GSMutableArray class];
     }
 }
 
