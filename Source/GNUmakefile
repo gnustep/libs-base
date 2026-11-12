@@ -168,6 +168,7 @@ Additions.h
 
 BASE_MFILES = \
 CXXException.m\
+GSAWSUbiquitousKeyValueStore.m \
 GSArray.m \
 GSAttributedString.m \
 GSBlocks.m \
@@ -176,17 +177,21 @@ GSCountedSet.m \
 GSDictionary.m \
 GSFTPURLHandle.m \
 GSFormat.m \
+GSGoogleDriveUbiquitousKeyValueStore.m \
 GSHTTPAuthentication.m \
 GSHTTPURLHandle.m \
 GSICUString.m \
+GSKeyValueStoreTransfer.m \
 GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
+GSRemoteUbiquitousKeyValueStore.m \
 GSRunLoopCtxt.m \
 GSRunLoopScheduler.m \
 GSRunLoopWatcher.m \
 GSSet.m \
 GSShellSort.m \
+GSSimpleUbiquitousKeyValueStore.m \
 GSSocketStream.m \
 GSStream.m \
 GSString.m \

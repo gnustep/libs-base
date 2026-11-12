@@ -22,18 +22,13 @@
 
 */
 #import "common.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSKeyedArchiver.h"
-#import <Foundation/NSUbiquitousKeyValueStore.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSData.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSValue.h>
-#import <Foundation/NSUserDefaults.h>
+#import "Foundation/NSUbiquitousKeyValueStore.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSUserDefaults.h"
 
 static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 
@@ -189,64 +184,4 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
   return nil;
 }
 
-@end
-
-@interface GSSimpleUbiquitousKeyValueStore : NSUbiquitousKeyValueStore
-{
-  NSMutableDictionary *_dict;
-}
-@end
-
-@implementation GSSimpleUbiquitousKeyValueStore
-
-- (id) init
-{
-  self = [super init];
-  if(self != nil)
-    {
-      _dict = [[NSMutableDictionary alloc] initWithCapacity: 10];
-    }
-  return self;
-}
-
-// Returns the object associated with the specified key.
-- (id) objectForKey: (NSString *)key
-{
-  return [_dict objectForKey: key];
-}
-
-// Sets an object for the specified key in the key-value store.
-- (void) setObject: (id) obj forKey: (NSString *)key
-{
-  [_dict setObject: obj forKey: key];
-}
-
-// Explicitly Synchronizing In-Memory Key-Value Data to Disk
-// Explicitly synchronizes in-memory keys and values with those stored on disk.
-- (void) synchronize
-{
-}
-
-// Removing Keys
-// Removes the value associated with the specified key from the key-value store.
-- (void) removeObjectForKey: (NSString *)key
-{
-  [_dict removeObjectForKey: key];
-}
-
-// Retrieving the Current Keys and Values
-// A dictionary containing all of the key-value pairs in the key-value store.
-- (NSDictionary *) dictionaryRepresentation
-{
-  return _dict;
-}
-
-@end
-
-@interface GSAWSUbiquitousKeyValueStore : NSUbiquitousKeyValueStore
-{
-}
-@end
-
-@implementation GSAWSUbiquitousKeyValueStore
 @end
