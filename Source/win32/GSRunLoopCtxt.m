@@ -449,6 +449,10 @@
       existingMessages = YES;
     }
 
+  if (wait_timeout != 0)
+    {
+      loop->isWaiting = YES;
+    }
   if (num_winMsgs > 0)
     {
       if (debug)
@@ -485,6 +489,7 @@
       SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_TIMEOUT;
     }
+  loop->isWaiting = NO;
 
   // check wait errors
   if (WAIT_FAILED == wait_return

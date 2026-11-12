@@ -1977,88 +1977,6 @@ lockInfoErr(NSString *str)
 @end
 
 @implementation GSRunLoopThreadInfo
-- (void) addPerformer: (id)performer
-{
-  BOOL  signalled;
-
-  [lock lock];
-
-  /* If there are any performers present, the thread must already have
-   * been signalled to handle them, so we don't need to signal again.
-   */
-  signalled = [performers count] ? YES : NO;
-
-#if defined(_WIN32)
-  if (NO == signalled)
-    {
-      if (INVALID_HANDLE_VALUE != event)
-	{
-	  if (SetEvent(event) == 0)
-	    {
-	      NSLog(@"Set event failed - %@", [NSError _last]);
-	    }
-	  else
-	    {
-	      signalled = YES;
-	    }
-	}
-    }
-#else
-  if (NO == signalled)
-    {
-#if     defined(HAVE_SYS_EVENTFD_H)
-        {
-          uint64_t  val = 1;
-
-          signalled = (write(outputFd, &val, 8) > 0) ? YES : NO;
-        }
-#else
-	{
-	  NSTimeInterval        start = 0.0;
-
-	  /* The write could concievably fail if the pipe is full.
-	   * In that case we need to release the lock temporarily to
-	   * allow the other thread to consume data from the pipe.
-	   * It's possible that the thread and its runloop might stop
-	   * during that. so we need to check that outputFd is still valid.
-	   */
-	  while (outputFd >= 0
-	    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
-	    {
-	      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
-
-	      if (0.0 == start)
-		{
-		  start = now;
-		}
-	      else if (now - start >= 1.0)
-		{
-		  NSLog(@"Unable to signal %@ within a second; blocked?", self);
-		  break;
-		}
-	      [lock unlock];
-	      [lock lock];
-	    }
-	}
-#endif
-    }
-#endif
-
-  if (YES == signalled)
-    {
-      [performers addObject: performer];
-      NSDebugMLLog(@"NSRunLoop", @"Added %@ thread", performer);
-    }
-  [lock unlock];
-  if (NO == signalled)
-    {
-      /* We failed to add the performer ... so we must invalidate it in
-       * case there is code waiting for it to complete.
-       */
-      [performer invalidate];
-    }
-}
-
 - (void) dealloc
 {
   [self invalidate];
@@ -2280,6 +2198,91 @@ lockInfoErr(NSString *str)
 #endif
   [lock unlock];
 }
+
+/* NB. adding a nil performer just signals the thread to wake up.
+ */
+- (void) wakeFor: (id)performer
+{
+  BOOL  signalled;
+
+  [lock lock];
+
+  /* If there are any performers present, the thread must already have
+   * been signalled to handle them, so we don't need to signal again.
+   */
+  signalled = [performers count] ? YES : NO;
+
+#if defined(_WIN32)
+  if (NO == signalled)
+    {
+      if (INVALID_HANDLE_VALUE != event)
+	{
+	  if (SetEvent(event) == 0)
+	    {
+	      NSLog(@"Set event failed - %@", [NSError _last]);
+	    }
+	  else
+	    {
+	      signalled = YES;
+	    }
+	}
+    }
+#else
+  if (NO == signalled)
+    {
+#if     defined(HAVE_SYS_EVENTFD_H)
+        {
+          uint64_t  val = 1;
+
+          signalled = (write(outputFd, &val, 8) > 0) ? YES : NO;
+        }
+#else
+	{
+	  NSTimeInterval        start = 0.0;
+
+	  /* The write could concievably fail if the pipe is full.
+	   * In that case we need to release the lock temporarily to
+	   * allow the other thread to consume data from the pipe.
+	   * It's possible that the thread and its runloop might stop
+	   * during that. so we need to check that outputFd is still valid.
+	   */
+	  while (outputFd >= 0
+	    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
+	    {
+	      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+
+	      if (0.0 == start)
+		{
+		  start = now;
+		}
+	      else if (now - start >= 1.0)
+		{
+		  NSLog(@"Unable to signal %@ within a second; blocked?", self);
+		  break;
+		}
+	      [lock unlock];
+	      [lock lock];
+	    }
+	}
+#endif
+    }
+#endif
+
+  if (signalled && performer)
+    {
+      [performers addObject: performer];
+      NSDebugMLLog(@"NSRunLoop", @"Added %@ thread", performer);
+    }
+  [lock unlock];
+  if (NO == signalled)
+    {
+      /* We failed to add the performer ... so we must invalidate it in
+       * case there is code waiting for it to complete.
+       */
+      [performer invalidate];
+    }
+}
+
 @end
 
 GSRunLoopThreadInfo *
@@ -2506,7 +2509,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 				 selector: aSelector
 				    modes: anArray
 				     lock: l];
-      [info addPerformer: h];
+      [info wakeFor: h];
       if (l != nil)
 	{
           [l lockWhenCondition: 1];

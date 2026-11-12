@@ -815,6 +815,44 @@ runRestore(GSRLInternal *loop)
     }
 }
 
+- (void) addEvent: (void*)data
+             type: (RunLoopEventType)type
+          watcher: (id<RunLoopEvents>)watcher
+          forMode: (NSString*)mode
+{
+  GSRunLoopWatcher	*info;
+
+  if (mode == nil)
+    {
+      mode = [self currentMode];
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
+    }
+
+  info = [self _getWatcher: data type: type forMode: mode];
+
+  if (info != nil && (id)info->receiver == (id)watcher)
+    {
+      /* Increment usage count for this watcher. */
+      info->count++;
+    }
+  else
+    {
+      /* Remove any existing handler for another watcher. */
+      [self _removeWatcher: data type: type forMode: mode];
+
+      /* Create new object to hold information. */
+      info = [[GSRunLoopWatcher alloc] initWithType: type
+					   receiver: watcher
+					       data: data];
+      /* Add the object to the array for the mode. */
+      [self _addWatcher: info forMode: mode];
+      RELEASE(info);		/* Now held in array.	*/
+    }
+}
+
 - (NSArray*) allModes
 {
   NSString	*modes[64];
@@ -853,42 +891,9 @@ CFRunLoopCopyCurrentMode(CFRunLoopRef loop)
   return (CFStringRef)[[(NSRunLoop*)loop currentMode] copy];
 }
 
-- (void) addEvent: (void*)data
-             type: (RunLoopEventType)type
-          watcher: (id<RunLoopEvents>)watcher
-          forMode: (NSString*)mode
+- (BOOL) isWaiting
 {
-  GSRunLoopWatcher	*info;
-
-  if (mode == nil)
-    {
-      mode = [self currentMode];
-      if (mode == nil)
-	{
-	  mode = NSDefaultRunLoopMode;
-	}
-    }
-
-  info = [self _getWatcher: data type: type forMode: mode];
-
-  if (info != nil && (id)info->receiver == (id)watcher)
-    {
-      /* Increment usage count for this watcher. */
-      info->count++;
-    }
-  else
-    {
-      /* Remove any existing handler for another watcher. */
-      [self _removeWatcher: data type: type forMode: mode];
-
-      /* Create new object to hold information. */
-      info = [[GSRunLoopWatcher alloc] initWithType: type
-					   receiver: watcher
-					       data: data];
-      /* Add the object to the array for the mode. */
-      [self _addWatcher: info forMode: mode];
-      RELEASE(info);		/* Now held in array.	*/
-    }
+  return myvars->isWaiting;
 }
 
 - (void) removeEvent: (void*)data
@@ -928,6 +933,19 @@ CFRunLoopCopyCurrentMode(CFRunLoopRef loop)
     }
 }
 
+- (void) stop
+{
+  myvars->isStopped = YES;
+  if (myvars->isWaiting)
+    {
+      [self wake];
+    }
+}
+
+- (void) wake
+{
+  [myvars->threadInfo wakeFor: nil];
+}
 @end
 
 @implementation	NSRunLoop (modes)
@@ -1431,6 +1449,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	{
 	  NSDebugMLLog(@"NSRunLoop",
 	    @"no inputs or timers in mode %@", mode);
+#if 0
 	  GSPrivateNotifyASAP(context->mode);
 	  GSPrivateNotifyIdle(context->mode);
 	  /* Pause until the limit date or until we might have
@@ -1444,6 +1463,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  runRestore(myvars);
 	  [arp drain];
 	  NS_VOIDRETURN;
+#endif
 	}
       else
 	{
@@ -1581,34 +1601,29 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   return YES;
 }
 
-/**
- * Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
- * -runMode:beforeDate: while there are still input sources.  Exits when no
- * more input sources remain.
- */
 - (void) run
 {
   [self runUntilDate: theFuture];
 }
 
-/**
- * Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
- * -runMode:beforeDate: while there are still input sources.  Exits when no
- * more input sources remain, or date is reached, whichever occurs first.
- */
 - (void) runUntilDate: (NSDate*)date
 {
-  BOOL		mayDoMore = YES;
-
   /* Positive values are in the future. */
-  while (YES == mayDoMore)
+  while (NO == myvars->isStopped)
     {
+      BOOL	mayDoMore;
+
       mayDoMore = [self runMode: NSDefaultRunLoopMode beforeDate: date];
       if (nil == date || [date timeIntervalSinceNow] <= 0.0)
         {
           mayDoMore = NO;
         }
+      if (NO == mayDoMore)
+	{
+	  break;
+	}
     }
+  myvars->isStopped = NO;
 }
 
 @end

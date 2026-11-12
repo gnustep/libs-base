@@ -87,10 +87,13 @@ GS_EXPORT_CLASS
 
 - (NSDate*) limitDateForMode: (NSString*)mode;
 
+/** Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
+ * -runMode:beforeDate: while there are still input sources.  Exits when no
+ * more input sources remain or when explicitly stopped.
+ */
 - (void) run;
 
-/**
- * Calls -limitDateForMode: to determine if a timeout occurs before the
+/** Calls -limitDateForMode: to determine if a timeout occurs before the
  * specified date, then calls -acceptInputForMode:beforeDate: to run the
  * loop once.<br />
  * The specified date may be nil ... in which case the loop runs
@@ -98,12 +101,17 @@ GS_EXPORT_CLASS
  * If the specified date is in the past, this runs the loop once only,
  * to handle any events already available.<br />
  * If there are no input sources or timers in mode, this method
- * returns NO without running the loop (irrespective of the supplied
+ * returns NO without blocking the loop (irrespective of the supplied
  * date argument), otherwise returns YES.
  */
 - (BOOL) runMode: (NSString*)mode
       beforeDate: (NSDate*)date;
 
+/** Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
+ * -runMode:beforeDate: while there are still input sources.  Exits when no
+ * more input sources remain, or date is reached, or the loop is stopped,
+ * whichever occurs first.
+ */  
 - (void) runUntilDate: (NSDate*)date;
 
 @end
@@ -207,15 +215,6 @@ typedef	enum {
  */
 - (void) addCommonMode: (NSString*)aMode;
 
-/** Returns all the modes in the run loop.
- * NB. For Apple compatibility, use CFRunLoopCopyAllModes() (see below).
- */
-- (NSArray*) allModes;
-
-/** Method to get a value to pass to CFRunLoopAddCommonMode()
- */
-- (CFRunLoopRef) getCFRunLoop;
-
 /** Adds a watcher to the receiver ... the watcher is used to monitor events
  * of the specified type which are associted with the event handle data and
  * it operates in the specified run loop modes.<br />
@@ -228,6 +227,19 @@ typedef	enum {
 	  watcher: (id<RunLoopEvents>)watcher
 	  forMode: (NSString*)mode;
 
+/** Returns all the modes in the run loop.
+ * NB. For Apple compatibility, use CFRunLoopCopyAllModes() (see below).
+ */
+- (NSArray*) allModes;
+
+/** Method to get a value to pass to CFRunLoopAddCommonMode()
+ */
+- (CFRunLoopRef) getCFRunLoop;
+
+/** Returns YES if the loop is waiting for I/O
+ */
+- (BOOL) isWaiting;
+
 /** Removes a watcher from the receiver ... the watcher must have been 
  * previously added using -addEvent:type:watcher:forMode:<br />
  * This method mirrors exactly one addition of a watcher unless removeAll
@@ -238,6 +250,16 @@ typedef	enum {
 	        type: (RunLoopEventType)type
 	     forMode: (NSString*)mode
 		 all: (BOOL)removeAll;
+
+/** Tells a repeating loop (-run or -runUntilDate:) to stop after the
+ * current iteration completes.
+ */
+- (void) stop;
+
+/** Wakes a blocked loop.
+ */
+- (void) wake;
+
 @end
 
 /** Adds a mode to the set of common run loop modes.<br />
