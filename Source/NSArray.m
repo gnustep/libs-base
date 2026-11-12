@@ -150,10 +150,8 @@ static SEL	rlSel;
       remSel = @selector(removeObjectAtIndex:);
       rlSel = @selector(removeLastObject);
 
-      NSArrayClass = [NSArray class];
-      NSMutableArrayClass = [NSMutableArray class];
+      NSArrayClass = self;
       GSArrayClass = [GSArray class];
-      GSMutableArrayClass = [GSMutableArray class];
       GSPlaceholderArrayClass = [GSPlaceholderArray class];
 
       /*
@@ -164,6 +162,8 @@ static SEL	rlSel;
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       [self registerAtExit];
+      NSMutableArrayClass = [NSMutableArray class];
+      GSMutableArrayClass = [GSMutableArray class];
     }
 }
 

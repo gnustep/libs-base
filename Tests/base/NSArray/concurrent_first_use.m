@@ -27,7 +27,6 @@ void *
 firstUse(void *arg)
 {
   int			index = (int)(intptr_t)arg;
-  NSAutoreleasePool	*arp;
   id			a;
 
   __sync_fetch_and_add(&waiting, 1);
@@ -35,7 +34,7 @@ firstUse(void *arg)
     {
       /* Start together. */
     }
-  arp = [NSAutoreleasePool new];
+  ENTER_POOL
   a = [NSMutableArray alloc];
   if (a == nil)
     {
@@ -51,13 +50,12 @@ firstUse(void *arg)
       [a addObject: @"x"];
       [a release];
     }
-  [arp release];
+  LEAVE_POOL
   return 0;
 }
 
 int main()
 {
-  NSAutoreleasePool	*arp;
   int			nilCount = 0;
   int			abstractCount = 0;
   int			i;
@@ -87,7 +85,7 @@ int main()
     }
 #endif
 
-  arp = [NSAutoreleasePool new];
+  ENTER_POOL
   for (i = 0; i < THREADS; i++)
     {
       if (results[i] == 1)
@@ -104,6 +102,6 @@ int main()
   PASS(abstractCount == 0,
     "+[NSMutableArray alloc] does not return an abstract NSMutableArray"
     " on concurrent first use")
-  [arp release];
+  LEAVE_POOL
   return 0;
 }
