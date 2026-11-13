@@ -79,7 +79,7 @@ fi
 
 # Windows MSVC toolchain uses tools-windows-msvc scripts to install non-GNUstep dependencies;
 # the MSYS2 toolchain uses Pacman to install non-GNUstep dependencies.
-if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_MINGW" != "true" ]; then
+if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_UCRT64" != "true" ]; then
     install_libobjc2
     # libdispatch is optional for gnustep-base and does not support every
     # platform we build on, so allow a workflow to opt out of it.
