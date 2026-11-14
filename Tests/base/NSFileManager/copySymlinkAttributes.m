@@ -68,7 +68,7 @@ makeFile(NSString *path)
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSString		*root;
   NSString		*src;
@@ -157,7 +157,7 @@ int main()
   END_SET("-linkPath:toPath:handler:")
 
   [mgr removeFileAtPath: root handler: nil];
-  [arp release];
+  LEAVE_POOL
   return 0;
 }
 

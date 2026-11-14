@@ -1216,7 +1216,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
                 {
                   NSMutableDictionary       *m;
 
-                  m = [[attributes mutableCopy] autorelease];
+                  m = AUTORELEASE([attributes mutableCopy]);
                   if (nil == m)
                     {
                       m = [NSMutableDictionary dictionaryWithCapacity: 1];
@@ -1601,7 +1601,8 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
       if (sourceIsDir && [[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  [self _setLastError: @"Could not move - destination is a descendant of source"];
+	  [self _setLastError:
+	    @"Could not move - destination is a descendant of source"];
 	  return NO;
 	}
 
@@ -4007,7 +4008,7 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
-      [[NSObject leakAt: &fileKeys] release];
+      RELEASE([NSObject leakAt: &fileKeys]);
     }
 }
 
