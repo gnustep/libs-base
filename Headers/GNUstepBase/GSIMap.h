@@ -421,7 +421,11 @@ struct	_GSIMapTable {
   GSIMapNode	freeNodes;	/* List of unused nodes.	*/
   uintptr_t	chunkCount;	/* Number of chunks in array.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
-  uintptr_t	increment;
+  uint32_t	increment;	/* Size for large chunks.	*/
+  uint8_t	smallMap;	/* Size for single bucket map.	*/
+  uint8_t	reserved1;
+  uint8_t	reserved2;
+  uint8_t	reserved3;
 #ifdef	GSI_MAP_EXTRA
   GSI_MAP_EXTRA	extra;
 #endif
@@ -455,6 +459,12 @@ GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, uintptr_t bucketCount)
 GS_STATIC_INLINE GSIMapBucket
 GSIMapBucketForKey(GSIMapTable map, GSIMapKey key)
 {
+  /* Avoid calling hash function if thewre is only one bucket
+   */
+  if (1 == map->bucketCount)
+    {
+      return map->buckets;
+    }
   return GSIMapPickBucket(GSI_MAP_HASH(map, key),
     map->buckets, map->bucketCount);
 }
@@ -942,23 +952,27 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 }
 #endif
 
+/* Resize the map to use the specified number of buckets.
+ * Even values are not allowed (automatically incremented).
+ * Does nothing if the map is already the right size.
+ */
 GS_STATIC_INLINE void
-GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
+GSIMapResize(GSIMapTable map, uintptr_t new_bucket_count)
 {
   GSIMapBucket	new_buckets;
   uintptr_t	size = 1;
   uintptr_t	old = 1;
 
-  /*
-   *	Find next size up in the fibonacci series
+  /* Find next size up in the fibonacci series.
    */
-  while (size < new_capacity)
+  while (size < new_bucket_count)
     {
       uintptr_t	tmp = old;
 
       old = size;
       size += tmp;
     }
+
   /*
    *	Avoid even numbers - since hash functions frequently generate uneven
    *	distributions around powers of two -
@@ -969,36 +983,96 @@ GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
       size++;
     }
 
-  /* Use the zone specified for this map.
-   */
-  new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
-    sizeof(GSIMapBucket_t));
-
-  if (new_buckets != 0)
+  if (map->bucketCount != size)
     {
-      GSIMapRemangleBuckets(map, map->buckets, map->bucketCount, new_buckets,
-	size);
-      if (map->buckets != 0)
+      /* Use the zone specified for this map.
+       */
+      new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
+	sizeof(GSIMapBucket_t));
+
+      if (new_buckets != 0)
 	{
-	  NSZoneFree(map->zone, map->buckets);
+	  GSIMapRemangleBuckets(map, map->buckets, map->bucketCount,
+	    new_buckets, size);
+	  if (map->buckets != 0)
+	    {
+	      NSZoneFree(map->zone, map->buckets);
+	    }
+	  map->buckets = new_buckets;
+	  map->bucketCount = size;
 	}
-      map->buckets = new_buckets;
-      map->bucketCount = size;
     }
 }
 
+/* Sets the map bucket count to match desired capacity (number of items/nodes
+ * that it will contain).
+ */
 GS_STATIC_INLINE void
 GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
+  /* For a small map the cost of hashing may outweigh the cost of comparison
+   * so we refrain from creating more than one bucket and can skip the hashing
+   * when we are finding nodes.
+   */
+  if (capacity <= map->smallMap)
+    {
+      if (0 == map->bucketCount)
+	{
+	  GSIMapResize(map, 1);
+	}
+      return;
+    }
+
   /* FIXME: Now, this is a guess, based solely on my intuition.  If anyone
    * knows of a better ratio (or other test, for that matter) and can
    * provide evidence of its goodness, please get in touch with me, Albin
-   * L. Jones <Albin.L.Jones@Dartmouth.EDU>. */
-
+   * L. Jones <Albin.L.Jones@Dartmouth.EDU>.
+   */
   if (3 * capacity >= 4 * map->bucketCount)
     {
       GSIMapResize(map, (3 * capacity)/4 + 1);
     }
+}
+
+/* Sets (and returns the old value of) the map increment.<br />
+ * This is the size threshold (number of nodes) at which we start allocating
+ * chunks of memory for nodes in a fixed increment, and also the number of
+ * nodes allocated in a chunk at that increment.  Maps below this size have
+ * chunks of nodes allocated in gradually increasing sizes.<br />
+ * Setting a value of zero has no effect, but returns the current value.
+ */
+GS_STATIC_INLINE uint32_t
+GSIMapSetIncrement(GSIMapTable map, uint32_t newValue)
+{
+  uint32_t	old = map->increment;
+
+  if (newValue > 0)
+    {
+      map->increment = newValue;
+    } 
+  return old;
+}
+
+
+/* Sets (and returns the old value of) the small map threshold.<br />
+ * This is the size threshold (number of nodes) above which we consider
+ * the mmap to no longer be small.  A small map uses a single bucket and
+ * avoids calculating hashes, performing lookup purely by comparing each
+ * node key to a supplied key in order.  This is only a performance gain
+ * if the number of nodes is small enough so that the CPU cost of a hash
+ * calculation is larger than the CPU cost of an average number of
+ * equality checks.
+ */
+GS_STATIC_INLINE uint8_t
+GSIMapSetSmall(GSIMapTable map, uint8_t newValue)
+{
+  uint8_t	old = map->smallMap;
+
+  if (newValue > 0)
+    {
+      map->smallMap = newValue;
+    } 
+  return old;
 }
 
 /** Enumerating **/
@@ -1538,7 +1612,8 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
   map->nodeChunks = 0;
   map->freeNodes = 0;
   map->chunkCount = 0;
-  map->increment = 300000;   // choosen so the chunksize will be less than 4Mb
+  map->increment = 300000;	// choosen for chunksize to be less than 4Mb
+  map->smallMap = 2;		// good if cost-of-hash is like cost-of-equality
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map, capacity);
 }

@@ -25,7 +25,7 @@
     {
       NSString	*dir = [[NSFileManager defaultManager] currentDirectoryPath];
 
-      dir = [dir stringByAppendingPathComponent: @"addressTLS"];
+      dir = [dir stringByAppendingPathComponent: @"Helpers/addressTLS"];
       options = RETAIN(([NSDictionary dictionaryWithObjectsAndKeys:
 	[dir stringByAppendingPathComponent:
 	  [name stringByAppendingPathExtension: @"crt"]], GSTLSCertificateFile,
@@ -326,7 +326,8 @@ int main()
     /* The test authority must be in place before the TLS code initialises.
      */
     [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
-      [dir stringByAppendingPathComponent: @"addressTLS/ca.crt"], GSTLSCAFile,
+      [dir stringByAppendingPathComponent: @"Helpers/addressTLS/ca.crt"],
+	GSTLSCAFile,
       @"9", GSTLSDebug,
       nil]];
 

@@ -29,7 +29,6 @@ int main()
 # define __has_feature(x) 0
 # endif
 # if __has_feature(blocks)
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSRunLoop		*loop = [NSRunLoop currentRunLoop];
   TimerBlockCapture	*capture = [TimerBlockCapture new];
   NSTimer		*timer;
@@ -61,7 +60,6 @@ int main()
   PASS(captureDeallocated,
        "A timer's block is released after it ran and invalidated the timer")
 
-  [arp release]; arp = nil;
 # else
   SKIP("No Blocks support in the compiler.")
 # endif

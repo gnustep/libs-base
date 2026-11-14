@@ -1036,7 +1036,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
       SEL 			sel;
 
       memcpy(selectorName, sc_prefix, sc_prefixLength);
-      selectorName[sc_prefixLength] = toupper(rawKey[0]);
+      selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
       memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1],
              keyLength); // copy keyLength characters to include terminating
                          // NULL from rawKey
@@ -1095,7 +1095,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 	  strncpy(selectorName, "keyPathsForValuesAffecting", sc_prefixLength);
 
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
           // Copy the rest of the key, including the null terminator
           memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], rawKeyLength);
           sel = sel_registerName(selectorName);
@@ -1111,7 +1111,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           selectorName = (char *) malloc(bufferSize);
           memcpy(selectorName, sc_prefix, sc_prefixLength);
 
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          selectorName[sc_prefixLength] = toupper(((const uint8_t*)rawKey)[0]);
           // Copy the rest of the key, including the null terminator
           memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], keyLength);
 
@@ -1771,9 +1771,24 @@ NSObject (NSKeyValueObservingPrivate)
 
 struct _kvoNotifyContext
 {
-  id	oldValue;
-  id	newValue;
+  id		object;
+  NSString	*key;
+  id		oldValue;
+  id		newValue;
 };
+
+/* The old and new values given are those of the notified key.  An observer
+ * of another key path, one that depends on this key or goes through it, gets
+ * the values of its own key path instead, read after the change.
+ */
+static inline BOOL
+_observesNotifiedKey(_NSKVOKeypathObserver *keypathObserver,
+  struct _kvoNotifyContext *ctx)
+{
+  return keypathObserver.object == ctx->object
+    && [keypathObserver.keypath isEqualToString: ctx->key];
+}
+
 static void
 _kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
@@ -1786,12 +1801,25 @@ _kvoWillNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 
   if (options & NSKeyValueObservingOptionOld)
     {
-      [change setObject: (ctx->oldValue ? ctx->oldValue : [NSNull null])
+      id oldValue;
+
+      if (_observesNotifiedKey(keypathObserver, ctx))
+	{
+	  oldValue = ctx->oldValue;
+	}
+      else
+	{
+	  /* The key has already changed, so this is the new value. */
+	  oldValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
+      [change setObject: (oldValue ? oldValue : [NSNull null])
                  forKey: NSKeyValueChangeOldKey];
     }
 
   keypathObserver.pendingChange = change;
 }
+
 static void
 _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 {
@@ -1803,7 +1831,18 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
       [[change objectForKey: NSKeyValueChangeKindKey] integerValue]
         != NSKeyValueChangeRemoval)
     {
-      [change setObject: (ctx->newValue ? ctx->newValue : [NSNull null])
+      id newValue;
+
+      if (_observesNotifiedKey(keypathObserver, ctx))
+	{
+	  newValue = ctx->newValue;
+	}
+      else
+	{
+	  newValue = [keypathObserver.object
+	    valueForKeyPath: keypathObserver.keypath];
+	}
+      [change setObject: (newValue ? newValue : [NSNull null])
                  forKey: NSKeyValueChangeNewKey];
     }
 }
@@ -1817,7 +1856,7 @@ _kvoDidNotifyChange(_NSKVOKeyObserver *keyObserver, void *context)
 
   if (info)
     {
-      struct _kvoNotifyContext ctx = { oldValue, newValue };
+      struct _kvoNotifyContext ctx = { self, key, oldValue, newValue };
       _dispatchWillChange(info, self, key, _kvoWillNotifyChange, &ctx);
       _dispatchDidChange(info, self, key, _kvoDidNotifyChange, &ctx);
     }

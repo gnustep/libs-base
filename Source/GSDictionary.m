@@ -361,56 +361,14 @@ static SEL	objSel;
   count = map.nodeCount;
   if (count == [other count])
     {
-      if (0 == count)
+      if (count > 0)
 	{
-	  return YES;
-	}
-      if (count <= 8)
-	{
-	  /* For small dictionaries the overhead of hash table lookups are
-	   * significant and it's quicker to just compare the dictionary
-	   * contents in arrays on the stack.
-	   * The threshold for performance switchover is a bit of a guess.
+	  /* We assume that the other dictionary has optimised lookup so that
+	   * finding an object matching our key is as efficient as possible.
 	   */
-	  int	i;
-	  id	mk[count];
-	  id	mo[count];
-	  id	ok[count];
-	  id	oo[count];
-
-	  [self getObjects: mo andKeys: mk count: count];
-	  [other getObjects: oo andKeys: ok count: count];
-
-	  for (i = 0; i < count; i++)
-	    {
-	      int	j;
-	      id	k = mk[i];
-	      BOOL	(*eqObj)(id, SEL, id);
-
-	      eqObj = (BOOL (*)(id, SEL, id))[k methodForSelector: eqSel];
-	      for (j = 0; j < count; j++)
-		{
-		  if (ok[j] && (*eqObj)(k, eqSel, ok[j]))
-		    {
-                      ok[j] = nil;      // Don't check this slot again.
-                      break;            // Found matching key in other.
-		    }
-		}
-	      if (j >= count || NO == [mo[i] isEqual: oo[j]])
-		{
-		  /* Either the key was not present in the other dictionary
-		   * or it was present but the matching values were not equal,
-		   * so the dictionaries are not equal.
-		   */
-		  return NO;
-		}
-	    }
-	}
-      else
-	{
+	  IMP			otherObj = [other methodForSelector: objSel];
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
-	  IMP			otherObj = [other methodForSelector: objSel];
 
 	  enumerator = GSIMapEnumeratorForMap(&map);
 	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
@@ -418,7 +376,7 @@ static SEL	objSel;
 	      id o1 = node->value.obj;
 	      id o2 = (*otherObj)(other, objSel, node->key.obj);
 
-	      if (o1 != o2 && [o1 isEqual: o2] == NO)
+	      if (nil == o2 || NO == [o1 isEqual: o2])
 		{
 		  GSIMapEndEnumerator(&enumerator);
 		  return NO;

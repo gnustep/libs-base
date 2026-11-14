@@ -150,10 +150,8 @@ static SEL	rlSel;
       remSel = @selector(removeObjectAtIndex:);
       rlSel = @selector(removeLastObject);
 
-      NSArrayClass = [NSArray class];
-      NSMutableArrayClass = [NSMutableArray class];
+      NSArrayClass = self;
       GSArrayClass = [GSArray class];
-      GSMutableArrayClass = [GSMutableArray class];
       GSPlaceholderArrayClass = [GSPlaceholderArray class];
 
       /*
@@ -164,6 +162,8 @@ static SEL	rlSel;
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       [self registerAtExit];
+      NSMutableArrayClass = [NSMutableArray class];
+      GSMutableArrayClass = [GSMutableArray class];
     }
 }
 
@@ -2073,6 +2073,13 @@ compare(id elem1, id elem2, void* context)
 {
   if (self == [NSMutableArray class])
     {
+      /* +allocWithZone: relies on these.  Set them here rather than only
+       * in +[NSArray initialize]: when that method's [NSMutableArray class]
+       * initializes this class, other threads can use NSMutableArray
+       * before +[NSArray initialize] has assigned them.
+       */
+      NSMutableArrayClass = self;
+      GSMutableArrayClass = [GSMutableArray class];
     }
 }
 

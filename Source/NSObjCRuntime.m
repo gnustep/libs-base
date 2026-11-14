@@ -149,20 +149,20 @@ NSGetSizeAndAlignment(const char *typePtr,
 	{
 	  typePtr++;
 	}
-      while (isdigit(*typePtr))
+      while (isdigit(*(const uint8_t*)typePtr))
 	{
 	  typePtr++;
 	}
-      typePtr = objc_skip_type_qualifiers (typePtr);
+      typePtr = objc_skip_type_qualifiers(typePtr);
       if (sizep)
 	{
-          *sizep = objc_sizeof_type (typePtr);
+          *sizep = objc_sizeof_type(typePtr);
 	}
       if (alignp)
 	{
-          *alignp = objc_alignof_type (typePtr);
+          *alignp = objc_alignof_type(typePtr);
 	}
-      typePtr = objc_skip_typespec (typePtr);
+      typePtr = objc_skip_typespec(typePtr);
     }
   return typePtr;
 }

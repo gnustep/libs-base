@@ -200,6 +200,7 @@
 
 - (void) _setSkipHidden: (BOOL)flag;
 - (void) _setErrorHandler: (GSDirEnumErrorHandler) handler;
+- (NSString*) _topPath;
 @end
 
 @interface	GSURLEnumerator : NSDirectoryEnumerator
@@ -492,7 +493,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
             &pw, buf, sizeof(buf), &p) == 0)
 	    {
 	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 	      (void)chown(lpath, -1, pw.pw_gid);
+#pragma GCC diagnostic pop
 	    }
 #else
 #if     defined(HAVE_GETPWNAM)
@@ -503,7 +507,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 	      (void)chown(lpath, -1, pw->pw_gid);
+#pragma GCC diagnostic pop
 	    }
           GS_MUTEX_UNLOCK(classLock);
 #endif
@@ -2760,6 +2767,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   _errorHandler = handler;
 }
 
+- (NSString*) _topPath
+{
+  return _topPath;
+}
+
 - (id) initWithDirectoryPath: (NSString*)path
    recurseIntoSubdirectories: (BOOL)recurse
 	      followSymlinks: (BOOL)follow
@@ -3123,9 +3135,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 @implementation	GSURLEnumerator
 - (id) nextObject
 {
-  id	name = [super nextObject];
+  NSString	*name = [super nextObject];
 
-  return name ? [NSURL fileURLWithPath: name] : nil;
+  if (nil == name)
+    {
+      return nil;
+    }
+  return [NSURL fileURLWithPath:
+    [[self _topPath] stringByAppendingPathComponent: name]];
 }
 @end
 

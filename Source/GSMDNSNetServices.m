@@ -27,6 +27,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSTimer.h"
@@ -1457,7 +1458,7 @@ static void DNSSD_API
 
 + (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary
 {
-  NSMutableData	*result = nil;
+  NSData	*result = nil;
   NSArray	*keys = nil;
   NSArray	*values = nil;
   int		count = 0;

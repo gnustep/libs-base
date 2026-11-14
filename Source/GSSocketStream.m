@@ -601,6 +601,8 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 {
 @public
   GSTLSSession  *session;
+  unsigned      calls;          // Calls into the session in progress
+  BOOL          byePending;     // Closed down during such a call
 }
 
 /** Populates the dictionary 'dict', copying in all the properties
@@ -785,11 +787,66 @@ static NSArray  *keys = nil;
     }
 }
 
+/* Starts a call into the session, which may send stream events (and thus
+ * call the delegate) from the push and pull callbacks.
+ */
+- (void) _beginCall
+{
+  RETAIN(self);
+  calls++;
+}
+
+/* Ends a call into the session, closing it down if that was requested
+ * while the call was in progress.
+ */
+- (void) _endCall
+{
+  if (0 == --calls && YES == byePending)
+    {
+      [self bye];
+    }
+  RELEASE(self);
+}
+
 - (void) bye
 {
   handshake = NO;
   active = NO;
+  if (calls > 0)
+    {
+      /* A delegate closed the stream on an event sent from within a call
+       * into the session, which still uses the session we would release.
+       */
+      byePending = YES;
+      return;
+    }
+  byePending = NO;
   [session disconnect: NO];
+}
+
+/* Records a failed handshake as an error on both streams, so that neither
+ * is reported as open.
+ */
+- (void) handshakeFailed: (NSString*)problem
+{
+  NSError	*theError;
+
+  if (nil == problem)
+    {
+      problem = @"TLS handshake failure";
+    }
+  theError = [NSError errorWithDomain: NSCocoaErrorDomain
+    code: 0
+    userInfo: [NSDictionary dictionaryWithObject: problem
+      forKey: NSLocalizedDescriptionKey]];
+  if ([istream streamStatus] != NSStreamStatusError)
+    {
+      [istream _recordError: theError];
+    }
+  if ([ostream streamStatus] != NSStreamStatusError)
+    {
+      [ostream _recordError: theError];
+    }
 }
 
 - (void) dealloc
@@ -808,37 +865,24 @@ static NSArray  *keys = nil;
 {
   if (active == NO)
     {
+      BOOL      done;
+
       if (handshake == NO)
         {
           /* Set flag to say we are now doing a handshake.
            */
           handshake = YES;
         }
-      if ([session handshake] == YES)
+      [self _beginCall];
+      done = [session handshake];
+      [self _endCall];
+      if (done == YES)
         {
           handshake = NO;               // Handshake is now complete.
           active = [session active];    // Is the TLS session now active?
           if (NO == active)
             {
-              NSString  *problem = [session problem];
-              NSError   *theError;
-
-              if (nil == problem)
-                {
-                  problem = @"TLS handshake failure";
-                }
-              theError = [NSError errorWithDomain: NSCocoaErrorDomain
-                code: 0
-                userInfo: [NSDictionary dictionaryWithObject: problem
-                  forKey: NSLocalizedDescriptionKey]];
-              if ([istream streamStatus] != NSStreamStatusError)
-                {
-                  [istream _recordError: theError];
-                }
-              if ([ostream streamStatus] != NSStreamStatusError)
-                {
-                  [ostream _recordError: theError];
-                }
+              [self handshakeFailed: [session problem]];
               [self bye];
             }
           else
@@ -941,7 +985,12 @@ static NSArray  *keys = nil;
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return [session read: buffer length: len];
+  NSInteger     result;
+
+  [self _beginCall];
+  result = [session read: buffer length: len];
+  [self _endCall];
+  return result;
 }
 
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
@@ -964,8 +1013,13 @@ static NSArray  *keys = nil;
           case NSStreamEventErrorOccurred:
           case NSStreamEventEndEncountered:
             /* stream error or close ... handshake fails.
+             * This may arrive from within the handshake itself, when the
+             * TLS code reads the end of the connection.
              */
             handshake = NO;
+            [self handshakeFailed: (event == NSStreamEventEndEncountered)
+              ? @"Connection closed during TLS handshake"
+              : [[stream streamError] localizedDescription]];
             break;
 
           default:
@@ -1018,6 +1072,15 @@ static NSArray  *keys = nil;
 {
   NSInteger	offset = 0;
 
+  if (NO == active)
+    {
+      /* Nothing can be written before the handshake has completed (the
+       * stream then sends NSStreamEventHasSpaceAvailable), nor once the
+       * session has failed or been closed down.
+       */
+      return (YES == handshake) ? 0 : -1;
+    }
+
   /* The low level code to perform the TLS session write may return a
    * partial write even though the output stream is still writable.
    * That means we wouldn't get an event to say there's more space and
@@ -1029,10 +1092,41 @@ static NSArray  *keys = nil;
     {
       NSInteger	written;
 
+      [self _beginCall];
       written = [session write: buffer + offset length: len - offset];
+      [self _endCall];
       if (written > 0)
 	{
 	  offset += written;
+	}
+      else if (NO == [session active])
+	{
+	  break;	// The session was closed down.
+	}
+      else
+	{
+	  /* The session sets EAGAIN or EINTR for a write to retry later,
+	   * and any other errno for a failure.
+	   */
+	  if (0 == offset && EAGAIN != errno && EINTR != errno)
+	    {
+	      if ([ostream streamStatus] != NSStreamStatusError)
+		{
+		  NSString	*problem = [session problem];
+
+		  if (nil == problem)
+		    {
+		      problem = @"TLS write failure";
+		    }
+		  [ostream _recordError: [NSError
+		    errorWithDomain: NSCocoaErrorDomain
+		    code: 0
+		    userInfo: [NSDictionary dictionaryWithObject: problem
+		      forKey: NSLocalizedDescriptionKey]]];
+		}
+	      offset = -1;
+	    }
+	  break;
 	}
     }
   return offset;
@@ -1884,6 +1978,16 @@ setNonBlocking(SOCKET fd)
       RETAIN(self);
       [self _sendEvent: event delegate: _handler];
       RELEASE(self);
+    }
+  else if (_handler != nil && [self streamStatus] == NSStreamStatusError
+    && (event == NSStreamEventOpenCompleted
+      || event == NSStreamEventHasSpaceAvailable
+      || event == NSStreamEventHasBytesAvailable))
+    {
+      /* The handshake failed while this event was being dispatched (e.g.
+       * when opening the stream read the end of the connection), so the
+       * stream must not be reported as open or usable.
+       */
     }
   else
     {

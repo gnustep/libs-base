@@ -118,11 +118,10 @@
                    selector: (SEL)aSelector 
                      object: (id)anObject
 {
-  if (nil != (self = [super init]))
+  if (nil != (self = [self init]))
     {
       GSOp	*op = [GSOp new];
 
-      _ops = [[NSMutableArray alloc] initWithCapacity: 4];
       ASSIGN(op->target, aTarget);
       op->selector = aSelector;
       ASSIGN(op->object, anObject);
@@ -130,7 +129,6 @@
       RELEASE(op);
     }
   return self;
-
 }
 
 - (NSUInteger) itemCount

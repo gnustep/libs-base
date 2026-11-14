@@ -285,20 +285,26 @@
       GSRunLoopWatcher	*info;
       BOOL		trigger;
       GSIArray          table;
+      unsigned		pos;
 
+      /* Common mode watchers follow those of this mode: index
+       * them from the start of their own array.
+       */
       if (i >= modeWatchersCount)
         {
           table = common->watchers;
+          pos = i - modeWatchersCount;
         }
       else
         {
           table = watchers;
+          pos = i;
         }
-      info = GSIArrayItemAtIndex(table, i).obj;
+      info = GSIArrayItemAtIndex(table, pos).obj;
 
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(table, i);
+	  GSIArrayRemoveItemAtIndex(table, pos);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
@@ -443,6 +449,10 @@
       existingMessages = YES;
     }
 
+  if (wait_timeout != 0)
+    {
+      loop->isWaiting = YES;
+    }
   if (num_winMsgs > 0)
     {
       if (debug)
@@ -479,6 +489,7 @@
       SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_TIMEOUT;
     }
+  loop->isWaiting = NO;
 
   // check wait errors
   if (WAIT_FAILED == wait_return
@@ -528,7 +539,9 @@
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
-      if (watcher->_invalidated == NO)
+      /* nil if a nested poll has already handled it (see -endEvent:for:).
+       */
+      if (watcher != nil && watcher->_invalidated == NO)
 	{
 	  if (debug)
 	    {

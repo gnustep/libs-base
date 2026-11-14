@@ -15,16 +15,15 @@
 
 # Modified from gcc's clang-format config.
 
-# clang-format 7.0.1 is required
+# NB. THIS FILE DOES NOT PRODUCE FORMALLING SUITABLE FOR USE WITHIN GNUSTEP
+# CURRENTLY clang-format DOES NOT SUPPORT GNUSTEP CONVENTIONS.  DO NOT USE
+# UNTIL/UNLESS IT IS UPDATED TO DO SO.
 #
-# To utilize the tool to lines just touched by a patch, use
-# clang-format-diff script that is usually also packaged with clang-format.
+# The 'uncrustify' formatter does a better job than clang-format: a volunteer
+# willing to get adjustments made to match the GNUstep style would be welcome.
 #
-# Example of usage:
-# git diff -U0 --no-color | clang-format-diff -p1
-# (here the tool will generate a patch)
-# git diff -U0 --no-color | clang-format-diff -p1 -i
-# (modifications are applied)
+# Given the lack of automated tools, manual formatting to match style is
+# necessary.
 
 ---
 AccessModifierOffset: -2

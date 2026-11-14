@@ -518,7 +518,7 @@ KVCSetterForPropertyName(NSObject *self, const char *key)
   buf[0] = 's';
   buf[1] = 'e';
   buf[2] = 't';
-  buf[3] = toupper(key[0]);
+  buf[3] = toupper(((const uint8_t*)key)[0]);
   buf[3 + len] = ':';
   buf[3 + len + 1] = '\0';
   sel = sel_getUid(buf);
@@ -720,7 +720,7 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key)
     }
 
   rawKey = mutableBufferFromString(key);
-  rawKey[0] = toupper(rawKey[0]);
+  rawKey[0] = toupper(((const uint8_t*)rawKey)[0]);
 
   @synchronized(object)
   {

@@ -304,6 +304,8 @@ static int	log_priority = 0;
 static void
 gdomap_log (int prio)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   if (in_config)
     {
 #ifndef __MINGW__
@@ -324,13 +326,13 @@ gdomap_log (int prio)
     }
   else if (prio == LOG_INFO)
     {
-      write (1, ebuf, strlen (ebuf));
-      write (1, "\n", 1);
+      (void) write (1, ebuf, strlen (ebuf));
+      (void) write (1, "\n", 1);
     }
   else
     {
-      write (2, ebuf, strlen (ebuf));
-      write (2, "\n", 1);
+      (void) write (2, ebuf, strlen (ebuf));
+      (void) write (2, "\n", 1);
     }
 
   if (prio == LOG_CRIT)
@@ -346,6 +348,7 @@ gdomap_log (int prio)
 	}
       exit(EXIT_FAILURE);
     }
+#pragma GCC diagnostic pop
 }
 #else
 
@@ -1533,7 +1536,7 @@ load_iface(const char* from)
       /*
        *	Strip leading white space.
        */
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  ptr++;
 	}
@@ -1557,7 +1560,7 @@ load_iface(const char* from)
 	{
 	  ptr++;
 	}
-      while (ptr > buf && isspace(ptr[-1]))
+      while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 	{
 	  ptr--;
 	}
@@ -1605,7 +1608,7 @@ load_iface(const char* from)
       /*
        *	Strip leading white space.
        */
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  ptr++;
 	}
@@ -1629,7 +1632,7 @@ load_iface(const char* from)
 	{
 	  ptr++;
 	}
-      while (ptr > buf && isspace(ptr[-1]))
+      while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 	{
 	  ptr--;
 	}
@@ -1643,26 +1646,26 @@ load_iface(const char* from)
 	}
 
       ptr = buf;
-      while (*ptr && (isdigit(*ptr) || (*ptr == '.')))
+      while (*ptr && (isdigit(*(const uint8_t*)ptr) || (*ptr == '.')))
 	{
 	  ptr++;
 	}
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  *ptr++ = '\0';
 	}
       msk = ptr;
-      while (*ptr && (isdigit(*ptr) || (*ptr == '.')))
+      while (*ptr && (isdigit(*(const uint8_t*)ptr) || (*ptr == '.')))
 	{
 	  ptr++;
 	}
-      while (isspace(*ptr))
+      while (isspace(*(const uint8_t*)ptr))
 	{
 	  *ptr++ = '\0';
 	}
       addr[interfaces].s_addr = inet_addr(buf);
       mask[interfaces].s_addr = inet_addr(msk);
-      if (isdigit(*ptr))
+      if (isdigit(*(const uint8_t*)ptr))
 	{
 	  bcok[interfaces] = 1;
 	  bcst[interfaces].s_addr = inet_addr(ptr);
@@ -4639,7 +4642,7 @@ quoteArg(const char *arg)
    */
   for (in = 0; in < len; in++)
     {
-      if (isspace(arg[in]))
+      if (isspace(((const uint8_t*)arg)[in]))
 	{
 	  quote = 1;
 	  break;
@@ -4937,7 +4940,7 @@ printf(
 		  /*
 		   *	Strip leading white space.
 		   */
-		  while (isspace(*ptr))
+		  while (isspace(*(const uint8_t*)ptr))
 		    {
 		      ptr++;
 		    }
@@ -4961,7 +4964,7 @@ printf(
 		    {
 		      ptr++;
 		    }
-		  while (ptr > buf && isspace(ptr[-1]))
+		  while (ptr > buf && isspace(((const uint8_t*)ptr)[-1]))
 		    {
 		      ptr--;
 		    }
@@ -5312,7 +5315,11 @@ printf(
 	  gdomap_log(LOG_CRIT);
 	  exit(EXIT_FAILURE);
 	}
-      chdir("/");
+      if (chdir("/") < 0)
+        {
+          snprintf(ebuf, sizeof(ebuf), "Unable to change directory to /");
+          gdomap_log(LOG_CRIT);
+        }
     }
 #endif /* __MINGW__ */
 #endif /* __svr4__ */

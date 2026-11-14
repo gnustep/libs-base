@@ -37,15 +37,41 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 
+// override to allow read-write of read-only properties
 @interface NSUserNotification ()
-@property (readwrite) NSDate *actualDeliveryDate;
 @property (readwrite, getter=isPresented) BOOL presented;
-@property (readwrite, getter=isRemote) BOOL remote;
-@property (readwrite) NSUserNotificationActivationType activationType;
-@property (readwrite) NSAttributedString *response;
 @end
 
 @implementation NSUserNotification
+
+@synthesize title = _title;
+@synthesize subtitle = _subtitle;
+@synthesize informativeText = _informativeText;
+@synthesize contentImage = _contentImage;
+@synthesize identifier = _identifier;
+@synthesize response = _response;
+@synthesize responsePlaceholder = _responsePlaceholder;
+
+@synthesize hasActionButton = _hasActionButton;
+@synthesize actionButtonTitle = _actionButtonTitle;
+@synthesize otherButtonTitle = _otherButtonTitle;
+@synthesize hasReplyButton = _hasReplyButton;
+
+@synthesize deliveryDate = _deliveryDate;
+@synthesize actualDeliveryDate = _actualDeliveryDate;
+@synthesize deliveryRepeatInterval = _deliveryRepeatInterval;
+@synthesize deliveryTimeZone = _deliveryTimeZone;
+
+@synthesize presented = _presented;
+@synthesize remote = _remote;
+@synthesize soundName = _soundName;
+
+@synthesize activationType = _activationType;
+@synthesize additionalActivationAction = _additionalActivationAction;
+@synthesize additionalActions = _additionalActions;
+
+@synthesize userInfo = _userInfo;
+
 
 - (id) init
 {
@@ -88,7 +114,7 @@
 @end
 
 @interface NSUserNotificationCenter ()
-@property (readwrite) NSArray *deliveredNotifications;
+//@property (copy, readwrite) NSArray *deliveredNotifications;
 @end
 
 @interface NSUserNotificationCenter (Private)
@@ -99,6 +125,8 @@
 @end
 
 @implementation NSUserNotificationCenter
+
+@synthesize delegate = _delegate;
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
@@ -195,6 +223,23 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   NSLog(@"NOTE: %@", un);
 }
 
+// not-synthesized so it can use a NSMutableArray
+- (NSArray *) deliveredNotifications
+{
+  return [_deliveredNotifications copy];
+}
+
+// not-synthesized so it can use a NSMutableArray
+- (NSArray *) scheduledNotifications
+{
+  return [_scheduledNotifications copy];
+}
+
+- (void) setScheduledNotifications: (NSArray *)anArray
+{
+  [_scheduledNotifications setArray: anArray];
+}
+
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
 {
   NSDateComponents	*repeatInterval;
@@ -283,5 +328,29 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 }
 
 @end
+
+
+@interface NSUserNotificationAction ()
+@property (copy, readwrite, nullable) NSString *identifier;
+@property (copy, readwrite, nullable) NSString *title;
+@end
+
+@implementation NSUserNotificationAction
+
++ (instancetype) actionWithIdentifier: (NSString*)identifier
+                                title: (NSString*)title
+{
+  NSUserNotificationAction	*a = [[self alloc] init];
+
+  [a setIdentifier: identifier];
+  [a setTitle: title];
+  return AUTORELEASE(a);
+}
+
+@synthesize title = _title;
+@synthesize identifier = _identifier;
+
+@end
+
 
 #endif /* __has_feature(objc_default_synthesize_properties) */

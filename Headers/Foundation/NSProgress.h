@@ -248,8 +248,7 @@ GS_NSProgress_IVARS;
 /**
  * Cancels tracking by the receiver (so subsequent calls to -isCancelled will
  * return YES), and also cancels unfinished children.
- * If a cancellation handler is set, it is called asynchronously (or
- * synchronously if GNUstep was built without libdispatch), even if the
+ * If a cancellation handler is set, it is called asynchronously, even if the
  * receiver was already cancelled.
  */
 - (void) cancel;

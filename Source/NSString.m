@@ -4751,7 +4751,7 @@ enum GSStringOption {
 {
   const char *ptr = [self UTF8String];
 
-  while (isspace(*ptr))
+  while (isspace(*(const uint8_t*)ptr))
     {
       ptr++;
     }
@@ -4772,7 +4772,7 @@ enum GSStringOption {
 {
   const char *ptr = [self UTF8String];
 
-  while (isspace(*ptr))
+  while (isspace(*(const uint8_t*)ptr))
     {
       ptr++;
     }
@@ -4793,7 +4793,7 @@ enum GSStringOption {
 {
   const char *ptr = [self UTF8String];
 
-  while (isspace(*ptr))
+  while (isspace(*(const uint8_t*)ptr))
     {
       ptr++;
     }

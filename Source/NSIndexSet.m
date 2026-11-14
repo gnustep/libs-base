@@ -28,6 +28,7 @@
 #import "Foundation/NSData.h"
 #import	"Foundation/NSIndexSet.h"
 #import	"Foundation/NSException.h"
+#import	"Foundation/NSLock.h"
 #import "GSDispatch.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
@@ -114,6 +115,45 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
       pos++;
     }
   return pos;
+}
+
+/*
+ * Clips range to valid index values and finds the positions of the first
+ * and last array items intersecting it.  Returns NO if there are none.
+ */
+static BOOL positionsForRange(GSIArray array, NSRange *range,
+  NSUInteger *first, NSUInteger *last)
+{
+  NSUInteger	count = (array == 0) ? 0 : GSIArrayCount(array);
+  NSUInteger	lastIndex;
+
+  if (0 == count || 0 == range->length || range->location >= NSNotFound)
+    {
+      return NO;
+    }
+  if (range->length > NSNotFound - range->location)
+    {
+      range->length = NSNotFound - range->location;
+    }
+  lastIndex = NSMaxRange(*range) - 1;
+  *first = posForIndex(array, range->location);
+  *last = posForIndex(array, lastIndex);
+  if (*last == count
+    || GSIArrayItemAtIndex(array, *last).ext.location > lastIndex)
+    {
+      if (0 == *last)
+	{
+	  return NO;
+	}
+      (*last)--;
+    }
+  return (*first <= *last) ? YES : NO;
+}
+
+static inline NSRange rangeAtPosition(GSIArray array, NSUInteger pos,
+  NSRange clip)
+{
+  return NSIntersectionRange(GSIArrayItemAtIndex(array, pos).ext, clip);
 }
 
 @implementation	NSIndexSet
@@ -851,246 +891,298 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   return [c initWithIndexSet: self];
 }
 
-- (void) enumerateRangesInRange: (NSRange)range 
-                        options: (NSEnumerationOptions)opts 
+- (void) enumerateRangesInRange: (NSRange)range
+                        options: (NSEnumerationOptions)opts
                      usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
-  NSUInteger		startArrayIndex;
-  NSUInteger    	endArrayIndex;
-  NSUInteger    	lastInRange;
-  NSUInteger 		i;
-  NSUInteger 		c;
-  BOOL 			isReverse = opts & NSEnumerationReverse;
+  NSUInteger		first;
+  NSUInteger		last;
+  NSUInteger		n;
+  BOOL 			isReverse = (opts & NSEnumerationReverse) ? YES : NO;
   BLOCK_SCOPE BOOL      shouldStop = NO;
 
-  if ((0 == [self count]) || (NSNotFound == range.location))
+  if (NO == positionsForRange(_array, &range, &first, &last))
     {
       return;
     }
 
-  startArrayIndex = posForIndex(_array, range.location);
-  if (NSNotFound == startArrayIndex)
-    {
-      startArrayIndex = 0;
-    }
-
-    lastInRange = (NSMaxRange(range) - 1);
-    endArrayIndex = MIN(posForIndex(_array, lastInRange),
-      (GSIArrayCount(_array) - 1));
-
-  if (NSNotFound == endArrayIndex)
-    {
-      endArrayIndex = GSIArrayCount(_array) - 1;
-    }
-
-  if (isReverse)
-    {
-      i = endArrayIndex;
-      c = startArrayIndex;
-    }
-  else
-    {
-      i = startArrayIndex;
-      c = endArrayIndex;
-    }
-
-  
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  while (isReverse ? i >= c : i <= c)
+  for (n = 0; n <= last - first && NO == shouldStop; n++)
     {
-      NSRange r = GSIArrayItemAtIndex(_array, i).ext;
+      NSRange	r = rangeAtPosition(_array, isReverse ? last - n : first + n,
+	range);
 
       GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
         if (shouldStop == NO) {, },
         aBlock, r, &shouldStop);
-
-      if (shouldStop)
-        {
-          break;
-        }
-      if (isReverse)
-        {
-          if (0 == i)
-            {
-              break;
-            }
-          i--;
-        }
-      else
-        {
-          i++;
-        }
     }
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
 - (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateRangesWithOptions: 0 usingBlock: aBlock];
-#pragma GCC diagnostic pop 
+#pragma GCC diagnostic pop
 }
 
-- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts
 			 usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
-  NSUInteger    firstIndex;
-  NSUInteger    lastIndex;
-  NSRange       range;
-
-  firstIndex = [self firstIndex];
-  if (NSNotFound == firstIndex)
-    {
-      return;
-    }
-
-  lastIndex = [self lastIndex];
-  range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
-
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  [self enumerateRangesInRange: range options: opts usingBlock: aBlock];
-#pragma GCC diagnostic pop 
+  [self enumerateRangesInRange: NSMakeRange(0, NSNotFound)
+		       options: opts
+		    usingBlock: aBlock];
+#pragma GCC diagnostic pop
 }
 
 - (void) enumerateIndexesInRange: (NSRange)range
                          options: (NSEnumerationOptions)opts
 		      usingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
-  NSUInteger    lastInRange;
-  NSUInteger    startArrayIndex;
-  NSUInteger    endArrayIndex;
-  NSUInteger    i;
-  NSUInteger    c;
-  BOOL          isReverse = opts & NSEnumerationReverse;
+  NSUInteger    first;
+  NSUInteger    last;
+  NSUInteger    n;
+  BOOL          isReverse = (opts & NSEnumerationReverse) ? YES : NO;
   BLOCK_SCOPE BOOL      shouldStop = NO;
 
-  if ((0 == [self count]) || (NSNotFound == range.location))
+  if (NO == positionsForRange(_array, &range, &first, &last))
     {
       return;
     }
 
-  startArrayIndex = posForIndex(_array, range.location);
-  if (NSNotFound == startArrayIndex)
-    {
-      startArrayIndex = 0;
-    }
-
-  lastInRange = (NSMaxRange(range) - 1);
-  endArrayIndex = MIN(posForIndex(_array, lastInRange),
-    (GSIArrayCount(_array) - 1));
-  if (NSNotFound == endArrayIndex)
-    {
-      endArrayIndex = GSIArrayCount(_array) - 1;
-    }
-
-  if (isReverse)
-    {
-      i = endArrayIndex;
-      c = startArrayIndex;
-    }
-  else
-    {
-      i = startArrayIndex;
-      c = endArrayIndex;
-    }
-
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-  while (isReverse ? i >= c : i <= c)
+  for (n = 0; n <= last - first && NO == shouldStop; n++)
     {
-      NSRange r = GSIArrayItemAtIndex(_array, i).ext;
-      NSUInteger innerI;
-      NSUInteger innerC;
+      NSRange	r = rangeAtPosition(_array, isReverse ? last - n : first + n,
+	range);
+      NSUInteger	m;
 
-      if (isReverse)
+      for (m = 0; m < r.length && NO == shouldStop; m++)
         {
-          innerI = NSMaxRange(r) - 1;
-          innerC = r.location;
-        }
-      else
-        {
-          innerI = r.location;
-          innerC = NSMaxRange(r) - 1;
-        }
-      while (isReverse ? innerI >= innerC : innerI <= innerC)
-        {
-          if ((innerI <= lastInRange) && (innerI >= range.location))
-            {
-              GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
-                if (shouldStop == NO) {, },
-                aBlock, innerI, &shouldStop);
-            }
-          if (shouldStop)
-            {
-              break;
-            }
-          if (isReverse)
-            {
-              if (0 == innerI)
-                {
-                  break;
-                }
-              innerI--;
-            }
-          else
-            {
-              innerI++;
-            }
-        }
+          NSUInteger	idx = isReverse ? NSMaxRange(r) - 1 - m : r.location + m;
 
-      if (shouldStop)
-        {
-          break;
-        }
-      if (isReverse)
-        {
-          if (0 == i)
-            {
-              break;
-            }
-          i--;
-        }
-      else
-        {
-          i++;
+          GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
+            if (shouldStop == NO) {, },
+            aBlock, idx, &shouldStop);
         }
     }
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-
 }
 
 - (void) enumerateIndexesWithOptions: (NSEnumerationOptions)opts
 		          usingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
-  NSUInteger    firstIndex;
-  NSUInteger    lastIndex;
-  NSRange       range;
-
-  firstIndex = [self firstIndex];
-  if (NSNotFound == firstIndex)
-    {
-      return;
-    }
-
-  lastIndex = [self lastIndex];
-  range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
-
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  [self enumerateIndexesInRange: range
+  [self enumerateIndexesInRange: NSMakeRange(0, NSNotFound)
                         options: opts
                      usingBlock: aBlock];
-#pragma GCC diagnostic pop 
+#pragma GCC diagnostic pop
 }
 
 - (void) enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   [self enumerateIndexesWithOptions: 0
                          usingBlock: aBlock];
-#pragma GCC diagnostic pop 
+#pragma GCC diagnostic pop
+}
+
+- (NSUInteger) indexInRange: (NSRange)range
+                    options: (NSEnumerationOptions)opts
+                passingTest: (GSIndexSetPredicateBlock)predicate
+{
+  NSUInteger			first;
+  NSUInteger			last;
+  NSUInteger			n;
+  BOOL				isReverse = (opts & NSEnumerationReverse) ? YES : NO;
+  BLOCK_SCOPE BOOL		shouldStop = NO;
+  BLOCK_SCOPE NSUInteger	found = NSNotFound;
+  BLOCK_SCOPE NSLock		*lock = nil;
+
+  if (NO == positionsForRange(_array, &range, &first, &last))
+    {
+      return NSNotFound;
+    }
+
+  if (opts & NSEnumerationConcurrent)
+    {
+      lock = [NSLock new];
+    }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    for (n = 0; n <= last - first && NO == shouldStop; n++)
+      {
+	NSRange		r = rangeAtPosition(_array,
+	  isReverse ? last - n : first + n, range);
+	NSUInteger	m;
+
+	for (m = 0; m < r.length && NO == shouldStop; m++)
+	  {
+	    NSUInteger	idx = isReverse
+	      ? NSMaxRange(r) - 1 - m : r.location + m;
+
+#if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+	    if (enumQueue != NULL)
+	      {
+		dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+		  if (NO == shouldStop && predicate(idx, &shouldStop))
+		    {
+		      [lock lock];
+		      if (NSNotFound == found
+			|| (isReverse ? idx > found : idx < found))
+			{
+			  found = idx;
+			}
+		      shouldStop = YES;
+		      [lock unlock];
+		    }
+		});
+		continue;
+	      }
+#endif
+	    if (CALL_NON_NULL_BLOCK(predicate, idx, &shouldStop))
+	      {
+		found = idx;
+		shouldStop = YES;
+	      }
+	  }
+      }
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  }
+  RELEASE(lock);
+  return found;
+}
+
+- (NSUInteger) indexPassingTest: (GSIndexSetPredicateBlock)predicate
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  return [self indexInRange: NSMakeRange(0, NSNotFound)
+		    options: 0
+		passingTest: predicate];
+#pragma GCC diagnostic pop
+}
+
+- (NSUInteger) indexWithOptions: (NSEnumerationOptions)opts
+                    passingTest: (GSIndexSetPredicateBlock)predicate
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  return [self indexInRange: NSMakeRange(0, NSNotFound)
+		    options: opts
+		passingTest: predicate];
+#pragma GCC diagnostic pop
+}
+
+- (NSIndexSet*) indexesInRange: (NSRange)range
+                       options: (NSEnumerationOptions)opts
+                   passingTest: (GSIndexSetPredicateBlock)predicate
+{
+  NSMutableIndexSet		*result;
+  NSIndexSet			*copy;
+  NSUInteger			first;
+  NSUInteger			last;
+  NSUInteger			n;
+  NSRange			run = NSMakeRange(0, 0);
+  BOOL				isReverse = (opts & NSEnumerationReverse) ? YES : NO;
+  BLOCK_SCOPE BOOL		shouldStop = NO;
+  BLOCK_SCOPE NSLock		*lock = nil;
+
+  if (NO == positionsForRange(_array, &range, &first, &last))
+    {
+      return AUTORELEASE([NSIndexSet new]);
+    }
+
+  result = [NSMutableIndexSet new];
+  if (opts & NSEnumerationConcurrent)
+    {
+      lock = [NSLock new];
+    }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    for (n = 0; n <= last - first && NO == shouldStop; n++)
+      {
+	NSRange		r = rangeAtPosition(_array,
+	  isReverse ? last - n : first + n, range);
+	NSUInteger	m;
+
+	for (m = 0; m < r.length && NO == shouldStop; m++)
+	  {
+	    NSUInteger	idx = isReverse
+	      ? NSMaxRange(r) - 1 - m : r.location + m;
+
+#if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+	    if (enumQueue != NULL)
+	      {
+		dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+		  if (NO == shouldStop && predicate(idx, &shouldStop))
+		    {
+		      [lock lock];
+		      [result addIndex: idx];
+		      [lock unlock];
+		    }
+		});
+		continue;
+	      }
+#endif
+	    if (CALL_NON_NULL_BLOCK(predicate, idx, &shouldStop))
+	      {
+		if (run.length > 0 && (isReverse
+		  ? idx + 1 == run.location : NSMaxRange(run) == idx))
+		  {
+		    if (isReverse)
+		      {
+			run.location = idx;
+		      }
+		    run.length++;
+		  }
+		else
+		  {
+		    if (run.length > 0)
+		      {
+			[result addIndexesInRange: run];
+		      }
+		    run = NSMakeRange(idx, 1);
+		  }
+	      }
+	  }
+      }
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  }
+  if (run.length > 0)
+    {
+      [result addIndexesInRange: run];
+    }
+  RELEASE(lock);
+  copy = [result copy];
+  RELEASE(result);
+  return AUTORELEASE(copy);
+}
+
+- (NSIndexSet*) indexesPassingTest: (GSIndexSetPredicateBlock)predicate
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  return [self indexesInRange: NSMakeRange(0, NSNotFound)
+		      options: 0
+		  passingTest: predicate];
+#pragma GCC diagnostic pop
+}
+
+- (NSIndexSet*) indexesWithOptions: (NSEnumerationOptions)opts
+                       passingTest: (GSIndexSetPredicateBlock)predicate
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  return [self indexesInRange: NSMakeRange(0, NSNotFound)
+		      options: opts
+		  passingTest: predicate];
+#pragma GCC diagnostic pop
 }
 @end
 

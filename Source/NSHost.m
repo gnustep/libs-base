@@ -276,7 +276,7 @@ etcHosts(BOOL flush)
 		}
 
 	      // Skip comments
-	      while (isspace(*line))
+	      while (isspace(*(uint8_t*)line))
 		{
 		  line++;
 		}

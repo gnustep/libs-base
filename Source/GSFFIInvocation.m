@@ -483,7 +483,7 @@ gs_protocol_selector(const char *types)
 	{
 	  types++;
 	}
-      while (isdigit(*types))
+      while (isdigit(*(const uint8_t*)types))
 	{
 	  types++;
 	}

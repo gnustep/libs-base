@@ -7,6 +7,7 @@
 #import <Foundation/Foundation.h>
 #import <GNUstepBase/GNUstep.h>
 #import <GNUstepBase/GSOperation.h>
+#import <GNUstepBase/NSProcessInfo+GNUstepBase.h>
 #import <ObjectTesting.h>
 
 
@@ -1542,6 +1543,7 @@ testQueuedOperationWithDelegate(void)
   GSOperationTestDelegate *delegate;
   NSOperationQueue *queue;
   GSOperation *op;
+  NSDate *when;
 
   target = [GSOperationTestTarget new];
   delegate = [GSOperationTestDelegate new];
@@ -1567,6 +1569,15 @@ testQueuedOperationWithDelegate(void)
 
   PASS(([op isExecuting] == NO), "queued GSOperation is not executing")
 
+  /* Completion handler is called after the operation finishes,
+   * so wait a bit in case another thread is used to do it.
+   */
+  when = [NSDate dateWithTimeIntervalSinceNow: 0.2];
+  while ([delegate completedCount] == 0 && [when timeIntervalSinceNow] > 0.0)
+    {
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+			       beforeDate: when];
+    }
   PASS([delegate completedCount] == 1,
     "queued GSOperation invokes operationCompleted")
 
@@ -1603,7 +1614,6 @@ testOperationIsFinishedAfterStart(void)
 
   [target release];
 }
-
 
 /*
  * --------------------------------------------------------------------------
@@ -1677,7 +1687,9 @@ main(void)
    * NSOperationQueue integration.
    */
   testQueueExecution();
+  [[[NSProcessInfo processInfo] debugSet] addObject: @"NSOperation"];
   testQueuedOperationWithDelegate();
+  [[[NSProcessInfo processInfo] debugSet] removeObject: @"NSOperation"];
 
   /*
    * NSOperation lifecycle.

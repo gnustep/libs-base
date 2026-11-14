@@ -991,7 +991,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
 {
   NSRange found;
   NSString *sep = [locale objectForKey: NSDecimalSeparator];
-  const char *s;
+  const uint8_t *s;
   int i;
 
   if (nil == sep)
@@ -1005,7 +1005,8 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
   found = [numberValue rangeOfString: sep];
   if (found.length)
     {
-      s = [[numberValue substringToIndex: found.location] lossyCString];
+      s = (const uint8_t*)
+	[[numberValue substringToIndex: found.location] lossyCString];
       if ('-' == *s)
         {
 	  result->isNegative = YES;
@@ -1026,7 +1027,8 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
 	    }
 	  s++;
 	}
-      s = [[numberValue substringFromIndex: NSMaxRange(found)] lossyCString];
+      s = (const uint8_t*)
+	[[numberValue substringFromIndex: NSMaxRange(found)] lossyCString];
       while ((*s) && (isdigit(*s)))
         {
 	  if (i < (int)sizeof(result->cMantissa))
@@ -1040,7 +1042,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
     }
   else
     {
-      s = [numberValue lossyCString];
+      s = (const uint8_t*)[numberValue lossyCString];
       if ('-' == *s)
         {
 	  result->isNegative = YES;
@@ -1066,7 +1068,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
   if ((*s == 'e') || (*s == 'E'))
     {
       s++;
-      result->exponent += atoi(s);
+      result->exponent += atoi((const char*)s);
     }
 
   if (!result->length)

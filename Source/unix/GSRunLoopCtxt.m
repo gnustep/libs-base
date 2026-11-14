@@ -28,10 +28,10 @@
 #include <poll.h>
 #endif
 
-#ifdef  HAVE_POLL
+#ifdef  HAVE_POLL_F
 typedef struct {
   int   	limit;
-  short 	*index;
+  int 		*index;		// Position of each fd in pollfds, or -1
   unsigned	refcount;
 } pollextra;
 #endif
@@ -101,7 +101,6 @@ typedef struct {
 - (void) endEvent: (void*)data
               for: (GSRunLoopWatcher*)watcher
 {
-return;
   if (completed == NO)
     {
       unsigned i = GSIArrayCount(_trigger);
@@ -112,7 +111,7 @@ return;
 
 	  if (item.obj == (id)watcher)
 	    {
-	      GSIArrayRemoveItemAtIndex(_trigger, i);
+	      GSIArraySetItemAtIndex(_trigger, (GSIArrayItem)(id)nil, i);
 	      return;
 	    }
 	}
@@ -169,6 +168,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   struct pollfd *pollfds = ctxt->pollfds;
   pollextra	*pe = (pollextra*)ctxt->loop->sharedContextInfo;
 
+  if (fd < 0)
+    {
+      return;	// Not a descriptor: there is nothing to watch.
+    }
   if (fd >= pe->limit)
     {
       int oldfd_limit = pe->limit;
@@ -295,19 +298,25 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       GSRunLoopWatcher	*info;
       BOOL		trigger;
       GSIArray		table;
+      unsigned		pos;
 
+      /* Common mode watchers follow those of this mode: index
+       * them from the start of their own array.
+       */
       if (i >= modeWatchersCount)
 	{
 	  table = common->watchers;
+	  pos = i - modeWatchersCount;
 	}
       else
 	{
 	  table = watchers;
+	  pos = i;
 	}
-      info = GSIArrayItemAtIndex(table, i).obj;
+      info = GSIArrayItemAtIndex(table, pos).obj;
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(table, i);
+	  GSIArrayRemoveItemAtIndex(table, pos);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
@@ -431,7 +440,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     {
       milliseconds = 0;
     }
+  if (milliseconds > 0)
+    {
+      loop->isWaiting = YES;
+    }
   poll_return = poll(pollfds, pollfds_count, milliseconds);
+  loop->isWaiting = NO;
 #if 0
 {
   unsigned int i;
@@ -476,7 +490,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
-      if (watcher->_invalidated == NO)
+      /* nil if a nested poll has already handled it (see -endEvent:for:).
+       */
+      if (watcher != nil && watcher->_invalidated == NO)
 	{
 	  i = [contexts count];
 	  while (i-- > 0)
@@ -713,6 +729,35 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
 #else
 
+/* Add fd to the set and update the highest descriptor seen.  A
+ * descriptor outside 0 to FD_SETSIZE-1 cannot be watched by select():
+ * FD_SET() would write outside the set, so it is refused (and reported
+ * once).
+ */
+static BOOL
+selectFd(int fd, fd_set *set, int *fdEnd)
+{
+  if (fd < 0 || fd >= FD_SETSIZE)
+    {
+      static BOOL	warned = NO;
+
+      if (NO == warned && fd >= 0)
+	{
+	  warned = YES;
+	  NSLog(@"Run loop cannot watch descriptor %d with select()"
+	    @" (FD_SETSIZE is %d): ignoring it and any others.",
+	    fd, (int)FD_SETSIZE);
+	}
+      return NO;
+    }
+  FD_SET(fd, set);
+  if (fd > *fdEnd)
+    {
+      *fdEnd = fd;
+    }
+  return YES;
+}
+
 - (BOOL) pollUntil: (int64_t)microseconds within: (NSArray*)contexts
 {
   GSRunLoopThreadInfo   *threadInfo = loop->threadInfo;
@@ -725,7 +770,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   fd_set 		read_fds;	// Mask for read-ready fds.
   fd_set 		exception_fds;	// Mask for exception fds.
   fd_set 		write_fds;	// Mask for write-ready fds.
-  int			fd;
   int			fdEnd = -1;
   unsigned		count;
   unsigned		i;
@@ -770,18 +814,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 
   /* Watch for signals from other threads.
    */
-  fd = threadInfo->inputFd;
-  if (fd > fdEnd)
-    fdEnd = fd;
-  FD_SET (fd, &read_fds);
+  selectFd(threadInfo->inputFd, &read_fds, &fdEnd);
 #if GS_USE_LIBDISPATCH_RUNLOOP
   if (loop->isMainThread && loop->dispatchHandle != NULL
     && (loop->commonModeMask & (UINT64_C(1) << modeIndex)))
     {
-      fd = (int)(intptr_t)loop->dispatchHandle;
-      if (fd > fdEnd)
-	fdEnd = fd;
-      FD_SET (fd, &read_fds);
+      selectFd((int)(intptr_t)loop->dispatchHandle, &read_fds, &fdEnd);
     }
 #endif
 
@@ -791,20 +829,26 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       int		fd;
       BOOL		trigger;
       GSIArray		table;
+      unsigned		pos;
 
+      /* Common mode watchers follow those of this mode: index
+       * them from the start of their own array.
+       */
       if (i >= modeWatchersCount)
 	{
 	  table = common->watchers;
+	  pos = i - modeWatchersCount;
 	}
       else
 	{
 	  table = watchers;
+	  pos = i;
 	}
 
-      info = GSIArrayItemAtIndex(table, i).obj;
+      info = GSIArrayItemAtIndex(table, pos).obj;
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(table, i);
+	  GSIArrayRemoveItemAtIndex(table, pos);
 	}
       else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
@@ -820,26 +864,26 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
 	    {
 	      case ET_EDESC: 
 		fd = (int)(intptr_t)info->data;
-		if (fd > fdEnd)
-		  fdEnd = fd;
-		FD_SET (fd, &exception_fds);
-		NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
+		if (selectFd(fd, &exception_fds, &fdEnd))
+		  {
+		    NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
+		  }
 		break;
 
 	      case ET_RDESC: 
 		fd = (int)(intptr_t)info->data;
-		if (fd > fdEnd)
-		  fdEnd = fd;
-		FD_SET (fd, &read_fds);
-		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		if (selectFd(fd, &read_fds, &fdEnd))
+		  {
+		    NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		  }
 		break;
 
 	      case ET_WDESC: 
 		fd = (int)(intptr_t)info->data;
-		if (fd > fdEnd)
-		  fdEnd = fd;
-		FD_SET (fd, &write_fds);
-		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+		if (selectFd(fd, &write_fds, &fdEnd))
+		  {
+		    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+		  }
 		break;
 
 	      case ET_RPORT: 
@@ -859,15 +903,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
                       port_fd_array = malloc(sizeof(NSInteger)*port_fd_size);
                       [port getFds: port_fd_array count: &port_fd_count];
                     }
-		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
-		    port_fd_count);
+		  NSDebugMLLog(@"NSRunLoop", @"listening to %ld port sockets",
+		    (long)port_fd_count);
 		  while (port_fd_count--)
 		    {
 		      fd = port_fd_array[port_fd_count];
-		      if (fd > fdEnd)
-			fdEnd = fd;
-		      FD_SET (fd, &read_fds);
-		      NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		      if (selectFd(fd, &read_fds, &fdEnd))
+			{
+			  NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+			}
 		    }
                   if (port_fd_array != port_fd_buffer) free(port_fd_array);
 		}
@@ -885,7 +929,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
    * we try an instantaneous select so that, if there is no input pending,
    * we can service the queue.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode)) || immediate)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate)
     {
       microseconds = 0;
     }
@@ -897,6 +941,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
     }
+  else if (microseconds / 1000000 >= INT_MAX / 1000)
+    {
+      /* Limit the wait as the poll() version does (to INT_MAX
+       * milliseconds): a larger value would overflow tv_sec, and
+       * select() fails with EINVAL for a negative timeout.
+       */
+      timeout.tv_sec = INT_MAX / 1000;
+      timeout.tv_usec = 0;
+    }
   else
     {
       timeout.tv_sec = (int)(microseconds/1000000);
@@ -904,10 +957,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
     }
   select_timeout = &timeout;
 
-  // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
-
-  select_return = select (fdEnd, &read_fds, &write_fds,
+  if (timeout.tv_usec > 0 || timeout.tv_sec > 0)
+    {
+      loop->isWaiting = YES;
+    }
+  select_return = select(fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);
+  loop->isWaiting = NO;
 
   if (debug) NSLog(@"select returned %d", select_return);
 
@@ -943,7 +999,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
-      if (watcher->_invalidated == NO)
+      /* nil if a nested poll has already handled it (see -endEvent:for:).
+       */
+      if (watcher != nil && watcher->_invalidated == NO)
 	{
 	  i = [contexts count];
 	  while (i-- > 0)
@@ -1157,7 +1215,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxtUnix *ctxt)
   timeout.tv_sec = milliseconds/1000;
   timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
   FD_SET (threadInfo->inputFd, &read_fds);
-  if (select (threadInfo->inputFd, &read_fds, &write_fds,
+  /* The first argument is the number of descriptors to look at,
+   * one more than the highest.
+   */
+  if (select (threadInfo->inputFd + 1, &read_fds, &write_fds,
     &exception_fds, &timeout) > 0)
     {
       NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");

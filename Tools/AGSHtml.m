@@ -82,7 +82,7 @@ filter(NSString *input, BOOL verbose)
   NSData 	*writeData;
   NSPipe 	*writePipe = [NSPipe pipe];
   NSFileHandle 	*writeHandle = [writePipe fileHandleForWriting];
-  NSMutableData *output;
+  NSMutableData *output = nil;
 
   writeData = [input dataUsingEncoding: NSUTF8StringEncoding];
   [task setLaunchPath: graphviz];

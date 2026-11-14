@@ -3895,6 +3895,29 @@ esac
 GNUSTEP_BASE_DOMAIN=$result
 
 
+# gnustep-config also prints the user domain's header and library
+# directories, which belong to whoever runs configure (for example
+# /home/runneradmin on a CI machine).  Leave them out of gnustep-base.pc
+# unless gnustep-base itself is installed into the user domain.
+if test "$GNUSTEP_BASE_DOMAIN" != USER; then
+  gs_pc_user_headers=`gnustep-config --variable=GNUSTEP_USER_HEADERS`
+  gs_pc_user_libraries=`gnustep-config --variable=GNUSTEP_USER_LIBRARIES`
+  gs_pc_flags=
+  for gs_pc_flag in $BASEFLAGS; do
+    if test "x$gs_pc_flag" != "x-I$gs_pc_user_headers"; then
+      gs_pc_flags="${gs_pc_flags:+$gs_pc_flags }$gs_pc_flag"
+    fi
+  done
+  BASEFLAGS=$gs_pc_flags
+  gs_pc_flags=
+  for gs_pc_flag in $BASELIBS; do
+    if test "x$gs_pc_flag" != "x-L$gs_pc_user_libraries"; then
+      gs_pc_flags="${gs_pc_flags:+$gs_pc_flags }$gs_pc_flag"
+    fi
+  done
+  BASELIBS=$gs_pc_flags
+fi
+
 #
 # If we are on mingw, we now want to convert the paths to relative
 # paths (relative to libgnustep-base.dll).

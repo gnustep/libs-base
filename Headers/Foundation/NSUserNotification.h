@@ -52,41 +52,93 @@ enum
 };
 typedef NSInteger NSUserNotificationActivationType;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10,GS_API_LATEST)
+@interface NSUserNotificationAction : NSObject
+{
+  NSString *_identifier;
+  NSString *_title;
+}
+
+@property (copy, readonly, nullable) NSString *identifier;
+@property (copy, readonly, nullable) NSString *title;
+
++ (instancetype) actionWithIdentifier:(NSString *) identifier
+                                title:(NSString *) title;
+
+@end
+#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_8,GS_API_LATEST) */
 
 GS_EXPORT_CLASS
 @interface NSUserNotification : NSObject <NSCopying>
 {
+  NSString *_title;
+  NSString *_subtitle;
+  NSString *_informativeText;
+  NSImage *_contentImage;
+  NSString *_identifier;
+
+  BOOL _hasActionButton;
+  NSString *_actionButtonTitle;
+  NSString *_otherButtonTitle;
+  BOOL _hasReplyButton;
+
+  NSDate *_deliveryDate;
+  NSDate *_actualDeliveryDate;
+  NSDateComponents *_deliveryRepeatInterval;
+  NSTimeZone *_deliveryTimeZone;
+  
+  BOOL _presented;
+  BOOL _remote;
+  NSString *_soundName;
+  NSUserNotificationActivationType _activationType;
+  NSUserNotificationAction *_additionalActivationAction;
+  NSArray *_additionalActions;
+
+  NSDictionary *_userInfo;
+
+  NSAttributedString *_response;
+  NSString *_responsePlaceholder;
+
 #if	GS_EXPOSE(NSUserNotification)
   @public
   id _uniqueId;
 #endif
 }
 
-@property (copy) NSString *title;
-@property (copy) NSString *subtitle;
-@property (copy) NSString *informativeText;
-@property (copy) NSString *actionButtonTitle;
-@property (copy) NSDictionary *userInfo;
-@property (copy) NSDate *deliveryDate;
-@property (copy) NSTimeZone *deliveryTimeZone;
-@property (copy) NSDateComponents *deliveryRepeatInterval;
-@property (readonly) NSDate *actualDeliveryDate;
-@property (readonly, getter=isPresented) BOOL presented;
-
-@property (readonly, getter=isRemote) BOOL remote;
-@property (copy) NSString *soundName;
+@property (copy, nullable) NSString *title;
+@property (copy, nullable) NSString *subtitle;
+@property (copy, nullable) NSString *informativeText;
 @property BOOL hasActionButton;
-@property (readonly) NSUserNotificationActivationType activationType;
+@property (copy) NSString *actionButtonTitle;
 @property (copy) NSString *otherButtonTitle;
+
+@property (copy, nullable) NSDate *deliveryDate;
+@property (copy, nullable) NSDate *actualDeliveryDate;
+@property (copy, nullable) NSDateComponents *deliveryRepeatInterval;
+@property (copy, nullable) NSTimeZone *deliveryTimeZone;
+
+@property (readonly, getter=isPresented) BOOL presented;
+@property (readonly, getter=isRemote) BOOL remote;
+@property (copy, nullable) NSString *soundName;
+
+@property (readonly) NSUserNotificationActivationType activationType;
+
+@property (copy, nullable) NSDictionary *userInfo;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 
-@property (copy) NSString *identifier;
-@property (copy) NSImage *contentImage;
+@property (copy, nullable) NSImage *contentImage;
+@property (copy, nullable) NSString *identifier;
 @property BOOL hasReplyButton;
-@property (copy) NSString *responsePlaceholder;
-@property (readonly) NSAttributedString *response;
+@property (copy, readonly, nullable) NSAttributedString *response;
+@property (copy, nullable) NSString *responsePlaceholder;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10,GS_API_LATEST)
+
+@property (copy, readonly, nullable) NSUserNotificationAction *additionalActivationAction;
+@property (copy, nullable) NSArray *additionalActions;
+
+#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_10,GS_API_LATEST) */
 #endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) */
 
 @end
@@ -99,6 +151,7 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSUserNotificationCenter)
   NSMutableArray *_scheduledNotifications;
   NSMutableArray *_deliveredNotifications;
+  id <NSUserNotificationCenterDelegate> _delegate;
 #endif
 }
 
@@ -110,7 +163,7 @@ GS_EXPORT_CLASS
 - (void) scheduleNotification: (NSUserNotification *)notification;
 - (void) removeScheduledNotification: (NSUserNotification *)notification;
 
-@property (readonly) NSArray *deliveredNotifications;
+@property (copy, readonly) NSArray *deliveredNotifications;
 
 - (void) deliverNotification: (NSUserNotification *)notification;
 - (void) removeDeliveredNotification: (NSUserNotification *)notification;

@@ -90,7 +90,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
       memcpy(buf, "_set", 4);
       memcpy(&buf[4], key, size);
       lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
+      hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
       buf[4] = hi;
       buf[size + 4] = ':';
       buf[size + 5] = '\0';
@@ -165,7 +165,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       memcpy(&buf[4], key, size);
       buf[size + 4] = '\0';
       lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
+      hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
       buf[4] = hi;
 
       name = &buf[1];	// getKey
@@ -493,9 +493,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       size = strlen(&name[8]);
       memcpy(&name[size + 8], ":error:", 7);
       name[size + 15] = '\0';
-      if (islower(name[8]))
+      if (islower((uint8_t)name[8]))
 	{
-	  name[8] = toupper(name[8]);
+	  name[8] = toupper((uint8_t)name[8]);
 	}
       sel = sel_getUid(name);
       if (sel != 0 && [self respondsToSelector: sel] == YES)
@@ -635,7 +635,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       memcpy(&buf[4], key, size);
       buf[size + 4] = '\0';
       lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
+      hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
       buf[4] = hi;
 
       name = buf;	// _getKey
@@ -720,7 +720,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       memcpy(&buf[4], key, size);
       buf[size + 4] = '\0';
       lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
+      hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
       buf[4] = hi;
       buf[size + 4] = ':';
       buf[size + 5] = '\0';
@@ -838,7 +838,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       memcpy(buf, "_set", 4);
       memcpy(&buf[4], key, size);
       lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
+      hi = islower((uint8_t)lo) ? toupper((uint8_t)lo) : lo;
       buf[4] = hi;
       buf[size + 4] = ':';
       buf[size + 5] = '\0';
