@@ -51,11 +51,24 @@ NewUTF8STR(const void *ptr, int len)
 {
   NSString	*s;
 
-  s = [[NSString alloc] initWithBytes: ptr
-			       length: len
-			     encoding: NSUTF8StringEncoding];
-  if (s == nil)
-    NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
+  if (len > 0)
+    {
+      s = [[NSString alloc] initWithBytes: ptr
+				   length: len
+				 encoding: NSUTF8StringEncoding];
+    }
+  else if (0 == len)
+    {
+      s = @"";
+    }
+  else
+    {
+      s = nil;
+    }
+  if (nil == s)
+    {
+      NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
+    }
   return s;
 }
 
@@ -1466,6 +1479,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 && c != '>' && c != '/'  && c != '?')
                 {
                   c = cget(); // scan tag until we find a delimiting character
+                }
+              if (EOF == c)
+                {
+                  return [self _parseError: @"unexpected end of file inside tag"
+                    code: NSXMLParserPrematureDocumentEndError];
                 }
               if (*addr(tp) == '/')
                 {
