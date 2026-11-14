@@ -28,7 +28,6 @@ matchesStrtod(const char *text)
 int main(void)
 {
   START_SET("NSScanner scanDouble: long mantissas")
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
   NSScanner		*sc;
   double		d = 0.0;
 
@@ -67,7 +66,6 @@ int main(void)
   PASS(fabs([@"18446744073709551616" doubleValue] - 1.8446744073709552e19)
     < 1e5, "-[NSString doubleValue] gives the same value")
 
-  [pool release];
   END_SET("NSScanner scanDouble: long mantissas")
   return 0;
 }
