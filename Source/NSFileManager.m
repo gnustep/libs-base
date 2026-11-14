@@ -294,6 +294,12 @@ exitedThread(void *lastErrorPtr)
 }
 
 
+@interface NSFileManager ()
+- (BOOL) _changeFileAttributes: (NSDictionary*)attributes
+			atPath: (NSString*)path
+		  traverseLink: (BOOL)traverseLink;
+@end
+
 @interface NSFileManager (PrivateMethods)
 
 /* Copies the contents of source file to destination file. Assumes source
@@ -441,21 +447,45 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
  */
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
+  return [self _changeFileAttributes: attributes
+			      atPath: path
+			traverseLink: YES];
+}
+
+- (BOOL) _changeFileAttributes: (NSDictionary*)attributes
+			atPath: (NSString*)path
+		  traverseLink: (BOOL)traverseLink
+{
   NSDictionary  *old;
   const GSNativeChar	*lpath = 0;
   NSUInteger	num;
   NSString	*str;
   NSDate	*date;
   BOOL		allOk = YES;
+  BOOL		isLink = NO;
+  BOOL		skipTimes = NO;
+#ifndef _WIN32
+  int		(*changeOwner)(const char *, uid_t, gid_t) = chown;
+#endif
 
   if (0 == [attributes count])
     {
       return YES;
     }
-  old = [self fileAttributesAtPath: path traverseLink: YES];
+  old = [self fileAttributesAtPath: path traverseLink: traverseLink];
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef _WIN32
+  if (NO == traverseLink
+    && [[old fileType] isEqualToString: NSFileTypeSymbolicLink])
+    {
+      isLink = YES;
+      changeOwner = lchown;
+#if !defined (HAVE_UTIMENSAT)
+      skipTimes = YES;
+#endif
+    }
+
   if (object_getClass(attributes) == GSAttrDictionaryClass)
     {
       num = ((GSAttrDictionary*)attributes)->statbuf.st_uid;
@@ -468,7 +498,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     }
   if (num != NSNotFound && num != [[old fileOwnerAccountID] unsignedLongValue])
     {
-      if (chown(lpath, num, -1) != 0)
+      if ((*changeOwner)(lpath, num, -1) != 0)
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
@@ -492,10 +522,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  if (getpwnam_r([str cStringUsingEncoding: defaultEncoding],
             &pw, buf, sizeof(buf), &p) == 0)
 	    {
-	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
+	      ok = ((*changeOwner)(lpath, pw.pw_uid, -1) == 0);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
-	      (void)chown(lpath, -1, pw.pw_gid);
+	      (void)(*changeOwner)(lpath, -1, pw.pw_gid);
 #pragma GCC diagnostic pop
 	    }
 #else
@@ -506,10 +536,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  pw = getpwnam([str cStringUsingEncoding: defaultEncoding]);
 	  if (pw != 0)
 	    {
-	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
+	      ok = ((*changeOwner)(lpath, pw->pw_uid, -1) == 0);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
-	      (void)chown(lpath, -1, pw->pw_gid);
+	      (void)(*changeOwner)(lpath, -1, pw->pw_gid);
 #pragma GCC diagnostic pop
 	    }
           GS_MUTEX_UNLOCK(classLock);
@@ -540,7 +570,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
   if (num != NSNotFound
     && num != [[old fileGroupOwnerAccountID] unsignedLongValue])
     {
-      if (chown(lpath, -1, num) != 0)
+      if ((*changeOwner)(lpath, -1, num) != 0)
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
@@ -562,8 +592,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
       if (getgrnam_r([str cStringUsingEncoding: defaultEncoding], &gp,
         buf, sizeof(buf), &p) == 0)
         {
-	  if (chown(lpath, -1, gp.gr_gid) == 0)
-	    ok = YES;
+	  if ((*changeOwner)(lpath, -1, gp.gr_gid) == 0)
+	    {
+	      ok = YES;
+	    }
         }
 #else
 #ifdef HAVE_GETGRNAM
@@ -573,8 +605,10 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
       gp = getgrnam([str cStringUsingEncoding: defaultEncoding]);
       if (gp)
 	{
-	  if (chown(lpath, -1, gp->gr_gid) == 0)
-	    ok = YES;
+	  if ((*changeOwner)(lpath, -1, gp->gr_gid) == 0)
+	    {
+	      ok = YES;
+	    }
 	}
       GS_MUTEX_UNLOCK(classLock);
 #endif
@@ -592,7 +626,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 #endif	/* _WIN32 */
 
   num = [attributes filePosixPermissions];
-  if (num != NSNotFound && num != [old filePosixPermissions])
+  if (num != NSNotFound && NO == isLink && num != [old filePosixPermissions])
     {
       if (_CHMOD(lpath, num) != 0)
 	{
@@ -605,14 +639,15 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     }
 
   date = [attributes fileCreationDate];
-  if (date != nil && NO == [date isEqual: [old fileCreationDate]])
+  if (date != nil && NO == skipTimes
+    && NO == [date isEqual: [old fileCreationDate]])
     {
       BOOL		ok = NO;
       struct _STATB	sb;
       const GSNativeChar *lpath;
 
       lpath = [self fileSystemRepresentationWithPath: path];
-      if (_STAT(lpath, &sb) != 0)
+      if (NO == isLink && _STAT(lpath, &sb) != 0)
 	{
 	  ok = NO;
 	}
@@ -650,7 +685,8 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  ub[1].tv_sec = (time_t)trunc(ti);
 	  ub[1].tv_nsec = (long)trunc((ti - trunc(ti)) * 1.0e9);
 
-	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub,
+	    isLink ? AT_SYMLINK_NOFOLLOW : 0) == 0);
 #elif  defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
@@ -675,12 +711,13 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     }
 
   date = [attributes fileModificationDate];
-  if (date != nil && NO == [date isEqual: [old fileModificationDate]])
+  if (date != nil && NO == skipTimes
+    && NO == [date isEqual: [old fileModificationDate]])
     {
       BOOL		ok = NO;
       struct _STATB	sb;
 
-      if (_STAT(lpath, &sb) != 0)
+      if (NO == isLink && _STAT(lpath, &sb) != 0)
 	{
 	  ok = NO;
 	}
@@ -700,7 +737,8 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  ub[1].tv_sec = (time_t)trunc(ti);
 	  ub[1].tv_nsec = (long)trunc((ti - trunc(ti)) * 1.0e9);
 
-	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub,
+	    isLink ? AT_SYMLINK_NOFOLLOW : 0) == 0);
 #elif  defined(_WIN32) || defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
@@ -1477,7 +1515,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	  return NO;
 	}
     }
-  [self changeFileAttributes: attrs atPath: destination];
+  [self _changeFileAttributes: attrs atPath: destination traverseLink: NO];
   return YES;
 }
 
@@ -1573,7 +1611,9 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
 	  attributes = [self fileAttributesAtPath: source
 				     traverseLink: NO];
-	  [self changeFileAttributes: attributes atPath: destination];
+	  [self _changeFileAttributes: attributes
+				atPath: destination
+			  traverseLink: NO];
 	  return [self removeFileAtPath: source handler: handler];
 	}
       else
@@ -1730,7 +1770,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 	    }
 	}
     }
-  [self changeFileAttributes: attrs atPath: destination];
+  [self _changeFileAttributes: attrs atPath: destination traverseLink: NO];
   return YES;
 #else
   [self _setLastError: @"Links not supported on this platform"];
@@ -3591,7 +3631,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	  NSDebugLog(@"%@: %@", sourceFile, s);
 	  continue;
 	}
-      [self changeFileAttributes: attributes atPath: destinationFile];
+      [self _changeFileAttributes: attributes
+			    atPath: destinationFile
+		      traverseLink: NO];
     }
   LEAVE_POOL
 
@@ -3686,7 +3728,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
                 }
 	    }
 	}
-      [self changeFileAttributes: attributes atPath: destinationFile];
+      [self _changeFileAttributes: attributes
+			    atPath: destinationFile
+		      traverseLink: NO];
     }
   LEAVE_POOL
   return result;
