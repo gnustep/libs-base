@@ -1874,12 +1874,12 @@ main(int argc, char **argv, char **env)
 	  gDate = [[mgr fileAttributesAtPath: gsdocfile traverseLink: YES]
 	    fileModificationDate];
 	  tmp = nil;
-	  if (nil == gDate || [gDate laterDate: cDate] == cDate)
+	  if (nil == gDate || (cDate && [gDate laterDate: cDate] == cDate))
 	    {
 	      tmp = cur;
 	      gDate = cDate;
 	    }
-	  if (nil == gDate || [gDate laterDate: sDate] == sDate)
+	  if (nil == gDate || (sDate && [gDate laterDate: sDate] == sDate))
 	    {
 	      tmp = src;
 	      gDate = sDate;
