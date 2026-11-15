@@ -78,6 +78,7 @@
 #ifdef	HAVE_PWD_H
 #include <pwd.h>		// for getpwnam_r() and getpwuid_r()
 #endif
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
 
@@ -118,17 +119,15 @@ static NSString	*gnustep_is_flattened =
 #endif
 
 #if	defined(_WIN32)
-
 #include	<sddl.h>
 #include	<lmaccess.h>
-
 /*
  * FIXME ... should check access properly if the file is on an NTFS volume.
  */
 #define	ATTRMASK	0700
 #else
 #define	ATTRMASK	0777
-#endif
+#endif	/* defined(_WIN32) */
 
 #define	MGR()	[NSFileManager defaultManager]
 
@@ -244,7 +243,7 @@ static NSString *gnustepUserVideos = nil;
 static NSString	*uninstalled = nil;
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
-  NSString *userName);
+  NSString *userName, BOOL allowGroup);
 static NSMutableDictionary *UserDirsParseXDG();
 
 static void InitialisePathUtilities(void);
@@ -1197,7 +1196,7 @@ GNUstepConfig(NSDictionary *newConfig)
 			[gnustepConfigPath UTF8String],
 			[[file lastPathComponent] UTF8String]);
 		    }
-		  if (ParseConfigurationFile(file, conf, nil)
+		  if (ParseConfigurationFile(file, conf, nil, NO)
 		    && GSDebugSet(debugKey))
 		    {
 		      fprintf(stderr, "Configuration contained '%s'\n",
@@ -1329,7 +1328,7 @@ GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 		[file UTF8String], [home UTF8String]);
 	    }
 	  dict = [NSMutableDictionary new];
-	  if (ParseConfigurationFile(path, dict, userName))
+	  if (ParseConfigurationFile(path, dict, userName, NO))
 	    {
 	      /* Don't let the user file override the GNUSTEP_USER_CONFIG_FILE
 	       * variable ... that would be silly/pointless.
@@ -1523,11 +1522,14 @@ static void ShutdownPathUtilities(void)
  * strings to avoid having to double all occurrences of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br />
  * If the file does not exist,
- * the function makes no changes to dict and returns NO.
+ * the function makes no changes to dict and returns NO.<br />
+ * The allowGroup flag may be set to indicate that the file may be editable
+ * by members of the owner's group (umask() permitting), otherwise it must
+ * be strictly writable only by its owner.
  */
 static BOOL
 ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
-  NSString *userName)
+  NSString *userName, BOOL allowGroup)
 {
   NSDictionary	*attributes;
   NSString      *file;
@@ -1541,6 +1543,8 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   BOOL		wantKey = YES;
   BOOL		wantVal = NO;
   NSString	*key = nil;
+  unsigned	mask = 0022;
+  unsigned	perm;
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
@@ -1572,18 +1576,39 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
           return NO;
 	}
     }
-  if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
+  perm = (unsigned)[attributes filePosixPermissions];
+  if (allowGroup)
     {
 #if defined(_WIN32)
+      mask = 0002;
+#else
+      if ((umask(0) & 0020) == 0)
+	{
+	  /* The process mask and the flag both allow group members to
+	   * write to the file.
+	   */
+	  mask = 0002;
+	}
+      else
+	{
+	  allowGroup = NO;
+	}
+#endif
+    }
+  if ((perm & (mask & ATTRMASK)) != 0)
+   {
+#if defined(_WIN32)
       fprintf(stderr, "The file '%S' is writable by someone other than"
-	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	" its owner%s (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
-        (long)[attributes filePosixPermissions]);
+	(allowGroup ? " and group" : ""),
+	(long)[attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
-	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	" its owner%s (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
-        (long)[attributes filePosixPermissions]);
+	(allowGroup ? " and group" : ""),
+	(long)[attributes filePosixPermissions]);
 #endif
       return NO;
     }
@@ -1877,7 +1902,7 @@ UserDirsParseXDG()
    */
   userName = NSUserName();
   info = [NSMutableDictionary dictionary];
-  if (NO == ParseConfigurationFile(fileName, info, userName))
+  if (NO == ParseConfigurationFile(fileName, info, userName, YES))
     {
       [info removeAllObjects];
     }
