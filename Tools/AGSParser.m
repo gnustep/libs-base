@@ -3580,6 +3580,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   static NSSet 		*atomicity = nil;
   static NSSet 		*writability = nil;
   static NSSet 		*semantics = nil;
+  static NSSet 		*nullability = nil;
   NSMutableDictionary	*gd;
   NSMutableDictionary	*prop;
   NSMutableDictionary	*attr;
@@ -3613,7 +3614,17 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	@"copy",
 	@"retain",
 	@"strong",
+	@"unsafe_unretained",
 	@"weak",
+	nil];
+    }
+  if (nil == nullability)
+    {
+      nullability = [[NSSet alloc] initWithObjects:
+	@"nonnull",
+	@"nullable",
+	@"null_resettable",
+	@"null_unspecified",
 	nil];
     }
 
@@ -3686,7 +3697,11 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		{
 		  [attr setObject: token forKey: token];
 		}
-	      else
+	      else if ([nullability member: token])
+		{
+		  [attr setObject: token forKey: token];
+		}
+	      else if (NO == [token isEqual: @"class"])
 		{
 		  [self log: @"@property unknown attribute %@",
 		    token];
@@ -3722,6 +3737,11 @@ countAttributes(NSSet *keys, NSDictionary *a)
   else if (0 == count)
     {
       [attr setObject: @"assign" forKey: @"assign"];
+    }
+  if ((count = countAttributes(nullability, attr)) > 1)
+    {
+      [self log: @"@property with multiple nullability attributes"];
+      return nil;
     }
   if ([attr objectForKey: @"readonly"] && [attr objectForKey: @"setter"])
     {
