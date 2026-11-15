@@ -1832,7 +1832,10 @@ main(int argc, char **argv, char **env)
 	  NSString	*cur;
 	  NSString	*nam;
 	  NSString	*ext;
+	  NSString	*tmp;
 	  NSDictionary	*attrs;
+	  NSDate	*sDate = nil;
+	  NSDate	*cDate = nil;
 	  NSDate	*gDate = nil;
 
 	  if (arp != nil)
@@ -1861,16 +1864,29 @@ main(int argc, char **argv, char **env)
 
 	  /* If our source file is a gsdoc file, it may be located somewhere
 	   * other than the documentation (output) directory, in which case
-           * we must copy it into place.
+           * we must copy it into place.  Make sure we copy the most recent
+	   * file available.
 	   */
-	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
-            && [ext isEqual: @"gsdoc"])
+	  sDate = [[mgr fileAttributesAtPath: src traverseLink: YES]
+	    fileModificationDate];
+	  cDate = [[mgr fileAttributesAtPath: cur traverseLink: YES]
+	    fileModificationDate];
+	  gDate = [[mgr fileAttributesAtPath: gsdocfile traverseLink: YES]
+	    fileModificationDate];
+	  tmp = nil;
+	  if (nil == gDate || [gDate laterDate: cDate] == cDate)
+	    {
+	      tmp = cur;
+	      gDate = cDate;
+	    }
+	  if (nil == gDate || [gDate laterDate: sDate] == sDate)
+	    {
+	      tmp = src;
+	      gDate = sDate;
+	    }
+	  if (tmp != nil && [ext isEqual: @"gsdoc"])
 	    {
               [mgr copyPath: cur toPath: gsdocfile handler: nil];
-	      if ([mgr isReadableFileAtPath: gsdocfile] == NO)
-                {
-                  [mgr copyPath: src toPath: gsdocfile handler: nil];
-                }
 	    }
 	  if (ignoreDependencies == NO)
 	    {
@@ -1884,7 +1900,7 @@ main(int argc, char **argv, char **env)
 	   *     unless the project index is already more up to date than
 	   *     this file (or the gsdoc file does not exist of course).
 	   */
-	  if (gDate != nil && [gDate earlierDate: rDate] != gDate)
+	  if (gDate != nil && (tmp || [gDate earlierDate: rDate] != gDate))
 	    {
 	      if (showDependencies == YES)
 		{
