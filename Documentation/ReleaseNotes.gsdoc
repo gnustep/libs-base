@@ -16,7 +16,7 @@ notice and this notice are preserved.
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <copy>2005-2023 Free Software Foundation, Inc.</copy>
+    <copy>2005-2026 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
@@ -28,8 +28,357 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.32.0</heading>
+        <p>
+        </p>
+
+        <p>
+          <strong>NSArray and NSMutableArray:</strong>
+          Corrected class initialization ordering to ensure that
+          NSMutableArrayClass and GSMutableArrayClass are set
+          during NSMutableArray initialization. This prevents
+          concurrent first use from returning nil or an abstract
+          NSMutableArray instance.
+        </p>
+
+        <p>
+          <strong>NSAutoreleasePool:</strong>
+          Improved thread-exit cleanup by explicitly passing
+          thread autorelease variables to cleanup routines,
+          allowing correct cleanup even when thread-local
+          storage is no longer accessible.
+        </p>
+
+        <p>
+          <strong>NSBundle:</strong>
+          Improved thread safety and performance of localized
+          string lookup by allowing threads to reuse their
+          most recently accessed localization tables.
+          Improved protection of cached bundle information
+          during cache cleanup.
+        </p>
+
+        <p>
+          <strong>NSCache:</strong>
+          Corrected count-limit handling so that a zero
+          count limit means unlimited capacity rather than
+          causing every inserted object to be evicted.
+        </p>
+
+        <p>
+          <strong>NSCalendar and NSDateComponents:</strong>
+          Implemented -rangeOfUnit:startDate:interval: and
+          -rangeOfUnit:inUnit:forDate: to return the relevant
+          calendar-unit intervals and ranges. Corrected
+          NSDateComponents copying so that mutable instances produce
+          independent copies rather than returning the original object.
+        </p>
+
+        <p>
+          <strong>NSData:</strong>
+          Added a GNUstep additions method for more efficient
+          generation of random data.
+        </p>
+
+        <p>
+          <strong>NSDecimal and NSDecimalNumber:</strong>
+          Corrected overflow reporting for negative results
+          in decimal addition, subtraction and multiplication.
+          Improved decimal comparison so that insignificant
+          trailing zeros do not affect equality.
+        </p>
+
+        <p>
+          <strong>NSHost:</strong>
+          Improved portability of reverse hostname lookup by
+          supporting the five-argument gethostbyaddr_r interface
+          found on Solaris and other systems.
+        </p>
+
+        <p>
+          <strong>NSHTTPCookieStorage:</strong>
+          Added locking to make cookie storage instances thread-safe
+          and corrected loading from persistent storage to avoid
+          duplicate cookies.
+        </p>
+
+        <p>
+          <strong>NSIndexSet:</strong>
+          Added predicate-based index searching methods, including
+          -indexPassingTest:, -indexWithOptions:passingTest:,
+          -indexInRange:options:passingTest:, -indexesPassingTest:,
+          -indexesWithOptions:passingTest: and
+          -indexesInRange:options:passingTest:. Fixed range enumeration
+          methods to respect the requested range and avoid visiting
+          indexes outside it.
+        </p>
+
+        <p>
+          <strong>NSInvocation and NSMethodSignature:</strong>
+          Improved handling of structures containing bitfields
+          in method type encodings. Corrected structure size
+          and alignment calculations using runtime information,
+          allowing structures containing bitfields to be passed
+          and returned correctly through invocations.
+        </p>
+
+        <p>
+          <strong>NSKeyedUnarchiver and NSSecureCoding:</strong>
+          Implemented enforcement of allowed-class restrictions when
+          decoding securely. The secure decoding entry points now
+          reject objects whose classes are not in the permitted class
+          set or which do not support secure coding, returning an
+          NSError on failure. Added NSSecureCoding conformance to
+          the property-list foundation classes, including NSString,
+          NSData, NSDate, NSNumber, NSArray, NSDictionary and NSSet,
+          allowing collections of secure objects to be decoded securely.
+        </p>
+
+        <p>
+          <strong>NSKVOSupport:</strong>
+          Extended the new Key-Value Observing implementation
+          to all supported Objective-C runtimes. Added a
+          class-swizzling backend for runtimes without the
+          libobjc2 per-object method addition extension.
+          Corrected observation of mutable dictionary contents
+          on the GNU runtime and improved observer notification
+          handling and performance.
+        </p>
+
+        <p>
+          <strong>NSMapTable and NSHashTable:</strong>
+          Corrected weak-pointer enumeration and improved its
+          performance by explicitly retaining values during
+          enumeration rather than relying on autorelease pools.
+          Fixed weak-value hash table rehashing so that entries
+          remain accessible after the table grows.
+        </p>
+
+        <p>
+          <strong>NSNumber:</strong>
+          Corrected hash calculation so that equal numeric values
+          represented by different NSNumber types produce equal
+          hashes, as required by the equality contract. Improved
+          distribution of hashes for fractional values and
+          handling of non-finite values.
+        </p>
+
+        <p>
+          <strong>GSMime:</strong>
+          Corrected MIME header encoding of otherwise illegal
+          characters and removed an initialization dependency
+          between GSMimeParser and GSMimeDocument that could
+          cause deadlocks when the classes were first used
+          concurrently.
+        </p>
+
+        <p>
+          <strong>NSOperation:</strong>
+          Improved portability of operation handling with blocks
+          and ARC. Added GSBoxWeak, a GNUstep additions utility
+          providing zeroing weak-reference behaviour on systems
+          without ARC. Added GSOperation as a lightweight,
+          portable alternative to NSBlockOperation, and delegate
+          methods as a portable alternative to block-based
+          completion handlers.
+        </p>
+
+        <p>
+          <strong>NSPathUtilities:</strong>
+          Added support for XDG user directory configuration through
+          the standard user-dirs.dirs file. GNUstep configuration
+          values take precedence over XDG values. Also added
+          GSLocalizedUserDirs() to identify user directories whose
+          physical names have been localized; necessary information
+          since the OpenStep/Apple behaviour is not to automatically
+          localize user directory paths.
+        </p>
+
+        <p>
+          <strong>NSPointerArray:</strong>
+          Corrected -compact so that non-nil pointers are retained
+          in their original order and trailing slots are cleared.
+        </p>
+
+        <p>
+          <strong>NSPredicate and NSExpression:</strong>
+          Improved expression parsing and function support. Added
+          the uppercase:, lowercase: and now functions, and support
+          for the colon form of function calls used by Apple Foundation.
+          Corrected handling of variadic arguments to expression
+          format strings so that string arguments are substituted
+          as constants rather than being interpreted as key paths.
+        </p>
+
+        <p>
+          <strong>NSProcessInfo:</strong>
+          Improved process initialization to use the process
+          environment when no explicit environment is supplied,
+          including correct propagation of the environment
+          passed to the Android initialization interface.
+        </p>
+
+        <p>
+          <strong>NSProgress:</strong>
+          Implemented pausing and resuming of progress reporting, including
+          the pausable property and associated handlers. Child progress
+          objects now follow the paused, resumed and cancelled state of
+          their parent. Completion handling, pending unit counts,
+          current progress management and Key-Value Observing notifications
+          have been improved. Added delegate-based notification support
+          through the GNUstep additions API, providing a portable
+          alternative to block-based handlers.
+        </p>
+
+        <p>
+          <strong>NSRunLoop and NSTimer:</strong>
+          Replaced the array-based timer management implementation
+          with a min-heap, improving timer lookup and firing
+          performance, particularly when many timers are registered.
+          Timer handling across multiple run-loop modes has also
+          been improved. A run loop is now limited to 64 modes to permit
+	  more efficient mode handling using a 64bit mask.
+        </p>
+
+        <p>
+          <strong>NSScanner:</strong>
+          Implemented -scanDecimal:, -scanHexDouble: and -scanHexFloat:.
+          Improved scanning of floating-point values so that long integer
+          portions retain their correct magnitude rather than losing
+          precision when they exceed the mantissa limit.
+        </p>
+
+        <p>
+          <strong>NSSortDescriptor:</strong>
+          Corrected comparator block ownership by copying
+          comparator blocks rather than retaining them. This
+          prevents descriptors created with stack blocks from
+          retaining invalid references after the calling scope
+          has ended.
+        </p>
+
+        <p>
+          <strong>NSStream:</strong>
+          Improved socket stream handling so that a stream
+          does not report space available after the peer has
+          closed the connection on Windows.
+        </p>
+
+        <p>
+          <strong>NSString:</strong>
+          Improved string construction by allowing
+          +stringWithString: to return a shared copy where
+          appropriate, avoiding unnecessary allocation for
+          immutable strings. Added further safeguards when
+          handling composed-character sequence ranges.
+        </p>
+
+        <p>
+          <strong>NSTask:</strong>
+	  Use posix_spawn is available (better at multithreading).
+          Corrected child-process signal-mask handling so that
+          processes launched through either posix_spawn or the
+          fork fallback start with an empty signal mask. This
+          prevents signals blocked in the parent thread from
+          being inherited by the child and interfering with
+          process termination. Also corrected executable
+          lookup when PATH is absent.
+        </p>
+
+        <p>
+          <strong>NSThread and NSRunLoop:</strong>
+          Added eventfd-based inter-thread signalling on Linux
+          where available, reducing the number of file
+          descriptors required for thread communication and
+          avoiding the overhead of pipe-based signalling.
+        </p>
+
+        <p>
+          <strong>NSUnarchiver:</strong>
+          Improved compatibility when decoding archived
+          character values into wider integer types, preserving
+          the sign of the original value. This fixes decoding
+          compatibility issues involving BOOL values across
+          different Objective-C runtimes, particularly on
+          Windows.
+        </p>
+
+        <p>
+          <strong>NSURLConnection, NSURLProtocol:</strong>
+          Improved scheduling of URL connections and their associated
+          streams through a shared run-loop scheduling utility.
+          Stream scheduling now follows the scheduling of the owning
+          connection. This improves consistency when connections are
+          scheduled in multiple run-loop modes.
+        </p>
+
+        <p>
+          <strong>NSURLConnection, NSURLHandle and GSTLS:</strong>
+          Improved TLS certificate verification when connecting to
+          HTTPS URLs using an IP address as the host. Address
+          identification now uses address parsing rather than relying
+          on the first character of the host string. Added checks
+          against incorrectly configured TLS server names, requiring
+          callers to explicitly supply the hostname when opening
+          TLS streams or file handles.
+        </p>
+
+        <p>
+          <strong>NSURLSession:</strong>
+          Changed the implementation to drive libcurl's multi interface
+          from a dedicated NSThread and NSRunLoop rather than depending
+          on libdispatch. Socket readiness is now monitored using
+          run-loop descriptor watchers on Unix-like systems and
+          appropriate event watchers on Windows. This removes the
+          libdispatch build dependency, allowing NSURLSession to be
+          built whenever libcurl is available. Additional session
+	  invalidation and lifecycle tests have been added.
+        </p>
+
+        <p>
+          <strong>NSUserDefaults:</strong>
+          Corrected volatile-domain replacement behaviour and
+          ensured that changes to the defaults search list,
+          registered defaults and volatile domains generate
+          the appropriate notifications.<br />
+          Changed NSUserDefaultsDidChangeNotification delivery
+          so that notifications are deferred until -synchronize
+          is called, allowing applications to make multiple
+          changes without immediate notification interruptions.
+        </p>
+
+        <p>
+          <strong>NSZone:</strong>
+          Clarified allocation failure behaviour and made
+          allocation functions consistently return NULL on
+          failure rather than raising exceptions. Removed
+          outdated garbage-collection documentation.
+        </p>
+
+        <p>
+          <strong>Tools and documentation:</strong>
+          Improved reproducibility of generated documentation
+          by supporting SOURCE_DATE_EPOCH and
+          SOURCE_AUTHOR_CREDIT. Added generated-date and
+          author-credit support to the autogsdoc output
+          infrastructure.<br />
+	  Improved html output formatting using stylesheets.<br />
+	  Handle Objective-C 2.0 features and common macros for
+	  dealingt with non-portable Apple code.
+        </p>
+
+        <p>
+          Numerous additional fixes have been made to memory
+          management, thread safety, portability, initialization
+          and test coverage throughout the library.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.31.1</heading>
-        <p>Bugfix realease correcting a missing KVO method when using the
+        <p>
+        </p>
+        <p>Bugfix realese correcting a missing KVO method when using the
 	ng runtime and an error in weak referece support when using the
 	gnu runtime.
         </p>

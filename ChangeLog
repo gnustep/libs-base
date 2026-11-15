@@ -1,9 +1,17 @@
+2026-11-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m:
+	* Tools/default-styles.css:
+	* Documentation/ReleaseNotes.gsdoc:
+	Initial draft of release notes along with monor gsdoc fixes.
+
 2026-11-06 Daniel Boyd <danieljboyd@icloud.com>
 
 	* Source/NSScanner.m (-scanDouble:): Count integer digits beyond the
 	mantissa's limit, so that an integer longer than 18 digits keeps its
 	magnitude.  -[NSString doubleValue] scans with this method.
 	* Tests/base/NSScanner/scanDoubleLong.m: New test.
+
 2026-11-11 Daniel Boyd <danieljboyd@icloud.com>
 
 	* Source/NSArray.m:
@@ -91,6 +99,7 @@
 	as a portable alternative to the cancellation, pausing and resuming
 	handlers, implemented in the additions for macOS, and mark the block
 	based methods as non-portable.
+
 2026-11-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m:
