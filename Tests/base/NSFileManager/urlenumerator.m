@@ -37,7 +37,7 @@ int main()
   e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: top]
   includingPropertiesForKeys: nil
 		   options: 0
-	      errorHandler: nil];
+	      errorHandler: NULL];
   found = [NSMutableDictionary dictionary];
   while (nil != (u = [e nextObject]))
     {
