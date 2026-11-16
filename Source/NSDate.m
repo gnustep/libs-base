@@ -141,19 +141,32 @@ static id _distantFuture = nil;
 union CompressedDouble {
   uintptr_t data;
   struct {
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	uintptr_t sign : 1;
+    intptr_t exponent : 8;  // signed!
+    uintptr_t fraction : 52;
+    uintptr_t tag : 3; // placeholder for tag bits
+#else
     uintptr_t tag : 3; // placeholder for tag bits
     uintptr_t fraction : 52;
     intptr_t exponent : 8;  // signed!
     uintptr_t sign : 1;
+#endif
   };
 };
 
 union DoubleBits {
   double val;
   struct {
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+    uintptr_t sign : 1;
+    uintptr_t exponent : 11;
+    uintptr_t fraction : 52;
+#else
     uintptr_t fraction : 52;
     uintptr_t exponent : 11;
     uintptr_t sign : 1;
+#endif
   };
 };
 
