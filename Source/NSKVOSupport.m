@@ -709,6 +709,7 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   /* Fast path: a simple (non-keypath) observer with no dependents to
    * reconstruct and no affected observers has no nested work here. */
   if (!dependents && keyObserver.restOfKeypath == nil
+      && keyObserver.dependentObservers == nil
       && keyObserver.affectedObservers == nil)
     {
       return;
