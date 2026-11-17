@@ -252,6 +252,7 @@ notifyingVariadicSetImpl(id self, SEL _cmd, ...)
 	default:
 	  NSLog(@"Can't override setter with more than 6"
 	    @" sizeof(long int) stack arguments.");
+	  free(raw);
 	  return;
       }
   }

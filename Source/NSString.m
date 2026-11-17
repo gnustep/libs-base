@@ -876,7 +876,8 @@ GSStringApplyTransliterator(const unichar *src,
 	textLen = srcLen;
 	limit = textLen;
 	err = U_ZERO_ERROR;
-	utrans_transUChars(trans, (UChar *)dst, &textLen, capacity, 0, &limit, &err);
+	utrans_transUChars(trans, (UChar *)dst, &textLen, capacity,
+	  0, &limit, &err);
 	if (err == U_BUFFER_OVERFLOW_ERROR)
 	  {
 	    unichar	*tmp;
@@ -898,7 +899,7 @@ GSStringApplyTransliterator(const unichar *src,
 	  {
 	    if (dstOnStack == NO)
 	      {
-		      free(dst);
+	        free(dst);
 	      }
 	    [NSException raise: NSCharacterConversionException
 			format: @"libicu transliteration failed"];
@@ -909,7 +910,7 @@ GSStringApplyTransliterator(const unichar *src,
     result = [NSString stringWithCharacters: dst length: textLen];
     if (dstOnStack == NO)
       {
-	      free(dst);
+	free(dst);
       }
     return result;
   }
