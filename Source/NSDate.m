@@ -94,7 +94,8 @@ static id _distantFuture = nil;
  *
  * Sign and mantissa are not touched. The exponent is compressed.
  * Compression:
- * 1. Take the 11-bit unsigned exponent and sign-extend it to a 64-bit signed integer.
+ * 1. Take the 11-bit unsigned exponent and sign-extend it to a
+ *   64-bit signed integer.
  * 2. Subtract a new secondary bias of 0x3EF from the exponent.
  * 3. Truncate the result to a 7-bit signed integer.
  *
@@ -141,19 +142,32 @@ static id _distantFuture = nil;
 union CompressedDouble {
   uintptr_t data;
   struct {
-    uintptr_t tag : 3; // placeholder for tag bits
-    uintptr_t fraction : 52;
-    intptr_t exponent : 8;  // signed!
-    uintptr_t sign : 1;
+#if	GS_WORDS_BIGENDIAN
+    uintptr_t	sign : 1;
+    intptr_t	exponent : 8;	// signed!
+    uintptr_t	fraction : 52;
+    uintptr_t	tag : 3;	// placeholder for tag bits
+#else
+    uintptr_t	tag : 3;	// placeholder for tag bits
+    uintptr_t	fraction : 52;
+    intptr_t	exponent : 8;	// signed!
+    uintptr_t	sign : 1;
+#endif
   };
 };
 
 union DoubleBits {
   double val;
   struct {
-    uintptr_t fraction : 52;
-    uintptr_t exponent : 11;
-    uintptr_t sign : 1;
+#if	GS_WORDS_BIGENDIAN
+    uintptr_t	sign : 1;
+    uintptr_t	exponent : 11;
+    uintptr_t	fraction : 52;
+#else
+    uintptr_t	fraction : 52;
+    uintptr_t	exponent : 11;
+    uintptr_t	sign : 1;
+#endif
   };
 };
 
