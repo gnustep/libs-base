@@ -1136,9 +1136,9 @@ failure:
 {
 #ifdef	HAVE_MMAP
   NSZone	*z = [self zone];
-  DESTROY(self);
-  self = [NSDataMappedFile allocWithZone: z];
-  return [self initWithContentsOfMappedFile: path];
+  RELEASE(self);
+  return [(NSDataMappedFile*)[NSDataMappedFile allocWithZone: z]
+    initWithContentsOfMappedFile: path];
 #else
   return [self initWithContentsOfFile: path];
 #endif
