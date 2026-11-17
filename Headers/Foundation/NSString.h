@@ -770,7 +770,7 @@ GS_EXPORT_CLASS
  * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
  * perform the conversion.
  */
-- (const GSNativeChar *_Nullable) fileSystemRepresentation;
+- (const GSNativeChar*) fileSystemRepresentation;
 
 /**
  * Converts the receiver to a C string path using the character encoding
