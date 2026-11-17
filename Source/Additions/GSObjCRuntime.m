@@ -728,7 +728,6 @@ gs_string_hash(const char *s)
 #include "GNUstepBase/GSIMap.h"
 
 static GSIMapTable_t protocol_by_name;
-static BOOL protocol_by_name_init = NO;
 static gs_mutex_t protocol_by_name_lock = GS_MUTEX_INIT_STATIC;
 
 /* Not sure about the semantics of inlining
@@ -736,24 +735,23 @@ static gs_mutex_t protocol_by_name_lock = GS_MUTEX_INIT_STATIC;
 static void
 gs_init_protocol_lock(void)
 {
+  static BOOL protocol_by_name_init = NO;
+
   GS_MUTEX_LOCK(protocol_by_name_lock);
   if (protocol_by_name_init == NO)
-  	{
-	  GSIMapInitWithZoneAndCapacity (&protocol_by_name,
-					 NSDefaultMallocZone(),
-					 128);
-	  protocol_by_name_init = YES;
-	}
+    {
+      GSIMapInitWithZoneAndCapacity(&protocol_by_name,
+	NSDefaultMallocZone(),
+	128);
+      protocol_by_name_init = YES;
+    }
   GS_MUTEX_UNLOCK(protocol_by_name_lock);
 }
 
 void
 GSRegisterProtocol(Protocol *proto)
 {
-  if (protocol_by_name_init == NO)
-    {
-      gs_init_protocol_lock();
-    }
+  gs_init_protocol_lock();
 
   if (proto != nil)
     {
@@ -778,10 +776,7 @@ GSProtocolFromName(const char *name)
   GSIMapNode node;
   Protocol *p;
 
-  if (protocol_by_name_init == NO)
-    {
-      gs_init_protocol_lock();
-    }
+  gs_init_protocol_lock();
 
   node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
   if (node)
