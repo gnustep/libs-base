@@ -175,7 +175,7 @@ GS_NON_PORTABLE(use initWithBytesNoCopy:length:freeFunction: instead);
 
 // Accessing Data
 
-- (const void *_Nullable) bytes;
+- (const void*) bytes;
 - (NSString*) description;
 - (void) getBytes: (void*)buffer;
 - (void) getBytes: (void*)buffer
@@ -365,7 +365,7 @@ GS_EXPORT_CLASS
 
 - (void) increaseLengthBy: (NSUInteger)extraLength;
 - (void) setLength: (NSUInteger)size;
-- (void *_Nullable) mutableBytes;
+- (void*) mutableBytes;
 
 // Appending Data
 
