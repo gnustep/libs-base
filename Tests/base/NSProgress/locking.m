@@ -348,11 +348,13 @@ void checkObservingKeyPathWithValues(void)
 	   forKeyPath: @"progress.fractionCompleted"
 	      options: options
 	      context: NULL];
+testHopeful = YES;
   PASS(runConcurrently(@selector(replaceProgress:),
     [NSArray arrayWithObjects: holder, progress1, progress2, nil],
     @selector(setProperties:), progress1),
     "replacing an observed progress while setting its properties"
     " does not deadlock")
+testHopeful = NO;
   if (!deadlocked)
     {
       [holder removeObserver: o
