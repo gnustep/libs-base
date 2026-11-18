@@ -2519,6 +2519,10 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
    * unicode function to get the cString.
    */
   o = (GSMutableString*)alloca(class_getInstanceSize(GSMutableStringClass));
+  /* Set the initial value of the memory to NULL to avoid object_setClass()
+   * being confused.
+   */
+  *((void**)o) = NULL;
   object_setClass(o, GSMutableStringClass);
   o->_count = self->_count;
   o->_flags.wide = 0;
