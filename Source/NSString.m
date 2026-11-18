@@ -1893,6 +1893,10 @@ register_printf_atsign ()
    * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
   f = (GSStr)alloca(class_getInstanceSize(GSMutableStringClass));
+  /* Set the initial value of the memory to NULL to avoid object_setClass()
+   * being confused.
+   */
+  *(void**)f = NULL;
   object_setClass(f, GSMutableStringClass);
   f->_zone = NSDefaultMallocZone();
   f->_contents.c = buf;

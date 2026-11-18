@@ -165,7 +165,6 @@ int main()
     NSString	*find;
     NSString	*str;
     NSRange	r;
-    unichar	u;
 
     text = [NSString stringWithUTF8String: "Text Message ̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃"];
 

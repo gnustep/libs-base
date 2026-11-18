@@ -844,8 +844,12 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
   new = NSZoneMalloc(zone, size);
   if (new != nil)
     {
-      memset (new, 0, size);
+      memset(new, 0, size);
       new = (id)&((obj)new)[1];
+      /* Set the initial value of the memory to NULL to avoid object_setClass()
+       * being confused.
+       */
+      *(void**)new = NULL;
       object_setClass(new, aClass);
     }
 
