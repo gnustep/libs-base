@@ -696,7 +696,6 @@ jbuf()
       RELEASE(d);
     }
   j = (jbuf_type*)[d mutableBytes];
-  j->index = 0;
   return j;
 }
 
@@ -724,6 +723,8 @@ NSFrameAddress(NSUInteger offset)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
+      env->addr = 0;
+      env->index = 0;
       switch (offset)
 	{
 	  _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
@@ -759,7 +760,16 @@ NSFrameAddress(NSUInteger offset)
 	  _NS_FRAME_HACK(90); _NS_FRAME_HACK(91); _NS_FRAME_HACK(92);
 	  _NS_FRAME_HACK(93); _NS_FRAME_HACK(94); _NS_FRAME_HACK(95);
 	  _NS_FRAME_HACK(96); _NS_FRAME_HACK(97); _NS_FRAME_HACK(98);
-	  _NS_FRAME_HACK(99);
+	  _NS_FRAME_HACK(99); _NS_FRAME_HACK(100); _NS_FRAME_HACK(101);
+	  _NS_FRAME_HACK(102); _NS_FRAME_HACK(103); _NS_FRAME_HACK(104);
+	  _NS_FRAME_HACK(105); _NS_FRAME_HACK(106); _NS_FRAME_HACK(107);
+	  _NS_FRAME_HACK(108); _NS_FRAME_HACK(109); _NS_FRAME_HACK(110);
+	  _NS_FRAME_HACK(111); _NS_FRAME_HACK(112); _NS_FRAME_HACK(113);
+	  _NS_FRAME_HACK(114); _NS_FRAME_HACK(115); _NS_FRAME_HACK(116);
+	  _NS_FRAME_HACK(117); _NS_FRAME_HACK(118); _NS_FRAME_HACK(119);
+	  _NS_FRAME_HACK(120); _NS_FRAME_HACK(121); _NS_FRAME_HACK(122);
+	  _NS_FRAME_HACK(123); _NS_FRAME_HACK(124); _NS_FRAME_HACK(125);
+	  _NS_FRAME_HACK(126); _NS_FRAME_HACK(127);
 	  default: env->addr = NULL; break;
 	}
       signal(SIGSEGV, env->segv);
@@ -785,6 +795,7 @@ NSUInteger NSCountFrames(void)
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
       env->addr = 0;
+      env->index = 0;
 
 #define _NS_COUNT_HACK(X) if (__builtin_frame_address(X + 1) == 0) \
         goto done; else env->addr = (void*)(X + 1);
@@ -822,7 +833,16 @@ NSUInteger NSCountFrames(void)
       _NS_COUNT_HACK(90); _NS_COUNT_HACK(91); _NS_COUNT_HACK(92);
       _NS_COUNT_HACK(93); _NS_COUNT_HACK(94); _NS_COUNT_HACK(95);
       _NS_COUNT_HACK(96); _NS_COUNT_HACK(97); _NS_COUNT_HACK(98);
-      _NS_COUNT_HACK(99);
+      _NS_COUNT_HACK(99); _NS_COUNT_HACK(100); _NS_COUNT_HACK(101);
+      _NS_COUNT_HACK(102); _NS_COUNT_HACK(103); _NS_COUNT_HACK(104);
+      _NS_COUNT_HACK(105); _NS_COUNT_HACK(106); _NS_COUNT_HACK(107);
+      _NS_COUNT_HACK(108); _NS_COUNT_HACK(109); _NS_COUNT_HACK(110);
+      _NS_COUNT_HACK(111); _NS_COUNT_HACK(112); _NS_COUNT_HACK(113);
+      _NS_COUNT_HACK(114); _NS_COUNT_HACK(115); _NS_COUNT_HACK(116);
+      _NS_COUNT_HACK(117); _NS_COUNT_HACK(118); _NS_COUNT_HACK(119);
+      _NS_COUNT_HACK(120); _NS_COUNT_HACK(121); _NS_COUNT_HACK(122);
+      _NS_COUNT_HACK(123); _NS_COUNT_HACK(124); _NS_COUNT_HACK(125);
+      _NS_COUNT_HACK(126); _NS_COUNT_HACK(127);
 
 done:
       signal(SIGSEGV, env->segv);
@@ -848,6 +868,8 @@ NSReturnAddress(NSUInteger offset)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
+      env->addr = 0;
+      env->index = 0;
       switch (offset)
 	{
 	  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
@@ -883,7 +905,16 @@ NSReturnAddress(NSUInteger offset)
 	  _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
 	  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
 	  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
-	  _NS_RETURN_HACK(99);
+	  _NS_RETURN_HACK(99); _NS_RETURN_HACK(100); _NS_RETURN_HACK(101);
+	  _NS_RETURN_HACK(102); _NS_RETURN_HACK(103); _NS_RETURN_HACK(104);
+	  _NS_RETURN_HACK(105); _NS_RETURN_HACK(106); _NS_RETURN_HACK(107);
+	  _NS_RETURN_HACK(108); _NS_RETURN_HACK(109); _NS_RETURN_HACK(110);
+	  _NS_RETURN_HACK(111); _NS_RETURN_HACK(112); _NS_RETURN_HACK(113);
+	  _NS_RETURN_HACK(114); _NS_RETURN_HACK(115); _NS_RETURN_HACK(116);
+	  _NS_RETURN_HACK(117); _NS_RETURN_HACK(118); _NS_RETURN_HACK(119);
+	  _NS_RETURN_HACK(120); _NS_RETURN_HACK(121); _NS_RETURN_HACK(122);
+	  _NS_RETURN_HACK(123); _NS_RETURN_HACK(124); _NS_RETURN_HACK(125);
+	  _NS_RETURN_HACK(126); _NS_RETURN_HACK(127);
 	  default: env->addr = NULL; break;
 	}
       signal(SIGSEGV, env->segv);
@@ -1016,6 +1047,8 @@ GSPrivateReturnAddresses(NSUInteger *addr, unsigned maxFrames)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
+      env->addr = 0;
+      env->index = 0;
 
       while (env->index < maxFrames)
 	{
