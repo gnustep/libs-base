@@ -1,3 +1,9 @@
+2026-11-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m:
+	When debug is turned on for an individual TLS session, write detailed
+	TLS logs of the handshake for that session.
+
 2026-11-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m:
