@@ -43,7 +43,18 @@ GS_EXPORT_CLASS
 @interface NSUbiquitousKeyValueStore : NSObject
 
 /**
- * Getting the Shared Instance
+ * Getting the Shared Instance. GNUstep selects the implementation using the
+ * GSUbiquitousKeyValueStoreClass user default. The default implementation is
+ * an in-memory store. GSAWSUbiquitousKeyValueStore provides explicit S3
+ * synchronization when built with GnuTLS. Configure GSAWSKeyValueStoreBucket,
+ * GSAWSKeyValueStoreRegion and GSAWSKeyValueStoreKey before the first call.
+ * GSAWSKeyValueStoreEndpoint optionally selects a path-style HTTPS endpoint,
+ * including Cloudflare R2 (region auto). GSGoogleDriveUbiquitousKeyValueStore
+ * stores settings in Google Drive's hidden application-data folder; configure
+ * GSGoogleDriveKeyValueStoreName or GSGoogleDriveKeyValueStoreFileID.
+ * Credentials are taken from the process environment. See
+ * Documentation/General/AWSKeyValueStore.md and GoogleDriveKeyValueStore.md
+ * in the same directory for configuration and synchronization semantics.
  */
 + (NSUbiquitousKeyValueStore *) defaultStore;
   
