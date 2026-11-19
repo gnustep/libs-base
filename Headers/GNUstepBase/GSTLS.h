@@ -196,10 +196,13 @@ GS_EXPORT_CLASS
 typedef ssize_t (*GSTLSIOR)(gnutls_transport_ptr_t, void *, size_t);
 typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
 
-/* This class encapsulates a session to a remote system.
+/** This class encapsulates a TLS session to a remote system.<br />
  * Sessions are created with a direction and an options dictionary,
  * defining how they will operate.  The handle, pushFunc and pullFunc
- * provide the I/O mechanism.
+ * provide the I/O mechanism.<br />
+ * NB. The handle is not retained, so the code using the session MUST
+ * ensure that it continues to exist until after the session has been
+ * disconnected.
  */
 GS_EXPORT_CLASS
 @interface      GSTLSSession : GSTLSObject
@@ -215,19 +218,19 @@ GS_EXPORT_CLASS
   BOOL                                  setup;
   BOOL                                  debug;
   NSTimeInterval                        created;
-  void                                  *handle;
+  NSObject                              *handle;	// Not retained
 @public
   gnutls_session_t                      session;
 }
 + (GSTLSSession*) sessionWithOptions: (NSDictionary*)options
                            direction: (BOOL)isOutgoing
-                           transport: (void*)ioHandle
+                           transport: (NSObject*)ioHandle
                                 push: (GSTLSIOW)pushFunc
                                 pull: (GSTLSIOR)pullFunc;
 
 - (id) initWithOptions: (NSDictionary*)options
              direction: (BOOL)isOutgoing
-             transport: (void*)ioHandle
+             transport: (NSObject*)ioHandle
                   push: (GSTLSIOW)pushFunc
                   pull: (GSTLSIOR)pullFunc;
 
@@ -255,6 +258,11 @@ GS_EXPORT_CLASS
  * and the underlying connection cannot be reused.
  */
 - (BOOL) disconnect: (BOOL)reusable;
+
+/** Returns the handle this session was created with, or nil if the
+ * session has disconnected.
+ */
+- (NSObject*) handle;
 
 /* Try to complete a handshake ... return YES if complete, NO if we need
  * to try again (would have to wait for the remote end).<br />

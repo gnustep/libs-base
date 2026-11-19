@@ -116,6 +116,7 @@ resourceDidFailLoadingWithReason: (NSString *)reason
   /* Don't get client messages in the foreground, so load in
    * background and wait a bit
    */
+//  [handle writeProperty: @"YES" forKey: GSTLSDebug];
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
  NSData *d = [@"1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    dataUsingEncoding: NSUTF8StringEncoding];

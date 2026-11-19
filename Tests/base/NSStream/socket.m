@@ -181,6 +181,7 @@ int main()
 		       forKey: NSStreamSocketSecurityLevelKey];
     [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
 			forKey: NSStreamSocketSecurityLevelKey];
+//    [defaultOutput setProperty: @"YES" forKey: GSTLSDebug];
     /* A TLS host may require us to have specified its name.
      */
     [defaultInput setProperty: name forKey: GSTLSServerName];
