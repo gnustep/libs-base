@@ -720,50 +720,58 @@ ExtractValuesFromConfig(NSDictionary *config)
    */
   if (gnustepUserDefaultsDir == nil)
     {
-      ASSIGN(gnustepUserDefaultsDir, @GNUSTEP_TARGET_USER_DEFAULTS_DIR);
+      ASSIGN(gnustepUserDefaultsDir,
+	@GNUSTEP_TARGET_USER_DEFAULTS_DIR);
     }
   if (gnustepUserDirApps == nil)
     {
-      ASSIGN(gnustepUserDirApps, @GNUSTEP_TARGET_USER_DIR_APPS);
+      ASSIGN(gnustepUserDirApps,
+	@GNUSTEP_TARGET_USER_DIR_APPS);
     }
   if (gnustepUserDirTools == nil)
     {
-      ASSIGN(gnustepUserDirTools, @GNUSTEP_TARGET_USER_DIR_TOOLS);
+      ASSIGN(gnustepUserDirTools,
+	@GNUSTEP_TARGET_USER_DIR_TOOLS);
     }
   if (gnustepUserDirLibrary == nil)
     {
-      ASSIGN(gnustepUserDirLibrary, @GNUSTEP_TARGET_USER_DIR_LIBRARY);
+      ASSIGN(gnustepUserDirLibrary,
+	@GNUSTEP_TARGET_USER_DIR_LIBRARY);
     }
   if (gnustepUserDirLibraries == nil)
     {
-      ASSIGN(gnustepUserDirLibraries, @GNUSTEP_TARGET_USER_DIR_LIBRARIES);
+      ASSIGN(gnustepUserDirLibraries,
+	@GNUSTEP_TARGET_USER_DIR_LIBRARIES);
     }
   if (gnustepUserDirResources == nil)
     {
-      ASSIGN(gnustepUserDirResources, @GNUSTEP_TARGET_USER_DIR_RESOURCES);
+      ASSIGN(gnustepUserDirResources,
+	@GNUSTEP_TARGET_USER_DIR_RESOURCES);
     }
   if (gnustepUserDirServices == nil)
     {
-      ASSIGN(gnustepUserDirServices, @GNUSTEP_TARGET_USER_DIR_SERVICES);
+      ASSIGN(gnustepUserDirServices,
+	@GNUSTEP_TARGET_USER_DIR_SERVICES);
     }
   if (gnustepUserDirHeaders == nil)
     {
-      ASSIGN(gnustepUserDirHeaders, @GNUSTEP_TARGET_USER_DIR_HEADERS);
+      ASSIGN(gnustepUserDirHeaders,
+	@GNUSTEP_TARGET_USER_DIR_HEADERS);
     }
   if (gnustepUserDirDocumentation == nil)
     {
       ASSIGN(gnustepUserDirDocumentation,
-	     @GNUSTEP_TARGET_USER_DIR_DOC);
+	@GNUSTEP_TARGET_USER_DIR_DOC);
     }
   if (gnustepUserDirDocumentationMan == nil)
     {
       ASSIGN(gnustepUserDirDocumentationMan,
-	     @GNUSTEP_TARGET_USER_DIR_DOC_MAN);
+	@GNUSTEP_TARGET_USER_DIR_DOC_MAN);
     }
   if (gnustepUserDirDocumentationInfo == nil)
     {
       ASSIGN(gnustepUserDirDocumentationInfo,
-	     @GNUSTEP_TARGET_USER_DIR_DOC_INFO);
+	@GNUSTEP_TARGET_USER_DIR_DOC_INFO);
     }
 
   /*
@@ -777,6 +785,7 @@ ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_USER_PATH(gnustepUserAdminTools, gnustepUserDirAdminTools);
   ASSIGN_USER_PATH(gnustepUserLibrary, gnustepUserDirLibrary);
   ASSIGN_USER_PATH(gnustepUserLibraries, gnustepUserDirLibraries);
+  ASSIGN_USER_PATH(gnustepUserResources, gnustepUserDirResources);
   ASSIGN_USER_PATH(gnustepUserServices, gnustepUserDirServices);
   ASSIGN_USER_PATH(gnustepUserHeaders, gnustepUserDirHeaders);
   ASSIGN_USER_PATH(gnustepUserDocumentation, gnustepUserDocumentation);
