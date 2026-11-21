@@ -177,7 +177,16 @@ static NSMapTable	*zombieMap = 0;
 
 static void GSMakeZombie(NSObject *o, Class c)
 {
+#ifndef OBJC_CAP_ARC
   object_setClass(o, zombieClass);
+#else
+  /* object_setClass() no longer works (Nov 2026) for the ng runtime.
+   * Possibly Apple's objc_constructInstance() could be used if it was
+   * supported, but it would be inefficient. Currently direct assignment
+   * to the start of the instance memory seems to be fine.
+   */
+  *(Class*)o = zombieClass;
+#endif
   if (0 != zombieMap)
     {
       GS_MUTEX_LOCK(allocationLock);
