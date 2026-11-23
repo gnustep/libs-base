@@ -1,4 +1,4 @@
-/* Implementation of class NSObjectScripting
+/* Implementation of NSObject scripting additions
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: heron
@@ -22,8 +22,39 @@
 */
 
 #import "Foundation/NSObjectScripting.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-@implementation NSObjectScripting
+@implementation NSObject (NSScripting)
+
+- (NSDictionary *) scriptingProperties
+{
+  return [self notImplemented: _cmd];
+}
+
+- (void) setScriptingProperties: (NSDictionary *)properties
+{
+  [self notImplemented: _cmd];
+}
+
+- (id) scriptingValueForSpecifier: (NSScriptObjectSpecifier *)objectSpecifier
+{
+  return [self notImplemented: _cmd];
+}
+
+- (id) copyScriptingValue: (id)value
+                  forKey: (NSString *)key
+          withProperties: (NSDictionary *)properties
+{
+  return [self notImplemented: _cmd];
+}
+
+- (id) newScriptingObjectOfClass: (Class)objectClass
+                 forValueForKey: (NSString *)key
+              withContentsValue: (id)contentsValue
+                     properties: (NSDictionary *)properties
+{
+  return [self notImplemented: _cmd];
+}
 
 @end
 

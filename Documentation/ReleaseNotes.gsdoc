@@ -30,6 +30,12 @@ notice and this notice are preserved.
       <section>
 	<heading>Version 1.32.0</heading>
         <p>
+          <strong>NSObjectScripting:</strong>
+          Replaced the erroneous empty NSObjectScripting class with Cocoa's
+          NSScripting category on NSObject and its method declarations.
+          The methods remain unimplemented and raise exceptions unless
+          overridden. Code using the former placeholder class must use
+          NSObject instead and be rebuilt.
         </p>
 
         <p>

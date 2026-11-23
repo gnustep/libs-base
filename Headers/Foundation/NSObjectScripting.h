@@ -1,4 +1,4 @@
-/**Definition of class NSObjectScripting
+/** Scripting additions to NSObject
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory John Casamento <greg.casamento@gmail.com>
@@ -32,8 +32,37 @@
 extern "C" {
 #endif
 
-GS_EXPORT_CLASS
-@interface NSObjectScripting : NSObject
+@class NSDictionary, NSScriptObjectSpecifier, NSString;
+
+/**
+ * Cocoa scripting hooks for scriptable objects.  These methods are currently
+ * unimplemented in GNUstep and raise an exception unless overridden.
+ */
+@interface NSObject (NSScripting)
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+/** Returns the receiver's scriptable properties. */
+- (NSDictionary *) scriptingProperties;
+
+/** Sets the supplied scriptable properties of the receiver. */
+- (void) setScriptingProperties: (NSDictionary *)properties;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/** Evaluates an object specifier in the receiving container. */
+- (id) scriptingValueForSpecifier: (NSScriptObjectSpecifier *)objectSpecifier;
+
+/** Copies a scripting value and sets the supplied properties on the copies. */
+- (id) copyScriptingValue: (id)value
+                  forKey: (NSString *)key
+          withProperties: (NSDictionary *)properties;
+
+/** Creates a scriptable object with the supplied contents and properties. */
+- (id) newScriptingObjectOfClass: (Class)objectClass
+                 forValueForKey: (NSString *)key
+              withContentsValue: (id)contentsValue
+                     properties: (NSDictionary *)properties;
+#endif
 
 @end
 
