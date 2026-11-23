@@ -135,7 +135,6 @@ publicClasses()
 	"NSNumber",
 	"NSNumberFormatter",
 	"NSObject",
-	"NSObjectScripting",
 	"NSOperation",
 	"NSOperationQueue",
 	"NSOrderedSet",
