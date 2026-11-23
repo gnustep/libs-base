@@ -166,6 +166,12 @@ static BOOL     verifyClient = NO;
  */
 static BOOL     verifyServer = YES;
 
+/* Records whether CS values set in the user defaults or environment variable
+ * should override the default system CAs or just be merged with them.
+ * The default is to merge.
+ */
+static BOOL	overrideCAs = NO;
+
 /* The globalDebug variable turns on gnutls debug.  The hard-coded value is
  * overridden by GS_TLS_DEBUG, which in turn can be overridden by the
  * GSTLSDebug user default. This is an integer debug level with higher
@@ -267,6 +273,19 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     }
   str = standardizedPath(str);
   ASSIGN(caFile, str);
+
+  if ((str = [defs stringForKey: @"GSTLSCAOverride"]) != nil)
+    {
+      overrideCAs = [str boolValue];
+    }
+  else if ((str = [env objectForKey: @"GS_TLS_CA_OVERRIDE"]) != nil)
+    {
+      overrideCAs = [str boolValue];
+    }
+  else
+    {
+      overrideCAs = NO;
+    }
 
   /* The GSTLSRevokeFile user default overrides the builtin value or the
    * GS_TLS_REVOKE environment variable.
@@ -1226,38 +1245,12 @@ static GSTLSDHParams            *paramsCurrent = nil;
 
       /* Set the default trusted authority certificates.
        */
-      if ([dca length] > 0)
-        {
-          const char    *path;
-          int           ret;
-
-          path = [dca gnutlsFileSystemRepresentation];
-          ret = gnutls_certificate_set_x509_trust_file(c->certcred,
-            path, GNUTLS_X509_FMT_PEM);
-          if (ret < 0)
-            {
-              NSLog(@"Problem loading trusted authorities from %@: %s",
-                dca, gnutls_strerror(ret));
-            }
-          else
-            {
-              if (ret > 0)
-                {
-                  c->trust = YES;   // Loaded at least one trusted CA
-                }
-              if (debug)
-                {
-                  NSLog(@"Default trusted authorities (from %@): %d",
-                   dca, ret);
-                }
-            }
-        }
-      else
+      if (NO == overrideCAs || 0 == [dca length])
 	{
           const char    *path;
           int           ret;
 
-	  /* Try system sertificates, and if those fail, try base library ones.
+	  /* Try system certificates, and if those fail, try base library ones.
 	   */
 	  ret = gnutls_certificate_set_x509_system_trust(c->certcred);
 	  if (ret < 0)
@@ -1296,6 +1289,32 @@ static GSTLSDHParams            *paramsCurrent = nil;
 		}
 	    }
 	}
+      if ([dca length] > 0)
+        {
+          const char    *path;
+          int           ret;
+
+          path = [dca gnutlsFileSystemRepresentation];
+          ret = gnutls_certificate_set_x509_trust_file(c->certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading trusted authorities from %@: %s",
+                dca, gnutls_strerror(ret));
+            }
+          else
+            {
+              if (ret > 0)
+                {
+                  c->trust = YES;   // Loaded at least one trusted CA
+                }
+              if (debug)
+                {
+                  NSLog(@"Added trusted authorities (from %@): %d",
+                   dca, ret);
+                }
+            }
+        }
 
       /* Load any specified trusted authority certificates.
        */

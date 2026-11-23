@@ -248,7 +248,11 @@ notice and this notice are preserved.
 		which in turn overrides the SSL_CERT_FILE environment
 		variable (used by OPENSSL) and the default location.<br />
 		An option of this name set for an individual connection
-		takes precedence over this setting.
+		is merged with the authorities provided by this setting.<br />
+		Unless the GSTLSCAOverride default or GS_TLS_CA_OVERRIDE
+		environment variable is set to YES, this certificate
+		information is merged with the standard system authorities
+		rather than replacing it.
 	      </p>
 	    </desc>
 	    <term>GSTLSDebug</term>
