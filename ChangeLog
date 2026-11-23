@@ -1,3 +1,10 @@
+2026-11-22 Gregory John Casamento <greg.casamento@gmail.com>
+
+        * Source/NSObjectScripting.m: Provide dummy implementations of the
+        methods.
+        * Headers/AppKit/NSObjectScripting.h: Properly declare the category
+        on NSObject.
+         
 2026-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m:
