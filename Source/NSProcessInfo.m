@@ -56,6 +56,7 @@
 #import "common.h"
 
 #include <stdio.h>
+#include <time.h>
 
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
@@ -1527,6 +1528,13 @@ static void determineOperatingSystem()
   if (sysctlbyname("kern.boottime", &tval, &len, 0, 0) == 0)
     {
       uptime = tval.tv_sec;
+    }
+#elif	defined(CLOCK_BOOTTIME)
+  struct timespec	ts;
+
+  if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
+    {
+      uptime = (NSUInteger)ts.tv_sec;
     }
 #elif	defined(HAVE_PROCFS)
   NSFileManager *fileManager = [NSFileManager defaultManager];
