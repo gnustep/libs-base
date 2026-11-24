@@ -674,7 +674,6 @@ __builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
 
 typedef struct {
   sigjmp_buf    buf;
-  unsigned	index;
   void          *addr;
   void          (*bus)(int);
   void          (*segv)(int);
@@ -683,9 +682,8 @@ typedef struct {
 static jbuf_type *
 jbuf()
 {
-  NSMutableData		*d;
+  NSMutableData	*d;
   NSMutableDictionary	*dict;
-  jbuf_type		*j;
 
   dict = [[NSThread currentThread] threadDictionary];
   d = [dict objectForKey: @"GSjbuf"];
@@ -695,8 +693,7 @@ jbuf()
       [dict setObject: d forKey: @"GSjbuf"];
       RELEASE(d);
     }
-  j = (jbuf_type*)[d mutableBytes];
-  return j;
+  return (jbuf_type*)[d mutableBytes];
 }
 
 static void
@@ -723,8 +720,6 @@ NSFrameAddress(NSUInteger offset)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
-      env->addr = 0;
-      env->index = 0;
       switch (offset)
 	{
 	  _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
@@ -760,16 +755,7 @@ NSFrameAddress(NSUInteger offset)
 	  _NS_FRAME_HACK(90); _NS_FRAME_HACK(91); _NS_FRAME_HACK(92);
 	  _NS_FRAME_HACK(93); _NS_FRAME_HACK(94); _NS_FRAME_HACK(95);
 	  _NS_FRAME_HACK(96); _NS_FRAME_HACK(97); _NS_FRAME_HACK(98);
-	  _NS_FRAME_HACK(99); _NS_FRAME_HACK(100); _NS_FRAME_HACK(101);
-	  _NS_FRAME_HACK(102); _NS_FRAME_HACK(103); _NS_FRAME_HACK(104);
-	  _NS_FRAME_HACK(105); _NS_FRAME_HACK(106); _NS_FRAME_HACK(107);
-	  _NS_FRAME_HACK(108); _NS_FRAME_HACK(109); _NS_FRAME_HACK(110);
-	  _NS_FRAME_HACK(111); _NS_FRAME_HACK(112); _NS_FRAME_HACK(113);
-	  _NS_FRAME_HACK(114); _NS_FRAME_HACK(115); _NS_FRAME_HACK(116);
-	  _NS_FRAME_HACK(117); _NS_FRAME_HACK(118); _NS_FRAME_HACK(119);
-	  _NS_FRAME_HACK(120); _NS_FRAME_HACK(121); _NS_FRAME_HACK(122);
-	  _NS_FRAME_HACK(123); _NS_FRAME_HACK(124); _NS_FRAME_HACK(125);
-	  _NS_FRAME_HACK(126); _NS_FRAME_HACK(127);
+	  _NS_FRAME_HACK(99);
 	  default: env->addr = NULL; break;
 	}
       signal(SIGSEGV, env->segv);
@@ -795,7 +781,6 @@ NSUInteger NSCountFrames(void)
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
       env->addr = 0;
-      env->index = 0;
 
 #define _NS_COUNT_HACK(X) if (__builtin_frame_address(X + 1) == 0) \
         goto done; else env->addr = (void*)(X + 1);
@@ -833,16 +818,7 @@ NSUInteger NSCountFrames(void)
       _NS_COUNT_HACK(90); _NS_COUNT_HACK(91); _NS_COUNT_HACK(92);
       _NS_COUNT_HACK(93); _NS_COUNT_HACK(94); _NS_COUNT_HACK(95);
       _NS_COUNT_HACK(96); _NS_COUNT_HACK(97); _NS_COUNT_HACK(98);
-      _NS_COUNT_HACK(99); _NS_COUNT_HACK(100); _NS_COUNT_HACK(101);
-      _NS_COUNT_HACK(102); _NS_COUNT_HACK(103); _NS_COUNT_HACK(104);
-      _NS_COUNT_HACK(105); _NS_COUNT_HACK(106); _NS_COUNT_HACK(107);
-      _NS_COUNT_HACK(108); _NS_COUNT_HACK(109); _NS_COUNT_HACK(110);
-      _NS_COUNT_HACK(111); _NS_COUNT_HACK(112); _NS_COUNT_HACK(113);
-      _NS_COUNT_HACK(114); _NS_COUNT_HACK(115); _NS_COUNT_HACK(116);
-      _NS_COUNT_HACK(117); _NS_COUNT_HACK(118); _NS_COUNT_HACK(119);
-      _NS_COUNT_HACK(120); _NS_COUNT_HACK(121); _NS_COUNT_HACK(122);
-      _NS_COUNT_HACK(123); _NS_COUNT_HACK(124); _NS_COUNT_HACK(125);
-      _NS_COUNT_HACK(126); _NS_COUNT_HACK(127);
+      _NS_COUNT_HACK(99);
 
 done:
       signal(SIGSEGV, env->segv);
@@ -868,8 +844,6 @@ NSReturnAddress(NSUInteger offset)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
-      env->addr = 0;
-      env->index = 0;
       switch (offset)
 	{
 	  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
@@ -905,16 +879,7 @@ NSReturnAddress(NSUInteger offset)
 	  _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
 	  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
 	  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
-	  _NS_RETURN_HACK(99); _NS_RETURN_HACK(100); _NS_RETURN_HACK(101);
-	  _NS_RETURN_HACK(102); _NS_RETURN_HACK(103); _NS_RETURN_HACK(104);
-	  _NS_RETURN_HACK(105); _NS_RETURN_HACK(106); _NS_RETURN_HACK(107);
-	  _NS_RETURN_HACK(108); _NS_RETURN_HACK(109); _NS_RETURN_HACK(110);
-	  _NS_RETURN_HACK(111); _NS_RETURN_HACK(112); _NS_RETURN_HACK(113);
-	  _NS_RETURN_HACK(114); _NS_RETURN_HACK(115); _NS_RETURN_HACK(116);
-	  _NS_RETURN_HACK(117); _NS_RETURN_HACK(118); _NS_RETURN_HACK(119);
-	  _NS_RETURN_HACK(120); _NS_RETURN_HACK(121); _NS_RETURN_HACK(122);
-	  _NS_RETURN_HACK(123); _NS_RETURN_HACK(124); _NS_RETURN_HACK(125);
-	  _NS_RETURN_HACK(126); _NS_RETURN_HACK(127);
+	  _NS_RETURN_HACK(99);
 	  default: env->addr = NULL; break;
 	}
       signal(SIGSEGV, env->segv);
@@ -932,17 +897,12 @@ NSReturnAddress(NSUInteger offset)
 }
 
 unsigned
-GSPrivateReturnAddresses(NSUInteger *addr, unsigned maxFrames)
+GSPrivateReturnAddresses(NSUInteger **returns)
 {
   unsigned      numReturns;
-
-  if (maxFrames > MAXFRAMES)
-    {
-      maxFrames = MAXFRAMES;
-    }
-
 #if	defined(_WIN32) && !defined(USE_BFD)
-{
+  NSUInteger	addr[MAXFRAMES];
+
   GS_MUTEX_LOCK(traceLock);
   if (0 == hProcess)
     {
@@ -1023,101 +983,122 @@ GSPrivateReturnAddresses(NSUInteger *addr, unsigned maxFrames)
       return 0;
     }
 
-  numReturns = (capture)(0, maxFrames, (void**)addr, NULL);
+  numReturns = (capture)(0, MAXFRAMES, (void**)addr, NULL);
+  if (numReturns > 0)
+    {
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
+    }
   
   GS_MUTEX_UNLOCK(traceLock);
-}
+
 #elif	defined(HAVE_BACKTRACE)
-{
-  numReturns = backtrace((void**)addr, maxFrames);
-}
+  void          *addr[MAXFRAMES];
+
+  numReturns = backtrace(addr, MAXFRAMES);
+  if (numReturns > 0)
+    {
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
+    }
 #elif defined(WITH_UNWIND)
-{ 
-  struct GSBacktraceState state = {(void**)addr, ((void**)addr) + maxFrames};
+  void          *addr[MAXFRAMES];
+  
+  struct GSBacktraceState state = {addr, addr + MAXFRAMES};
   _Unwind_Backtrace(GSUnwindCallback, &state);
 
-  numReturns = state.current - (void**)addr;
-}
+  numReturns = state.current - addr;
+  if (numReturns > 0)
+    {
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
+    }
 #else
-{
-  jbuf_type *env;
+  int   n;
 
-  env = jbuf();
-  if (sigsetjmp(env->buf, 1) == 0)
+  n = NSCountFrames();
+  /* There should be more frame addresses than return addresses.
+   */
+  if (n > 0)
     {
-      env->segv = signal(SIGSEGV, recover);
-      env->bus = signal(SIGBUS, recover);
-      env->addr = 0;
-      env->index = 0;
-
-      while (env->index < maxFrames)
-	{
-	  switch (env->index)
-	    {
-	      _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
-	      _NS_RETURN_HACK(3); _NS_RETURN_HACK(4); _NS_RETURN_HACK(5);
-	      _NS_RETURN_HACK(6); _NS_RETURN_HACK(7); _NS_RETURN_HACK(8);
-	      _NS_RETURN_HACK(9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
-	      _NS_RETURN_HACK(12); _NS_RETURN_HACK(13); _NS_RETURN_HACK(14);
-	      _NS_RETURN_HACK(15); _NS_RETURN_HACK(16); _NS_RETURN_HACK(17);
-	      _NS_RETURN_HACK(18); _NS_RETURN_HACK(19); _NS_RETURN_HACK(20);
-	      _NS_RETURN_HACK(21); _NS_RETURN_HACK(22); _NS_RETURN_HACK(23);
-	      _NS_RETURN_HACK(24); _NS_RETURN_HACK(25); _NS_RETURN_HACK(26);
-	      _NS_RETURN_HACK(27); _NS_RETURN_HACK(28); _NS_RETURN_HACK(29);
-	      _NS_RETURN_HACK(30); _NS_RETURN_HACK(31); _NS_RETURN_HACK(32);
-	      _NS_RETURN_HACK(33); _NS_RETURN_HACK(34); _NS_RETURN_HACK(35);
-	      _NS_RETURN_HACK(36); _NS_RETURN_HACK(37); _NS_RETURN_HACK(38);
-	      _NS_RETURN_HACK(39); _NS_RETURN_HACK(40); _NS_RETURN_HACK(41);
-	      _NS_RETURN_HACK(42); _NS_RETURN_HACK(43); _NS_RETURN_HACK(44);
-	      _NS_RETURN_HACK(45); _NS_RETURN_HACK(46); _NS_RETURN_HACK(47);
-	      _NS_RETURN_HACK(48); _NS_RETURN_HACK(49); _NS_RETURN_HACK(50);
-	      _NS_RETURN_HACK(51); _NS_RETURN_HACK(52); _NS_RETURN_HACK(53);
-	      _NS_RETURN_HACK(54); _NS_RETURN_HACK(55); _NS_RETURN_HACK(56);
-	      _NS_RETURN_HACK(57); _NS_RETURN_HACK(58); _NS_RETURN_HACK(59);
-	      _NS_RETURN_HACK(60); _NS_RETURN_HACK(61); _NS_RETURN_HACK(62);
-	      _NS_RETURN_HACK(63); _NS_RETURN_HACK(64); _NS_RETURN_HACK(65);
-	      _NS_RETURN_HACK(66); _NS_RETURN_HACK(67); _NS_RETURN_HACK(68);
-	      _NS_RETURN_HACK(69); _NS_RETURN_HACK(70); _NS_RETURN_HACK(71);
-	      _NS_RETURN_HACK(72); _NS_RETURN_HACK(73); _NS_RETURN_HACK(74);
-	      _NS_RETURN_HACK(75); _NS_RETURN_HACK(76); _NS_RETURN_HACK(77);
-	      _NS_RETURN_HACK(78); _NS_RETURN_HACK(79); _NS_RETURN_HACK(80);
-	      _NS_RETURN_HACK(81); _NS_RETURN_HACK(82); _NS_RETURN_HACK(83);
-	      _NS_RETURN_HACK(84); _NS_RETURN_HACK(85); _NS_RETURN_HACK(86);
-	      _NS_RETURN_HACK(87); _NS_RETURN_HACK(88); _NS_RETURN_HACK(89);
-	      _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
-	      _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
-	      _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
-	      _NS_RETURN_HACK(99); _NS_RETURN_HACK(100); _NS_RETURN_HACK(101);
-	      _NS_RETURN_HACK(102); _NS_RETURN_HACK(103); _NS_RETURN_HACK(104);
-	      _NS_RETURN_HACK(105); _NS_RETURN_HACK(106); _NS_RETURN_HACK(107);
-	      _NS_RETURN_HACK(108); _NS_RETURN_HACK(109); _NS_RETURN_HACK(110);
-	      _NS_RETURN_HACK(111); _NS_RETURN_HACK(112); _NS_RETURN_HACK(113);
-	      _NS_RETURN_HACK(114); _NS_RETURN_HACK(115); _NS_RETURN_HACK(116);
-	      _NS_RETURN_HACK(117); _NS_RETURN_HACK(118); _NS_RETURN_HACK(119);
-	      _NS_RETURN_HACK(120); _NS_RETURN_HACK(121); _NS_RETURN_HACK(122);
-	      _NS_RETURN_HACK(123); _NS_RETURN_HACK(124); _NS_RETURN_HACK(125);
-	      _NS_RETURN_HACK(126); _NS_RETURN_HACK(127);
-	      default: env->addr = 0; break;
-	    }
-	  if (env->addr == 0)
-	    {
-	      break;
-	    }
-	  addr[env->index++] = (NSUInteger)env->addr;
-	}
-      signal(SIGSEGV, env->segv);
-      signal(SIGBUS, env->bus);
+      n--;
     }
-  else
+  if (n > 0)
     {
+      n--;
+    }
+
+  if ((numReturns = n) > 0)
+    {
+      jbuf_type *env;
+
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+
       env = jbuf();
-      signal(SIGSEGV, env->segv);
-      signal(SIGBUS, env->bus);
-    }
-  numReturns = env->index;
-}
-#endif
+      if (sigsetjmp(env->buf, 1) == 0)
+        {
+          unsigned      i;
 
+          env->segv = signal(SIGSEGV, recover);
+          env->bus = signal(SIGBUS, recover);
+
+          for (i = 0; i < n; i++)
+            {
+              switch (i)
+                {
+                  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
+                  _NS_RETURN_HACK(3); _NS_RETURN_HACK(4); _NS_RETURN_HACK(5);
+                  _NS_RETURN_HACK(6); _NS_RETURN_HACK(7); _NS_RETURN_HACK(8);
+                  _NS_RETURN_HACK(9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
+                  _NS_RETURN_HACK(12); _NS_RETURN_HACK(13); _NS_RETURN_HACK(14);
+                  _NS_RETURN_HACK(15); _NS_RETURN_HACK(16); _NS_RETURN_HACK(17);
+                  _NS_RETURN_HACK(18); _NS_RETURN_HACK(19); _NS_RETURN_HACK(20);
+                  _NS_RETURN_HACK(21); _NS_RETURN_HACK(22); _NS_RETURN_HACK(23);
+                  _NS_RETURN_HACK(24); _NS_RETURN_HACK(25); _NS_RETURN_HACK(26);
+                  _NS_RETURN_HACK(27); _NS_RETURN_HACK(28); _NS_RETURN_HACK(29);
+                  _NS_RETURN_HACK(30); _NS_RETURN_HACK(31); _NS_RETURN_HACK(32);
+                  _NS_RETURN_HACK(33); _NS_RETURN_HACK(34); _NS_RETURN_HACK(35);
+                  _NS_RETURN_HACK(36); _NS_RETURN_HACK(37); _NS_RETURN_HACK(38);
+                  _NS_RETURN_HACK(39); _NS_RETURN_HACK(40); _NS_RETURN_HACK(41);
+                  _NS_RETURN_HACK(42); _NS_RETURN_HACK(43); _NS_RETURN_HACK(44);
+                  _NS_RETURN_HACK(45); _NS_RETURN_HACK(46); _NS_RETURN_HACK(47);
+                  _NS_RETURN_HACK(48); _NS_RETURN_HACK(49); _NS_RETURN_HACK(50);
+                  _NS_RETURN_HACK(51); _NS_RETURN_HACK(52); _NS_RETURN_HACK(53);
+                  _NS_RETURN_HACK(54); _NS_RETURN_HACK(55); _NS_RETURN_HACK(56);
+                  _NS_RETURN_HACK(57); _NS_RETURN_HACK(58); _NS_RETURN_HACK(59);
+                  _NS_RETURN_HACK(60); _NS_RETURN_HACK(61); _NS_RETURN_HACK(62);
+                  _NS_RETURN_HACK(63); _NS_RETURN_HACK(64); _NS_RETURN_HACK(65);
+                  _NS_RETURN_HACK(66); _NS_RETURN_HACK(67); _NS_RETURN_HACK(68);
+                  _NS_RETURN_HACK(69); _NS_RETURN_HACK(70); _NS_RETURN_HACK(71);
+                  _NS_RETURN_HACK(72); _NS_RETURN_HACK(73); _NS_RETURN_HACK(74);
+                  _NS_RETURN_HACK(75); _NS_RETURN_HACK(76); _NS_RETURN_HACK(77);
+                  _NS_RETURN_HACK(78); _NS_RETURN_HACK(79); _NS_RETURN_HACK(80);
+                  _NS_RETURN_HACK(81); _NS_RETURN_HACK(82); _NS_RETURN_HACK(83);
+                  _NS_RETURN_HACK(84); _NS_RETURN_HACK(85); _NS_RETURN_HACK(86);
+                  _NS_RETURN_HACK(87); _NS_RETURN_HACK(88); _NS_RETURN_HACK(89);
+                  _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
+                  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
+                  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
+                  _NS_RETURN_HACK(99);
+                  default: env->addr = 0; break;
+                }
+              if (env->addr == 0)
+                {
+                  break;
+                }
+              memcpy(&(*returns)[i], env->addr, sizeof(NSUInteger));
+            }
+          signal(SIGSEGV, env->segv);
+          signal(SIGBUS, env->bus);
+        }
+      else
+        {
+          env = jbuf();
+          signal(SIGSEGV, env->segv);
+          signal(SIGBUS, env->bus);
+        }
+    }
+#endif
   return numReturns;
 }
 
@@ -1366,8 +1347,6 @@ GSPrivateReturnAddresses(NSUInteger *addr, unsigned maxFrames)
 
 - (void) trace
 {
-  NSUInteger	addr[MAXFRAMES];
-
   DESTROY(addresses);
   DESTROY(symbols);
   if (returns != NULL)
@@ -1375,12 +1354,7 @@ GSPrivateReturnAddresses(NSUInteger *addr, unsigned maxFrames)
       free(returns);
       returns = NULL;
     }
-  numReturns = GSPrivateReturnAddresses(addr, MAXFRAMES);
-  if (numReturns > 0)
-    {     
-      returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
-      memcpy(returns, addr, numReturns * sizeof(NSUInteger));
-    } 
+  numReturns = GSPrivateReturnAddresses(&returns);
 }
 
 @end
