@@ -23,6 +23,7 @@
 
 #import "common.h"
 
+#import "GNUstepBase/GSTLS.h"
 #define	EXPOSE_NSURLRequest_IVARS	1
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
@@ -59,7 +60,32 @@ typedef struct {
 @interface	_GSInsensitiveDictionary : NSMutableDictionary
 @end
 
+static NSSet	*tlsKeys = nil;
+
 @implementation	NSURLRequest
+
++ (void) initialize
+{
+  if (self == [NSURLRequest class])
+    {
+      NSString	*s[12] = {
+	GSTLSCAFile,
+	GSTLSCertificateFile,
+	GSTLSCertificateKeyFile,
+	GSTLSCertificateKeyPassword,
+	GSTLSDebug,
+	GSTLSIssuers,
+	GSTLSOwners,
+	GSTLSPriority,
+	GSTLSRemoteHosts,
+	GSTLSRevokeFile,
+	GSTLSServerName,
+	GSTLSVerify
+      };
+
+      tlsKeys = [[NSSet alloc] initWithObjects: s count: 12];
+    }
+}
 
 + (id) allocWithZone: (NSZone*)z
 {
@@ -461,13 +487,17 @@ typedef struct {
     {
       [this->headers setObject: value forKey: field];
     }
+  else if ([tlsKeys member: field])
+    {
+      [self _setProperty: value forKey: field];
+    }
   else
     {
       [this->headers removeObjectForKey: field];
     }
 }
 
-- (void)setAssumesHTTP3Capable:(BOOL)capable
+- (void) setAssumesHTTP3Capable: (BOOL)capable
 {
   this->assumesHTTP3Capable = capable;
 }
