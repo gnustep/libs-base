@@ -1,8 +1,8 @@
-From: =?UTF-8?Q?Jos=C3=A9=0D=0AAdmin?= <jose@example.com>
+From: José=?us-ascii?B?DQo=?=Admin <jose@example.com>
 To: jane@example.com
-Subject: =?UTF-8?Q?Hello=0D=0AWorld_=E2=80=94_Caf=C3=A9?=
+Subject: Hello=?us-ascii?B?DQo=?==?utf-8?B?V29ybGQg4oCUIENhZsOp?=
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Test message.
+Test message.=0A

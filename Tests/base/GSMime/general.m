@@ -90,10 +90,11 @@ int main()
 
   cr = [NSData dataWithBytes: "\r" length: 1];
 
-  hdr = [GSMimeHeader headerWithName: @"From"
-    value: @"Maurizio Buratti is testing the lenght of the field so it doesn't create issues with email sending <emailtesting@emailtest-dragontest2.brainstorm.co.uk>" parameters: nil];
+  hdr = [GSMimeHeader headerWithName: @"Subject"
+    value: @"Someone is testing the length of the field so it doesn't create issues with email sending <emailtesting@emailtest-dragontest2.brainstorm.co.uk>" parameters: nil];
   data = [hdr rawMimeData];
-  PASS_EQUAL([data description], @"<46726f6d 3a204d61 7572697a 696f2042 75726174 74692069 73207465 7374696e 67207468 65206c65 6e676874 206f6620 74686520 6669656c 6420736f 20697420 646f6573 6e27740d 0a206372 65617465 20697373 75657320 77697468 20656d61 696c2073 656e6469 6e670d0a 203c656d 61696c74 65737469 6e674065 6d61696c 74657374 2d647261 676f6e74 65737432 2e627261 696e7374 6f726d2e 636f2e75 6b3e0d0a>", "encode long header ok");
+  PASS_EQUAL([data description], @"<5375626a 6563743a 20536f6d 656f6e65 20697320 74657374 696e6720 74686520 6c656e67 7468206f 66207468 65206669 656c6420 736f2069 7420646f 65736e27 74206372 65617465 0d0a2069 73737565 73207769 74682065 6d61696c 2073656e 64696e67 0d0a203c 656d6169 6c746573 74696e67 40656d61 696c7465 73742d64 7261676f 6e746573 74322e62 7261696e 73746f72 6d2e636f 2e756b3e 0d0a>",
+    "encode long header ok")
 
   data = [NSData dataWithBytes: "DQ==" length: 4];
   PASS_EQUAL([GSMimeDocument decodeBase64: data], cr,
@@ -313,6 +314,7 @@ int main()
   data = [doc rawMimeData];
   idoc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "encode/parse cycle OK for special character doc")
+  [data writeToFile: @"xxx" atomically: NO];
 
   LEAVE_POOL
   return 0;

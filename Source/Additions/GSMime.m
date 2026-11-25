@@ -96,6 +96,7 @@
 #import	"Foundation/NSNotification.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSScanner.h"
+#import	"Foundation/NSSet.h"
 #import	"Foundation/NSStream.h"
 #import	"Foundation/NSTimer.h"
 #import	"Foundation/NSUserDefaults.h"
@@ -112,6 +113,7 @@
 
 #import "../GSPrivate.h"
 
+static	NSCharacterSet	*crlf = nil;
 static	NSCharacterSet	*spaceOrTab = nil;
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
@@ -130,6 +132,8 @@ static NSString         *CteBinary = @"binary";
 static NSString         *CteContentType = @"content-type";
 static NSString         *CteQuotedPrintable = @"quoted-printable";
 static NSString         *CteXuuencode = @"x-uuencode";
+
+static NSSet		*addressHeaders = nil;
 
 typedef id (*oaiIMP)(id, SEL, NSUInteger);
 typedef BOOL (*boolIMP)(id, SEL, id);
@@ -931,6 +935,8 @@ wordData(NSString *word, BOOL *encoded)
   rfc2045Specials = [m copy];
   [[NSObject leakAt: &rfc2045Specials] release];
   [m release];
+  crlf = [NSCharacterSet characterSetWithCharactersInString: @"\r\n"];
+  [NSObject leakAt: &crlf];
   spaceOrTab = [NSCharacterSet characterSetWithCharactersInString: @" \t"];
   [NSObject leakAt: &spaceOrTab];
   whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
@@ -948,6 +954,21 @@ wordData(NSString *word, BOOL *encoded)
     {
       NSStringClass = [NSString class];
     }
+
+  addressHeaders = [[NSSet alloc] initWithObjects:
+    @"bcc",
+    @"cc",
+    @"from",
+    @"reply-to",
+    @"resent-bcc",
+    @"resent-cc",
+    @"resent-from",
+    @"resent-sender",
+    @"resent-to",
+    @"return-path",
+    @"sender",
+    @"to",
+    nil];
 }
 
 /**
@@ -3025,6 +3046,13 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
                                     length: src - beg
                                   encoding: _defaultEncoding];
                     }
+                  if (nil == s && _defaultEncoding != NSUTF8StringEncoding)
+                    {
+                      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+                      s = [s initWithBytes: beg
+                                    length: src - beg
+                                  encoding: NSUTF8StringEncoding];
+                    }
                 }
               if (nil == s)
                 {
@@ -4196,7 +4224,7 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 static NSUInteger
 appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
-  NSString *str, BOOL *ok)
+  NSString *str, BOOL utf8Allowed, BOOL *ok)
 {
   NSUInteger    pos = 0;
   BOOL          hadEncodedWord = NO;
@@ -4295,28 +4323,43 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   else
     {
       NSData            *d;
-      NSString          *cset = selectCharacterSet(str, &d);
-      const uint8_t     *ptr = (const uint8_t*)[d bytes];
-      NSUInteger        len = [d length];
+      NSString          *cset;
+      const uint8_t     *ptr;
+      NSUInteger        len;
       BOOL              utf8 = NO;
 
-      if ([cset isEqualToString: @"utf-8"])
-        {
-          utf8 = YES;
-        }
-      else if ([cset isEqualToString: @"us-ascii"])
+      if (utf8Allowed)
+	{
+	  /* Newer RFCs permit UTF8 text in some headers.
+	   */
+	  cset = nil;
+	  d = [str dataUsingEncoding: NSUTF8StringEncoding];
+	}
+      else
+	{
+	  cset = selectCharacterSet(str, &d);
+	}
+      ptr = (const uint8_t*)[d bytes];
+      len = [d length];
+
+      if (utf8Allowed || [cset isEqualToString: @"us-ascii"])
         {
 	  NSUInteger	i;
 
 	  /* Check for characters which are not legal in a header.
+	   * If utf8 is allowed then no check is needed because we have
+	   * already filtered out CR and LF.
 	   */
-	  for (i = 0; i < len; i++)
+	  if (NO == utf8Allowed)
 	    {
-	      uint8_t	c = ptr[i];
-
-	      if ((c < ' ' && c != '\t') || c > 126)
+	      for (i = 0; i < len; i++)
 		{
-		  break;
+		  uint8_t	c = ptr[i];
+
+		  if ((c < ' ' && c != '\t') || c > 126)
+		    {
+		      break;
+		    }
 		}
 	    }
 
@@ -4381,6 +4424,10 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                     }
                 }
             }
+        }
+      else if ([cset isEqualToString: @"utf-8"])
+        {
+          utf8 = YES;
         }
 
       /* We get here to use encoded words, either because the text to be
@@ -4500,7 +4547,7 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                        fold: (NSUInteger)fold
                          ok: (BOOL*)ok
 {
-  return appendHeaderString(m, offset, fold, str, ok);
+  return appendHeaderString(m, offset, fold, str, NO, ok);
 }
 */
 
@@ -4544,12 +4591,16 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                                 to: (NSMutableData*)md
 {
   NSEnumerator	*e = [params keyEnumerator];
+  NSString	*str;
   NSString	*k;
   NSString	*n;
   NSData	*d;
   NSUInteger	offset = 0;
   BOOL		conv = YES;
   BOOL          ok = YES;
+  BOOL		utf8;
+  NSUInteger	len;
+  NSRange	r;
 
   n = [self namePreservingCase: preserve];
   d = [n dataUsingEncoding: NSASCIIStringEncoding];
@@ -4612,12 +4663,79 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   offset = appendBytes(md, offset, fold, ":", 1);
   offset = appendBytes(md, offset, fold, " ", 1);
-  offset = appendHeaderString(md, offset, fold, value, &ok);
-  if (ok == NO)
+
+  /* We need to output the value.  The way we do this *should* depend on the
+   * type of header.  In an ideal world we might turn the header value into
+   * an array of strings such that we are allowed either a space or a line
+   * wrap between each word, and could then append a string (with any needed
+   * encoded words added) at a time.
+   * TODO
+   */
+
+  /* Some headers now use utf-8 values rather than ascii.  Those will generally
+   * not need to contain encoded words except to support CRLF embedded in the
+   * header value.
+   */
+  utf8 = [addressHeaders member: [self name]] ? YES : NO;
+  str = value;
+  len = [str length];
+  r = [str rangeOfCharacterFromSet: crlf
+			   options: NSLiteralSearch
+			     range: NSMakeRange(0, len)];
+  while (r.length > 0)
     {
-      NSDebugMLLog(@"GSMime",
-	@"Value for '%@' too long for folding at %"PRIuPTR" in header",
-	n, fold);
+      NSUInteger	pos;
+      NSString		*sub;
+
+      if (r.location > 0)
+	{
+	  /* Output the leading substring before the encoded word.
+	   */
+	  sub = [str substringToIndex: r.location];
+	  offset = appendHeaderString(md, offset, fold, sub, utf8, &ok);
+	  if (ok == NO)
+	    {
+	      NSDebugMLLog(@"GSMime",
+		@"Value for '%@' too long for folding at %"PRIuPTR" in header",
+		n, fold);
+	    }
+	}
+
+      /* Find the length of the sequence of CR and LF characters and output
+       * them as one unit so they will form an encoded word.
+       */
+      while ((pos = NSMaxRange(r)) < len
+	&& [crlf characterIsMember: [str characterAtIndex: pos]])
+	{
+	  r.length++;
+	}
+      sub = [str substringWithRange: r];
+      offset = appendHeaderString(md, offset, fold, sub, NO, &ok);
+      if (ok == NO)
+	{
+	  NSDebugMLLog(@"GSMime",
+	    @"Value for '%@' too long for folding at %"PRIuPTR" in header",
+	    n, fold);
+	}
+
+      /* Get the remainder of the value and see if it contaiins any more
+       * CR and LF sequences.
+       */
+      str = [str substringFromIndex: pos];
+      len = [str length];
+      r = [str rangeOfCharacterFromSet: crlf
+			       options: NSLiteralSearch
+				 range: NSMakeRange(0, len)];
+    }
+  if (len > 0)
+    {
+      offset = appendHeaderString(md, offset, fold, str, utf8, &ok);
+      if (ok == NO)
+	{
+	  NSDebugMLLog(@"GSMime",
+	    @"Value for '%@' too long for folding at %"PRIuPTR" in header",
+	    n, fold);
+	}
     }
 
   while ((k = [e nextObject]) != nil)
@@ -4652,7 +4770,7 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
           offset = appendBytes(md, offset, fold, " ", 1);
         }
-      offset = appendHeaderString(md, offset, fold, k, &ok);
+      offset = appendHeaderString(md, offset, fold, k, NO, &ok);
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",
@@ -4672,7 +4790,7 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           [md appendBytes: "\r\n\t" length: 3];
           offset = 1;
         }
-      offset = appendHeaderString(md, offset, fold, v, &ok);
+      offset = appendHeaderString(md, offset, fold, v, NO, &ok);
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",
