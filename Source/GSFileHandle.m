@@ -1935,7 +1935,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (isStandardFile)
     {
-      (void)sync();
+      (void)fsync(descriptor);
     }
 }
 
