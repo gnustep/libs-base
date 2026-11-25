@@ -4350,7 +4350,11 @@ appendHeaderString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	   * If utf8 is allowed then no check is needed because we have
 	   * already filtered out CR and LF.
 	   */
-	  if (NO == utf8Allowed)
+	  if (utf8Allowed)
+	    {
+	      i = len;
+	    }
+	  else
 	    {
 	      for (i = 0; i < len; i++)
 		{
