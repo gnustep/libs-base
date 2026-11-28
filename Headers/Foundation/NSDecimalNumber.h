@@ -264,7 +264,7 @@ GS_EXPORT_CLASS
  *  is parsed according to given locale.
  */
 + (NSDecimalNumber*) decimalNumberWithString: (NSString *)numericString 
-				      locale: (id)locale;
+				      locale: (id _Nullable)locale;
 
 /**
  *  Initialize with given value.  Note an NSDecimal may be created using the
@@ -295,7 +295,7 @@ GS_EXPORT_CLASS
  *  is parsed according to given locale.
  */
 - (id) initWithString: (NSString *)numberValue 
-	       locale: (id)locale;
+	       locale: (id _Nullable)locale;
 
 /**
  *  Returns the Objective-C type (<code>@encode(...)</code> compatible) of the
@@ -312,7 +312,7 @@ GS_EXPORT_CLASS
 /**
  *  Returns string version of number formatted according to locale.
  */
-- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
 
 /**
  *  Returns underlying value as a <code>double</code>, which may be an

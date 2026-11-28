@@ -120,7 +120,7 @@ GS_EXPORT_CLASS
  * </deflist>
  */
 + (instancetype) dateWithNaturalLanguageString: (NSString*)string
-                                        locale: (NSDictionary*)locale;
+                                        locale: (id _Nullable)locale;
 #endif
 
 /** Returns an autoreleased instance with the date and time value given
@@ -208,12 +208,12 @@ GS_EXPORT_CLASS
  */
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
-				     locale: (NSDictionary*)l;
+				     locale: (id _Nullable)l;
 
 /** Returns a string representation of the receiver formatted according
  * to the default format string and time zone, but using the given locale.
  */
-- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
 
 /** Returns the earlier of the receiver and otherDate.<br />
  * If the two represent identical date/time values, returns the receiver.

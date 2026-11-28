@@ -1,7 +1,18 @@
+2026-11-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSOrderedSet.h:
+	* Headers/Foundation/NSValue.h:
+	* Source/NSOrderedSet.m:
+	Correct types for ordered set locales and make nullability consistent
+
 2026-11-09 Frederik Seiffert <frederik@algoriddim.com>
 
 	Source/NSProcessInfo.m:
-	Implement -[NSProcessInfo systemUptime] using clock_gettime(CLOCK_BOOTTIME).
+	Implement -[NSProcessInfo systemUptime] using
+	clock_gettime(CLOCK_BOOTTIME).
 	On Android, SELinux denies apps access to /proc/uptime.
 
 2026-11-19 Richard Frith-Macdonald <rfm@gnu.org>

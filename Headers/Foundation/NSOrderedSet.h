@@ -387,12 +387,12 @@ GS_EXPORT_CLASS
 /**
  * Localized description of this NSOrderedSet.
  */
-- (NSString *) descriptionWithLocale: (NSLocale *)locale;
+- (NSString *) descriptionWithLocale: (id _Nullable)locale;
 
 /**
  * Localized description, indented if flag is YES.
  */
-- (NSString *) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag;
+- (NSString *) descriptionWithLocale: (id _Nullable)locale indent: (BOOL)flag;
 
 // Convert to other types
 /**

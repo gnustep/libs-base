@@ -325,7 +325,7 @@ GS_EXPORT_CLASS
  *   <desc>%0.16g</desc>
  * </deflist>
  */
-- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
 
 /**
  * Compares receiver with otherNumber, using C type conversion if necessary,

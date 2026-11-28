@@ -1265,12 +1265,12 @@ static SEL	remSel;
   return [self descriptionWithLocale: nil];
 }
 
-- (NSString *) descriptionWithLocale: (NSLocale *)locale
+- (NSString *) descriptionWithLocale: (id)locale
 {
   return [self descriptionWithLocale: locale indent: NO];
 }
 
-- (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
+- (NSString*) descriptionWithLocale: (id)locale indent: (BOOL)flag
 {
   return [[self array] descriptionWithLocale: locale
                                       indent: flag];

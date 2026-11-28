@@ -47,7 +47,7 @@ GS_EXPORT_CLASS
                  calendarFormat: (NSString*)format;
 + (instancetype) dateWithString: (NSString*)description
                  calendarFormat: (NSString*)format
-                         locale: (NSDictionary*)dictionary;
+                         locale: (id _Nullable)locale;
 + (instancetype) dateWithYear: (NSInteger)year
                         month: (NSUInteger)month
                           day: (NSUInteger)day
@@ -62,7 +62,7 @@ GS_EXPORT_CLASS
                  calendarFormat: (NSString*)format;
 - (instancetype) initWithString: (NSString*)description
                  calendarFormat: (NSString*)fmt
-                         locale: (NSDictionary*)locale;
+                         locale: (id _Nullable)locale;
 - (instancetype) initWithYear: (NSInteger)year
                         month: (NSUInteger)month
                           day: (NSUInteger)day
@@ -105,8 +105,8 @@ GS_EXPORT_CLASS
 - (NSString*) description;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
-				     locale: (NSDictionary*)locale;
-- (NSString*) descriptionWithLocale: (id)locale;
+				     locale: (id _Nullable)locale;
+- (NSString*) descriptionWithLocale: (id _Nullable)locale;
 
 // Getting and Setting Calendar Formats
 - (NSString*) calendarFormat;
