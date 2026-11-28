@@ -44,7 +44,9 @@ notice and this notice are preserved.
           NSMutableArrayClass and GSMutableArrayClass are set
           during NSMutableArray initialization. This prevents
           concurrent first use from returning nil or an abstract
-          NSMutableArray instance.
+          NSMutableArray instance.<br />
+	  Additional improvements were made to array initialisation
+	  and dictionary/collection performance.
         </p>
 
         <p>
@@ -81,9 +83,19 @@ notice and this notice are preserved.
         </p>
 
         <p>
-          <strong>NSData:</strong>
+          <strong>NSData</strong>
           Added a GNUstep additions method for more efficient
           generation of random data.
+        </p>
+
+        <p>
+          <strong>NSDate</strong>
+          Corrected handling of tiny dates on big-endian systems.
+        </p>
+
+        <p>
+	  <strong>NSDateFormatter</strong>
+	  Corrected initialisation of instances when decoding from an archive.
         </p>
 
         <p>
@@ -92,6 +104,32 @@ notice and this notice are preserved.
           in decimal addition, subtraction and multiplication.
           Improved decimal comparison so that insignificant
           trailing zeros do not affect equality.
+        </p>
+
+        <p>
+	  <strong>NSDictionary and GSDictionary</strong>
+	  Improved performance for dictionaries containing small numbers
+	  entries, including optimisations to retrieval of keys and values.
+	  Added method for obtaining objects and keys together with a count.
+        </p>
+
+        <p>
+	  <strong>NSFileHandle</strong>
+	  Fixed -synchronizeFile to use fsync() on the file descriptor
+	  rather than sync(), avoiding the unnecessary synchronisation
+	  of unrelated filesystem changes.<br />
+	  Improved TLS handling for file handles and ensured that shared
+	  standard file handles are created safely when accessed concurrently
+	  from multiple threads.
+        </p>
+
+        <p>
+	  <strong>NSFileManager</strong>
+	  Fixed symbolic-link copying, linking and cross-filesystem moving
+	  so that applying attributes to a recreated symbolic link does not
+	  inadvertently modify the file to which it points.<br />
+	  Fixed -enumeratorAtURL: to return URLs relative to the requested
+	  enumeration location rather than the current working directory.
         </p>
 
         <p>
@@ -161,21 +199,28 @@ notice and this notice are preserved.
         </p>
 
         <p>
+	  <strong>NSMethodSignature</strong>
+	  Improved caching of method signatures. Previously encountered
+	  type encodings can now be retrieved without taking the cache lock
+	  in the common case. Cached signatures are retained for the lifetime
+	  of the process, and the cache is limited in size.
+        </p>
+
+        <p>
+	  <strong>NSNotificationCenter</strong>
+	  Improved concurrent notification delivery by replacing the single
+	  table lock with multiple recursive lock stripes selected according
+	  to notification name. Notifications with different names can now
+	  be posted concurrently.
+        </p>
+
+        <p>
           <strong>NSNumber:</strong>
           Corrected hash calculation so that equal numeric values
           represented by different NSNumber types produce equal
           hashes, as required by the equality contract. Improved
           distribution of hashes for fractional values and
           handling of non-finite values.
-        </p>
-
-        <p>
-          <strong>GSMime:</strong>
-          Corrected MIME header encoding of otherwise illegal
-          characters and removed an initialization dependency
-          between GSMimeParser and GSMimeDocument that could
-          cause deadlocks when the classes were first used
-          concurrently.
         </p>
 
         <p>
@@ -187,6 +232,13 @@ notice and this notice are preserved.
           portable alternative to NSBlockOperation, and delegate
           methods as a portable alternative to block-based
           completion handlers.
+        </p>
+
+        <p>
+	  <strong>NSOrderedSet</strong>
+	  Corrected range and index validation so that invalid indexes
+	  raise NSRangeException. Updated locale-related method declarations
+	  to use the correct parameter types and nullability.
         </p>
 
         <p>
@@ -222,6 +274,8 @@ notice and this notice are preserved.
           environment when no explicit environment is supplied,
           including correct propagation of the environment
           passed to the Android initialization interface.
+	  Implemented -systemUptime using clock_gettime(CLOCK_BOOTTIME)
+	  where other mechanisms are not available.
         </p>
 
         <p>
@@ -255,6 +309,12 @@ notice and this notice are preserved.
         </p>
 
         <p>
+	  <strong>NSSet</strong>
+	  Improved performance for sets containing small numbers of objects,
+	  together with improvements to weak-reference handling.
+        </p>
+
+        <p>
           <strong>NSSortDescriptor:</strong>
           Corrected comparator block ownership by copying
           comparator blocks rather than retaining them. This
@@ -265,9 +325,11 @@ notice and this notice are preserved.
 
         <p>
           <strong>NSStream:</strong>
-          Improved socket stream handling so that a stream
-          does not report space available after the peer has
-          closed the connection on Windows.
+          Improved socket stream handling so that a stream does not report
+	  space available after the peer has closed the connection on Windows.
+	  Improved TLS stream handling, including correct handling of
+	  server-name configuration and certificate verification when
+	  connecting to hosts specified by IP address.
         </p>
 
         <p>
@@ -362,6 +424,34 @@ notice and this notice are preserved.
         </p>
 
         <p>
+          <strong>GSMime:</strong>
+          Corrected MIME header encoding of otherwise illegal
+          characters and removed an initialization dependency
+          between GSMimeParser and GSMimeDocument that could
+          cause deadlocks when the classes were first used
+          concurrently.
+        </p>
+
+        <p>
+	  <strong>GSMinHeap</strong>
+	  Added a min-heap implementation and associated tests.
+	  This is used internally but is available as a GNUstep addition.
+        </p>
+
+        <p>
+	  <strong>GSOperation</strong>
+	  A portable lightweight operation implementation available as a
+	  GNUstep addition to make it easier for Apple developers to write
+	  portable code.
+        </p>
+
+        <p>
+	  <strong>GSXML</strong> Corrected memory management when
+	  applying XSLT stylesheets, fixing a memory leak.
+	  Simplified parts of the implementation and improved tests.
+        </p>
+
+        <p>
           <strong>Tools and documentation:</strong>
           Improved reproducibility of generated documentation
           by supporting SOURCE_DATE_EPOCH and
@@ -370,7 +460,7 @@ notice and this notice are preserved.
           infrastructure.<br />
 	  Improved html output formatting using stylesheets.<br />
 	  Handle Objective-C 2.0 features and common macros for
-	  dealingt with non-portable Apple code.
+	  dealing with non-portable Apple code.
         </p>
 
         <p>

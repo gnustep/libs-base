@@ -3011,13 +3011,18 @@ try:
 		      [self skipToEndOfLine];
 		      return [self parseIdentifier];
 		    }
-		  else if ([val isEqualToString: @"()"])
+		  else if ([val hasPrefix: @"()"])
 		    {
 		      if ([self skipSpaces] < length && buffer[pos] == '(')
 			{
 			  [self skipBlock];	// Skip the attributes
 			  [self skipSpaces];
 			}
+                      if ([val isEqualToString: @"();"]
+                        && pos < length && buffer[pos] == ';')
+                        {
+                          [self skipSpaces];
+                        }
 		      return [self parseIdentifier];
 		    }
 		  return val;	// Got mapped identifier.
@@ -4091,7 +4096,6 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	     */
 	    if (flag)
 	      {
-		[self log: @"interface with bogus line ... we expect methods"];
 		[self skipStatementLine];
 	      }
 	    else

@@ -1452,9 +1452,8 @@ main(int argc, char **argv, char **env)
       if ([defs boolForKey: @"DisableDefaultWords"] == NO)
         {
 	  [wm setObject: @"" forKey: @"BLOCK_SCOPE"];
-	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
-	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
-	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE_NO_ARGS"];
+	  [wm setObject: @"();" forKey: @"DEFINE_BLOCK_TYPE"];
+	  [wm setObject: @"();" forKey: @"DEFINE_BLOCK_TYPE_NO_ARGS"];
 	  [wm setObject: @"" forKey: @"DISPATCH_EXPORT"];
 	  [wm setObject: @"" forKey: @"GS_DECLARE"];
 	  [wm setObject: @"" forKey: @"GS_DEPRECATED"];
