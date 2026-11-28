@@ -808,7 +808,7 @@ otherTime(NSDate* other)
 }
 
 + (instancetype) dateWithNaturalLanguageString: (NSString*)string
-                                        locale: (NSDictionary*)locale
+                                        locale: (id)locale
 {
   NSCharacterSet	*ws;
   NSCharacterSet	*digits;
@@ -1655,7 +1655,7 @@ otherTime(NSDate* other)
 
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
-				     locale: (NSDictionary*)l
+				     locale: (id)l
 {
   // Easiest to just have NSCalendarDate do the work for us
   NSString *s;

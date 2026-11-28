@@ -1008,13 +1008,13 @@ dispatchQueueExecuteOperation(void *context)
   return [(GSDispatchOperationQueueImpl *)internal->queueImpl underlyingQueue];
 }
 #else
-- (void) setUnderlyingQueue: (void*)dispatchQueue
+- (void) setUnderlyingQueue: (dispatch_queue_t)dispatchQueue
 {
   return;
 }
-- (void*) underlyingQueue
+- (dispatch_queue_t) underlyingQueue
 {
-  return NULL;
+  return 0;
 }
 #endif
 

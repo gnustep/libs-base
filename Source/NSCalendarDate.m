@@ -437,7 +437,7 @@ GSPrivateTimeNow(void)
  */
 + (id) dateWithString: (NSString *)description
        calendarFormat: (NSString *)format
-	       locale: (NSDictionary *)dictionary
+	       locale: (id)dictionary
 {
   NSCalendarDate *d = [[self alloc] initWithString: description
 				    calendarFormat: format
@@ -712,7 +712,7 @@ static inline int getDigits(const uint8_t *from, uint8_t *to,
  */
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
-               locale: (NSDictionary*)locale
+               locale: (id)locale
 {
   int		milliseconds = 0;
   int		year = 1;
@@ -2458,7 +2458,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  * recognized.</p>
  */
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
-				     locale: (NSDictionary*)locale
+				     locale: (id)locale
 {
   unichar		tbuf[512];
   NSString		*result;
