@@ -2809,7 +2809,20 @@ static NSLock	*cached_proxies_gate = nil;
 	      datum = alloca (objc_sizeof_type (tmptype));
 	    }
 	  [inv getReturnValue: datum];
-	  [encoder encodeValueOfObjCType: tmptype at: datum];
+	  if (*tmptype == _C_ID && (flags & _F_BYCOPY))
+	    {
+	      [encoder encodeBycopyObject: *(id*)datum];
+	    }
+#ifdef	_F_BYREF
+	  else if (*tmptype == _C_ID && (flags & _F_BYREF))
+	    {
+	      [encoder encodeByrefObject: *(id*)datum];
+	    }
+#endif
+	  else
+	    {
+	      [encoder encodeValueOfObjCType: tmptype at: datum];
+	    }
 	}
 
 
